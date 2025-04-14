@@ -5,6 +5,7 @@ set -eo pipefail
 echo "🚀 Starting local pre-release validation using release.sh..."
 echo "   This script prepares for a release but does NOT publish to PyPI."
 echo "   Publishing is handled by the GitHub Action triggered by a GitHub Release."
+echo "   NOTE: Version bumping and tagging are now handled automatically on every commit by pre-commit hooks."
 
 RELEASE_SCRIPT="./release.sh"
 if [ ! -f "$RELEASE_SCRIPT" ]; then
@@ -32,11 +33,10 @@ else
     echo "✅✅✅ All local validations passed! ✅✅✅"
     echo ""
     echo "➡️ Next Steps to Publish (after initial push is done via first_push.sh):"
-    echo "   1. Ensure the current version is correct. If needed, bump the version using:"
-    echo "      ./bump_version.sh [major|minor|patch]"
-    echo "      (This should create a new commit and tag automatically based on .bumpversion.toml)"
+    echo "   1. Verify the latest commit and its automatically generated tag (e.g., vX.Y.Z) are correct."
+    echo "      (Version bumping and tagging now happen automatically on each commit via pre-commit)."
     echo ""
-    echo "   2. Push the commit and the new tag to GitHub:"
+    echo "   2. Push the latest commit and the new tag to GitHub:"
     echo "      git push origin main --tags"
     echo "      (Replace 'main' if your default branch is different)"
     echo ""
@@ -53,6 +53,7 @@ else
     echo "      - This workflow will build the package again and publish it to PyPI."
     echo ""
     echo "📦 The package will be published to PyPI by the GitHub Action, not by this script."
+    echo "🔒 Ensure GitHub secrets (PYPI_API_TOKEN, OPENROUTER_API_KEY, CODECOV_API_TOKEN) were set up during initial push (see first_push.sh or docs/environment.md)."
 fi
 
 exit $VALIDATION_EXIT_CODE
