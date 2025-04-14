@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title id="head-title">report.html</title>
+      <style type="text/css">body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  /* do not increase min-width as some may use split screens */
+  min-width: 800px;
+  color: #999;
+}
+
+h1 {
+  font-size: 24px;
+  color: black;
+}
+
+h2 {
+  font-size: 16px;
+  color: black;
+}
+
+p {
+  color: black;
+}
+
+a {
+  color: #999;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+#environment td {
+  padding: 5px;
+  border: 1px solid #e6e6e6;
+  vertical-align: top;
+}
+#environment tr:nth-child(odd) {
+  background-color: #f6f6f6;
+}
+#environment ul {
+  margin: 0;
+  padding: 0 20px;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+span.passed,
+.passed .col-result {
+  color: green;
+}
+
+span.skipped,
+span.xfailed,
+span.rerun,
+.skipped .col-result,
+.xfailed .col-result,
+.rerun .col-result {
+  color: orange;
+}
+
+span.error,
+span.failed,
+span.xpassed,
+.error .col-result,
+.failed .col-result,
+.xpassed .col-result {
+  color: red;
+}
+
+.col-links__extra {
+  margin-right: 3px;
+}
+
+/******************************
+ * RESULTS TABLE
+ *
+ * 1. Table Layout
+ * 2. Extra
+ * 3. Sorting items
+ *
+ ******************************/
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+#results-table {
+  border: 1px solid #e6e6e6;
+  color: #999;
+  font-size: 12px;
+  width: 100%;
+}
+#results-table th,
+#results-table td {
+  padding: 5px;
+  border: 1px solid #e6e6e6;
+  text-align: left;
+}
+#results-table th {
+  font-weight: bold;
+}
+
+/*------------------
+ * 2. Extra
+ *------------------*/
+.logwrapper {
+  max-height: 230px;
+  overflow-y: scroll;
+  background-color: #e6e6e6;
+}
+.logwrapper.expanded {
+  max-height: none;
+}
+.logwrapper.expanded .logexpander:after {
+  content: "collapse [-]";
+}
+.logwrapper .logexpander {
+  z-index: 1;
+  position: sticky;
+  top: 10px;
+  width: max-content;
+  border: 1px solid;
+  border-radius: 3px;
+  padding: 5px 7px;
+  margin: 10px 0 10px calc(100% - 80px);
+  cursor: pointer;
+  background-color: #e6e6e6;
+}
+.logwrapper .logexpander:after {
+  content: "expand [+]";
+}
+.logwrapper .logexpander:hover {
+  color: #000;
+  border-color: #000;
+}
+.logwrapper .log {
+  min-height: 40px;
+  position: relative;
+  top: -50px;
+  height: calc(100% + 50px);
+  border: 1px solid #e6e6e6;
+  color: black;
+  display: block;
+  font-family: "Courier New", Courier, monospace;
+  padding: 5px;
+  padding-right: 80px;
+  white-space: pre-wrap;
+}
+
+div.media {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin: 0 5px;
+  overflow: hidden;
+  width: 320px;
+}
+
+.media-container {
+  display: grid;
+  grid-template-columns: 25px auto 25px;
+  align-items: center;
+  flex: 1 1;
+  overflow: hidden;
+  height: 200px;
+}
+
+.media-container--fullscreen {
+  grid-template-columns: 0px auto 0px;
+}
+
+.media-container__nav--right,
+.media-container__nav--left {
+  text-align: center;
+  cursor: pointer;
+}
+
+.media-container__viewport {
+  cursor: pointer;
+  text-align: center;
+  height: inherit;
+}
+.media-container__viewport img,
+.media-container__viewport video {
+  object-fit: cover;
+  width: 100%;
+  max-height: 100%;
+}
+
+.media__name,
+.media__counter {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  flex: 0 0 25px;
+  align-items: center;
+}
+
+.collapsible td:not(.col-links) {
+  cursor: pointer;
+}
+.collapsible td:not(.col-links):hover::after {
+  color: #bbb;
+  font-style: italic;
+  cursor: pointer;
+}
+
+.col-result {
+  width: 130px;
+}
+.col-result:hover::after {
+  content: " (hide details)";
+}
+
+.col-result.collapsed:hover::after {
+  content: " (show details)";
+}
+
+#environment-header h2:hover::after {
+  content: " (hide details)";
+  color: #bbb;
+  font-style: italic;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+#environment-header.collapsed h2:hover::after {
+  content: " (show details)";
+  color: #bbb;
+  font-style: italic;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+  cursor: pointer;
+}
+.sortable.desc:after {
+  content: " ";
+  position: relative;
+  left: 5px;
+  bottom: -12.5px;
+  border: 10px solid #4caf50;
+  border-bottom: 0;
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+.sortable.asc:after {
+  content: " ";
+  position: relative;
+  left: 5px;
+  bottom: 12.5px;
+  border: 10px solid #4caf50;
+  border-top: 0;
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+
+.hidden, .summary__reload__button.hidden {
+  display: none;
+}
+
+.summary__data {
+  flex: 0 0 550px;
+}
+.summary__reload {
+  flex: 1 1;
+  display: flex;
+  justify-content: center;
+}
+.summary__reload__button {
+  flex: 0 0 300px;
+  display: flex;
+  color: white;
+  font-weight: bold;
+  background-color: #4caf50;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.summary__reload__button:hover {
+  background-color: #46a049;
+}
+.summary__spacer {
+  flex: 0 0 550px;
+}
+
+.controls {
+  display: flex;
+  justify-content: space-between;
+}
+
+.filters,
+.collapse {
+  display: flex;
+  align-items: center;
+}
+.filters button,
+.collapse button {
+  color: #999;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.filters button:hover,
+.collapse button:hover {
+  color: #ccc;
+}
+
+.filter__label {
+  margin-right: 10px;
+}
+
+      </style>
+    
+  </head>
+  <body>
+    <h1 id="title">report.html</h1>
+    <p>Report generated on 15-Apr-2025 at 01:02:16 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a>
+        v4.1.1</p>
+    <div id="environment-header">
+      <h2>Environment</h2>
+    </div>
+    <table id="environment"></table>
+    <!-- TEMPLATES -->
+      <template id="template_environment_row">
+      <tr>
+        <td></td>
+        <td></td>
+      </tr>
+    </template>
+    <template id="template_results-table__body--empty">
+      <tbody class="results-table-row">
+        <tr id="not-found-message">
+          <td colspan="4">No results found. Check the filters.</th>
+        </tr>
+    </template>
+    <template id="template_results-table__tbody">
+      <tbody class="results-table-row">
+        <tr class="collapsible">
+        </tr>
+        <tr class="extras-row">
+          <td class="extra" colspan="4">
+            <div class="extraHTML"></div>
+            <div class="media">
+              <div class="media-container">
+                  <div class="media-container__nav--left"><</div>
+                  <div class="media-container__viewport">
+                    <img src="" />
+                    <video controls>
+                      <source src="" type="video/mp4">
+                    </video>
+                  </div>
+                  <div class="media-container__nav--right">></div>
+                </div>
+                <div class="media__name"></div>
+                <div class="media__counter"></div>
+            </div>
+            <div class="logwrapper">
+              <div class="logexpander"></div>
+              <div class="log"></div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </template>
+    <!-- END TEMPLATES -->
+    <div class="summary">
+      <div class="summary__data">
+        <h2>Summary</h2>
+        <div class="additional-summary prefix">
+        </div>
+        <p class="run-count">62 tests took 00:02:32.</p>
+        <p class="filter">(Un)check the boxes to filter the results.</p>
+        <div class="summary__reload">
+          <div class="summary__reload__button hidden" onclick="location.reload()">
+            <div>There are still tests running. <br />Reload this page to get the latest results!</div>
+          </div>
+        </div>
+        <div class="summary__spacer"></div>
+        <div class="controls">
+          <div class="filters">
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="failed" disabled/>
+            <span class="failed">0 Failed,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="passed" />
+            <span class="passed">62 Passed,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="skipped" disabled/>
+            <span class="skipped">0 Skipped,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="xfailed" disabled/>
+            <span class="xfailed">0 Expected failures,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="xpassed" disabled/>
+            <span class="xpassed">0 Unexpected passes,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="error" disabled/>
+            <span class="error">0 Errors,</span>
+            <input checked="true" class="filter" name="filter_checkbox" type="checkbox" data-test-result="rerun" disabled/>
+            <span class="rerun">0 Reruns</span>
+          </div>
+          <div class="collapse">
+            <button id="show_all_details">Show all details</button>&nbsp;/&nbsp;<button id="hide_all_details">Hide all details</button>
+          </div>
+        </div>
+      </div>
+      <div class="additional-summary summary">
+      </div>
+      <div class="additional-summary postfix">
+      </div>
+    </div>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable" data-column-type="result">Result</th>
+          <th class="sortable" data-column-type="testId">Test</th>
+          <th class="sortable" data-column-type="duration">Duration</th>
+          <th>Links</th>
+        </tr>
+      </thead>
+    </table>
+  </body>
+  <footer>
+    <div id="data-container" data-jsonblob="{&#34;environment&#34;: {&#34;Python&#34;: &#34;3.13.2&#34;, &#34;Platform&#34;: &#34;macOS-15.3.2-arm64-arm-64bit-Mach-O&#34;, &#34;Packages&#34;: {&#34;pytest&#34;: &#34;8.3.5&#34;, &#34;pluggy&#34;: &#34;1.5.0&#34;}, &#34;Plugins&#34;: {&#34;anyio&#34;: &#34;4.9.0&#34;, &#34;html&#34;: &#34;4.1.1&#34;, &#34;metadata&#34;: &#34;3.1.1&#34;, &#34;timeout&#34;: &#34;2.3.1&#34;, &#34;mock&#34;: &#34;3.14.0&#34;, &#34;cov&#34;: &#34;6.1.1&#34;, &#34;requests-mock&#34;: &#34;1.12.1&#34;}}, &#34;tests&#34;: {&#34;tests/test_cli.py::test_cli_version&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_version&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_version&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_cli.py::test_cli_help&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_help&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_help&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_cli.py::test_cli_missing_filepath&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_missing_filepath&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_missing_filepath&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_cli.py::test_cli_nonexistent_filepath&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_nonexistent_filepath&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_nonexistent_filepath&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_cli.py::test_cli_single_file_success&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_single_file_success&#34;, &#34;duration&#34;: &#34;22 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_single_file_success&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;22 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:778 CLI Arguments: filepath=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_success0/input.txt, batch=False, max_chars=6000, split_mode=PARAGRAPHS, output=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_success0/output.txt, verbose=False, double_translate=False\nINFO     enchant_cli.enchant_cli:enchant_cli.py:823 Starting translation for single file: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_success0/input.txt\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:222  -&amp;gt; import_book_from_text()\nDEBUG    enchant_cli.enchant_cli:utils.py:410 \nDetected encoding: utf-8\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:459 Created final chapter 1 with 6 chars, 1 paras.\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:461 \n -&amp;gt; Splitting COMPLETE.\n  Total paragraphs processed: 1\n  Total chapters created: 1\n\nINFO     enchant_cli.enchant_cli:enchant_cli.py:334 Successfully imported book &amp;#x27;input&amp;#x27; (b896052a-f24d-4a0d-9663-89babef82996) with 1 chapters.\nINFO     enchant_cli.enchant_cli:enchant_cli.py:837 Book imported successfully. Book ID: b896052a-f24d-4a0d-9663-89babef82996\nINFO     enchant_cli.enchant_cli:enchant_cli.py:847 Output will be saved to: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_success0/output.txt\nINFO     enchant_cli.enchant_cli:enchant_cli.py:644 TRANSLATING CHAPTER 1 of 1 (Book: input)\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:657 Chapter 1 cost: $0.001000\nINFO     enchant_cli.enchant_cli:enchant_cli.py:689 Combined translated book saved to /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_success0/output.txt\nINFO     enchant_cli.enchant_cli:enchant_cli.py:857 Translated book saved successfully.\n\n&#34;}], &#34;tests/test_cli.py::test_cli_single_file_default_output&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_single_file_default_output&#34;, &#34;duration&#34;: &#34;12 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_single_file_default_output&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;12 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:778 CLI Arguments: filepath=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_default_o0/test.txt, batch=False, max_chars=6000, split_mode=PARAGRAPHS, output=None, verbose=False, double_translate=False\nINFO     enchant_cli.enchant_cli:enchant_cli.py:823 Starting translation for single file: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_default_o0/test.txt\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:222  -&amp;gt; import_book_from_text()\nDEBUG    enchant_cli.enchant_cli:utils.py:410 \nDetected encoding: None\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:459 Created final chapter 1 with 4 chars, 1 paras.\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:461 \n -&amp;gt; Splitting COMPLETE.\n  Total paragraphs processed: 1\n  Total chapters created: 1\n\nINFO     enchant_cli.enchant_cli:enchant_cli.py:334 Successfully imported book &amp;#x27;test&amp;#x27; (fe2b727e-b6f0-4fa0-a117-1ca1c4f05fde) with 1 chapters.\nINFO     enchant_cli.enchant_cli:enchant_cli.py:837 Book imported successfully. Book ID: fe2b727e-b6f0-4fa0-a117-1ca1c4f05fde\nINFO     enchant_cli.enchant_cli:enchant_cli.py:847 Output will be saved to: /Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/enchant_cli/translated_test.txt\nINFO     enchant_cli.enchant_cli:enchant_cli.py:644 TRANSLATING CHAPTER 1 of 1 (Book: test)\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:657 Chapter 1 cost: $0.001000\nINFO     enchant_cli.enchant_cli:enchant_cli.py:689 Combined translated book saved to /Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/enchant_cli/translated_test.txt\nINFO     enchant_cli.enchant_cli:enchant_cli.py:857 Translated book saved successfully.\n\n&#34;}], &#34;tests/test_cli.py::test_cli_single_file_verbose&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_single_file_verbose&#34;, &#34;duration&#34;: &#34;12 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_single_file_verbose&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;12 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:778 CLI Arguments: filepath=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_verbose0/input_v.txt, batch=False, max_chars=6000, split_mode=PARAGRAPHS, output=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_verbose0/output_v.txt, verbose=True, double_translate=False\nINFO     enchant_cli.enchant_cli:enchant_cli.py:823 Starting translation for single file: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_verbose0/input_v.txt\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:222  -&amp;gt; import_book_from_text()\nDEBUG    enchant_cli.enchant_cli:utils.py:410 \nDetected encoding: None\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:459 Created final chapter 1 with 4 chars, 1 paras.\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:461 \n -&amp;gt; Splitting COMPLETE.\n  Total paragraphs processed: 1\n  Total chapters created: 1\n\nINFO     enchant_cli.enchant_cli:enchant_cli.py:334 Successfully imported book &amp;#x27;input_v&amp;#x27; (466c99ed-be4c-4454-bb48-d1d76619362d) with 1 chapters.\nINFO     enchant_cli.enchant_cli:enchant_cli.py:837 Book imported successfully. Book ID: 466c99ed-be4c-4454-bb48-d1d76619362d\nINFO     enchant_cli.enchant_cli:enchant_cli.py:847 Output will be saved to: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_verbose0/output_v.txt\nINFO     enchant_cli.enchant_cli:enchant_cli.py:644 TRANSLATING CHAPTER 1 of 1 (Book: input_v)\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:657 Chapter 1 cost: $0.001000\nINFO     enchant_cli.enchant_cli:enchant_cli.py:689 Combined translated book saved to /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_verbose0/output_v.txt\nINFO     enchant_cli.enchant_cli:enchant_cli.py:857 Translated book saved successfully.\n\n&#34;}], &#34;tests/test_cli.py::test_cli_single_file_double_translate&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_single_file_double_translate&#34;, &#34;duration&#34;: &#34;12 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_single_file_double_translate&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;12 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:778 CLI Arguments: filepath=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_double_tr0/input_d.txt, batch=False, max_chars=6000, split_mode=PARAGRAPHS, output=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_double_tr0/output_d.txt, verbose=False, double_translate=True\nINFO     enchant_cli.enchant_cli:enchant_cli.py:823 Starting translation for single file: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_double_tr0/input_d.txt\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:222  -&amp;gt; import_book_from_text()\nDEBUG    enchant_cli.enchant_cli:utils.py:410 \nDetected encoding: None\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:459 Created final chapter 1 with 4 chars, 1 paras.\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:461 \n -&amp;gt; Splitting COMPLETE.\n  Total paragraphs processed: 1\n  Total chapters created: 1\n\nINFO     enchant_cli.enchant_cli:enchant_cli.py:334 Successfully imported book &amp;#x27;input_d&amp;#x27; (0e626dbc-7fd5-4cf3-89e5-a0fa15a7d033) with 1 chapters.\nINFO     enchant_cli.enchant_cli:enchant_cli.py:837 Book imported successfully. Book ID: 0e626dbc-7fd5-4cf3-89e5-a0fa15a7d033\nINFO     enchant_cli.enchant_cli:enchant_cli.py:847 Output will be saved to: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_double_tr0/output_d.txt\nINFO     enchant_cli.enchant_cli:enchant_cli.py:644 TRANSLATING CHAPTER 1 of 1 (Book: input_d)\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:657 Chapter 1 cost: $0.001000\nINFO     enchant_cli.enchant_cli:enchant_cli.py:689 Combined translated book saved to /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_double_tr0/output_d.txt\nINFO     enchant_cli.enchant_cli:enchant_cli.py:857 Translated book saved successfully.\n\n&#34;}], &#34;tests/test_cli.py::test_cli_single_file_max_chars&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_single_file_max_chars&#34;, &#34;duration&#34;: &#34;13 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_single_file_max_chars&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;13 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:778 CLI Arguments: filepath=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_max_chars0/input_mc.txt, batch=False, max_chars=100, split_mode=PARAGRAPHS, output=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_max_chars0/output_mc.txt, verbose=True, double_translate=False\nINFO     enchant_cli.enchant_cli:enchant_cli.py:823 Starting translation for single file: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_max_chars0/input_mc.txt\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:222  -&amp;gt; import_book_from_text()\nDEBUG    enchant_cli.enchant_cli:utils.py:410 \nDetected encoding: utf-8\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:443 Created chapter 1 with 96 chars, 4 paras.\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:443 Created chapter 2 with 96 chars, 4 paras.\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:459 Created final chapter 3 with 48 chars, 2 paras.\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:461 \n -&amp;gt; Splitting COMPLETE.\n  Total paragraphs processed: 10\n  Total chapters created: 3\n\nINFO     enchant_cli.enchant_cli:enchant_cli.py:334 Successfully imported book &amp;#x27;input_mc&amp;#x27; (bf8dc6cb-8be3-425f-9cc8-7b56605fee2d) with 3 chapters.\nINFO     enchant_cli.enchant_cli:enchant_cli.py:837 Book imported successfully. Book ID: bf8dc6cb-8be3-425f-9cc8-7b56605fee2d\nINFO     enchant_cli.enchant_cli:enchant_cli.py:847 Output will be saved to: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_max_chars0/output_mc.txt\nINFO     enchant_cli.enchant_cli:enchant_cli.py:644 TRANSLATING CHAPTER 1 of 3 (Book: input_mc)\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:657 Chapter 1 cost: $0.001000\nINFO     enchant_cli.enchant_cli:enchant_cli.py:644 TRANSLATING CHAPTER 2 of 3 (Book: input_mc)\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:657 Chapter 2 cost: $0.001000\nINFO     enchant_cli.enchant_cli:enchant_cli.py:644 TRANSLATING CHAPTER 3 of 3 (Book: input_mc)\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:657 Chapter 3 cost: $0.001000\nINFO     enchant_cli.enchant_cli:enchant_cli.py:689 Combined translated book saved to /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_max_chars0/output_mc.txt\nINFO     enchant_cli.enchant_cli:enchant_cli.py:857 Translated book saved successfully.\n\n&#34;}], &#34;tests/test_cli.py::test_cli_single_file_split_mode&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_single_file_split_mode&#34;, &#34;duration&#34;: &#34;13 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_single_file_split_mode&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;13 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:778 CLI Arguments: filepath=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_split_mod0/input_sm.txt, batch=False, max_chars=6000, split_mode=SPLIT_POINTS, output=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_split_mod0/output_sm.txt, verbose=True, double_translate=False\nINFO     enchant_cli.enchant_cli:enchant_cli.py:823 Starting translation for single file: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_split_mod0/input_sm.txt\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:222  -&amp;gt; import_book_from_text()\nDEBUG    enchant_cli.enchant_cli:utils.py:410 \nDetected encoding: utf-8\nINFO     enchant_cli.enchant_cli:enchant_cli.py:334 Successfully imported book &amp;#x27;input_sm&amp;#x27; (6ec8e98f-dc84-400f-a905-c415d5499e87) with 1 chapters.\nINFO     enchant_cli.enchant_cli:enchant_cli.py:837 Book imported successfully. Book ID: 6ec8e98f-dc84-400f-a905-c415d5499e87\nINFO     enchant_cli.enchant_cli:enchant_cli.py:847 Output will be saved to: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_split_mod0/output_sm.txt\nINFO     enchant_cli.enchant_cli:enchant_cli.py:644 TRANSLATING CHAPTER 1 of 1 (Book: input_sm)\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:657 Chapter 1 cost: $0.001000\nINFO     enchant_cli.enchant_cli:enchant_cli.py:689 Combined translated book saved to /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_file_split_mod0/output_sm.txt\nINFO     enchant_cli.enchant_cli:enchant_cli.py:857 Translated book saved successfully.\n\n&#34;}], &#34;tests/test_cli.py::test_cli_batch_success&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_batch_success&#34;, &#34;duration&#34;: &#34;12 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_batch_success&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;12 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:778 CLI Arguments: filepath=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_success0/batch_in, batch=True, max_chars=6000, split_mode=PARAGRAPHS, output=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_success0/batch_out, verbose=False, double_translate=False\nINFO     enchant_cli.enchant_cli:enchant_cli.py:346 Found 2 .txt files in &amp;#x27;/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_success0/batch_in&amp;#x27;. Starting batch processing.\nINFO     enchant_cli.enchant_cli:enchant_cli.py:355 Output directory set to: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_success0/batch_out\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:222  -&amp;gt; import_book_from_text()\nDEBUG    enchant_cli.enchant_cli:utils.py:410 \nDetected encoding: utf-8\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:459 Created final chapter 1 with 5 chars, 1 paras.\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:461 \n -&amp;gt; Splitting COMPLETE.\n  Total paragraphs processed: 1\n  Total chapters created: 1\n\nINFO     enchant_cli.enchant_cli:enchant_cli.py:334 Successfully imported book &amp;#x27;file1&amp;#x27; (b786d633-458f-4179-a951-e8fd2e87c350) with 1 chapters.\nINFO     enchant_cli.enchant_cli:enchant_cli.py:644 TRANSLATING CHAPTER 1 of 1 (Book: file1)\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:657 Chapter 1 cost: $0.001000\nINFO     enchant_cli.enchant_cli:enchant_cli.py:689 Combined translated book saved to /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_success0/batch_out/file1 by Unknown Author.txt\nINFO     enchant_cli.enchant_cli:enchant_cli.py:405 Successfully processed file1.txt. Cost: $0.001000\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:222  -&amp;gt; import_book_from_text()\nDEBUG    enchant_cli.enchant_cli:utils.py:410 \nDetected encoding: utf-8\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:459 Created final chapter 1 with 5 chars, 1 paras.\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:461 \n -&amp;gt; Splitting COMPLETE.\n  Total paragraphs processed: 1\n  Total chapters created: 1\n\nINFO     enchant_cli.enchant_cli:enchant_cli.py:334 Successfully imported book &amp;#x27;file2_\u6d4b\u8bd5&amp;#x27; (7d613bc6-0bd3-491d-a696-5d3fed6aba87) with 1 chapters.\nINFO     enchant_cli.enchant_cli:enchant_cli.py:644 TRANSLATING CHAPTER 1 of 1 (Book: file2_\u6d4b\u8bd5)\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:657 Chapter 1 cost: $0.001000\nINFO     enchant_cli.enchant_cli:enchant_cli.py:689 Combined translated book saved to /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_success0/batch_out/file2_\u6d4b\u8bd5 by Unknown Author.txt\nINFO     enchant_cli.enchant_cli:enchant_cli.py:405 Successfully processed file2_\u6d4b\u8bd5.txt. Cost: $0.001000\n\n&#34;}], &#34;tests/test_cli.py::test_cli_batch_default_output_dir&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_batch_default_output_dir&#34;, &#34;duration&#34;: &#34;11 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_batch_default_output_dir&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;11 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:778 CLI Arguments: filepath=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_default_output_0/batch_in_default, batch=True, max_chars=6000, split_mode=PARAGRAPHS, output=None, verbose=False, double_translate=False\nINFO     enchant_cli.enchant_cli:enchant_cli.py:346 Found 1 .txt files in &amp;#x27;/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_default_output_0/batch_in_default&amp;#x27;. Starting batch processing.\nINFO     enchant_cli.enchant_cli:enchant_cli.py:355 Output directory set to: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_default_output_0/batch_in_default/translated\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:222  -&amp;gt; import_book_from_text()\nDEBUG    enchant_cli.enchant_cli:utils.py:410 \nDetected encoding: None\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:459 Created final chapter 1 with 5 chars, 1 paras.\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:461 \n -&amp;gt; Splitting COMPLETE.\n  Total paragraphs processed: 1\n  Total chapters created: 1\n\nINFO     enchant_cli.enchant_cli:enchant_cli.py:334 Successfully imported book &amp;#x27;file_a&amp;#x27; (6a922d9e-c253-41f7-86a0-2c1dab4fe892) with 1 chapters.\nINFO     enchant_cli.enchant_cli:enchant_cli.py:644 TRANSLATING CHAPTER 1 of 1 (Book: file_a)\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:657 Chapter 1 cost: $0.001000\nINFO     enchant_cli.enchant_cli:enchant_cli.py:689 Combined translated book saved to /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_default_output_0/batch_in_default/translated/file_a by Unknown Author.txt\nINFO     enchant_cli.enchant_cli:enchant_cli.py:405 Successfully processed file_a.txt. Cost: $0.001000\n\n&#34;}], &#34;tests/test_cli.py::test_cli_batch_empty_dir&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_batch_empty_dir&#34;, &#34;duration&#34;: &#34;10 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_batch_empty_dir&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;10 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:778 CLI Arguments: filepath=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_empty_dir0/batch_empty, batch=True, max_chars=6000, split_mode=PARAGRAPHS, output=None, verbose=False, double_translate=False\nINFO     enchant_cli.enchant_cli:enchant_cli.py:346 Found 0 .txt files in &amp;#x27;/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_empty_dir0/batch_empty&amp;#x27;. Starting batch processing.\n\n&#34;}], &#34;tests/test_cli.py::test_cli_batch_with_failed_import&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_batch_with_failed_import&#34;, &#34;duration&#34;: &#34;13 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_batch_with_failed_import&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;13 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:778 CLI Arguments: filepath=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_with_failed_imp0/batch_fail, batch=True, max_chars=6000, split_mode=PARAGRAPHS, output=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_with_failed_imp0/batch_fail_out, verbose=False, double_translate=False\nINFO     enchant_cli.enchant_cli:enchant_cli.py:346 Found 2 .txt files in &amp;#x27;/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_with_failed_imp0/batch_fail&amp;#x27;. Starting batch processing.\nINFO     enchant_cli.enchant_cli:enchant_cli.py:355 Output directory set to: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_with_failed_imp0/batch_fail_out\nINFO     enchant_cli.enchant_cli:enchant_cli.py:405 Successfully processed good.txt. Cost: $0.001000\nWARNING  enchant_cli.enchant_cli:enchant_cli.py:390 Skipping file bad.txt: Import failed or file was empty/invalid.\n\n&#34;}], &#34;tests/test_cli.py::test_cli_batch_flag_with_file_input&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_batch_flag_with_file_input&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_batch_flag_with_file_input&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:778 CLI Arguments: filepath=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_flag_with_file_0/not_a_dir.txt, batch=True, max_chars=6000, split_mode=PARAGRAPHS, output=None, verbose=False, double_translate=False\n\n&#34;}], &#34;tests/test_cli.py::test_cli_no_batch_flag_with_dir_input&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_no_batch_flag_with_dir_input&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_no_batch_flag_with_dir_input&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:778 CLI Arguments: filepath=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_no_batch_flag_with_di0/is_a_dir, batch=False, max_chars=6000, split_mode=PARAGRAPHS, output=None, verbose=False, double_translate=False\n\n&#34;}], &#34;tests/test_cli.py::test_cli_batch_output_is_file&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_batch_output_is_file&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_batch_output_is_file&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:778 CLI Arguments: filepath=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_output_is_file0/batch_in_err, batch=True, max_chars=6000, split_mode=PARAGRAPHS, output=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_batch_output_is_file0/output_is_file.txt, verbose=False, double_translate=False\n\n&#34;}], &#34;tests/test_cli.py::test_cli_single_output_is_dir&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_single_output_is_dir&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_single_output_is_dir&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:778 CLI Arguments: filepath=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_output_is_dir0/input_err.txt, batch=False, max_chars=6000, split_mode=PARAGRAPHS, output=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_single_output_is_dir0/output_is_dir, verbose=False, double_translate=False\n\n&#34;}], &#34;tests/test_cli.py::test_cli_translator_init_failure&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_translator_init_failure&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_translator_init_failure&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nERROR    enchant_cli.enchant_cli:enchant_cli.py:774 Failed to initialize translator: API Key Missing\n\n&#34;}], &#34;tests/test_cli.py::test_cli_translation_failure_in_save&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_cli.py::test_cli_translation_failure_in_save&#34;, &#34;duration&#34;: &#34;11 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_cli.py::test_cli_translation_failure_in_save&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;11 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:778 CLI Arguments: filepath=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_translation_failure_i0/input_fail.txt, batch=False, max_chars=6000, split_mode=PARAGRAPHS, output=/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_translation_failure_i0/output_fail.txt, verbose=True, double_translate=False\nINFO     enchant_cli.enchant_cli:enchant_cli.py:823 Starting translation for single file: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_translation_failure_i0/input_fail.txt\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:222  -&amp;gt; import_book_from_text()\nDEBUG    enchant_cli.enchant_cli:utils.py:410 \nDetected encoding: None\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:459 Created final chapter 1 with 4 chars, 1 paras.\nDEBUG    enchant_cli.enchant_cli:enchant_cli.py:461 \n -&amp;gt; Splitting COMPLETE.\n  Total paragraphs processed: 1\n  Total chapters created: 1\n\nINFO     enchant_cli.enchant_cli:enchant_cli.py:334 Successfully imported book &amp;#x27;input_fail&amp;#x27; (9566480e-40c4-4f07-9e4e-917a86e220ae) with 1 chapters.\nINFO     enchant_cli.enchant_cli:enchant_cli.py:837 Book imported successfully. Book ID: 9566480e-40c4-4f07-9e4e-917a86e220ae\nINFO     enchant_cli.enchant_cli:enchant_cli.py:847 Output will be saved to: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_cli_translation_failure_i0/output_fail.txt\n\n&#34;}], &#34;tests/test_translation_service.py::test_translator_init_no_key&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translator_init_no_key&#34;, &#34;duration&#34;: &#34;0 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translator_init_no_key&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;0 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nWARNING  enchant_cli.translation_service:translation_service.py:83 OPENROUTER_API_KEY environment variable not set. Translation will likely fail.\n\n&#34;}], &#34;tests/test_translation_service.py::test_translator_init_test_env&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translator_init_test_env&#34;, &#34;duration&#34;: &#34;0 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translator_init_test_env&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;0 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n&#34;}], &#34;tests/test_translation_service.py::test_compute_costs_real_api&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_compute_costs_real_api&#34;, &#34;duration&#34;: &#34;00:00:17&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_compute_costs_real_api&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:17&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n----------------------------- Captured stdout call -----------------------------\nReal API cost for &amp;#x27;\u4f60\u597d&amp;#x27;: $0.00000000\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Starting translation for input string (length: 2 chars).\nINFO     TestTranslator:translation_service.py:173 Preparing to translate chunk (length: 2 chars). Double translation: False.\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 400\nWARNING  TestTranslator:translation_service.py:173 HTTP error occurred: 400 Client Error: Bad Request for url: https://openrouter.ai/api/v1/chat/completions\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 1) after error: 400 Client Error: Bad Request for url: https://openrouter.ai/api/v1/chat/completions\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 400\nWARNING  TestTranslator:translation_service.py:173 HTTP error occurred: 400 Client Error: Bad Request for url: https://openrouter.ai/api/v1/chat/completions\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 2) after error: 400 Client Error: Bad Request for url: https://openrouter.ai/api/v1/chat/completions\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 400\nWARNING  TestTranslator:translation_service.py:173 HTTP error occurred: 400 Client Error: Bad Request for url: https://openrouter.ai/api/v1/chat/completions\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 3) after error: 400 Client Error: Bad Request for url: https://openrouter.ai/api/v1/chat/completions\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 400\nWARNING  TestTranslator:translation_service.py:173 HTTP error occurred: 400 Client Error: Bad Request for url: https://openrouter.ai/api/v1/chat/completions\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 4) after error: 400 Client Error: Bad Request for url: https://openrouter.ai/api/v1/chat/completions\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 400\nWARNING  TestTranslator:translation_service.py:173 HTTP error occurred: 400 Client Error: Bad Request for url: https://openrouter.ai/api/v1/chat/completions\nERROR    TestTranslator:translation_service.py:173 Error during first translation pass: RetryError[&amp;lt;Future at 0x107774b00 state=finished raised HTTPError&amp;gt;]\nERROR    TestTranslator:translation_service.py:173 Failed to translate input string after retries: First translation pass failed: RetryError[&amp;lt;Future at 0x107774b00 state=finished raised HTTPError&amp;gt;]\n\n&#34;}], &#34;tests/test_translation_service.py::test_compute_costs_mocked&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_compute_costs_mocked&#34;, &#34;duration&#34;: &#34;00:00:02&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_compute_costs_mocked&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:02&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173\n\n&#34;}], &#34;tests/test_translation_service.py::test_remove_thinking_block&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_remove_thinking_block&#34;, &#34;duration&#34;: &#34;3 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_remove_thinking_block&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;3 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n&#34;}], &#34;tests/test_translation_service.py::test_remove_translation_markers&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_remove_translation_markers&#34;, &#34;duration&#34;: &#34;41 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_remove_translation_markers&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;41 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n&#34;}], &#34;tests/test_translation_service.py::test_translate_messages_success&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translate_messages_success&#34;, &#34;duration&#34;: &#34;00:00:02&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translate_messages_success&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:02&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;Hello world&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nINFO     TestTranslator:translation_service.py:173 Successfully received and validated translation content (length: 11).\n\n&#34;}], &#34;tests/test_translation_service.py::test_translate_messages_http_error_retry&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translate_messages_http_error_retry&#34;, &#34;duration&#34;: &#34;00:00:06&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translate_messages_http_error_retry&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:06&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 500\nWARNING  TestTranslator:translation_service.py:173 HTTP Server Error (500): 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 1) after error: 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 503\nWARNING  TestTranslator:translation_service.py:173 HTTP Server Error (503): 503 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 2) after error: 503 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;Hello world&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nINFO     TestTranslator:translation_service.py:173 Successfully received and validated translation content (length: 11).\n\n&#34;}], &#34;tests/test_translation_service.py::test_translate_messages_connection_error_retry&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translate_messages_connection_error_retry&#34;, &#34;duration&#34;: &#34;00:00:04&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translate_messages_connection_error_retry&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:04&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nWARNING  TestTranslator:translation_service.py:173 Request exception: Network Error\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 1) after error: Network Error\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;Hello world&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nINFO     TestTranslator:translation_service.py:173 Successfully received and validated translation content (length: 11).\n\n&#34;}], &#34;tests/test_translation_service.py::test_translate_messages_retry_limit_exceeded&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translate_messages_retry_limit_exceeded&#34;, &#34;duration&#34;: &#34;00:00:16&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translate_messages_retry_limit_exceeded&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:16&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 500\nWARNING  TestTranslator:translation_service.py:173 HTTP Server Error (500): 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 1) after error: 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 500\nWARNING  TestTranslator:translation_service.py:173 HTTP Server Error (500): 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 2) after error: 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 500\nWARNING  TestTranslator:translation_service.py:173 HTTP Server Error (500): 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 3) after error: 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 500\nWARNING  TestTranslator:translation_service.py:173 HTTP Server Error (500): 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 4) after error: 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 500\nWARNING  TestTranslator:translation_service.py:173 HTTP Server Error (500): 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\n\n&#34;}], &#34;tests/test_translation_service.py::test_translate_messages_unauthorized_no_retry&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translate_messages_unauthorized_no_retry&#34;, &#34;duration&#34;: &#34;5 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translate_messages_unauthorized_no_retry&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;5 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 401\nERROR    TestTranslator:translation_service.py:173 HTTP 401 Unauthorized: Check your API key.\n\n&#34;}], &#34;tests/test_translation_service.py::test_translate_messages_empty_content_retry&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translate_messages_empty_content_retry&#34;, &#34;duration&#34;: &#34;00:00:26&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translate_messages_empty_content_retry&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:26&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nWARNING  TestTranslator:translation_service.py:173 API returned empty content.\nWARNING  TestTranslator:translation_service.py:173 Translation validation failed: API returned empty content.\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 1) after error: API returned empty content.\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nWARNING  TestTranslator:translation_service.py:173 API returned empty content.\nWARNING  TestTranslator:translation_service.py:173 Translation validation failed: API returned empty content.\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 2) after error: API returned empty content.\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nWARNING  TestTranslator:translation_service.py:173 API returned empty content.\nWARNING  TestTranslator:translation_service.py:173 Translation validation failed: API returned empty content.\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 3) after error: API returned empty content.\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nWARNING  TestTranslator:translation_service.py:173 API returned empty content.\nWARNING  TestTranslator:translation_service.py:173 Translation validation failed: API returned empty content.\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 4) after error: API returned empty content.\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nWARNING  TestTranslator:translation_service.py:173 API returned empty content.\nWARNING  TestTranslator:translation_service.py:173 Translation validation failed: API returned empty content.\n\n&#34;}], &#34;tests/test_translation_service.py::test_translate_messages_non_latin_retry&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translate_messages_non_latin_retry&#34;, &#34;duration&#34;: &#34;00:00:26&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translate_messages_non_latin_retry&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:26&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;\\u4f60\\u597d\\u4e16\\u754c&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nWARNING  TestTranslator:translation_service.py:173 Translated text does not appear to be in a Latin-based charset. Retrying...\nWARNING  TestTranslator:translation_service.py:173 Translation validation failed: Translated text does not appear to be in a Latin-based charset.\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 1) after error: Translated text does not appear to be in a Latin-based charset.\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;\\u4f60\\u597d\\u4e16\\u754c&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nWARNING  TestTranslator:translation_service.py:173 Translated text does not appear to be in a Latin-based charset. Retrying...\nWARNING  TestTranslator:translation_service.py:173 Translation validation failed: Translated text does not appear to be in a Latin-based charset.\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 2) after error: Translated text does not appear to be in a Latin-based charset.\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;\\u4f60\\u597d\\u4e16\\u754c&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nWARNING  TestTranslator:translation_service.py:173 Translated text does not appear to be in a Latin-based charset. Retrying...\nWARNING  TestTranslator:translation_service.py:173 Translation validation failed: Translated text does not appear to be in a Latin-based charset.\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 3) after error: Translated text does not appear to be in a Latin-based charset.\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;\\u4f60\\u597d\\u4e16\\u754c&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nWARNING  TestTranslator:translation_service.py:173 Translated text does not appear to be in a Latin-based charset. Retrying...\nWARNING  TestTranslator:translation_service.py:173 Translation validation failed: Translated text does not appear to be in a Latin-based charset.\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 4) after error: Translated text does not appear to be in a Latin-based charset.\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;\\u4f60\\u597d\\u4e16\\u754c&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nWARNING  TestTranslator:translation_service.py:173 Translated text does not appear to be in a Latin-based charset. Retrying...\nWARNING  TestTranslator:translation_service.py:173 Translation validation failed: Translated text does not appear to be in a Latin-based charset.\n\n&#34;}], &#34;tests/test_translation_service.py::test_translate_messages_too_short_retry&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translate_messages_too_short_retry&#34;, &#34;duration&#34;: &#34;00:00:26&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translate_messages_too_short_retry&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:26&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;Hi&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nWARNING  TestTranslator:translation_service.py:173 Translated text too short (2 &amp;lt; 10). Retrying...\nWARNING  TestTranslator:translation_service.py:173 Translation validation failed: Translated text is too short (2 chars). Retrying...\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 1) after error: Translated text is too short (2 chars). Retrying...\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;Hi&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nWARNING  TestTranslator:translation_service.py:173 Translated text too short (2 &amp;lt; 10). Retrying...\nWARNING  TestTranslator:translation_service.py:173 Translation validation failed: Translated text is too short (2 chars). Retrying...\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 2) after error: Translated text is too short (2 chars). Retrying...\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;Hi&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nWARNING  TestTranslator:translation_service.py:173 Translated text too short (2 &amp;lt; 10). Retrying...\nWARNING  TestTranslator:translation_service.py:173 Translation validation failed: Translated text is too short (2 chars). Retrying...\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 3) after error: Translated text is too short (2 chars). Retrying...\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;Hi&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nWARNING  TestTranslator:translation_service.py:173 Translated text too short (2 &amp;lt; 10). Retrying...\nWARNING  TestTranslator:translation_service.py:173 Translation validation failed: Translated text is too short (2 chars). Retrying...\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 4) after error: Translated text is too short (2 chars). Retrying...\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;Hi&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nWARNING  TestTranslator:translation_service.py:173 Translated text too short (2 &amp;lt; 10). Retrying...\nWARNING  TestTranslator:translation_service.py:173 Translation validation failed: Translated text is too short (2 chars). Retrying...\n\n&#34;}], &#34;tests/test_translation_service.py::test_translate_messages_too_short_last_chunk_no_retry&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translate_messages_too_short_last_chunk_no_retry&#34;, &#34;duration&#34;: &#34;00:00:02&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translate_messages_too_short_last_chunk_no_retry&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:02&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-12345&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;Hi&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nINFO     TestTranslator:translation_service.py:173 Successfully received and validated translation content (length: 2).\n\n&#34;}], &#34;tests/test_translation_service.py::test_translate_chunk_mocked[True]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translate_chunk_mocked[True]&#34;, &#34;duration&#34;: &#34;00:00:04&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translate_chunk_mocked[True]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:04&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Preparing to translate chunk (length: 4 chars). Double translation: True.\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-local-chunk-test&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;Hello world&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nINFO     TestTranslator:translation_service.py:173 Successfully received and validated translation content (length: 11).\nINFO     TestTranslator:translation_service.py:173 First translation pass completed. Cost: $0.000012\nINFO     TestTranslator:translation_service.py:173 Performing second refinement translation pass.\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-local-chunk-test&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;Hello world&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nINFO     TestTranslator:translation_service.py:173 Successfully received and validated translation content (length: 11).\nINFO     TestTranslator:translation_service.py:173 Second translation pass completed. Cost: $0.000012\nINFO     TestTranslator:translation_service.py:173 Chunk translation finished. Final length: 11. Total cost for chunk: $0.000024\n\n&#34;}], &#34;tests/test_translation_service.py::test_translate_chunk_mocked[False]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translate_chunk_mocked[False]&#34;, &#34;duration&#34;: &#34;00:00:02&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translate_chunk_mocked[False]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:02&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Preparing to translate chunk (length: 4 chars). Double translation: False.\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-local-chunk-test&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;Hello world&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nINFO     TestTranslator:translation_service.py:173 Successfully received and validated translation content (length: 11).\nINFO     TestTranslator:translation_service.py:173 First translation pass completed. Cost: $0.000012\nINFO     TestTranslator:translation_service.py:173 Chunk translation finished. Final length: 11. Total cost for chunk: $0.000012\n\n&#34;}], &#34;tests/test_translation_service.py::test_translate_entrypoint_mocked&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translate_entrypoint_mocked&#34;, &#34;duration&#34;: &#34;00:00:02&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translate_entrypoint_mocked&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:02&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Starting translation for input string (length: 2 chars).\nINFO     TestTranslator:translation_service.py:173 Preparing to translate chunk (length: 2 chars). Double translation: False.\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 200\nINFO     TestTranslator:translation_service.py:173 Server returned RESPONSE: \n{\n  &amp;quot;id&amp;quot;: &amp;quot;gen-local-entry-test&amp;quot;,\n  &amp;quot;model&amp;quot;: &amp;quot;google/palm-2&amp;quot;,\n  &amp;quot;choices&amp;quot;: [\n    {\n      &amp;quot;message&amp;quot;: {\n        &amp;quot;role&amp;quot;: &amp;quot;assistant&amp;quot;,\n        &amp;quot;content&amp;quot;: &amp;quot;Hello world&amp;quot;\n      }\n    }\n  ],\n  &amp;quot;usage&amp;quot;: {\n    &amp;quot;prompt_tokens&amp;quot;: 10,\n    &amp;quot;completion_tokens&amp;quot;: 2,\n    &amp;quot;total_tokens&amp;quot;: 12\n  }\n}\nINFO     TestTranslator:translation_service.py:173 Waiting for generation stats to be available...\nINFO     TestTranslator:translation_service.py:173 GENERATION RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;id&amp;#x27;: &amp;#x27;gen-12345&amp;#x27;, &amp;#x27;total_cost&amp;#x27;: 1.2e-05}}\nINFO     TestTranslator:translation_service.py:173 \n\n=== Token Usage ===\nINFO     TestTranslator:translation_service.py:173 Prompt tokens: 10\nINFO     TestTranslator:translation_service.py:173 Completion tokens: 2\nINFO     TestTranslator:translation_service.py:173 Total tokens: 12\nINFO     TestTranslator:translation_service.py:173 \n=== Generation Stats ===\nINFO     TestTranslator:translation_service.py:173 Cost in USD: $0.000012\nINFO     TestTranslator:translation_service.py:173 CREDITS RESPONSE: {&amp;#x27;data&amp;#x27;: {&amp;#x27;total_credits&amp;#x27;: 10.0, &amp;#x27;total_usage&amp;#x27;: 1.5}}\nINFO     TestTranslator:translation_service.py:173 \n=== Credits Information ===\nINFO     TestTranslator:translation_service.py:173 Total credits: $10.000000\nINFO     TestTranslator:translation_service.py:173 Total usage: $1.500000\nINFO     TestTranslator:translation_service.py:173 Remaining credits: $8.500000\nINFO     TestTranslator:translation_service.py:173 \n\n\nINFO     TestTranslator:translation_service.py:173 Successfully received and validated translation content (length: 11).\nINFO     TestTranslator:translation_service.py:173 First translation pass completed. Cost: $0.000012\nINFO     TestTranslator:translation_service.py:173 Chunk translation finished. Final length: 11. Total cost for chunk: $0.000012\nINFO     TestTranslator:translation_service.py:173 Translation process completed for the input string.\n\n&#34;}], &#34;tests/test_translation_service.py::test_translate_entrypoint_empty_input&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translate_entrypoint_empty_input&#34;, &#34;duration&#34;: &#34;2 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translate_entrypoint_empty_input&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;2 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Starting translation for input string (length: 0 chars).\nWARNING  TestTranslator:translation_service.py:173 Input string is empty, skipping translation.\n\n&#34;}], &#34;tests/test_translation_service.py::test_translate_entrypoint_api_failure&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_translation_service.py::test_translate_entrypoint_api_failure&#34;, &#34;duration&#34;: &#34;00:00:16&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_translation_service.py::test_translate_entrypoint_api_failure&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;00:00:16&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log setup ------------------------------\nINFO     TestTranslator:translation_service.py:79 Test environment detected. Using model: google/palm-2, min_chunk_length: 10\n\n------------------------------ Captured log call -------------------------------\nINFO     TestTranslator:translation_service.py:173 Starting translation for input string (length: 2 chars).\nINFO     TestTranslator:translation_service.py:173 Preparing to translate chunk (length: 2 chars). Double translation: False.\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 500\nWARNING  TestTranslator:translation_service.py:173 HTTP Server Error (500): 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 1) after error: 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 500\nWARNING  TestTranslator:translation_service.py:173 HTTP Server Error (500): 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 2) after error: 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 500\nWARNING  TestTranslator:translation_service.py:173 HTTP Server Error (500): 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 3) after error: 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 500\nWARNING  TestTranslator:translation_service.py:173 HTTP Server Error (500): 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nWARNING  enchant_cli.translation_service:translation_service.py:351 Retrying translation request (attempt 4) after error: 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nINFO     TestTranslator:translation_service.py:173 Sending translation request to API. Model: google/palm-2\nINFO     TestTranslator:translation_service.py:173 API request sent to https://openrouter.ai/api/v1/chat/completions. Status Code: 500\nWARNING  TestTranslator:translation_service.py:173 HTTP Server Error (500): 500 Server Error: None for url: https://openrouter.ai/api/v1/chat/completions\nERROR    TestTranslator:translation_service.py:173 Error during first translation pass: RetryError[&amp;lt;Future at 0x1076cfe50 state=finished raised HTTPError&amp;gt;]\nERROR    TestTranslator:translation_service.py:173 Failed to translate input string after retries: First translation pass failed: RetryError[&amp;lt;Future at 0x1076cfe50 state=finished raised HTTPError&amp;gt;]\n\n&#34;}], &#34;tests/test_utils.py::test_clean&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_clean&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_clean&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_replace_repeated_chars&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_replace_repeated_chars&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_replace_repeated_chars&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_limit_repeated_chars&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_limit_repeated_chars&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_limit_repeated_chars&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_remove_html_markup&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_remove_html_markup&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_remove_html_markup&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_normalize_spaces&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_normalize_spaces&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_normalize_spaces&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_remove_excess_empty_lines&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_remove_excess_empty_lines&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_remove_excess_empty_lines&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_strip_urls&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_strip_urls&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_strip_urls&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_is_markdown&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_is_markdown&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_is_markdown&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_detect_file_encoding&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_detect_file_encoding&#34;, &#34;duration&#34;: &#34;5 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_detect_file_encoding&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;5 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_decode_input_file_content&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_decode_input_file_content&#34;, &#34;duration&#34;: &#34;3 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_decode_input_file_content&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;3 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;------------------------------ Captured log call -------------------------------\nDEBUG    test_decode:utils.py:410 \nDetected encoding: utf-8\nDEBUG    test_decode:utils.py:416 \nError reading file &amp;#x27;/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-11/test_decode_input_file_content0/bad_detect.txt&amp;#x27; with detected encoding utf-8: &amp;#x27;utf-8&amp;#x27; codec can&amp;#x27;t decode byte 0xc4 in position 0: invalid continuation byte\nDEBUG    test_decode:utils.py:417 Falling back to GB18030 encoding.\n\n&#34;}], &#34;tests/test_utils.py::test_split_on_punctuation_contextual&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_split_on_punctuation_contextual&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_split_on_punctuation_contextual&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_clean_adverts&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_clean_adverts&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_clean_adverts&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_is_latin_charset&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_is_latin_charset&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_is_latin_charset&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_foreign_book_title_splitter[Translated Title by Translated Author - Original Title by Original Author.txt-expected0]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_foreign_book_title_splitter[Translated Title by Translated Author - Original Title by Original Author.txt-expected0]&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_foreign_book_title_splitter[Translated Title by Translated Author - Original Title by Original Author.txt-expected0]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_foreign_book_title_splitter[My Novel by John Doe (Jon Do) - \\u6211\\u7684\\u5c0f\\u8bf4 by \\u5f20\\u4e09.epub-expected1]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_foreign_book_title_splitter[My Novel by John Doe (Jon Do) - \\u6211\\u7684\\u5c0f\\u8bf4 by \\u5f20\\u4e09.epub-expected1]&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_foreign_book_title_splitter[My Novel by John Doe (Jon Do) - \\u6211\\u7684\\u5c0f\\u8bf4 by \\u5f20\\u4e09.epub-expected1]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_foreign_book_title_splitter[Just A Title by Some Author.txt-expected2]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_foreign_book_title_splitter[Just A Title by Some Author.txt-expected2]&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_foreign_book_title_splitter[Just A Title by Some Author.txt-expected2]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_foreign_book_title_splitter[Title Only - Original Title Only.txt-expected3]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_foreign_book_title_splitter[Title Only - Original Title Only.txt-expected3]&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_foreign_book_title_splitter[Title Only - Original Title Only.txt-expected3]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_foreign_book_title_splitter[Title by Author (Romanization).txt-expected4]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_foreign_book_title_splitter[Title by Author (Romanization).txt-expected4]&#34;, &#34;duration&#34;: &#34;0 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_foreign_book_title_splitter[Title by Author (Romanization).txt-expected4]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;0 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_foreign_book_title_splitter[No Author - Original Title by Original Author.txt-expected5]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_foreign_book_title_splitter[No Author - Original Title by Original Author.txt-expected5]&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_foreign_book_title_splitter[No Author - Original Title by Original Author.txt-expected5]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_foreign_book_title_splitter[Translated Title by Translated Author - No Author Original.txt-expected6]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_foreign_book_title_splitter[Translated Title by Translated Author - No Author Original.txt-expected6]&#34;, &#34;duration&#34;: &#34;0 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_foreign_book_title_splitter[Translated Title by Translated Author - No Author Original.txt-expected6]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;0 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_foreign_book_title_splitter[Basic Name.txt-expected7]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_foreign_book_title_splitter[Basic Name.txt-expected7]&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_foreign_book_title_splitter[Basic Name.txt-expected7]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}], &#34;tests/test_utils.py::test_foreign_book_title_splitter[Another - Test.txt-expected8]&#34;: [{&#34;extras&#34;: [], &#34;result&#34;: &#34;Passed&#34;, &#34;testId&#34;: &#34;tests/test_utils.py::test_foreign_book_title_splitter[Another - Test.txt-expected8]&#34;, &#34;duration&#34;: &#34;1 ms&#34;, &#34;resultsTableRow&#34;: [&#34;&lt;td class=\&#34;col-result\&#34;&gt;Passed&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-testId\&#34;&gt;tests/test_utils.py::test_foreign_book_title_splitter[Another - Test.txt-expected8]&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-duration\&#34;&gt;1 ms&lt;/td&gt;&#34;, &#34;&lt;td class=\&#34;col-links\&#34;&gt;&lt;/td&gt;&#34;], &#34;log&#34;: &#34;No log output captured.&#34;}]}, &#34;renderCollapsed&#34;: [&#34;passed&#34;], &#34;initialSort&#34;: &#34;result&#34;, &#34;title&#34;: &#34;report.html&#34;}"></div>
+    <script>
+      (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+const { getCollapsedCategory, setCollapsedIds } = require('./storage.js')
+
+class DataManager {
+    setManager(data) {
+        const collapsedCategories = [...getCollapsedCategory(data.renderCollapsed)]
+        const collapsedIds = []
+        const tests = Object.values(data.tests).flat().map((test, index) => {
+            const collapsed = collapsedCategories.includes(test.result.toLowerCase())
+            const id = `test_${index}`
+            if (collapsed) {
+                collapsedIds.push(id)
+            }
+            return {
+                ...test,
+                id,
+                collapsed,
+            }
+        })
+        const dataBlob = { ...data, tests }
+        this.data = { ...dataBlob }
+        this.renderData = { ...dataBlob }
+        setCollapsedIds(collapsedIds)
+    }
+
+    get allData() {
+        return { ...this.data }
+    }
+
+    resetRender() {
+        this.renderData = { ...this.data }
+    }
+
+    setRender(data) {
+        this.renderData.tests = [...data]
+    }
+
+    toggleCollapsedItem(id) {
+        this.renderData.tests = this.renderData.tests.map((test) =>
+            test.id === id ? { ...test, collapsed: !test.collapsed } : test,
+        )
+    }
+
+    set allCollapsed(collapsed) {
+        this.renderData = { ...this.renderData, tests: [...this.renderData.tests.map((test) => (
+            { ...test, collapsed }
+        ))] }
+    }
+
+    get testSubset() {
+        return [...this.renderData.tests]
+    }
+
+    get environment() {
+        return this.renderData.environment
+    }
+
+    get initialSort() {
+        return this.data.initialSort
+    }
+}
+
+module.exports = {
+    manager: new DataManager(),
+}
+
+},{"./storage.js":8}],2:[function(require,module,exports){
+const mediaViewer = require('./mediaviewer.js')
+const templateEnvRow = document.getElementById('template_environment_row')
+const templateResult = document.getElementById('template_results-table__tbody')
+
+function htmlToElements(html) {
+    const temp = document.createElement('template')
+    temp.innerHTML = html
+    return temp.content.childNodes
+}
+
+const find = (selector, elem) => {
+    if (!elem) {
+        elem = document
+    }
+    return elem.querySelector(selector)
+}
+
+const findAll = (selector, elem) => {
+    if (!elem) {
+        elem = document
+    }
+    return [...elem.querySelectorAll(selector)]
+}
+
+const dom = {
+    getStaticRow: (key, value) => {
+        const envRow = templateEnvRow.content.cloneNode(true)
+        const isObj = typeof value === 'object' && value !== null
+        const values = isObj ? Object.keys(value).map((k) => `${k}: ${value[k]}`) : null
+
+        const valuesElement = htmlToElements(
+            values ? `<ul>${values.map((val) => `<li>${val}</li>`).join('')}<ul>` : `<div>${value}</div>`)[0]
+        const td = findAll('td', envRow)
+        td[0].textContent = key
+        td[1].appendChild(valuesElement)
+
+        return envRow
+    },
+    getResultTBody: ({ testId, id, log, extras, resultsTableRow, tableHtml, result, collapsed }) => {
+        const resultBody = templateResult.content.cloneNode(true)
+        resultBody.querySelector('tbody').classList.add(result.toLowerCase())
+        resultBody.querySelector('tbody').id = testId
+        resultBody.querySelector('.collapsible').dataset.id = id
+
+        resultsTableRow.forEach((html) => {
+            const t = document.createElement('template')
+            t.innerHTML = html
+            resultBody.querySelector('.collapsible').appendChild(t.content)
+        })
+
+        if (log) {
+            // Wrap lines starting with "E" with span.error to color those lines red
+            const wrappedLog = log.replace(/^E.*$/gm, (match) => `<span class="error">${match}</span>`)
+            resultBody.querySelector('.log').innerHTML = wrappedLog
+        } else {
+            resultBody.querySelector('.log').remove()
+        }
+
+        if (collapsed) {
+            resultBody.querySelector('.collapsible > td')?.classList.add('collapsed')
+            resultBody.querySelector('.extras-row').classList.add('hidden')
+        } else {
+            resultBody.querySelector('.collapsible > td')?.classList.remove('collapsed')
+        }
+
+        const media = []
+        extras?.forEach(({ name, format_type, content }) => {
+            if (['image', 'video'].includes(format_type)) {
+                media.push({ path: content, name, format_type })
+            }
+
+            if (format_type === 'html') {
+                resultBody.querySelector('.extraHTML').insertAdjacentHTML('beforeend', `<div>${content}</div>`)
+            }
+        })
+        mediaViewer.setup(resultBody, media)
+
+        // Add custom html from the pytest_html_results_table_html hook
+        tableHtml?.forEach((item) => {
+            resultBody.querySelector('td[class="extra"]').insertAdjacentHTML('beforeend', item)
+        })
+
+        return resultBody
+    },
+}
+
+module.exports = {
+    dom,
+    htmlToElements,
+    find,
+    findAll,
+}
+
+},{"./mediaviewer.js":6}],3:[function(require,module,exports){
+const { manager } = require('./datamanager.js')
+const { doSort } = require('./sort.js')
+const storageModule = require('./storage.js')
+
+const getFilteredSubSet = (filter) =>
+    manager.allData.tests.filter(({ result }) => filter.includes(result.toLowerCase()))
+
+const doInitFilter = () => {
+    const currentFilter = storageModule.getVisible()
+    const filteredSubset = getFilteredSubSet(currentFilter)
+    manager.setRender(filteredSubset)
+}
+
+const doFilter = (type, show) => {
+    if (show) {
+        storageModule.showCategory(type)
+    } else {
+        storageModule.hideCategory(type)
+    }
+
+    const currentFilter = storageModule.getVisible()
+    const filteredSubset = getFilteredSubSet(currentFilter)
+    manager.setRender(filteredSubset)
+
+    const sortColumn = storageModule.getSort()
+    doSort(sortColumn, true)
+}
+
+module.exports = {
+    doFilter,
+    doInitFilter,
+}
+
+},{"./datamanager.js":1,"./sort.js":7,"./storage.js":8}],4:[function(require,module,exports){
+const { redraw, bindEvents, renderStatic } = require('./main.js')
+const { doInitFilter } = require('./filter.js')
+const { doInitSort } = require('./sort.js')
+const { manager } = require('./datamanager.js')
+const data = JSON.parse(document.getElementById('data-container').dataset.jsonblob)
+
+function init() {
+    manager.setManager(data)
+    doInitFilter()
+    doInitSort()
+    renderStatic()
+    redraw()
+    bindEvents()
+}
+
+init()
+
+},{"./datamanager.js":1,"./filter.js":3,"./main.js":5,"./sort.js":7}],5:[function(require,module,exports){
+const { dom, find, findAll } = require('./dom.js')
+const { manager } = require('./datamanager.js')
+const { doSort } = require('./sort.js')
+const { doFilter } = require('./filter.js')
+const {
+    getVisible,
+    getCollapsedIds,
+    setCollapsedIds,
+    getSort,
+    getSortDirection,
+    possibleFilters,
+} = require('./storage.js')
+
+const removeChildren = (node) => {
+    while (node.firstChild) {
+        node.removeChild(node.firstChild)
+    }
+}
+
+const renderStatic = () => {
+    const renderEnvironmentTable = () => {
+        const environment = manager.environment
+        const rows = Object.keys(environment).map((key) => dom.getStaticRow(key, environment[key]))
+        const table = document.getElementById('environment')
+        removeChildren(table)
+        rows.forEach((row) => table.appendChild(row))
+    }
+    renderEnvironmentTable()
+}
+
+const addItemToggleListener = (elem) => {
+    elem.addEventListener('click', ({ target }) => {
+        const id = target.parentElement.dataset.id
+        manager.toggleCollapsedItem(id)
+
+        const collapsedIds = getCollapsedIds()
+        if (collapsedIds.includes(id)) {
+            const updated = collapsedIds.filter((item) => item !== id)
+            setCollapsedIds(updated)
+        } else {
+            collapsedIds.push(id)
+            setCollapsedIds(collapsedIds)
+        }
+        redraw()
+    })
+}
+
+const renderContent = (tests) => {
+    const sortAttr = getSort(manager.initialSort)
+    const sortAsc = JSON.parse(getSortDirection())
+    const rows = tests.map(dom.getResultTBody)
+    const table = document.getElementById('results-table')
+    const tableHeader = document.getElementById('results-table-head')
+
+    const newTable = document.createElement('table')
+    newTable.id = 'results-table'
+
+    // remove all sorting classes and set the relevant
+    findAll('.sortable', tableHeader).forEach((elem) => elem.classList.remove('asc', 'desc'))
+    tableHeader.querySelector(`.sortable[data-column-type="${sortAttr}"]`)?.classList.add(sortAsc ? 'desc' : 'asc')
+    newTable.appendChild(tableHeader)
+
+    if (!rows.length) {
+        const emptyTable = document.getElementById('template_results-table__body--empty').content.cloneNode(true)
+        newTable.appendChild(emptyTable)
+    } else {
+        rows.forEach((row) => {
+            if (!!row) {
+                findAll('.collapsible td:not(.col-links', row).forEach(addItemToggleListener)
+                find('.logexpander', row).addEventListener('click',
+                    (evt) => evt.target.parentNode.classList.toggle('expanded'),
+                )
+                newTable.appendChild(row)
+            }
+        })
+    }
+
+    table.replaceWith(newTable)
+}
+
+const renderDerived = () => {
+    const currentFilter = getVisible()
+    possibleFilters.forEach((result) => {
+        const input = document.querySelector(`input[data-test-result="${result}"]`)
+        input.checked = currentFilter.includes(result)
+    })
+}
+
+const bindEvents = () => {
+    const filterColumn = (evt) => {
+        const { target: element } = evt
+        const { testResult } = element.dataset
+
+        doFilter(testResult, element.checked)
+        const collapsedIds = getCollapsedIds()
+        const updated = manager.renderData.tests.map((test) => {
+            return {
+                ...test,
+                collapsed: collapsedIds.includes(test.id),
+            }
+        })
+        manager.setRender(updated)
+        redraw()
+    }
+
+    const header = document.getElementById('environment-header')
+    header.addEventListener('click', () => {
+        const table = document.getElementById('environment')
+        table.classList.toggle('hidden')
+        header.classList.toggle('collapsed')
+    })
+
+    findAll('input[name="filter_checkbox"]').forEach((elem) => {
+        elem.addEventListener('click', filterColumn)
+    })
+
+    findAll('.sortable').forEach((elem) => {
+        elem.addEventListener('click', (evt) => {
+            const { target: element } = evt
+            const { columnType } = element.dataset
+            doSort(columnType)
+            redraw()
+        })
+    })
+
+    document.getElementById('show_all_details').addEventListener('click', () => {
+        manager.allCollapsed = false
+        setCollapsedIds([])
+        redraw()
+    })
+    document.getElementById('hide_all_details').addEventListener('click', () => {
+        manager.allCollapsed = true
+        const allIds = manager.renderData.tests.map((test) => test.id)
+        setCollapsedIds(allIds)
+        redraw()
+    })
+}
+
+const redraw = () => {
+    const { testSubset } = manager
+
+    renderContent(testSubset)
+    renderDerived()
+}
+
+module.exports = {
+    redraw,
+    bindEvents,
+    renderStatic,
+}
+
+},{"./datamanager.js":1,"./dom.js":2,"./filter.js":3,"./sort.js":7,"./storage.js":8}],6:[function(require,module,exports){
+class MediaViewer {
+    constructor(assets) {
+        this.assets = assets
+        this.index = 0
+    }
+
+    nextActive() {
+        this.index = this.index === this.assets.length - 1 ? 0 : this.index + 1
+        return [this.activeFile, this.index]
+    }
+
+    prevActive() {
+        this.index = this.index === 0 ? this.assets.length - 1 : this.index -1
+        return [this.activeFile, this.index]
+    }
+
+    get currentIndex() {
+        return this.index
+    }
+
+    get activeFile() {
+        return this.assets[this.index]
+    }
+}
+
+
+const setup = (resultBody, assets) => {
+    if (!assets.length) {
+        resultBody.querySelector('.media').classList.add('hidden')
+        return
+    }
+
+    const mediaViewer = new MediaViewer(assets)
+    const container = resultBody.querySelector('.media-container')
+    const leftArrow = resultBody.querySelector('.media-container__nav--left')
+    const rightArrow = resultBody.querySelector('.media-container__nav--right')
+    const mediaName = resultBody.querySelector('.media__name')
+    const counter = resultBody.querySelector('.media__counter')
+    const imageEl = resultBody.querySelector('img')
+    const sourceEl = resultBody.querySelector('source')
+    const videoEl = resultBody.querySelector('video')
+
+    const setImg = (media, index) => {
+        if (media?.format_type === 'image') {
+            imageEl.src = media.path
+
+            imageEl.classList.remove('hidden')
+            videoEl.classList.add('hidden')
+        } else if (media?.format_type === 'video') {
+            sourceEl.src = media.path
+
+            videoEl.classList.remove('hidden')
+            imageEl.classList.add('hidden')
+        }
+
+        mediaName.innerText = media?.name
+        counter.innerText = `${index + 1} / ${assets.length}`
+    }
+    setImg(mediaViewer.activeFile, mediaViewer.currentIndex)
+
+    const moveLeft = () => {
+        const [media, index] = mediaViewer.prevActive()
+        setImg(media, index)
+    }
+    const doRight = () => {
+        const [media, index] = mediaViewer.nextActive()
+        setImg(media, index)
+    }
+    const openImg = () => {
+        window.open(mediaViewer.activeFile.path, '_blank')
+    }
+    if (assets.length === 1) {
+        container.classList.add('media-container--fullscreen')
+    } else {
+        leftArrow.addEventListener('click', moveLeft)
+        rightArrow.addEventListener('click', doRight)
+    }
+    imageEl.addEventListener('click', openImg)
+}
+
+module.exports = {
+    setup,
+}
+
+},{}],7:[function(require,module,exports){
+const { manager } = require('./datamanager.js')
+const storageModule = require('./storage.js')
+
+const genericSort = (list, key, ascending, customOrder) => {
+    let sorted
+    if (customOrder) {
+        sorted = list.sort((a, b) => {
+            const aValue = a.result.toLowerCase()
+            const bValue = b.result.toLowerCase()
+
+            const aIndex = customOrder.findIndex((item) => item.toLowerCase() === aValue)
+            const bIndex = customOrder.findIndex((item) => item.toLowerCase() === bValue)
+
+            // Compare the indices to determine the sort order
+            return aIndex - bIndex
+        })
+    } else {
+        sorted = list.sort((a, b) => a[key] === b[key] ? 0 : a[key] > b[key] ? 1 : -1)
+    }
+
+    if (ascending) {
+        sorted.reverse()
+    }
+    return sorted
+}
+
+const durationSort = (list, ascending) => {
+    const parseDuration = (duration) => {
+        if (duration.includes(':')) {
+            // If it's in the format "HH:mm:ss"
+            const [hours, minutes, seconds] = duration.split(':').map(Number)
+            return (hours * 3600 + minutes * 60 + seconds) * 1000
+        } else {
+            // If it's in the format "nnn ms"
+            return parseInt(duration)
+        }
+    }
+    const sorted = list.sort((a, b) => parseDuration(a['duration']) - parseDuration(b['duration']))
+    if (ascending) {
+        sorted.reverse()
+    }
+    return sorted
+}
+
+const doInitSort = () => {
+    const type = storageModule.getSort(manager.initialSort)
+    const ascending = storageModule.getSortDirection()
+    const list = manager.testSubset
+    const initialOrder = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed', 'Skipped', 'Passed']
+
+    storageModule.setSort(type)
+    storageModule.setSortDirection(ascending)
+
+    if (type?.toLowerCase() === 'original') {
+        manager.setRender(list)
+    } else {
+        let sortedList
+        switch (type) {
+        case 'duration':
+            sortedList = durationSort(list, ascending)
+            break
+        case 'result':
+            sortedList = genericSort(list, type, ascending, initialOrder)
+            break
+        default:
+            sortedList = genericSort(list, type, ascending)
+            break
+        }
+        manager.setRender(sortedList)
+    }
+}
+
+const doSort = (type, skipDirection) => {
+    const newSortType = storageModule.getSort(manager.initialSort) !== type
+    const currentAsc = storageModule.getSortDirection()
+    let ascending
+    if (skipDirection) {
+        ascending = currentAsc
+    } else {
+        ascending = newSortType ? false : !currentAsc
+    }
+    storageModule.setSort(type)
+    storageModule.setSortDirection(ascending)
+
+    const list = manager.testSubset
+    const sortedList = type === 'duration' ? durationSort(list, ascending) : genericSort(list, type, ascending)
+    manager.setRender(sortedList)
+}
+
+module.exports = {
+    doInitSort,
+    doSort,
+}
+
+},{"./datamanager.js":1,"./storage.js":8}],8:[function(require,module,exports){
+const possibleFilters = [
+    'passed',
+    'skipped',
+    'failed',
+    'error',
+    'xfailed',
+    'xpassed',
+    'rerun',
+]
+
+const getVisible = () => {
+    const url = new URL(window.location.href)
+    const settings = new URLSearchParams(url.search).get('visible')
+    const lower = (item) => {
+        const lowerItem = item.toLowerCase()
+        if (possibleFilters.includes(lowerItem)) {
+            return lowerItem
+        }
+        return null
+    }
+    return settings === null ?
+        possibleFilters :
+        [...new Set(settings?.split(',').map(lower).filter((item) => item))]
+}
+
+const hideCategory = (categoryToHide) => {
+    const url = new URL(window.location.href)
+    const visibleParams = new URLSearchParams(url.search).get('visible')
+    const currentVisible = visibleParams ? visibleParams.split(',') : [...possibleFilters]
+    const settings = [...new Set(currentVisible)].filter((f) => f !== categoryToHide).join(',')
+
+    url.searchParams.set('visible', settings)
+    window.history.pushState({}, null, unescape(url.href))
+}
+
+const showCategory = (categoryToShow) => {
+    if (typeof window === 'undefined') {
+        return
+    }
+    const url = new URL(window.location.href)
+    const currentVisible = new URLSearchParams(url.search).get('visible')?.split(',').filter(Boolean) ||
+        [...possibleFilters]
+    const settings = [...new Set([categoryToShow, ...currentVisible])]
+    const noFilter = possibleFilters.length === settings.length || !settings.length
+
+    noFilter ? url.searchParams.delete('visible') : url.searchParams.set('visible', settings.join(','))
+    window.history.pushState({}, null, unescape(url.href))
+}
+
+const getSort = (initialSort) => {
+    const url = new URL(window.location.href)
+    let sort = new URLSearchParams(url.search).get('sort')
+    if (!sort) {
+        sort = initialSort || 'result'
+    }
+    return sort
+}
+
+const setSort = (type) => {
+    const url = new URL(window.location.href)
+    url.searchParams.set('sort', type)
+    window.history.pushState({}, null, unescape(url.href))
+}
+
+const getCollapsedCategory = (renderCollapsed) => {
+    let categories
+    if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href)
+        const collapsedItems = new URLSearchParams(url.search).get('collapsed')
+        switch (true) {
+        case !renderCollapsed && collapsedItems === null:
+            categories = ['passed']
+            break
+        case collapsedItems?.length === 0 || /^["']{2}$/.test(collapsedItems):
+            categories = []
+            break
+        case /^all$/.test(collapsedItems) || collapsedItems === null && /^all$/.test(renderCollapsed):
+            categories = [...possibleFilters]
+            break
+        default:
+            categories = collapsedItems?.split(',').map((item) => item.toLowerCase()) || renderCollapsed
+            break
+        }
+    } else {
+        categories = []
+    }
+    return categories
+}
+
+const getSortDirection = () => JSON.parse(sessionStorage.getItem('sortAsc')) || false
+const setSortDirection = (ascending) => sessionStorage.setItem('sortAsc', ascending)
+
+const getCollapsedIds = () => JSON.parse(sessionStorage.getItem('collapsedIds')) || []
+const setCollapsedIds = (list) => sessionStorage.setItem('collapsedIds', JSON.stringify(list))
+
+module.exports = {
+    getVisible,
+    hideCategory,
+    showCategory,
+    getCollapsedIds,
+    setCollapsedIds,
+    getSort,
+    setSort,
+    getSortDirection,
+    setSortDirection,
+    getCollapsedCategory,
+    possibleFilters,
+}
+
+},{}]},{},[4]);
+    </script>
+  </footer>
+</html>

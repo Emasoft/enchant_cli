@@ -1,0 +1,138 @@
+name: Publish Python Package
+
+on:
+  release:
+    types: [published] # Trigger only when a release is published on GitHub
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      # IMPORTANT: Needed for Trusted Publishing to PyPI
+      id-token: write
+      # Needed for checkout and potentially pushing changelog (if kept)
+      contents: read # Change to write ONLY if pushing CHANGELOG.md from workflow
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        # Fetch all history and tags for changelog generation (if used)
+        # Set fetch-depth: 0 only if you generate changelog in the workflow
+        fetch-depth: 0 # Required if using git-chglog here
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11' # Use a specific recent version
+
+    - name: Install build dependencies and uv
+      run: |
+        python -m pip install --upgrade pip build twine uv
+
+    # Optional: Generate Changelog (Run this LOCALLY before tagging/releasing)
+    # If you must run it here, uncomment and ensure correct permissions (contents: write)
+    # - name: Generate Changelog
+    #   run: |
+    #     uv pip install --system git-chglog
+    #     git fetch --prune --unshallow # Ensure full history
+    #     git-chglog -o CHANGELOG.md ${{ github.ref_name }} # Generate for the specific tag
+    #     # Configure git user for commit
+    #     git config --global user.email "actions@github.com"
+    #     git config --global user.name "GitHub Actions"
+    #     # Add, commit, and push the changelog
+    #     git add CHANGELOG.md
+    #     # Check if there are changes to commit
+    #     if ! git diff --staged --quiet; then
+    #       git commit -m "Update changelog for ${{ github.ref_name }}"
+    #       # Pushing back requires a token with write access, consider security implications
+    #       # git push origin HEAD:${{ github.ref }} # Push to the branch the tag is on
+    #     else
+    #       echo "No changes to changelog."
+    #     fi
+    #   env:
+    #     # Use GITHUB_TOKEN for basic operations, PAT if pushing required & protected branches
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # Version bumping should happen BEFORE the release is created/tagged. Removed from here.
+
+    - name: Build package
+      run: python -m build
+
+    - name: Verify package contents (Wheel)
+      run: |
+        echo "Verifying wheel contents..."
+        ls -l dist/
+        unzip -l dist/*.whl
+        unzip -l dist/*.whl | grep 'tests/samples/test_sample.txt' || (echo "❌ Test sample file not found in wheel!" && exit 1)
+        echo "✅ Test sample file found in wheel."
+
+    - name: Verify package contents (sdist)
+      run: |
+        echo "Verifying sdist contents..."
+        ls -l dist/
+        tar -ztvf dist/*.tar.gz
+        tar -ztvf dist/*.tar.gz | grep 'tests/samples/test_sample.txt' || (echo "❌ Test sample file not found in sdist!" && exit 1)
+        echo "✅ Test sample file found in sdist."
+
+    - name: Publish to PyPI using Trusted Publishing
+      uses: pypa/gh-action-pypi-publish@release/v1
+      # No 'user' or 'password' needed here
+      # Relies on the id-token: write permission above
+
+    # --- Post-Publish Verification ---
+
+    - name: Get Package Version from Tag
+      id: get_version
+      # Extracts version from tag like 'v0.1.0' -> '0.1.0'
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - name: Wait for PyPI index update
+      run: sleep 60 # Increase wait time for PyPI index
+
+    - name: Verify package installation from PyPI
+      run: |
+        echo "Attempting to install version ${{ steps.get_version.outputs.VERSION }} from PyPI..."
+        # Use uv for installation consistency
+        uv pip install --system enchant-cli==${{ steps.get_version.outputs.VERSION }}
+        echo "Installation successful. Verifying command..."
+        # Run a simple command to check if entry point works
+        enchant_cli --version
+      env:
+        # uv handles caching differently, these might not be needed
+        # PIP_NO_CACHE_DIR: 'off'
+        # PIP_DISABLE_PIP_VERSION_CHECK: '1'
+        # Ensure API key is available if tests run post-install (they don't here)
+        # OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        PYTHONUTF8: 1
+
+    # Running tests after publish might be redundant if tests.yml covers it well.
+    # If kept, ensure dependencies are installed correctly using uv.
+    # - name: Install Test Dependencies
+    #   run: uv pip install --system -r requirements-dev.txt --locked
+
+    # - name: Run Tests (Post-Publish)
+    #   run: |
+    #     # Set PYTHONPATH for tests if needed when run this way
+    #     export PYTHONPATH=src
+    #     pytest tests/ -v \
+    #       --html=report.html \
+    #       --self-contained-html \
+    #       --cov=enchant_cli \
+    #       --cov-report=term-missing \
+    #       --cov-report=xml \
+    #       --cov-report=lcov
+    #   env:
+    #     OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+    #     PYTHONUTF8: 1
+    #     TEST_ENV: "true" # Ensure test config is used
+
+    # - name: Upload coverage to Codecov (Post-Publish)
+    #   uses: codecov/codecov-action@v4 # Use v4
+    #   with:
+    #     token: ${{ secrets.CODECOV_API_TOKEN }} # Use token from secrets
+    #     # file: ./coverage.xml # Default is ./coverage.xml
+    #     flags: postpublish_tests # Use a different flag if running tests here
+    #   env:
+    #      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }} # Some actions prefer env var
+

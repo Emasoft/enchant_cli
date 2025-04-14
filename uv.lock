@@ -1,0 +1,32 @@
+# ============================================================
+#               !!! IMPORTANT !!!
+# This file is currently a placeholder or outdated.
+# It MUST be regenerated based on the current dependencies
+# defined in pyproject.toml and requirements*.txt files.
+# ============================================================
+#
+# Please run the following commands in your terminal
+# (ensure uv is installed and your virtual environment is active):
+#
+# 1. Compile requirements from pyproject.toml:
+#    uv pip compile pyproject.toml -o requirements.txt
+#    uv pip compile pyproject.toml --extra dev -o requirements-dev.txt
+#
+# 2. Sync the environment (installs packages) AND generate this lock file:
+#    uv pip sync requirements.txt requirements-dev.txt
+#
+# 3. Commit the updated requirements.txt, requirements-dev.txt,
+#    and this uv.lock file to your repository:
+#    git add requirements.txt requirements-dev.txt uv.lock
+#    git commit -m "Update dependencies and lock file"
+#
+# ============================================================
+
+# The content below will be automatically replaced by `uv pip sync`.
+version = 1
+requires-python = ">=3.9"
+
+# [[package]]
+# name = "example-dependency"
+# version = "1.2.3"
+# ... more dependency details will appear here ...

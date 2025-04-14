@@ -1,0 +1,112 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "enchant-cli"
+# Version is now dynamic
+dynamic = [
+    "version",
+    "readme",
+]
+
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Text Processing :: Linguistic",
+    "Topic :: Utilities",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed"
+]
+
+requires-python = ">=3.9"
+description = "CLI Translation Tool"
+authors = [
+    {name = "Emasoft", email = "713559+Emasoft@users.noreply.github.com"}
+]
+license = "Apache-2.0" # Use SPDX identifier
+
+dependencies = [
+    # From requirements.txt
+    "requests>=2.25.0",
+    "rich>=14.0.0",
+    "click>=8.0.0",
+    "multiexit>=1.5.0",
+    "tenacity==8.2.3",
+    "chardet>=4.0.0",
+    "python-dotenv>=0.19.0",
+    "beautifulsoup4>=4.12.0",
+    "lxml>=4.9.0",
+    "pygments>=2.13.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # From requirements-dev.txt
+    "pytest>=8.0",
+    "pytest-cov>=4.0",
+    "pytest-mock>=3.0",
+    "requests-mock>=1.0",
+    "pytest-html>=4.0",
+    "pytest-timeout>=2.1.0",
+    # rich is in core dependencies
+    "black>=23.0",
+    "bump-my-version>=0.10.0",
+    "build>=0.10.0",
+    "twine>=4.0",
+    # python-dotenv is in core dependencies
+    "pre-commit>=3.0.0",
+    "uv",
+    # "git-chglog", # Removed - Install separately if needed (e.g., brew install git-chglog)
+    "codecov",
+    "shellcheck-py",
+    "ruff>=0.1.6",
+    "mypy>=1.7.1",
+    "types-requests>=2.31.0",
+    "coverage>=7.0.0",
+    "commitizen>=3.0.0",
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.20.0",
+    "markdown-include>=0.8.0",
+]
+
+[project.scripts]
+enchant_cli = "enchant_cli.enchant_cli:main"
+
+[project.urls] # Optional but recommended
+Homepage = "https://github.com/Emasoft/enchant-cli"
+Repository = "https://github.com/Emasoft/enchant-cli"
+
+[tool.setuptools]
+package-dir = {"" = "src"} # Specify the package directory
+packages = ["find:"] # Let setuptools find packages automatically under src
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"], content-type = "text/markdown"} # Specify content type
+version = {attr = "enchant_cli.__version__"}
+
+[tool.black]
+line-length = 88
+target-version = ["py39", "py310", "py311", "py312", "py313"]
+include = '\.pyi?$'
+exclude = '''
+/( \.git | \.hg | \.mypy_cache | \.tox | \.venv | _build | buck-out | build | dist | env )/
+'''
+
+[tool.ruff]
+line-length = 88
+select = ["E", "W", "F", "I", "B", "C", "UP", "PL", "RUF"]
+ignore = ["E203", "E501", "F401", "F403", "F405", "F811", "W503", "PLR0913", "PLR0915"] # Added F811
+target-version = "py39"
+
+[tool.ruff.isort]
+known-first-party = ["enchant_cli"]
