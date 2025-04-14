@@ -4,7 +4,7 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/enchant-cli)](https://pypi.org/project/enchant-cli)
 [![License](https://img.shields.io/pypi/l/enchant-cli)](https://github.com/Emasoft/enchant-cli/blob/main/LICENSE) <!-- Use PyPI license shield -->
 [![Tests Status](https://github.com/Emasoft/enchant-cli/actions/workflows/tests.yml/badge.svg)](https://github.com/Emasoft/enchant-cli/actions/workflows/tests.yml) <!-- Link to tests workflow -->
-[![Codecov](https://codecov.io/gh/Emasoft/enchant-cli/graph/badge.svg?token=REPLACE_WITH_YOUR_CODECOV_BADGE_TOKEN)](https://codecov.io/gh/Emasoft/enchant-cli) <!-- IMPORTANT: Replace REPLACE_WITH_YOUR_CODECOV_BADGE_TOKEN with the actual token from your Codecov repository settings -->
+[![Codecov](https://codecov.io/gh/Emasoft/enchant-cli/graph/badge.svg?token=YOUR_ACTUAL_CODECOV_TOKEN_HERE)](https://codecov.io/gh/Emasoft/enchant-cli) <!-- IMPORTANT: Replace YOUR_ACTUAL_CODECOV_TOKEN_HERE with the actual token from your Codecov repository settings -->
 
 A command-line translation tool specifically designed for converting Chinese novels and technical documents into fluent English using AI via the OpenRouter API. It handles text splitting, context-aware translation, and basic formatting preservation.
 
