@@ -27,7 +27,7 @@ if ! git diff --quiet HEAD; then
 fi
 
 # 2. Get current version
-CURRENT_VERSION=$(bump-my-version show current_version --no-configured-files)
+CURRENT_VERSION=$(bump-my-version show current_version)
 if [ -z "$CURRENT_VERSION" ]; then
     echo >&2 "❌ Error: Could not determine current version using bump-my-version."
     exit 1
