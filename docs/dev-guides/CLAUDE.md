@@ -158,6 +158,15 @@ git commit -m "feat: Description of your feature"
   - GitHub workflow for CI/CD pipeline
 - All scripts comply with these standards to ensure robustness and portability
 
+## Command-Line Tool Usage Guidelines
+
+- **Always limit search depth** when using `find` or `grep` commands:
+  - Always use `-maxdepth 6` with `find` to prevent excessive recursion
+  - Always use `--max-depth=6` or similar limiting flags with `grep -r`
+  - This prevents performance issues with deeply nested directories
+  - Example: `find . -maxdepth 6 -type f -name "*.py"`
+  - Example: `grep -r --max-depth=6 "pattern" .`
+
 ## Script Documentation
 
 ### Core Scripts
