@@ -68,7 +68,7 @@ echo "📊 Test report generated: report.html"
 
 # 7. Build package (sdist and wheel)
 echo "🏗️ Building package..."
-python -m build || exit 1
+uv build || exit 1 # Use uv build
 
 # 8. Check package metadata and contents
 echo "🔍 Validating built packages..."

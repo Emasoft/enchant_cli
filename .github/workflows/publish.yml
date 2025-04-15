@@ -26,9 +26,9 @@ jobs:
       with:
         python-version: '3.11' # Use a specific recent version
 
-    - name: Install build dependencies and uv
+    - name: Install uv
       run: |
-        python -m pip install --upgrade pip build twine uv
+        python -m pip install --upgrade pip uv
 
     # Optional: Generate Changelog (Run this LOCALLY before tagging/releasing)
     # If you must run it here, uncomment and ensure correct permissions (contents: write)
@@ -57,7 +57,7 @@ jobs:
     # Version bumping should happen BEFORE the release is created/tagged. Removed from here.
 
     - name: Build package
-      run: python -m build
+      run: uv build --no-sources # Use uv build, --no-sources recommended for publish builds
 
     - name: Verify package contents (Wheel)
       run: |
@@ -75,10 +75,9 @@ jobs:
         tar -ztvf dist/*.tar.gz | grep 'tests/samples/test_sample.txt' || (echo "❌ Test sample file not found in sdist!" && exit 1)
         echo "✅ Test sample file found in sdist."
 
-    - name: Publish to PyPI using Trusted Publishing
-      uses: pypa/gh-action-pypi-publish@release/v1
-      # No 'user' or 'password' needed here
-      # Relies on the id-token: write permission above
+    - name: Publish to PyPI using uv
+      run: uv publish --no-build # Use uv publish, --no-build as we built already
+      # No token needed due to id-token: write permission
 
     # --- Post-Publish Verification ---
 
