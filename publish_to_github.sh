@@ -217,7 +217,7 @@ else
     fi
     
     if [ $MISSING_VARS -eq 1 ]; then
-        echo "⚠️ Some required environment variables are missing. See docs/environment.md for details."
+        echo "⚠️ Some required environment variables are missing. See docs/dev-guides/CLAUDE.md section 1.4 for details."
         read -p "Continue anyway? (y/N) " -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -261,7 +261,7 @@ else
     echo ""
     echo "📦 The package will be published to PyPI by the GitHub Action, not by this script."
     echo "🔒 GitHub secrets (PYPI_API_TOKEN, OPENROUTER_API_KEY, CODECOV_API_TOKEN) should be configured in the repository settings."
-    echo "   See docs/environment.md for details on required secrets."
+    echo "   See docs/dev-guides/CLAUDE.md section 1.4 for details on required secrets."
 fi
 
 exit $VALIDATION_EXIT_CODE
