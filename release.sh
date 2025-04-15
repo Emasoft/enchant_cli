@@ -47,26 +47,30 @@ CMD_TIMEOUT=60    # 1 minute for commands
 print_step "Checking required commands..."
 
 ensure_command() {
-    if ! command -v "$1" >/dev/null 2>&1; then
-        print_warning "Command '$1' not found globally. Checking in local environment..."
-        if [ -f "$VENV_DIR/bin/$1" ]; then
-            print_success "Found $1 in virtual environment."
-            return 0
-        fi
-        print_warning "Installing $1 in virtual environment..."
-        timeout $CMD_TIMEOUT "$PYTHON_CMD" -m pip install "$1" || {
-            print_error "Installation timeout or failure for $1."
-            return 1
-        }
-        
-        if [ ! -f "$VENV_DIR/bin/$1" ]; then
-            print_error "Failed to install $1."
-            return 1
-        }
-        print_success "Successfully installed $1."
-    else
-        print_success "Command $1 is available."
+    local cmd="$1"
+    if command -v "$cmd" >/dev/null 2>&1; then
+        print_success "Command $cmd is available."
+        return 0
     fi
+    
+    print_warning "Command $cmd not found globally. Checking in virtual environment..."
+    if [ -f "$VENV_DIR/bin/$cmd" ]; then
+        print_success "Found $cmd in virtual environment."
+        return 0
+    fi
+    
+    print_warning "Installing $cmd in virtual environment..."
+    if ! timeout $CMD_TIMEOUT "$PYTHON_CMD" -m pip install "$cmd"; then
+        print_error "Installation timeout or failure for $cmd."
+        return 1
+    fi
+    
+    if [ ! -f "$VENV_DIR/bin/$cmd" ]; then
+        print_error "Failed to install $cmd."
+        return 1
+    fi
+    
+    print_success "Successfully installed $cmd."
     return 0
 }
 
