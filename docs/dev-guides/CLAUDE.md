@@ -214,9 +214,9 @@ The `first_push.sh` script contains commands using the `gh` CLI to set up the ne
 
 Example commands from `first_push.sh`:
 ```bash
-gh secret set PYPI_API_TOKEN -b"$PYPI_API_TOKEN" -r"Emasoft/enchant_cli" # For PyPI trusted publishing (OIDC preferred)
-gh secret set OPENROUTER_API_KEY -b"$OPENROUTER_API_KEY" -r"Emasoft/enchant_cli" # For API access in tests/app
-gh secret set CODECOV_API_TOKEN -b"$CODECOV_API_TOKEN" -r"Emasoft/enchant_cli" # For Codecov uploads
+gh secret set PYPI_API_TOKEN -b"$PYPI_API_TOKEN" --repo "Emasoft/enchant_cli" # For PyPI trusted publishing (OIDC preferred)
+gh secret set OPENROUTER_API_KEY -b"$OPENROUTER_API_KEY" --repo "Emasoft/enchant_cli" # For API access in tests/app
+gh secret set CODECOV_API_TOKEN -b"$CODECOV_API_TOKEN" --repo "Emasoft/enchant_cli" # For Codecov uploads
 ```
 
 **No manual exporting needed for Actions** - these should be configured via:

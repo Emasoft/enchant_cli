@@ -414,7 +414,7 @@ fi
 REPO_EXISTS=0
 REPO_FULL_NAME="$GITHUB_ORG/$REPO_NAME"
 print_info "Checking for repository: $REPO_FULL_NAME"
-if gh repo view "$REPO_FULL_NAME" --json name &>/dev/null; then
+if gh repo view --repo "$REPO_FULL_NAME" --json name &>/dev/null; then
     print_success "Repository $REPO_FULL_NAME already exists on GitHub."
     REPO_EXISTS=1
     
@@ -489,7 +489,7 @@ if [ $REPO_EXISTS -eq 1 ]; then
         local secret_exists=0
         
         # Use gh secret list to check if the secret exists
-        if gh secret list -R "$REPO_FULL_NAME" | grep -q "^$secret_name\s"; then
+        if gh secret list --repo "$REPO_FULL_NAME" | grep -q "^$secret_name\s"; then
             print_success "GitHub secret $secret_name is set in the repository."
             return 0
         else
@@ -510,21 +510,21 @@ if [ $REPO_EXISTS -eq 1 ]; then
         
         if [ -n "$OPENROUTER_API_KEY" ] && ! check_github_secret "OPENROUTER_API_KEY" &>/dev/null; then
             print_info "Setting GitHub secret OPENROUTER_API_KEY from local environment..."
-            gh secret set OPENROUTER_API_KEY -b"$OPENROUTER_API_KEY" -R "$REPO_FULL_NAME" && \
+            gh secret set OPENROUTER_API_KEY -b"$OPENROUTER_API_KEY" --repo "$REPO_FULL_NAME" && \
                 print_success "GitHub secret OPENROUTER_API_KEY set successfully." || \
                 print_warning "Failed to set GitHub secret OPENROUTER_API_KEY."
         fi
         
         if [ -n "$CODECOV_API_TOKEN" ] && ! check_github_secret "CODECOV_API_TOKEN" &>/dev/null; then
             print_info "Setting GitHub secret CODECOV_API_TOKEN from local environment..."
-            gh secret set CODECOV_API_TOKEN -b"$CODECOV_API_TOKEN" -R "$REPO_FULL_NAME" && \
+            gh secret set CODECOV_API_TOKEN -b"$CODECOV_API_TOKEN" --repo "$REPO_FULL_NAME" && \
                 print_success "GitHub secret CODECOV_API_TOKEN set successfully." || \
                 print_warning "Failed to set GitHub secret CODECOV_API_TOKEN."
         fi
         
         if [ -n "$PYPI_API_TOKEN" ] && ! check_github_secret "PYPI_API_TOKEN" &>/dev/null; then
             print_info "Setting GitHub secret PYPI_API_TOKEN from local environment..."
-            gh secret set PYPI_API_TOKEN -b"$PYPI_API_TOKEN" -R "$REPO_FULL_NAME" && \
+            gh secret set PYPI_API_TOKEN -b"$PYPI_API_TOKEN" --repo "$REPO_FULL_NAME" && \
                 print_success "GitHub secret PYPI_API_TOKEN set successfully." || \
                 print_warning "Failed to set GitHub secret PYPI_API_TOKEN."
         fi
