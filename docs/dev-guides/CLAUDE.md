@@ -62,11 +62,23 @@ The project uses platform-specific script wrappers to maintain compatibility:
   - `uv sync` - Sync environment from lockfile
   - `uv pip install -e .` - Install project in development mode
 - Path references are always explicit: `./.venv/bin/uv` never global `uv`
+- uv tools usage:
+  - `uv tool install` - Install global tools (like bump-my-version)
+  - `uv tool run` - Run tools without installing them globally
+  - Example: `uv tool run bump-my-version bump minor --commit --tag --allow-dirty`
+- The project's default workflow tries both approaches:
+  1. First try uv if available (`uv tool run ...`)
+  2. Fall back to local venv if needed (`.venv/bin/...`)
+  3. Fall back to system tools as a last resort
 
 ## Pre-commit Configuration
 
-- Configured to use bump-my-version as a local hook with explicit path to the project's environment
-- Entry point: `./.venv/bin/bump-my-version` (never system `bump-my-version`) 
+- Configured to use bump-my-version as a local hook with a robust script in the hooks directory
+- Entry point: `./hooks/bump_version.sh` which implements a multi-tier approach:
+  1. First tries using `uv tool run bump-my-version` (preferred method)
+  2. Falls back to `.venv/bin/bump-my-version` if uv isn't available
+  3. Falls back to system `bump-my-version` if not in venv
+  4. Final fallback to a pure shell script implementation using sed for reliability
 - Automatically bumps minor version on every commit (creating unique numbered releases like 0.3.278)
 - Creates tags automatically for each version increment
 - Version is displayed in CLI header and when using --version flag
@@ -235,6 +247,17 @@ git commit -m "feat: Description of your feature"
   - Takes version part as argument (major, minor, patch)
   - Used for manual version control when needed
   - Uses only project-isolated environment paths
+
+- `./hooks/bump_version.sh`: Robust version bumping script
+  - Used by pre-commit and publish_to_github.sh
+  - Multi-layer fallback approach:
+    1. Try uv tool run bump-my-version
+    2. Try .venv/bin/bump-my-version
+    3. Try system bump-my-version
+    4. Fall back to pure shell using sed
+  - Handles edge cases and environments without Python
+  - Creates git commit and tag automatically
+  - Updates the version in src/enchant_cli/__init__.py
 
 - `./cleanup.sh`: Removes clutter and build artifacts
   - Removes build artifacts and caches
