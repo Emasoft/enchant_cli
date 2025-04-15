@@ -8,7 +8,6 @@ graft tests/samples
 
 # Documentation
 include docs/README.md
-include docs/environment.md
 include docs/dev-guides/CLAUDE.md
 
 # Exclude example files (not needed for package)
