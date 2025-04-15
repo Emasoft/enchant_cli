@@ -622,10 +622,11 @@ When using command-line tools in scripts:
   - Example: `find . -maxdepth 6 -type f -name "*.py"`
   - Example: `grep -r --max-depth=6 "pattern" .`
 
-- **Set appropriate timeouts** for long-running commands:
-  - Use `timeout` command for process-level timeouts
-  - Use tool-specific timeout parameters when available
-  - Example: `timeout 300 "$SCRIPT_DIR/.venv/bin/pytest"`
+- **Use standardized 15-minute timeouts** for all long-running commands:
+  - All scripts use consistent 900-second (15-minute) timeouts
+  - Use `timeout 900` command for process-level timeouts
+  - Use tool-specific timeout parameters set to 900 seconds
+  - Example: `timeout 900 "$SCRIPT_DIR/.venv/bin/pytest" --timeout=900`
 
 - **Handle output verbosity** with conditional flags:
   - Use `-v` or `--verbose` for detailed output
@@ -813,62 +814,80 @@ echo "✅ Release validation completed successfully."
 
 ### 4.3 Testing Scripts
 
-- `./run_tests.sh`: Runs tests with pytest
-  - Uses pytest with appropriate settings
-  - Generates code coverage reports
-  - Creates HTML test reports
-  - Uses a 5-minute timeout (300 seconds) for local runs
+- `./run_tests.sh`: Unified test script supporting both full and fast testing modes
+  - Configured for comprehensive test coverage
+  - Generates detailed HTML reports
+  - Creates coverage reports
+  - Uses consistent 15-minute timeouts (900 seconds)
+  - Supports fast mode with `--fast` flag
   - Environment variables pre-configured
   - Uses only project-isolated environment paths
 
-Example `run_tests.sh`:
+Example usage:
+
+```bash
+# Run full test suite (all tests)
+./run_tests.sh
+
+# Run only critical tests for quick validation
+./run_tests.sh --fast
+```
+
+Key features of the test script:
 
 ```bash
 #!/bin/bash
-set -eo pipefail
+# Excerpt from run_tests.sh showing key features
 
-# Get script directory and source environment setup
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-source "$SCRIPT_DIR/ensure_env.sh"
+# Set a consistent timeout for all operations (15 minutes = 900 seconds)
+TIMEOUT=900
 
-# Set verbosity flag based on environment variable
-VERBOSE_FLAG=""
-if [ "${VERBOSE:-0}" = "1" ]; then
-    VERBOSE_FLAG="-v"
+# Check if any argument was passed to run in fast mode
+FAST_MODE=0
+if [[ "$1" == "--fast" || "$1" == "-f" ]]; then
+    FAST_MODE=1
+    print_info "Running in fast mode - only critical tests will be executed"
 fi
 
-# Run tests with coverage and report generation
-echo "🔄 Running tests with coverage..."
-"$SCRIPT_DIR/.venv/bin/pytest" $VERBOSE_FLAG \
-    tests \
-    --cov=src \
-    --html=report.html \
-    --cov-report=html:coverage_report \
-    --cov-report=term \
-    --timeout=300
+# Set test arguments with consistent timeouts
+PYTEST_ARGS=(
+    -v
+    --cov=enchant_cli
+    --cov-report=term-missing:skip-covered
+    --cov-report=html:"$SCRIPT_DIR/coverage_report"
+    --cov-fail-under=80
+    --strict-markers
+    --html="$SCRIPT_DIR/report.html"
+    --self-contained-html
+    --durations=10  # Show 10 slowest tests
+    --timeout=900   # Test timeout in seconds (15 minutes)
+)
 
-echo "✅ Tests completed successfully."
-echo ""
-echo "Reports generated:"
-echo "- HTML Test Report: $SCRIPT_DIR/report.html"
-echo "- Coverage Report: $SCRIPT_DIR/coverage_report/index.html"
+# Run either full test suite or critical tests based on mode
+if [ $FAST_MODE -eq 1 ]; then
+    print_step "Running critical tests only..."
+    
+    # Define critical tests to run (subset of full test suite)
+    CRITICAL_TESTS=(
+        "tests/test_cli.py::test_cli_version"
+        "tests/test_cli.py::test_cli_help"
+        # Plus a few more essential tests
+    )
+    
+    timeout $TIMEOUT $PYTHON_CMD -m pytest "${CRITICAL_TESTS[@]}" "${PYTEST_ARGS[@]}"
+else
+    print_step "Running full test suite..."
+    
+    # Run all tests
+    timeout $TIMEOUT $PYTHON_CMD -m pytest "$SCRIPT_DIR/tests/" "${PYTEST_ARGS[@]}"
+fi
 ```
 
-- `./run_tests.sh --fast`: Runs a minimal subset of tests for quick validation
-  - Only runs critical tests (version, help, etc.)
-  - Uses the standard 15-minute timeout for consistency
-  - Provides quick feedback during development
-  - Perfect for pre-push validation
-
-Example of running fast tests:
-
-```bash
-# Run tests in fast mode with the --fast flag
-./run_tests.sh --fast
-
-# This runs only critical tests but with the same environment setup and timeout settings
-# as the full test suite for consistency
-```
+The unified script approach provides several advantages:
+- Consistent environment setup and timeout handling
+- Standardized reporting formats
+- Simplified maintenance
+- Flexible testing options with the same core code
 
 ### 4.4 Utility Scripts
 

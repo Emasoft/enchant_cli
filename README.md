@@ -117,11 +117,18 @@ This completely removes the existing environment and creates a fresh one with no
 
 **Run tests using the script:**
 ```bash
-# Run the test script (while .venv is active)
+# Run full test suite (recommended for thorough testing)
 ./run_tests.sh
+
+# Run only critical tests for quick validation
+./run_tests.sh --fast
 ```
 
-The `./run_tests.sh` script now assumes dependencies are already installed in the active virtual environment and directly runs `pytest` with the configured options.
+The unified test script supports two modes:
+- **Full mode**: Runs the complete test suite with comprehensive coverage
+- **Fast mode**: Runs only critical tests for quick validation during development
+
+All testing uses consistent 15-minute timeouts, ensuring sufficient time for test completion regardless of mode.
 
 **Test Reports:**
 *   An HTML test report will be generated at `report.html`.
