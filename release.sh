@@ -38,11 +38,11 @@ echo "ℹ️  Validating version: $CURRENT_VERSION"
 echo "🧹 Cleaning previous builds..."
 rm -rf dist/ build/ *.egg-info/ .coverage* coverage_report/ report.html
 
-# 4. Install dependencies (using specified requirements files)
-echo "📦 Installing dependencies..."
-uv pip install --system -r requirements.txt
-uv pip install --system -r requirements-dev.txt
-uv pip install --system -e . # Install current package
+# 4. Install dependencies (using specified requirements files into the active venv)
+echo "📦 Installing dependencies into active virtual environment..."
+uv pip install -r requirements.txt
+uv pip install -r requirements-dev.txt
+uv pip install -e . # Install current package into the active venv
 
 # 5. Run linters/formatters (via pre-commit if configured)
 echo "🎨 Checking code formatting and quality..."
