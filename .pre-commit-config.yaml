@@ -16,12 +16,11 @@ repos:
   # Creates a new commit with version bump and a corresponding tag.
   - repo: local
     hooks:
-      - id: bump-my-version
-        name: bump-my-version
-        description: 'Bump version: increment minor version, commit changes, and create a tag'
-        entry: ./.venv/bin/bump-my-version
-        language: script
-        args: ["bump", "minor", "--commit", "--tag", "--allow-dirty"]
+      - id: bump-version
+        name: Increment version using bump-my-version
+        description: 'Bump version: increment minor version with automatic commit and tag'
+        entry: ./hooks/bump_version.sh
+        language: system
         # Don't pass filenames to avoid processing individual files
         pass_filenames: false
         # Always run this hook, even for amending commits

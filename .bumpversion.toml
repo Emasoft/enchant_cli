@@ -1,25 +1,14 @@
 [tool.bumpversion]
-current_version = "0.1.0"
+current_version = "0.3.5"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
 serialize = ["{major}.{minor}.{patch}"]
 commit = true
 tag = true
-message = "Bump version: {current_version} → {new_version}"
-tag_name = "v{new_version}"
-tag_message = "Version {new_version}"
+sign_tags = false
+allow_dirty = true
 
-[[tool.bumpversion.files]]
-filename = "src/enchant_cli/__init__.py"
-search = "__version__ = \"{current_version}\""
-replace = "__version__ = \"{new_version}\""
-
-[[tool.bumpversion.files]]
-filename = "src/enchant_cli/enchant_cli.py"
-# Note: Escaping backslashes in TOML might require double backslashes if the search string itself needs them.
-# Let's try with single backslashes first as they might be interpreted literally by bump-my-version's regex.
-search = "@click.version_option\\(__version__, \"-V\", \"--version\", message=\"%(prog)s v%(version)s\""
-replace = "@click.version_option(__version__, \"-V\", \"--version\", message=\"%(prog)s v{new_version}\""
-
-# "src/enchant_cli/translation_service.py" = {search = "APP_VERSION = \"{current_version}\"", replace = "APP_VERSION = \"{new_version}\""} # Removed as requested
-# "setup.cfg" = {search = "version = {current_version}", replace = "version = {new_version}"} # Removed
-# "pyproject.toml" = {search = "version = \"{current_version}\"", replace = "version = \"{new_version}\""} # Removed
+[tool.bumpversion.file_patterns]
+"src/enchant_cli/__init__.py" = [
+    '__version__ = "{current_version}"',
+]
+EOF < /dev/null

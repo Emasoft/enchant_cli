@@ -754,7 +754,7 @@ def main(filepath: Path, batch: bool, max_chars: int, split_mode: str, output: P
     """
     global tolog
     global translator # Declare translator as global to modify it
-    
+
     # Display version at startup
     click.secho(get_detailed_version(), fg="cyan", bold=True)
 

@@ -6,31 +6,56 @@ set -eo pipefail
 
 echo "🚀 Starting pre-release validation..."
 
-# 0. Check required commands
-check_command() {
+# Find script directory for relative paths
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+VENV_DIR="$SCRIPT_DIR/.venv"
+PYTHON_CMD="$VENV_DIR/bin/python"
+
+# 0. Check required commands and potentially install
+ensure_command() {
     if ! command -v "$1" >/dev/null 2>&1; then
-        echo >&2 "❌ Error: Command '$1' is required but not installed or not in PATH."
-        exit 1
+        echo "⚠️ Command '$1' not found globally. Checking in local environment..."
+        if [ -f "$VENV_DIR/bin/$1" ]; then
+            echo "✅ Found $1 in virtual environment."
+            return 0
+        fi
+        echo "⚠️ Installing $1 in virtual environment..."
+        "$PYTHON_CMD" -m pip install "$1"
+        if [ ! -f "$VENV_DIR/bin/$1" ]; then
+            echo >&2 "❌ Error: Failed to install $1."
+            exit 1
+        fi
     fi
 }
-check_command git
-check_command python
-check_command uv
-check_command twine
-check_command bump-my-version # Needed to get current version
 
-# Define Python command from potential venv (redundant if called by publish_to_github, but safe)
-PYTHON_CMD=python
-if [ -d ".venv" ] && [ -f ".venv/bin/python" ]; then
-  PYTHON_CMD=".venv/bin/python"
-elif command -v python3 &> /dev/null; then
-    PYTHON_CMD=python3
+ensure_command git
+ensure_command uv
+ensure_command twine
+
+# Install bump-my-version using uv tool
+if command -v uv &> /dev/null; then
+    echo "🔧 Installing bump-my-version via uv tools..."
+    uv tool install --quiet bump-my-version || echo "⚠️ Failed to install bump-my-version via uv, continuing anyway."
+    BUMP_CMD="uv tool run bump-my-version"
+elif [ -f "$VENV_DIR/bin/bump-my-version" ]; then
+    BUMP_CMD="$VENV_DIR/bin/bump-my-version"
+else
+    echo "⚠️ Installing bump-my-version in virtual environment..."
+    "$PYTHON_CMD" -m pip install bump-my-version || echo "⚠️ Failed to install bump-my-version, continuing anyway."
+    BUMP_CMD="$VENV_DIR/bin/bump-my-version"
 fi
 
-# 2. Get current version
-CURRENT_VERSION=$(bump-my-version show current_version)
+# 2. Get current version directly from the Python file
+INIT_PY="$SCRIPT_DIR/src/enchant_cli/__init__.py"
+if [ -f "$INIT_PY" ]; then
+    CURRENT_VERSION=$(grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' "$INIT_PY")
+else
+    echo >&2 "❌ Error: Could not find __init__.py at $INIT_PY"
+    exit 1
+fi
+
 if [ -z "$CURRENT_VERSION" ]; then
-    echo >&2 "❌ Error: Could not determine current version using bump-my-version."
+    echo >&2 "❌ Error: Could not extract version from __init__.py."
     exit 1
 fi
 echo "ℹ️  Validating version: $CURRENT_VERSION"
@@ -113,7 +138,7 @@ echo "    ✅ Test sample file found in packages."
 echo -e "\n✅✅✅ All local validations passed for version $CURRENT_VERSION! ✅✅✅"
 echo "➡️ Next steps:"
 echo "   1. Ensure the version $CURRENT_VERSION is correct."
-echo "   2. If not already done, run: bump-my-version [major|minor|patch] (this should create the commit and tag)"
-echo "   3. Push changes and the tag: git push origin main --tags"
+echo "   2. To manually bump version, run: uv tool run bump-my-version [major|minor|patch]"
+echo "   3. Push changes and tags with: git push origin main --tags"
 echo "   4. Create a GitHub Release from the tag 'v$CURRENT_VERSION'."
 

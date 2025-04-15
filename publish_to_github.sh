@@ -37,12 +37,12 @@ if [ ! -f "$PYTHON_CMD" ]; then
 fi
 echo "🐍 Using Python command: $PYTHON_CMD"
 
-# Ensure bump-my-version is installed
-if ! command -v bump-my-version &> /dev/null; then
-    echo "⚠️ bump-my-version not found. Installing..."
-    $PYTHON_CMD -m pip install bump-my-version || { echo >&2 "❌ Failed to install bump-my-version."; exit 1; }
-    echo "✅ bump-my-version installed successfully."
-fi
+# Install bump-my-version via uv tools if needed
+echo "🔧 Ensuring bump-my-version is available..."
+uv tool install --quiet bump-my-version || {
+    echo "⚠️ Installing bump-my-version via uv failed. Will try via pip..."
+    $PYTHON_CMD -m pip install bump-my-version || echo "⚠️ Failed to install bump-my-version. Version bumping may fail."
+}
 
 # Ensure pip is installed correctly
 if ! $PYTHON_CMD -m pip --version &> /dev/null; then
@@ -88,10 +88,32 @@ if command -v shellcheck &> /dev/null; then
     done
 fi
 
-# Always bump version, last step after other checks
-if command -v bump-my-version &> /dev/null; then
-    # Don't allow the version bump to break the commit
-    bump-my-version --minor --commit --tag --allow-dirty || echo "WARNING: Version bump failed, continuing commit"
+# Use uv to run bump-my-version
+if command -v uv &> /dev/null; then
+    uv tool run bump-my-version minor --commit --tag --allow-dirty || \
+    echo "WARNING: Version bump with uv tool failed, continuing commit"
+elif [ -f ".venv/bin/bump-my-version" ]; then
+    .venv/bin/bump-my-version minor --commit --tag --allow-dirty || \
+    echo "WARNING: Version bump with .venv binary failed, continuing commit"
+elif command -v bump-my-version &> /dev/null; then
+    bump-my-version minor --commit --tag --allow-dirty || \
+    echo "WARNING: Version bump failed, continuing commit"
+else
+    # Fallback to inline Python script if all else fails
+    python -c "
+import re, sys;
+init_file = 'src/enchant_cli/__init__.py';
+with open(init_file, 'r') as f: content = f.read();
+version_match = re.search(r'__version__\\s*=\\s*\"([0-9]+)\\.([0-9]+)\\.([0-9]+)\"', content);
+if not version_match: 
+    print('WARNING: Version pattern not found in __init__.py');
+    sys.exit(0);
+major, minor, patch = map(int, version_match.groups());
+new_minor = minor + 1;
+new_version = f'{major}.{new_minor}.0';
+with open(init_file, 'w') as f: f.write(re.sub(r'__version__\\s*=\\s*\"[0-9]+\\.[0-9]+\\.[0-9]+\"', f'__version__ = \"{new_version}\"', content));
+print(f'Bumped version to {new_version}');
+" || echo "WARNING: Version bump failed, continuing commit"
 fi
 EOF
     chmod +x .git/hooks/pre-commit
@@ -146,10 +168,47 @@ if ! git diff --quiet HEAD; then
             echo >&2 "❌ Git commit failed even with --no-verify. Manual intervention required."
             exit 1
         }
-        # Manually run bump-my-version if the hook was bypassed
-        bump-my-version --minor --commit --tag --allow-dirty || {
-            echo "⚠️ Manual version bump failed. Project will be published with existing version."
-        }
+        # Manually run version bump if the hook was bypassed
+        if command -v uv &> /dev/null; then
+            uv tool run bump-my-version minor --commit --tag --allow-dirty || {
+                echo "⚠️ Version bump with uv failed. Trying direct approach..."
+                # Fallback to manual Python script
+                python -c "
+import re, sys;
+init_file = 'src/enchant_cli/__init__.py';
+with open(init_file, 'r') as f: content = f.read();
+version_match = re.search(r'__version__\\s*=\\s*\"([0-9]+)\\.([0-9]+)\\.([0-9]+)\"', content);
+if not version_match: sys.exit(1);
+major, minor, patch = map(int, version_match.groups());
+new_minor = minor + 1;
+new_version = f'{major}.{new_minor}.0';
+with open(init_file, 'w') as f: f.write(re.sub(r'__version__\\s*=\\s*\"[0-9]+\\.[0-9]+\\.[0-9]+\"', f'__version__ = \"{new_version}\"', content));
+print(f'Bumped version to {new_version}');
+git add src/enchant_cli/__init__.py;
+git commit -m \"chore: Bump version to {new_version}\" --no-verify;
+git tag -a \"v{new_version}\" -m \"Version {new_version}\";
+                " || {
+                    echo "⚠️ Manual version bump failed. Project will be published with existing version."
+                }
+            }
+        else
+            # Direct Python script approach
+            python -c "
+import re, sys;
+init_file = 'src/enchant_cli/__init__.py';
+with open(init_file, 'r') as f: content = f.read();
+version_match = re.search(r'__version__\\s*=\\s*\"([0-9]+)\\.([0-9]+)\\.([0-9]+)\"', content);
+if not version_match: sys.exit(1);
+major, minor, patch = map(int, version_match.groups());
+new_minor = minor + 1;
+new_version = f'{major}.{new_minor}.0';
+with open(init_file, 'w') as f: f.write(re.sub(r'__version__\\s*=\\s*\"[0-9]+\\.[0-9]+\\.[0-9]+\"', f'__version__ = \"{new_version}\"', content));
+print(f'Bumped version to {new_version}');
+git add src/enchant_cli/__init__.py;
+git commit -m \"chore: Bump version to {new_version}\" --no-verify;
+git tag -a \"v{new_version}\" -m \"Version {new_version}\";
+            " || echo "⚠️ Manual version bump failed. Project will be published with existing version."
+        fi
     fi
     echo "✅ Changes committed."
 else
