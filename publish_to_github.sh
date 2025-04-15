@@ -304,9 +304,9 @@ if ! git diff --quiet HEAD 2>/dev/null; then
         $PYTHON_CMD -m pre_commit run --files "$STAGED_FILES" || {
             print_warning "Manual pre-commit run had issues. Attempting to fix automatically..."
             
-            # Try to fix formatting issues automatically
+            # Install linters
             $PYTHON_CMD -m pip install -q ruff shellcheck-py &> /dev/null
-            $PYTHON_CMD -m ruff --fix . || print_warning "Ruff auto-fix failed, continuing..."
+            $PYTHON_CMD -m ruff . || print_warning "Ruff check failed, continuing..."
             
             # Re-stage files
             git add -A
