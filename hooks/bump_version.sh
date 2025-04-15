@@ -6,13 +6,13 @@ set -e
 
 if command -v uv >/dev/null 2>&1; then
     # Try uv tool run approach
-    uv tool run bump-my-version minor --commit --tag --allow-dirty || echo "WARNING: Version bump with uv failed, trying alternatives..."
+    uv tool run bump-my-version bump minor --commit --tag --allow-dirty || echo "WARNING: Version bump with uv failed, trying alternatives..."
 elif [ -f ".venv/bin/bump-my-version" ]; then
     # Try direct from virtualenv
-    .venv/bin/bump-my-version minor --commit --tag --allow-dirty || echo "WARNING: Version bump with .venv binary failed, trying alternatives..."
+    .venv/bin/bump-my-version bump minor --commit --tag --allow-dirty || echo "WARNING: Version bump with .venv binary failed, trying alternatives..."
 elif command -v bump-my-version &>/dev/null; then
     # Try system-installed version
-    bump-my-version minor --commit --tag --allow-dirty || echo "WARNING: Version bump with global binary failed, trying alternatives..."
+    bump-my-version bump minor --commit --tag --allow-dirty || echo "WARNING: Version bump with global binary failed, trying alternatives..."
 else
     # Fallback to Python script approach
     python -c '

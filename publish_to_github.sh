@@ -170,7 +170,7 @@ if ! git diff --quiet HEAD; then
         }
         # Manually run version bump if the hook was bypassed
         if command -v uv &> /dev/null; then
-            uv tool run bump-my-version minor --commit --tag --allow-dirty || {
+            uv tool run bump-my-version bump minor --commit --tag --allow-dirty || {
                 echo "⚠️ Version bump with uv failed. Trying direct approach..."
                 # Fallback to manual Python script
                 python -c "
