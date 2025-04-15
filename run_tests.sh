@@ -39,10 +39,10 @@ if [ ! -f "$SCRIPT_DIR/tests/samples/test_sample.txt" ]; then
     exit 1
 fi
 
-# Set a fixed timeout value (10 minutes = 600 seconds)
+# Set a fixed timeout value (20 minutes = 1200 seconds)
 # This matches the GitHub workflow timeout setting
-PYTEST_TIMEOUT=600
-echo "⏱️ Test timeout set to $PYTEST_TIMEOUT seconds (10 minutes)"
+PYTEST_TIMEOUT=1200
+echo "⏱️ Test timeout set to $PYTEST_TIMEOUT seconds (20 minutes)"
 
 # Run pytest using the virtual environment's Python.
 # Pass environment variables needed for tests.

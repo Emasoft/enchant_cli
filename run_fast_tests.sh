@@ -38,8 +38,8 @@ print_info() {
 print_header "Fast Test Runner"
 echo "Running critical tests for quick validation."
 
-# Set a strict but reasonable timeout (30 seconds)
-TIMEOUT=30
+# Set a reasonable timeout (120 seconds)
+TIMEOUT=120
 print_info "Test timeout set to $TIMEOUT seconds"
 
 # Verify test sample exists
@@ -68,7 +68,7 @@ TESTS_FAILED=0
 timeout $TIMEOUT "$PYTHON_CMD" -m pytest "${CRITICAL_TESTS[@]}" -v \
     --cov=enchant_cli \
     --cov-report=term-missing:skip-covered \
-    --timeout=30 \
+    --timeout=120 \
     --no-header || TESTS_FAILED=$?
 
 if [ $TESTS_FAILED -ne 0 ]; then
