@@ -8,6 +8,16 @@ echo "------------------------------------"
 
 # --- Add commands below this line ---
 
+echo "🔄 Synchronizing environment with uv..."
+uv sync
+
+echo "🧹 Clearing pre-commit cache..."
+rm -rf ~/.cache/pre-commit
+echo "   Pre-commit cache cleared."
+
+echo "🔧 Reinstalling pre-commit hooks..."
+pre-commit install --install-hooks
+
 echo "🧪 Running tests..."
 ./run_tests.sh
 TEST_EXIT_CODE=$? # Capture exit code from tests
