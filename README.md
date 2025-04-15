@@ -137,7 +137,7 @@ enchant_cli --batch /path/to/chinese_files/ -o /path/to/output_dir/
 *   `--split-mode [PARAGRAPHS|SPLIT_POINTS]`: How to split the text (default: PARAGRAPHS).
 *   `--double-translate`: Perform a second refinement pass (increases cost and time).
 *   `-v, --verbose`: Enable detailed DEBUG logging.
-*   `-V, --version`: Show version information.
+*   `-V, --version`: Show version information and exit immediately (e.g., `Enchant-CLI - Version 0.3.278`).
 *   `-h, --help`: Show help message.
 
 ## Configuration
@@ -185,7 +185,7 @@ For cross-platform compatibility, use the platform-detection wrapper scripts (e.
 
 ### Minor Releases (Automatic Versioning)
 
-This project uses a pre-commit hook (`bump-my-version`) to automatically increment the **minor** version and create a tag on **every commit**. The release process leverages this:
+This project uses a pre-commit hook (`bump-my-version`) to automatically increment the **minor** version and create a tag on **every commit**. This guarantees a unique version number for each release (e.g., `0.3.278`), which is displayed when running the application. The release process leverages this:
 
 1.  **Ensure Clean State:** Make sure your main branch is up-to-date and your working directory is clean (`git status`).
 2.  **Activate Environment:** Activate your virtual environment: `source .venv/bin/activate`.

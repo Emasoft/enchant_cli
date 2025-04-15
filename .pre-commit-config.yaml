@@ -19,9 +19,9 @@ repos:
       - id: bump-my-version
         name: bump-my-version
         description: 'Bump version: increment minor version, commit changes, and create a tag'
-        entry: bump-my-version
+        entry: bump-my-version bump minor
         language: system
-        args: [--minor, --commit, --tag, --allow-dirty]
+        args: [--commit, --tag, --allow-dirty]
         # Don't pass filenames to avoid processing individual files
         pass_filenames: false
         # Always run this hook, even for amending commits

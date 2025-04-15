@@ -38,8 +38,9 @@ The project uses platform-specific script wrappers to maintain compatibility:
 
 ## Pre-commit Configuration
 - Configured to use bump-my-version as a local hook (no external repository needed)
-- Automatically bumps minor version on every commit
-- Creates tags automatically
+- Automatically bumps minor version on every commit (creating unique numbered releases like 0.3.278)
+- Creates tags automatically for each version increment
+- Version is displayed in CLI header and when using --version flag
 - The ruff linter configuration has been updated to ignore several code style issues
 - Uses shellcheck to verify shell scripts
 

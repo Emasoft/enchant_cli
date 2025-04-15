@@ -697,8 +697,12 @@ def save_translated_book(book_id, output_filename, double_translate: bool) -> fl
 #               MAIN FUNCTION               #
 ###############################################
 
-@click.command(context_settings=dict(help_option_names=['-h', '--help']), name="enchant_cli") # Add name="enchant_cli"
-@click.version_option(__version__, "-V", "--version", message="%(prog)s v%(version)s", prog_name=APP_NAME, help="Show version and exit.")
+def get_detailed_version():
+    """Generate a detailed version string for display"""
+    return f"Enchant-CLI - Version {__version__}"
+
+@click.command(context_settings=dict(help_option_names=['-h', '--help']), name="enchant_cli")
+@click.version_option(__version__, "-V", "--version", message=get_detailed_version(), prog_name=APP_NAME, help="Show version and exit immediately.")
 @click.argument(
     "filepath",
     type=click.Path(exists=True, readable=True, path_type=Path),
@@ -750,6 +754,9 @@ def main(filepath: Path, batch: bool, max_chars: int, split_mode: str, output: P
     """
     global tolog
     global translator # Declare translator as global to modify it
+    
+    # Display version at startup
+    click.secho(get_detailed_version(), fg="cyan", bold=True)
 
     # Set up logging based on verbosity
     log_level = logging.DEBUG if verbose else logging.INFO
