@@ -17,13 +17,41 @@ echo "🔄 Synchronizing environment with uv..."
 uv sync || { echo >&2 "❌ uv sync failed."; exit 1; }
 echo "✅ Environment synchronized."
 
-# 2. Define Python command from potential venv
-PYTHON_CMD=python
-if [ -d ".venv" ] && [ -f ".venv/bin/python" ]; then
-  PYTHON_CMD=".venv/bin/python"
-elif command -v python3 &> /dev/null; then
-    PYTHON_CMD=python3
+# 2. Define Python command from project venv
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+VENV_DIR="$SCRIPT_DIR/.venv"
+PYTHON_CMD="$VENV_DIR/bin/python"
+
+# Create venv if it doesn't exist
+if [ ! -f "$PYTHON_CMD" ]; then
+    echo "⚠️ Project virtual environment not found at $VENV_DIR"
+    echo "Creating a new virtual environment..."
+    
+    # Check if uv is installed
+    if ! command -v uv &> /dev/null; then
+        echo "⚠️ Warning: 'uv' command not found. Trying to install it..."
+        # Try to install uv using pip
+        if command -v pip &> /dev/null; then
+            pip install uv
+        elif command -v pip3 &> /dev/null; then
+            pip3 install uv
+        else
+            echo "❌ Error: Neither pip nor pip3 found. Cannot install uv."
+            echo "Please install uv manually: https://github.com/astral-sh/uv"
+            exit 1
+        fi
+    fi
+    
+    echo "Creating virtual environment with uv..."
+    uv venv "$VENV_DIR"
+    PYTHON_CMD="$VENV_DIR/bin/python"
+    
+    echo "Installing dependencies..."
+    uv pip install -e .
+    
+    echo "✅ Environment created and dependencies installed"
 fi
+
 echo "🐍 Using Python command: $PYTHON_CMD"
 
 # 3. Proactively prepare pre-commit environment

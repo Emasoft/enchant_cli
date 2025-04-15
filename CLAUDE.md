@@ -25,16 +25,18 @@ The project uses platform-specific script wrappers to maintain compatibility:
 
 ## Virtual Environment
 - Project uses a Python virtual environment located at `.venv/`
-- Created using uv: `.venv/pyvenv.cfg` shows version info 3.13.2
-- Environment should NOT use system site-packages
+- Created using uv: `.venv/pyvenv.cfg` contains version info
+- Environment is isolated from system Python - no shared site-packages 
 - Project prompt is set to "enchant_cli"
+- Scripts automatically create and manage this environment if needed
 
 ## uv Tool Configuration
-- Current project is using uv for dependency management
+- This project uses uv for dependency management
 - `uv` command should be installed globally and available in PATH
-- Scripts are designed to work with this configuration
-- Python commands use the virtual environment's Python (`.venv/bin/python`)
-- This approach ensures consistent environment management
+- Scripts are designed to detect, create, and use the project's environment
+- All Python commands explicitly use the project's virtual environment Python (`.venv/bin/python`)
+- All script files use relative paths to ensure consistency across platforms
+- No external environments are used - the project is completely self-contained
 
 ## Pre-commit Configuration
 - Configured to use bump-my-version as a local hook (no external repository needed)

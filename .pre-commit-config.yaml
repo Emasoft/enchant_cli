@@ -19,13 +19,13 @@ repos:
       - id: bump-my-version
         name: bump-my-version
         description: 'Bump version: increment minor version, commit changes, and create a tag'
-        entry: bump-my-version bump minor
-        language: system
+        entry: ./.venv/bin/bump-my-version bump minor
+        language: script
         args: [--commit, --tag, --allow-dirty]
         # Don't pass filenames to avoid processing individual files
         pass_filenames: false
         # Always run this hook, even for amending commits
-        stages: [commit]
+        stages: [pre-commit]
         always_run: true
         # Exclude files that shouldn't trigger a version bump or contain the version string
         exclude: |
