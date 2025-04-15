@@ -38,10 +38,10 @@ echo "ℹ️  Validating version: $CURRENT_VERSION"
 echo "🧹 Cleaning previous builds..."
 rm -rf dist/ build/ *.egg-info/ .coverage* coverage_report/ report.html
 
-# 4. Install dependencies (using locked versions)
+# 4. Install dependencies (using specified requirements files)
 echo "📦 Installing dependencies..."
-uv pip install --system -r requirements.txt --locked
-uv pip install --system -r requirements-dev.txt --locked
+uv pip install --system -r requirements.txt
+uv pip install --system -r requirements-dev.txt
 uv pip install --system -e . # Install current package
 
 # 5. Run linters/formatters (via pre-commit if configured)
