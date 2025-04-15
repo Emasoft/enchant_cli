@@ -19,13 +19,6 @@ check_command uv
 check_command twine
 check_command bump-my-version # Needed to get current version
 
-# 1. Ensure clean working directory
-if ! git diff --quiet HEAD; then
-    echo >&2 "❌ Error: Working directory is not clean. Please commit or stash changes."
-    git status --short
-    exit 1
-fi
-
 # 2. Get current version
 CURRENT_VERSION=$(bump-my-version show current_version)
 if [ -z "$CURRENT_VERSION" ]; then
