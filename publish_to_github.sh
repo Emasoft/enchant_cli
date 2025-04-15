@@ -44,11 +44,21 @@ if ! command -v bump-my-version &> /dev/null; then
     echo "✅ bump-my-version installed successfully."
 fi
 
+# Ensure pip is installed correctly
+if ! $PYTHON_CMD -m pip --version &> /dev/null; then
+    echo "   ⚠️ pip not found in virtual environment. Installing..."
+    $PYTHON_CMD -m ensurepip --upgrade || true
+    $PYTHON_CMD -m pip install --upgrade pip || { echo >&2 "❌ Failed to install pip. Run ./reinitialize_env.sh"; exit 1; }
+fi
+
 # Ensure pre-commit is installed
 echo "🔧 Preparing pre-commit environment..."
 if ! $PYTHON_CMD -m pip show pre-commit &> /dev/null; then
     echo "   ⚠️ pre-commit not found in virtual environment. Installing..."
-    $PYTHON_CMD -m pip install pre-commit || { echo >&2 "❌ Failed to install pre-commit."; exit 1; }
+    $PYTHON_CMD -m pip install pre-commit || { 
+        echo >&2 "❌ Failed to install pre-commit. Try running ./reinitialize_env.sh first."; 
+        exit 1; 
+    }
 fi
 
 # Check if there are issues with pre-commit cache

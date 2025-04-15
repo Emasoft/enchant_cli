@@ -36,7 +36,21 @@ IF %ERRORLEVEL% EQU 0 (
     )
 )
 
-echo Using system Python to create environment: %PYTHON_CMD%
+echo Using system Python to bootstrap environment: %PYTHON_CMD%
+
+REM Ensure system Python has pip
+%PYTHON_CMD% -m ensurepip --upgrade
+
+REM Check if pip is installed
+%PYTHON_CMD% -m pip --version >nul 2>nul
+IF %ERRORLEVEL% NEQ 0 (
+    echo Installing pip...
+    %PYTHON_CMD% -m ensurepip --upgrade
+    IF %ERRORLEVEL% NEQ 0 (
+        echo Failed to install pip. Please install pip manually.
+        exit /b 1
+    )
+)
 
 REM Check if uv is installed
 %PYTHON_CMD% -m pip show uv >nul 2>nul
@@ -49,27 +63,35 @@ IF %ERRORLEVEL% NEQ 0 (
     )
 )
 
-echo Creating fresh virtual environment with uv...
-%PYTHON_CMD% -m uv venv "%VENV_DIR%"
+echo Creating fresh virtual environment with venv module...
+%PYTHON_CMD% -m venv "%VENV_DIR%"
 IF %ERRORLEVEL% NEQ 0 (
     echo Failed to create virtual environment.
     exit /b 1
 )
 
+echo Installing pip in new environment...
+"%VENV_DIR%\Scripts\python.exe" -m ensurepip --upgrade
+
+echo Upgrading pip to latest version...
+"%VENV_DIR%\Scripts\python.exe" -m pip install --upgrade pip
+
 echo Installing dependencies...
 "%VENV_DIR%\Scripts\python.exe" -m pip install uv
-"%VENV_DIR%\Scripts\uv.exe" pip install -e "%SCRIPT_DIR%"
+"%VENV_DIR%\Scripts\python.exe" -m pip install -e "%SCRIPT_DIR%"
 "%VENV_DIR%\Scripts\python.exe" -m pip install pre-commit
 "%VENV_DIR%\Scripts\python.exe" -m pip install bump-my-version
 
 echo Setting up pre-commit hooks...
-"%VENV_DIR%\Scripts\pre-commit.exe" install
+"%VENV_DIR%\Scripts\python.exe" -m pre_commit install
 
 echo Verifying environment...
 echo Python version: 
 "%VENV_DIR%\Scripts\python.exe" --version
-echo uv version: 
-"%VENV_DIR%\Scripts\uv.exe" --version
+echo pip version:
+"%VENV_DIR%\Scripts\python.exe" -m pip --version
+echo pre-commit version:
+"%VENV_DIR%\Scripts\pre-commit.exe" --version
 echo bump-my-version version: 
 "%VENV_DIR%\Scripts\bump-my-version.exe" --version
 

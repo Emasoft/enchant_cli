@@ -12,33 +12,38 @@ echo "🧹 Cleaning up existing virtual environment..."
 rm -rf "$VENV_DIR"
 echo "✅ Removed existing environment"
 
-# Ensure uv is available 
-if ! command -v uv &> /dev/null; then
-    echo "⚠️ Warning: 'uv' command not found. Trying to install it using pip..."
-    
-    # Find a system Python to install uv with
-    if command -v python3 &> /dev/null; then
-        SYSTEM_PYTHON="python3"
-    elif command -v python &> /dev/null; then
-        SYSTEM_PYTHON="python"
-    else
-        echo "❌ Error: Cannot find Python executable. Please install Python 3.9+ and try again."
-        exit 1
-    fi
-    
-    echo "🐍 Using system Python: $($SYSTEM_PYTHON --version)"
-    $SYSTEM_PYTHON -m pip install uv
-    
-    # Verify uv was installed
-    if ! command -v uv &> /dev/null; then
-        echo "❌ Failed to install uv. Please install manually with: python -m pip install uv"
-        exit 1
-    fi
+# Find a system Python to bootstrap with
+if command -v python3 &> /dev/null; then
+    SYSTEM_PYTHON="python3"
+elif command -v python &> /dev/null; then
+    SYSTEM_PYTHON="python"
+else
+    echo "❌ Error: Cannot find Python executable. Please install Python 3.9+ and try again."
+    exit 1
 fi
 
-echo "🔨 Creating fresh virtual environment with uv..."
-uv venv "$VENV_DIR"
+echo "🐍 Using system Python to bootstrap environment: $($SYSTEM_PYTHON --version)"
+
+# Ensure system Python has pip
+$SYSTEM_PYTHON -m ensurepip --upgrade || true
+
+# Ensure system Python has uv
+if ! $SYSTEM_PYTHON -m pip show uv &> /dev/null; then
+    echo "Installing uv package with system Python..."
+    $SYSTEM_PYTHON -m pip install uv
+fi
+
+echo "🔨 Creating fresh virtual environment with venv module..."
+$SYSTEM_PYTHON -m venv "$VENV_DIR"
 PYTHON_CMD="$VENV_DIR/bin/python"
+
+# Ensure the new environment has pip
+echo "📦 Installing pip in new environment..."
+$PYTHON_CMD -m ensurepip --upgrade
+
+# Upgrade pip to latest version
+echo "📦 Upgrading pip to latest version..."
+$PYTHON_CMD -m pip install --upgrade pip
 
 echo "📦 Installing dependencies..."
 $PYTHON_CMD -m pip install uv
@@ -51,6 +56,7 @@ $PYTHON_CMD -m pre_commit install
 
 echo "🔍 Verifying environment..."
 echo "Python version: $($PYTHON_CMD --version)"
+echo "pip version: $($PYTHON_CMD -m pip --version)"
 echo "uv version: $($VENV_DIR/bin/uv --version)"
 echo "bump-my-version version: $($VENV_DIR/bin/bump-my-version --version)"
 
