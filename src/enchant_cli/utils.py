@@ -59,6 +59,7 @@ ALLOWED_ASCII = set(string.ascii_letters + string.digits + string.punctuation)
 # Precompiled regex for URLs and emails
 _email_re = re.compile(r"[a-zA-Z0-9_\.\+\-]+\@[a-zA-Z0-9_\.\-]+\.[a-zA-Z]+")
 _url_re = re.compile(r"https?://(-\.)?([^\s/?\.#]+\.?)+(/[^\s]*)?")
+# Test comment to trigger pre-commit version bump
 _markdown_re = re.compile(r".*("
                           r"\*(.*)\*|"
                           r"_(.*)_|" # Added escaped brackets for link text
