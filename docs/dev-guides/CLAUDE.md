@@ -271,21 +271,36 @@ git commit -m "feat: Description of your feature"
 
 ## GitHub Workflows
 
-The project includes GitHub workflows that mirror the local scripts:
+The project includes GitHub workflows that mirror the local scripts with robust integration of uv:
 
 ### tests.yml
 - Parallels `run_tests.sh` in the GitHub environment
 - Runs on every push and pull request
 - Tests across multiple Python versions (3.9, 3.10, 3.11, 3.12, 3.13)
 - Includes shellcheck validation with `--severity=error --extended-analysis=true`
+- Uses proper timeout configuration:
+  - Per-test timeout of 600 seconds (10 minutes) 
+  - Overall workflow timeout of 15 minutes for safety margin
+- Uses uv tool integration:
+  - Creates dedicated virtual environment with `uv venv`
+  - Installs dependencies with `uv sync`
+  - Installs bump-my-version via `uv tool install`
 - Uploads test coverage to Codecov
 
 ### publish.yml
 - Parallels `release.sh` and publishing workflow
 - Triggered when a GitHub Release is published
-- Uses trusted publishing with OIDC for PyPI
-- Builds and verifies package
-- Publishes to PyPI
-- Performs post-publish verification
+- Uses trusted publishing with OIDC for PyPI (no token required)
+- Uses proper uv integration:
+  - Creates dedicated virtual environment with `uv venv`
+  - Syncs all dependencies with `uv sync`
+  - Builds with `.venv/bin/uv build`
+  - Publishes with `.venv/bin/uv publish`
+  - Post-install verification with virtual env paths
+- Verifies package contents thoroughly:
+  - Checks both wheel and sdist packages
+  - Verifies critical files are included in the packages
+  - Waits for PyPI index update before testing installation
+- Includes commented stub for optional post-publish tests
 
-When changes are pushed to GitHub, these workflows automatically run the same validations as the local scripts, ensuring consistent behavior across environments.
+When changes are pushed to GitHub, these workflows automatically run the same validations as the local scripts, ensuring consistent behavior across environments. All paths in the workflows are now properly set to use the dedicated virtual environment paths.
