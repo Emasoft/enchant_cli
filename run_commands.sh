@@ -1,68 +1,59 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # run_commands.sh - Executes the final sequence for validation and push preparation.
+# Uses only relative paths and project-isolated environment
 
 set -eo pipefail # Exit immediately if a command exits with a non-zero status.
+
+# Find script directory for relative paths
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+VENV_DIR="$SCRIPT_DIR/.venv"
+PYTHON_CMD="$VENV_DIR/bin/python"
+UV_CMD="$VENV_DIR/bin/uv"
 
 echo "🚀 Executing final preparation sequence..."
 echo "------------------------------------"
 
+# Check for project-isolated Python environment
+if [ ! -f "$PYTHON_CMD" ]; then
+    echo "⚠️ Project virtual environment not found at $VENV_DIR"
+    echo "Run ./reinitialize_env.sh to create a clean environment"
+    exit 1
+fi
+
+# Check for clean environment
+if [ -f "$VENV_DIR/pyvenv.cfg" ]; then
+    if grep -q "ComfyUI\|comfyui" "$VENV_DIR/pyvenv.cfg"; then
+        echo "⚠️ Warning: Environment contains external references"
+        echo "Run ./reinitialize_env.sh to create a clean environment"
+        exit 1
+    fi
+fi
+
 # --- Commands Sequence ---
+# Activate virtual environment for script execution
+export VIRTUAL_ENV="$VENV_DIR"
+export PATH="$VENV_DIR/bin:$PATH"
 
 # 1. Ensure environment is synchronized
 echo "🔒 Ensuring lock file is up-to-date with all dependencies (including dev)..."
-uv lock || { echo >&2 "❌ uv lock failed."; exit 1; }
+$UV_CMD lock || { echo >&2 "❌ uv lock failed."; exit 1; }
 echo "✅ Lock file updated."
 
 echo "🔄 Synchronizing environment with uv..."
-uv sync || { echo >&2 "❌ uv sync failed."; exit 1; }
+$UV_CMD sync || { echo >&2 "❌ uv sync failed."; exit 1; }
 echo "✅ Environment synchronized."
 
-# 2. Define Python command from project venv
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-VENV_DIR="$SCRIPT_DIR/.venv"
-PYTHON_CMD="$VENV_DIR/bin/python"
+echo "🐍 Using Python from isolated environment: $PYTHON_CMD"
 
-# Create venv if it doesn't exist
-if [ ! -f "$PYTHON_CMD" ]; then
-    echo "⚠️ Project virtual environment not found at $VENV_DIR"
-    echo "Creating a new virtual environment..."
-    
-    # Check if uv is installed
-    if ! command -v uv &> /dev/null; then
-        echo "⚠️ Warning: 'uv' command not found. Trying to install it..."
-        # Try to install uv using pip
-        if command -v pip &> /dev/null; then
-            pip install uv
-        elif command -v pip3 &> /dev/null; then
-            pip3 install uv
-        else
-            echo "❌ Error: Neither pip nor pip3 found. Cannot install uv."
-            echo "Please install uv manually: https://github.com/astral-sh/uv"
-            exit 1
-        fi
-    fi
-    
-    echo "Creating virtual environment with uv..."
-    uv venv "$VENV_DIR"
-    PYTHON_CMD="$VENV_DIR/bin/python"
-    
-    echo "Installing dependencies..."
-    uv pip install -e .
-    
-    echo "✅ Environment created and dependencies installed"
-fi
-
-echo "🐍 Using Python command: $PYTHON_CMD"
-
-# 3. Proactively prepare pre-commit environment
+# 2. Proactively prepare pre-commit environment
 echo "🔧 Preparing pre-commit environment..."
 echo "   🧹 Forcefully cleaning pre-commit cache..."
-rm -rf ~/.cache/pre-commit || echo "   ⚠️  Failed to remove pre-commit cache, continuing..."
+rm -rf "$HOME/.cache/pre-commit" || echo "   ⚠️  Failed to remove pre-commit cache, continuing..."
 echo "   🔧 Reinstalling pre-commit hooks..."
 $PYTHON_CMD -m pre_commit install --install-hooks || { echo >&2 "❌ pre-commit install failed."; exit 1; }
 echo "   ✅ Pre-commit environment ready."
 
-# 4. Check for uncommitted changes and commit them
+# 3. Check for uncommitted changes and commit them
 echo "🔍 Checking for uncommitted changes..."
 if ! git diff --quiet HEAD; then
     echo "⚠️ Uncommitted changes detected. Staging and attempting to commit automatically..."
@@ -71,7 +62,7 @@ if ! git diff --quiet HEAD; then
     echo "⚙️ Running pre-commit hooks manually on staged files before commit..."
     STAGED_FILES=$(git diff --name-only --cached)
     if [ -n "$STAGED_FILES" ]; then
-        $PYTHON_CMD -m pre_commit run --files "$STAGED_FILES" || {
+        $PYTHON_CMD -m pre_commit run --files $STAGED_FILES || {
             echo >&2 "❌ Manual pre-commit run failed on staged files."
             echo >&2 "   Please check pre-commit logs and fix the hook issue manually."
             exit 1
@@ -89,9 +80,9 @@ else
     echo "✅ Working directory is clean."
 fi
 
-# 5. Execute the main validation and push script
+# 4. Execute the main validation and push script
 echo "🚀 Running validation and push script (publish_to_github.sh)..."
-./publish_to_github.sh
+"$SCRIPT_DIR/publish_to_github.sh"
 SCRIPT_EXIT_CODE=$? # Capture exit code
 
 # --- Final Status ---

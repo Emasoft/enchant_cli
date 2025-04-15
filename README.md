@@ -41,46 +41,72 @@ uv pip install enchant-cli
 
 ## Development Setup
 
-This project uses `uv` for dependency management and `pre-commit` for code quality checks and automatic version bumping.
+This project uses `uv` for dependency management, provides isolated environments, and ensures consistent operation across all platforms.
+
+### Quick Start (Self-Contained Environment)
 
 ```bash
 # 1. Clone the repository
 git clone https://github.com/Emasoft/enchant-cli.git
 cd enchant-cli
 
-# 2. Set up environment variables (see Configuration section)
-#    Required for running tests/translation:
-#    export OPENROUTER_API_KEY="your-key-here"
-#    Optional for development/CI:
-#    export CODECOV_API_TOKEN="your-token-here" # For coverage reporting
-#    export PYPI_API_TOKEN="your-pypi-token"    # For potential manual PyPI uploads
+# 2. Create a completely isolated environment
+./reinitialize_env.sh         # On macOS/Linux/BSD
+# or
+reinitialize_env.bat          # On Windows Command Prompt
+# or via WSL/Git Bash on Windows
+./reinitialize_env.sh
 
-# 3. Create a virtual environment (recommended)
-python -m venv .venv
+# 3. Activate the environment 
+source .venv/bin/activate     # On macOS/Linux/BSD
+# or
+.venv\Scripts\activate.bat    # On Windows Command Prompt
+.venv\Scripts\Activate.ps1    # On Windows PowerShell
+source .venv/Scripts/activate # On Git Bash for Windows
 
-# 4. Activate the virtual environment (IMPORTANT!)
-# For macOS/Linux/BSD:
-source .venv/bin/activate
-# For Windows Command Prompt:
-# .venv\Scripts\activate.bat
-# For Windows PowerShell:
-# .venv\Scripts\Activate.ps1
-# For Git Bash on Windows:
-# source .venv/Scripts/activate
-# Your terminal prompt should now show (.venv)
-
-# 5. Install dependencies using uv (includes dev dependencies)
-#    Ensure uv is installed: pip install uv
-#    Run this command *while the virtual environment is active*
-uv pip install -e .[dev]
-#    This installs the package in editable mode and all dev dependencies
-#    from the uv.lock file into your .venv
-
-# 6. (Optional) Install pre-commit hooks
-#    Run this command *while the virtual environment is active*
-#    This enables automatic formatting, linting, and version bumping on commit.
-pre-commit install
+# 4. Run tests to verify setup
+./run_tests.sh                # On macOS/Linux/BSD
+# or 
+run_tests.bat                 # On Windows
 ```
+
+### Environment Variables
+
+Required for running tests/translation:
+```bash
+export OPENROUTER_API_KEY="your-key-here"
+```
+
+Optional for development/CI:
+```bash
+export CODECOV_API_TOKEN="your-token-here" # For coverage reporting
+export PYPI_API_TOKEN="your-pypi-token"    # For PyPI uploads
+```
+
+### Key Features of Development Environment
+
+- **Isolated Development**: Project creates and manages its own environment
+- **Cross-Platform**: Works on macOS, Linux, BSD, and Windows
+- **Self-Contained**: All scripts use relative paths only
+- **Automatic Versioning**: Minor version incremented on every commit
+- **Environment Verification**: Checks for external references at runtime
+- **Automatic Dependency Management**: Managed through uv lock/sync
+
+### Environment Troubleshooting
+
+If you encounter errors related to external environments or see messages like:
+```
+⚠️ Warning: Environment contains external references
+```
+
+Simply reinitialize your environment:
+```bash
+./reinitialize_env.sh         # On macOS/Linux/BSD
+# or
+reinitialize_env.bat          # On Windows
+```
+
+This completely removes the existing environment and creates a fresh one with no external dependencies.
 
 ### Running Tests
 

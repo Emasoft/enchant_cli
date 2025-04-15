@@ -1,6 +1,7 @@
 #!/bin/bash
 # Platform detection wrapper script
 # Automatically detects the platform and runs the appropriate commands
+# Uses only relative paths and project-isolated environment
 
 set -euo pipefail
 
@@ -19,36 +20,48 @@ elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]];
     PLATFORM="windows"
 fi
 
-# Check for Python environment
+echo "Detected platform: $PLATFORM"
+
+# Check for project-isolated Python environment
 VENV_DIR="$SCRIPT_DIR/.venv"
-if [ -d "$VENV_DIR" ] && [ -f "$VENV_DIR/bin/python" ]; then
-    PYTHON_CMD="$VENV_DIR/bin/python"
-    echo "🐍 Using project virtual environment Python: $PYTHON_CMD"
-else
-    echo "⚠️ Warning: Project virtual environment not found at $VENV_DIR"
+PYTHON_CMD="$VENV_DIR/bin/python"
+
+# Verify clean environment
+if [ -f "$VENV_DIR/pyvenv.cfg" ]; then
+    # Check for ComfyUI or other external references
+    if grep -q "ComfyUI\|comfyui" "$VENV_DIR/pyvenv.cfg"; then
+        echo "⚠️ Warning: Environment contains external references"
+        echo "Consider running ./reinitialize_env.sh to create a clean environment"
+    fi
+fi
+
+# Create environment if needed
+if [ ! -f "$PYTHON_CMD" ]; then
+    echo "⚠️ Project virtual environment not found at $VENV_DIR"
     echo "Creating a new virtual environment..."
     
     # Check if uv is installed
     if ! command -v uv &> /dev/null; then
         echo "⚠️ Warning: 'uv' command not found. Trying to install it..."
-        # Try to install uv using pip
-        if command -v pip &> /dev/null; then
-            pip install uv
-        elif command -v pip3 &> /dev/null; then
-            pip3 install uv
+        # Find a system Python to install uv with
+        if command -v python3 &> /dev/null; then
+            SYSTEM_PYTHON="python3"
+        elif command -v python &> /dev/null; then
+            SYSTEM_PYTHON="python"
         else
-            echo "❌ Error: Neither pip nor pip3 found. Cannot install uv."
-            echo "Please install uv manually: https://github.com/astral-sh/uv"
+            echo "❌ Error: Cannot find Python executable. Please install Python 3.9+ and try again."
             exit 1
         fi
+        
+        echo "🐍 Using system Python to install uv: $($SYSTEM_PYTHON --version)"
+        $SYSTEM_PYTHON -m pip install uv
     fi
     
     echo "Creating virtual environment with uv..."
     uv venv "$VENV_DIR"
-    PYTHON_CMD="$VENV_DIR/bin/python"
     
     echo "Installing dependencies..."
-    uv pip install -e .
+    "$VENV_DIR/bin/uv" pip install -e .
     
     echo "✅ Environment created and dependencies installed"
 fi
@@ -57,8 +70,11 @@ fi
 COMMAND=${1:-"run_commands"}
 shift 2>/dev/null || true
 
-echo "Detected platform: $PLATFORM"
 echo "Running command: $COMMAND"
+
+# Activate virtual environment for script execution
+export VIRTUAL_ENV="$VENV_DIR"
+export PATH="$VENV_DIR/bin:$PATH"
 
 # Run the appropriate platform-specific script if it exists
 if [ -f "${COMMAND}_${PLATFORM}.sh" ]; then
