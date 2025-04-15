@@ -19,6 +19,14 @@ check_command uv
 check_command twine
 check_command bump-my-version # Needed to get current version
 
+# Define Python command from potential venv (redundant if called by publish_to_github, but safe)
+PYTHON_CMD=python
+if [ -d ".venv" ] && [ -f ".venv/bin/python" ]; then
+  PYTHON_CMD=".venv/bin/python"
+elif command -v python3 &> /dev/null; then
+    PYTHON_CMD=python3
+fi
+
 # 2. Get current version
 CURRENT_VERSION=$(bump-my-version show current_version)
 if [ -z "$CURRENT_VERSION" ]; then
@@ -42,7 +50,7 @@ echo "🎨 Checking code formatting and quality..."
 if [ -f .pre-commit-config.yaml ]; then
     # Run pre-commit hooks. Assumes environment was prepared by the calling script.
     # If this fails, it's likely a real lint/format error needing manual fix.
-    pre-commit run --all-files || {
+    $PYTHON_CMD -m pre_commit run --all-files || {
         echo >&2 "❌ Pre-commit checks failed. Please fix the reported issues."
         exit 1
     }

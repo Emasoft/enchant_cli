@@ -11,12 +11,21 @@ echo "   NOTE: Version bumping and tagging are handled automatically on commit b
 echo "🔄 Synchronizing environment with uv..."
 uv sync || { echo >&2 "❌ uv sync failed."; exit 1; }
 
+# Define Python command from potential venv
+PYTHON_CMD=python
+if [ -d ".venv" ] && [ -f ".venv/bin/python" ]; then
+  PYTHON_CMD=".venv/bin/python"
+elif command -v python3 &> /dev/null; then
+    PYTHON_CMD=python3
+fi
+echo "🐍 Using Python command: $PYTHON_CMD"
+
 # Proactively prepare pre-commit environment
 echo "🔧 Preparing pre-commit environment..."
-echo "   🧹 Cleaning pre-commit cache..."
-pre-commit clean || echo "   ⚠️  pre-commit clean failed, continuing..." # Allow to continue even if clean fails
+echo "   🧹 Forcefully cleaning pre-commit cache..."
+rm -rf ~/.cache/pre-commit || echo "   ⚠️  Failed to remove pre-commit cache, continuing..."
 echo "   🔧 Reinstalling pre-commit hooks..."
-pre-commit install --install-hooks || { echo >&2 "❌ pre-commit install failed."; exit 1; }
+$PYTHON_CMD -m pre_commit install --install-hooks || { echo >&2 "❌ pre-commit install failed."; exit 1; }
 echo "   ✅ Pre-commit environment ready."
 
 # Check for uncommitted changes and commit them
@@ -31,7 +40,7 @@ if ! git diff --quiet HEAD; then
     if [ -n "$STAGED_FILES" ]; then
         # Run pre-commit only on the staged files
         # If this fails, it indicates a persistent hook issue or a real lint/format error
-        pre-commit run --files $STAGED_FILES || {
+        $PYTHON_CMD -m pre_commit run --files $STAGED_FILES || {
             echo >&2 "❌ Manual pre-commit run failed on staged files."
             echo >&2 "   Please check pre-commit logs and fix the hook issue manually."
             exit 1
