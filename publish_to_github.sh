@@ -15,6 +15,11 @@ uv sync || { echo >&2 "❌ uv sync failed."; exit 1; }
 echo "🔍 Checking for uncommitted changes..."
 if ! git diff --quiet HEAD; then
     echo "⚠️ Uncommitted changes detected. Staging and committing automatically..."
+    echo "🧹 Cleaning pre-commit cache..."
+    pre-commit clean || echo "⚠️  pre-commit clean failed, continuing..." # Allow to continue even if clean fails
+    echo "🔧 Reinstalling pre-commit hooks..."
+    pre-commit install --install-hooks || { echo >&2 "❌ pre-commit install failed."; exit 1; }
+
     git add -A
     # Use a standard commit message. The pre-commit hook will trigger the version bump.
     git commit -m "chore: Prepare for release validation" || { echo >&2 "❌ git commit failed."; exit 1; }
