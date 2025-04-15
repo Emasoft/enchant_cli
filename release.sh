@@ -40,8 +40,8 @@ print_header "Starting Pre-Release Validation"
 echo "This script validates code quality, runs tests, and prepares the package."
 
 # Configure timeouts
-TEST_TIMEOUT=1200  # 20 minutes for tests
-CMD_TIMEOUT=1200   # 20 minutes for commands (same as TEST_TIMEOUT)
+TEST_TIMEOUT=900  # 15 minutes for tests
+CMD_TIMEOUT=900   # 15 minutes for commands (same as TEST_TIMEOUT)
 
 # Step 1: Check and install required commands
 print_step "Checking required commands..."
@@ -213,7 +213,7 @@ if [ ! -f tests/samples/test_sample.txt ]; then
 fi
 
 # Set test timeout
-print_info "Test timeout set to $TEST_TIMEOUT seconds (20 minutes)"
+print_info "Test timeout set to $TEST_TIMEOUT seconds (15 minutes)"
 
 # Prepare environment variables for testing
 export TEST_ENV="true"
@@ -228,7 +228,7 @@ if timeout $TEST_TIMEOUT pytest tests/ -v \
     --strict-markers \
     --html=report.html \
     --self-contained-html \
-    --timeout=600; then
+    --timeout=900; then
     
     print_success "All tests passed successfully!"
 else

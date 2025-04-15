@@ -110,7 +110,7 @@ source "$SCRIPT_DIR/ensure_env.sh"
 REPO_NAME="enchant_cli"  # GitHub repository name
 GITHUB_ORG="Emasoft"     # GitHub organization/username
 DEFAULT_BRANCH="main"    # Default branch name for new repos
-TIMEOUT_TESTS=1200       # Timeout for tests in seconds (20 minutes)
+TIMEOUT_TESTS=900        # Timeout for tests in seconds (15 minutes)
 TIMEOUT_RELEASE=900      # Timeout for release.sh in seconds (15 minutes)
 
 # Utility functions for better output
