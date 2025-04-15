@@ -40,7 +40,27 @@ uv pip install -e . # Install current package into the active venv
 # 5. Run linters/formatters (via pre-commit if configured)
 echo "🎨 Checking code formatting and quality..."
 if [ -f .pre-commit-config.yaml ]; then
-    pre-commit run --all-files || exit 1
+    # Attempt pre-commit run, with one retry after cleaning cache if specific error occurs
+    if ! pre-commit run --all-files; then
+        PRE_COMMIT_EXIT_CODE=$?
+        # Check if the error might be the cache issue (exit code 1 is common for hook failures)
+        # A more specific check could parse stderr, but this is simpler for now.
+        if [ $PRE_COMMIT_EXIT_CODE -eq 1 ]; then
+            echo "⚠️ Pre-commit run failed. Attempting cache clean and retry..."
+            pre-commit clean || echo "⚠️  pre-commit clean failed, continuing retry..."
+            pre-commit install --install-hooks || { echo >&2 "❌ pre-commit reinstall failed during retry."; exit 1; }
+            echo "🔁 Retrying pre-commit run..."
+            pre-commit run --all-files || {
+                echo >&2 "❌ Pre-commit run failed even after retry. Please check logs and fix manually."
+                exit 1
+            }
+        else
+            # If the exit code was not 1, it might be a different pre-commit error. Fail immediately.
+            echo >&2 "❌ Pre-commit run failed with unexpected exit code $PRE_COMMIT_EXIT_CODE."
+            exit $PRE_COMMIT_EXIT_CODE
+        fi
+    fi
+    echo "✅ Pre-commit checks passed."
 else
     echo "⚠️  Skipping pre-commit hooks (no .pre-commit-config.yaml found)."
     # Optionally run linters manually here if pre-commit isn't used

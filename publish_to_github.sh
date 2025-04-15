@@ -14,14 +14,34 @@ uv sync || { echo >&2 "❌ uv sync failed."; exit 1; }
 # Check for uncommitted changes and commit them
 echo "🔍 Checking for uncommitted changes..."
 if ! git diff --quiet HEAD; then
-    echo "⚠️ Uncommitted changes detected. Staging and committing automatically..."
+    echo "⚠️ Uncommitted changes detected. Staging and attempting to commit automatically..."
+    git add -A # Stage all changes first
+
     echo "🧹 Cleaning pre-commit cache..."
     pre-commit clean || echo "⚠️  pre-commit clean failed, continuing..." # Allow to continue even if clean fails
     echo "🔧 Reinstalling pre-commit hooks..."
     pre-commit install --install-hooks || { echo >&2 "❌ pre-commit install failed."; exit 1; }
 
-    git add -A
+    echo "⚙️ Running pre-commit hooks manually on staged files before commit..."
+    # Get list of staged files
+    STAGED_FILES=$(git diff --name-only --cached)
+    if [ -n "$STAGED_FILES" ]; then
+        # Run pre-commit only on the staged files
+        # If this fails, it indicates a persistent hook issue
+        pre-commit run --files $STAGED_FILES || {
+            echo >&2 "❌ Manual pre-commit run failed after cache clean/reinstall."
+            echo >&2 "   Please check pre-commit logs and fix the hook issue manually."
+            exit 1
+        }
+        echo "✅ Manual pre-commit run successful."
+        # Re-stage any files potentially modified by the hooks
+        git add -A
+    else
+        echo "ℹ️ No files were staged for the pre-commit run (should not happen if changes were detected)."
+    fi
+
     # Use a standard commit message. The pre-commit hook will trigger the version bump.
+    echo "📝 Committing staged changes..."
     git commit -m "chore: Prepare for release validation" || { echo >&2 "❌ git commit failed."; exit 1; }
     echo "✅ Changes committed. Pre-commit hooks (including version bump) should have run."
 else
