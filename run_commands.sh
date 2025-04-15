@@ -9,6 +9,10 @@ echo "------------------------------------"
 # --- Commands Sequence ---
 
 # 1. Ensure environment is synchronized
+echo "🔒 Ensuring lock file is up-to-date with all dependencies (including dev)..."
+uv lock || { echo >&2 "❌ uv lock failed."; exit 1; }
+echo "✅ Lock file updated."
+
 echo "🔄 Synchronizing environment with uv..."
 uv sync || { echo >&2 "❌ uv sync failed."; exit 1; }
 echo "✅ Environment synchronized."
