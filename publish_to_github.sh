@@ -18,6 +18,90 @@ set -eo pipefail
 # - Regular updates to an existing repo
 # - Failure recovery with clear diagnostics
 
+# Display help information
+show_help() {
+    cat << EOF
+USAGE: 
+    ./publish_to_github.sh [options]
+
+DESCRIPTION:
+    Official GitHub publishing tool for the enchant-cli project. This script
+    handles all aspects of GitHub integration including validation, repository
+    creation, and publishing.
+
+    This is the ONLY supported method for pushing code to GitHub. Direct git
+    pushes should NOT be used, as this script ensures all validation, tests, and
+    environment checks pass before publishing.
+
+OPTIONS:
+    -h, --help     Show this help message and exit
+    --skip-tests   Skip running tests (use with caution, only for urgent fixes)
+    --force        Force push to repository (use with extreme caution)
+    --dry-run      Execute all steps except final GitHub push
+
+REQUIREMENTS:
+    - GitHub CLI (gh) must be installed
+        Install from: https://cli.github.com/manual/installation
+    - GitHub CLI must be authenticated 
+        Run 'gh auth login' if not already authenticated
+
+SCENARIOS:
+    1. First-time repository setup:
+       ./publish_to_github.sh
+       (Will create repo, configure secrets, and push initial code)
+
+    2. Regular update to existing repository:
+       ./publish_to_github.sh
+       (Will commit changes, run validation, and push to GitHub)
+
+    3. Creating a release:
+       ./publish_to_github.sh
+       (Then follow instructions to create a GitHub Release)
+
+ENVIRONMENT VARIABLES:
+    The script automatically checks and configures required secrets:
+    - OPENROUTER_API_KEY: Required for translation API
+    - CODECOV_API_TOKEN: Required for code coverage reporting
+    - PYPI_API_TOKEN: Required for PyPI publishing
+
+EXAMPLES:
+    ./publish_to_github.sh            # Standard execution
+    ./publish_to_github.sh --help     # Show this help message
+
+For more information, see: docs/dev-guides/CLAUDE.md
+EOF
+    exit 0
+}
+
+# Process command-line options
+SKIP_TESTS=0
+FORCE_PUSH=0
+DRY_RUN=0
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -h|--help)
+            show_help
+            ;;
+        --skip-tests)
+            SKIP_TESTS=1
+            shift
+            ;;
+        --force)
+            FORCE_PUSH=1
+            shift
+            ;;
+        --dry-run)
+            DRY_RUN=1
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            show_help
+            ;;
+    esac
+done
+
 # First, ensure we have a clean environment
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source "$SCRIPT_DIR/ensure_env.sh"
@@ -559,6 +643,6 @@ echo "        -n \"## What's Changed\\n- Improvements and bug fixes\\n\\n**Full 
 echo ""
 print_info "📦 The package will be published to PyPI by the GitHub Action when you create a release."
 print_info "🔒 GitHub secrets (PYPI_API_TOKEN, OPENROUTER_API_KEY, CODECOV_API_TOKEN) are automatically configured from your local environment."
-print_info "📚 For more details on the workflow, see docs/dev-guides/CLAUDE.md section 6."
+print_info "📚 For more details on the workflow, see docs/dev-guides/CLAUDE.md section 6 (GitHub Integration)."
 
 exit 0

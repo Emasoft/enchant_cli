@@ -180,7 +180,7 @@ export CODECOV_API_TOKEN="your-codecov-token-here"
 ```
 You can set these in your shell profile (e.g., `.zshrc`, `.bashrc`), export them in your current session, or potentially use a `.env` file (though direct export is often clearer for CLI tools).
 
-See [Environment Configuration Reference](docs/environment.md) and [Developer Guide](docs/dev-guides/CLAUDE.md) for more details.
+See [Developer Guide](docs/dev-guides/CLAUDE.md) for detailed environment configuration and more information.
 
 ## Supported Platforms
 
@@ -209,59 +209,110 @@ For cross-platform compatibility, use the platform-detection wrapper scripts (e.
 
 ## Release Workflow
 
-### Minor Releases (Automatic Versioning)
+### Publishing to GitHub: Critical Protocol
 
-This project uses a pre-commit hook (`bump-my-version`) to automatically increment the **minor** version and create a tag on **every commit**. This guarantees a unique version number for each release (e.g., `0.3.278`), which is displayed when running the application. The release process leverages this:
+**IMPORTANT**: All code pushes to GitHub MUST use the `publish_to_github.sh` script. Direct git pushes are prohibited as they bypass essential validation.
 
-1.  **Ensure Clean State:** Make sure your main branch is up-to-date and your working directory is clean (`git status`).
-2.  **Activate Environment:** Activate your virtual environment: `source .venv/bin/activate`.
-3.  **Make Changes:** Make the final code changes for your release.
-4.  **Commit Changes:** Commit your changes.
-    ```bash
-    git add .
-    git commit -m "feat: Add new feature for release" # Or fix:, chore:, etc.
-    ```
-    *   The `pre-commit` hook will automatically run.
-    *   `bump-my-version` will increment the minor version in `src/enchant_cli/__init__.py`.
-    *   A **new commit** containing only the version bump will be created.
-    *   A **tag** (e.g., `v0.2.0`) corresponding to the new version will be created automatically.
-5.  **Run Pre-Release Validation:** Execute the local validation script. This runs linters, tests, and build checks defined in `release.sh`.
-    ```bash
-    # For macOS/Linux/BSD:
-    ./publish_to_github.sh
-    # For Windows with WSL/Git Bash:
-    ./run_platform.sh publish_to_github
-    # For Windows native:
-    publish_to_github.bat
-    ```
-    Fix any issues reported by the script and commit the fixes (which will trigger another version bump - this is expected with this workflow). Re-run until it passes.
-6.  **Push Changes and Tag:** Push the latest commit and the automatically generated tag to GitHub:
-    ```bash
-    git push origin main --tags
-    ```
-7.  **Create GitHub Release:** Go to the repository's "Releases" page on GitHub and "Draft a new release". Choose the tag you just pushed (e.g., `v0.2.0`). Add release notes. Publishing the release triggers the `publish.yml` workflow.
-8.  **Monitor Workflow:** Check the "Actions" tab on GitHub to ensure the `Publish Python Package` workflow runs successfully and publishes the package to PyPI.
-9.  **Verify on PyPI:** Check the [enchant-cli page on PyPI](https://pypi.org/project/enchant-cli) to confirm the new version is available.
+The `publish_to_github.sh` script:
+- Runs comprehensive validation (tests, linting, build verification)
+- Creates repository if needed and configures GitHub remote
+- Sets up required GitHub secrets automatically
+- Handles code pushing with proper error recovery
+- Provides release creation guidance
+
+```bash
+# Display help with all options
+./publish_to_github.sh --help
+
+# Standard execution (recommended approach)
+./publish_to_github.sh
+```
+
+### Automated Versioning
+
+This project uses a pre-commit hook (`bump-my-version`) to automatically increment the **minor** version and create a tag on **every commit**. This guarantees a unique version number for each release (e.g., `0.3.278`), which is displayed when running the application.
+
+### Release Process
+
+1. **Prepare Your Environment**
+   - Make sure your main branch is up-to-date: `git pull`
+   - Ensure clean working directory: `git status`
+   - Activate virtual environment: `source .venv/bin/activate`
+
+2. **Make Your Changes**
+   - Implement code changes
+   - Add tests as needed
+   - Run tests locally: `./run_tests.sh` or `./run_fast_tests.sh`
+
+3. **Commit Changes**
+   - Stage your changes: `git add .`
+   - Commit (triggers version bump): `git commit -m "feat: Add new feature"`
+   - The pre-commit hook will automatically:
+     - Run code quality checks
+     - Bump the version number
+     - Create a git tag
+     - Create a new commit with the version update
+
+4. **Publish to GitHub**
+   - Run the publishing script: `./publish_to_github.sh`
+   - The script will:
+     - Validate your code and run tests
+     - Ensure the GitHub repository exists
+     - Configure GitHub secrets if needed
+     - Push your changes and tags to GitHub
+     - Provide instructions for creating a release
+
+5. **Create GitHub Release**
+   - Follow the instructions provided by the publish script
+   - OR use the GitHub CLI: 
+     ```bash
+     gh release create v0.3.5 -t "Release v0.3.5" \
+       -n "## What's Changed
+     - New features and bug fixes"
+     ```
+   - Publishing the release triggers the PyPI publishing workflow
+
+6. **Verify Publication**
+   - Check the [enchant-cli page on PyPI](https://pypi.org/project/enchant-cli) 
+   - Verify the new version is available for installation
 
 ### Major Releases (Breaking Changes)
 
-For major version increments (breaking changes), use the dedicated script:
+For major version increments (breaking changes), use:
 
-1. **Ensure Clean State:** Make sure your main branch is up-to-date and your working directory is clean (`git status`).
-2. **Activate Environment:** Activate your virtual environment.
-3. **Run Major Release Script:**
+```bash
+# Run Major Release Script
+./major_release.sh
+```
+
+Then follow steps 4-6 above. Major version increments should only be used for backward-incompatible API changes.
+
+### First-Time Setup Requirements
+
+If you're setting up a new development environment:
+
+1. **Install GitHub CLI**
    ```bash
-   # For macOS/Linux/BSD:
-   ./major_release.sh
-   # For Windows with WSL/Git Bash:
-   ./run_platform.sh major_release
-   # For Windows native:
-   major_release.bat
+   # macOS
+   brew install gh
+   
+   # Linux
+   sudo apt install gh  # or equivalent for your distro
    ```
-4. **Update CHANGELOG.md:** Document all breaking changes in detail.
-5. **Commit and Push:** Follow steps 6-9 from the minor release process.
 
-A major version increment should only be used for backward-incompatible API changes.
+2. **Authenticate GitHub CLI**
+   ```bash
+   gh auth login
+   ```
+
+3. **Set Required Environment Variables**
+   ```bash
+   export OPENROUTER_API_KEY="your-key-here"
+   export CODECOV_API_TOKEN="your-token-here"  # Optional, for coverage reporting
+   export PYPI_API_TOKEN="your-token-here"     # Optional, for manual PyPI uploads
+   ```
+
+For more detailed information, see the [GitHub Integration](docs/dev-guides/CLAUDE.md#6-github-integration) section of the developer guide.
 
 ## Development and CI/CD
 

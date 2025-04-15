@@ -85,15 +85,18 @@ dev = [
 [project.scripts]
 enchant_cli = "enchant_cli.enchant_cli:main"
 
-[project.urls] # Optional but recommended
+[project.urls]
 Homepage = "https://github.com/Emasoft/enchant-cli"
 Repository = "https://github.com/Emasoft/enchant-cli"
+Documentation = "https://github.com/Emasoft/enchant-cli/blob/main/docs/dev-guides/CLAUDE.md"
+Issues = "https://github.com/Emasoft/enchant-cli/issues"
 
 [tool.setuptools]
 package-dir = {"" = "src"} # Specify the package directory
 
 [tool.setuptools.packages.find]
 where = ["src"] # Explicitly tell find where the packages are
+exclude = ["tests*"]
 
 [tool.setuptools.package-data]
 # Include test sample files in the wheel package

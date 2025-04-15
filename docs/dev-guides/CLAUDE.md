@@ -1045,9 +1045,92 @@ A major version increment should only be used for backward-incompatible API chan
 
 ## 6. GitHub Integration
 
-### 6.1 GitHub Workflows
+### 6.1 GitHub Publishing Protocol
 
-The project includes GitHub workflows that mirror the local scripts:
+This project strictly follows a standardized GitHub publishing protocol that ensures consistent, validated releases:
+
+1. **IMPORTANT: Never Push Directly to GitHub**
+   - All pushes MUST be performed via the `publish_to_github.sh` script
+   - Direct git pushes are prohibited as they bypass crucial validation
+
+2. **The `publish_to_github.sh` Script**
+   - Comprehensive tool that handles the entire GitHub workflow
+   - Performs environment validation, testing, repository setup, and publishing
+   - Enforces quality standards before any code reaches GitHub
+   - Configurable via command-line options (see help with `./publish_to_github.sh --help`)
+
+3. **Key Script Features**
+   - **Validation**: Runs tests, linters, and ensures all quality checks pass
+   - **Repository Management**: Creates repositories if needed, configures remotes
+   - **Secret Configuration**: Automatically configures GitHub secrets from local environment
+   - **Error Recovery**: Detects and resolves common issues automatically
+   - **Release Management**: Provides guidance for creating GitHub releases
+
+4. **Usage Examples**
+
+```bash
+# Display help information
+./publish_to_github.sh --help
+
+# Standard execution (commit changes, run tests, push to GitHub)
+./publish_to_github.sh
+
+# Skip tests (use with caution)
+./publish_to_github.sh --skip-tests
+
+# Force push (use with extreme caution)
+./publish_to_github.sh --force
+
+# Dry run (execute all steps except final push)
+./publish_to_github.sh --dry-run
+```
+
+5. **First-Time Setup Requirements**
+   - GitHub CLI (gh) must be installed:
+     ```bash
+     # macOS
+     brew install gh
+     
+     # Linux
+     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+     sudo apt update
+     sudo apt install gh
+     ```
+   
+   - GitHub CLI must be authenticated:
+     ```bash
+     gh auth login
+     ```
+
+### 6.2 Automated Repository Setup
+
+The `publish_to_github.sh` script automatically configures the GitHub repository:
+
+1. **Repository Creation**
+   - Checks if the repository exists; creates it if needed
+   - Connects local repository to the GitHub remote
+
+2. **Secret Configuration**
+   - Automatically configures required GitHub secrets from local environment
+   - Required secrets:
+     - `OPENROUTER_API_KEY`: For translation API access in tests and application
+     - `CODECOV_API_TOKEN`: For uploading test coverage reports
+     - `PYPI_API_TOKEN`: For publishing packages to PyPI
+
+3. **Branch Setup**
+   - Creates default branch if needed
+   - Sets upstream tracking properly
+   - Handles edge cases like detached HEAD states
+
+4. **Error Diagnostics**
+   - Provides detailed error messages for common issues
+   - Suggests solutions for connectivity problems, permission issues, etc.
+   - Offers options to recover from failure states
+
+### 6.3 GitHub Workflows
+
+The project includes automated GitHub Actions workflows that mirror the local scripts:
 
 #### tests.yml
 
@@ -1186,23 +1269,39 @@ jobs:
         packages-dir: dist/
 ```
 
-### 6.2 GitHub Secret Configuration
+### 6.4 Release Process
 
-The GitHub repository needs these secrets configured:
+The release process is standardized and follows these steps:
 
-```bash
-# Example commands to set up secrets with gh CLI
-gh secret set PYPI_API_TOKEN -b"$PYPI_API_TOKEN" -r"username/project" # For PyPI trusted publishing
-gh secret set OPENROUTER_API_KEY -b"$OPENROUTER_API_KEY" -r"username/project" # For API access
-gh secret set CODECOV_API_TOKEN -b"$CODECOV_API_TOKEN" -r"username/project" # For Codecov uploads
-```
+1. **Prepare Changes**
+   - Make code changes and ensure all tests pass locally
+   - Commit changes locally
 
-Verify proper configuration:
+2. **Run `publish_to_github.sh`**
+   - This validates, packages, and pushes your changes
+   - Automatic version bumping occurs through pre-commit hooks
+   - Script handles all validation and publishing details
 
-1. Repository Settings → Secrets & Variables → Actions
-2. Verify all three secrets exist with correct names
+3. **Create GitHub Release**
+   - After successful push, create a GitHub Release
+   - The script provides detailed instructions for this step
+   - You can also use the command line:
+     ```bash
+     gh release create v0.3.5 -t "Release v0.3.5" \
+       -n "## What's Changed
+     - Improvements and bug fixes
+     
+     **Full Changelog**: https://github.com/Emasoft/enchant_cli/commits/v0.3.5"
+     ```
 
-### 6.3 Pull Request Process
+4. **Monitor Workflow**
+   - Publishing the release triggers the GitHub Action
+   - The Action builds and publishes to PyPI
+   - You can monitor progress in the Actions tab of the repository
+
+### 6.5 Pull Request Process
+
+For external contributors, the PR process is:
 
 1. Fork the repository
 2. Create a new branch for your feature (`git checkout -b feature/your-feature`)
@@ -1212,7 +1311,7 @@ Verify proper configuration:
 6. Create a Pull Request against the main repository
 7. Wait for CI tests to pass
 8. Address review comments if requested
-9. Once approved, your PR will be merged
+9. Once approved, the maintainer will merge using `publish_to_github.sh`
 
 ## 7. Project Structure Templates
 

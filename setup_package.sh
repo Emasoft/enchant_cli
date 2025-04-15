@@ -54,12 +54,15 @@ if [ ! -f tests/samples/test_sample.txt ]; then
     echo "Created minimal tests/samples/test_sample.txt"
 fi
 
+# Create basic docs directory structure
+mkdir -p docs/dev-guides
+
 # Create basic docs file
-if [ ! -f docs/environment.md ]; then
-    echo "# Environment Configuration" > docs/environment.md
-    echo "" >> docs/environment.md
-    echo "Details on required environment variables." >> docs/environment.md
-    echo "Created minimal docs/environment.md"
+if [ ! -f docs/dev-guides/CLAUDE.md ]; then
+    echo "# Project Environment & Development Guide" > docs/dev-guides/CLAUDE.md
+    echo "" >> docs/dev-guides/CLAUDE.md
+    echo "Comprehensive guide for project environment, development, and GitHub integration." >> docs/dev-guides/CLAUDE.md
+    echo "Created minimal docs/dev-guides/CLAUDE.md"
 fi
 
 
