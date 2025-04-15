@@ -88,7 +88,9 @@ Repository = "https://github.com/Emasoft/enchant-cli"
 
 [tool.setuptools]
 package-dir = {"" = "src"} # Specify the package directory
-packages = ["find:"] # Let setuptools find packages automatically under src
+
+[tool.setuptools.packages.find]
+where = ["src"] # Explicitly tell find where the packages are
 
 [tool.setuptools.dynamic]
 readme = {file = ["README.md"], content-type = "text/markdown"} # Specify content type
