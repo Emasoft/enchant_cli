@@ -41,7 +41,7 @@ echo "This script validates code quality, runs tests, and prepares the package."
 
 # Configure timeouts
 TEST_TIMEOUT=1200  # 20 minutes for tests
-CMD_TIMEOUT=120    # 2 minutes for commands
+CMD_TIMEOUT=1200   # 20 minutes for commands (same as TEST_TIMEOUT)
 
 # Step 1: Check and install required commands
 print_step "Checking required commands..."
