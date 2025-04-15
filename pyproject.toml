@@ -46,6 +46,9 @@ dependencies = [
     "beautifulsoup4>=4.12.0",
     "lxml>=4.9.0",
     "pygments>=2.13.0",
+    "pathspec>=0.12.1",
+    "pre-commit>=4.2.0",
+    "checkout>=0.2.0",
 ]
 
 [project.optional-dependencies]
@@ -63,7 +66,7 @@ dev = [
     "build>=0.10.0",
     "twine>=4.0",
     # python-dotenv is in core dependencies
-    "pre-commit>=3.0.0",
+    # pre-commit is in core dependencies
     "uv",
     # "git-chglog", # Removed - Install separately if needed (e.g., brew install git-chglog)
     "codecov",
@@ -92,6 +95,10 @@ package-dir = {"" = "src"} # Specify the package directory
 [tool.setuptools.packages.find]
 where = ["src"] # Explicitly tell find where the packages are
 
+[tool.setuptools.package-data]
+# Include test sample files in the wheel package
+"*" = ["tests/samples/*.txt"]
+
 [tool.setuptools.dynamic]
 readme = {file = ["README.md"], content-type = "text/markdown"} # Specify content type
 version = {attr = "enchant_cli.__version__"}
@@ -107,7 +114,7 @@ exclude = '''
 [tool.ruff]
 line-length = 88
 select = ["E", "W", "F", "I", "B", "C", "UP", "PL", "RUF"]
-ignore = ["E203", "E501", "F401", "F403", "F405", "F811", "W503", "PLR0913", "PLR0915"] # Added F811
+ignore = ["E203", "E501", "F401", "F403", "F405", "F811", "PLR0913", "PLR0915"] # Removed W503
 target-version = "py39"
 
 [tool.ruff.isort]

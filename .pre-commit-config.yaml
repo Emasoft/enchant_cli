@@ -9,27 +9,27 @@ repos:
     hooks:
       - id: shellcheck
 
-  # Re-enabled bump-my-version hook to bump minor version on every commit.
-  # This will create a commit and tag automatically.
-  - repo: https://github.com/callowayproject/bump-my-version
-    rev: v1.1.2 # Use a specific recent version
-    hooks:
-      - id: bump-my-version
-        args: [--minor, --commit, --tag, --allow-dirty] # Ensure --minor is present
-        # Exclude files that shouldn't trigger a version bump or contain the version string in a way bump-my-version might misinterpret.
-        exclude: |
-          (?x)^(
-            .*\.md| # Exclude all markdown files (README, changelogs, etc.)
-            .*\.toml| # Exclude TOML config files (pyproject, bumpversion)
-            .*\.yaml| # Exclude YAML config files (pre-commit, workflows)
-            .*\.cfg| # Exclude CFG config files
-            .*\.lock| # Exclude lock files
-            .*\.gitignore| # Exclude gitignore
-            .*\.python-version| # Exclude python version file
-            LICENSE| # Exclude LICENSE file
-            MANIFEST\.in| # Exclude MANIFEST.in
-            tests/.*| # Exclude all files under tests/
-            docs/.*| # Exclude all files under docs/
-            .*\.sh| # Exclude shell scripts
-            .*\.html # Exclude HTML reports
-          )$
+  # Temporarily disabled bump-my-version hook due to configuration issues
+  # Will need to manually run version bumping
+  # - repo: https://github.com/callowayproject/bump-my-version
+  #   rev: 73fa69282abc9cd60f39b53fcbec34f89e1122f9 # Use a specific commit hash
+  #   hooks:
+  #     - id: bump-my-version
+  #       args: [--minor, --commit, --tag, --allow-dirty] # Ensure --minor is present
+  #       # Exclude files that shouldn't trigger a version bump or contain the version string in a way bump-my-version might misinterpret.
+  #       exclude: |
+  #         (?x)^(
+  #           .*\.md| # Exclude all markdown files (README, changelogs, etc.)
+  #           .*\.toml| # Exclude TOML config files (pyproject, bumpversion)
+  #           .*\.yaml| # Exclude YAML config files (pre-commit, workflows)
+  #           .*\.cfg| # Exclude CFG config files
+  #           .*\.lock| # Exclude lock files
+  #           .*\.gitignore| # Exclude gitignore
+  #           .*\.python-version| # Exclude python version file
+  #           LICENSE| # Exclude LICENSE file
+  #           MANIFEST\.in| # Exclude MANIFEST.in
+  #           tests/.*| # Exclude all files under tests/
+  #           docs/.*| # Exclude all files under docs/
+  #           .*\.sh| # Exclude shell scripts
+  #           .*\.html # Exclude HTML reports
+  #         )$

@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.9"
 
 [[package]]
@@ -312,6 +313,15 @@ wheels = [
 ]
 
 [[package]]
+name = "checkout"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/61/0d/a4e302c5af15b7c12e25801525c02abe4fbda87916e0032856c1e4fc6d83/checkout-0.2.0.tar.gz", hash = "sha256:d013647c65c13d412682a51dd1d76a9d0fdd88b652f0159477a80bab139aea63", size = 8034 }
+
+[[package]]
 name = "click"
 version = "8.1.8"
 source = { registry = "https://pypi.org/simple" }
@@ -513,9 +523,12 @@ source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
     { name = "chardet" },
+    { name = "checkout" },
     { name = "click" },
     { name = "lxml" },
     { name = "multiexit" },
+    { name = "pathspec" },
+    { name = "pre-commit" },
     { name = "pygments" },
     { name = "python-dotenv" },
     { name = "requests" },
@@ -536,7 +549,6 @@ dev = [
     { name = "mkdocs-material" },
     { name = "mkdocstrings", extra = ["python"] },
     { name = "mypy" },
-    { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-html" },
@@ -557,6 +569,7 @@ requires-dist = [
     { name = "build", marker = "extra == 'dev'", specifier = ">=0.10.0" },
     { name = "bump-my-version", marker = "extra == 'dev'", specifier = ">=0.10.0" },
     { name = "chardet", specifier = ">=4.0.0" },
+    { name = "checkout", specifier = ">=0.2.0" },
     { name = "click", specifier = ">=8.0.0" },
     { name = "codecov", marker = "extra == 'dev'" },
     { name = "commitizen", marker = "extra == 'dev'", specifier = ">=3.0.0" },
@@ -568,7 +581,8 @@ requires-dist = [
     { name = "mkdocstrings", extras = ["python"], marker = "extra == 'dev'", specifier = ">=0.20.0" },
     { name = "multiexit", specifier = ">=1.5.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.7.1" },
-    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.0.0" },
+    { name = "pathspec", specifier = ">=0.12.1" },
+    { name = "pre-commit", specifier = ">=4.2.0" },
     { name = "pygments", specifier = ">=2.13.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0" },
@@ -586,6 +600,7 @@ requires-dist = [
     { name = "types-requests", marker = "extra == 'dev'", specifier = ">=2.31.0" },
     { name = "uv", marker = "extra == 'dev'" },
 ]
+provides-extras = ["dev"]
 
 [[package]]
 name = "exceptiongroup"

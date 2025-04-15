@@ -1,4 +1,7 @@
-# Only include files not automatically handled by setuptools/pyproject.toml
+# Include files not automatically handled by setuptools/pyproject.toml
 include tests/samples/test_sample.txt
+graft tests/samples
+# recursive-include tests *.txt
+# Include a graft command to ensure tests directory is properly included
 # recursive-include src... is usually not needed with pyproject.toml and find:packages
 # global-exclude is also generally not needed for standard build artifacts
