@@ -37,7 +37,7 @@ echo "ℹ️  Validating version: $CURRENT_VERSION"
 
 # 3. Clean previous builds
 echo "🧹 Cleaning previous builds..."
-rm -rf dist/ build/ *.egg-info/ .coverage* coverage_report/ report.html
+rm -rf dist/ build/ ./*.egg-info/ .coverage* coverage_report/ report.html
 
 # 4. Install dependencies (using specified requirements files into the active venv)
 echo "📦 Installing dependencies into active virtual environment..."

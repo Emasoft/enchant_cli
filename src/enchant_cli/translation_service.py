@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2024 Emasoft
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -10,32 +9,40 @@
 
 from __future__ import annotations
 
-import os
-import logging
-import requests
 import json
+import logging
+import os
 import re
 import time
 from typing import Any, Dict, Optional
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, wait_none, retry_if_exception
+
+import requests
+from tenacity import (
+    retry,
+    retry_if_exception,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+    wait_none,
+)
 
 # Import shared utilities
 from .utils import (
-    clean,
-    limit_repeated_chars,
-    remove_html_markup,
-    normalize_spaces,
-    remove_excess_empty_lines,
-    is_latin_charset,
-    replace_repeated_chars, # Ensure this is imported if used directly
-    SENTENCE_ENDING, # Import constants if needed
-    CLOSING_QUOTES,
-    NON_BREAKING,
     ALL_PUNCTUATION,
+    CHINESE_PUNCTUATION,
+    CLOSING_QUOTES,
+    ENGLISH_PUNCTUATION,
+    NON_BREAKING,
     PARAGRAPH_DELIMITERS,
     PRESERVE_UNLIMITED,
-    CHINESE_PUNCTUATION,
-    ENGLISH_PUNCTUATION,
+    SENTENCE_ENDING,  # Import constants if needed
+    clean,
+    is_latin_charset,
+    limit_repeated_chars,
+    normalize_spaces,
+    remove_excess_empty_lines,
+    remove_html_markup,
+    replace_repeated_chars,  # Ensure this is imported if used directly
 )
 
 # Global API configuration - This captures the key at import time.
@@ -118,7 +125,7 @@ class ChineseAITranslator:
             generation_response = requests.get(generation_api_url, headers=headers, params=querystring)
             generation_response.raise_for_status() # Raise exception for bad status codes
             if self.verbose:
-                self.log(f"GENERATION RESPONSE: {str(generation_response.json())}")
+                self.log(f"GENERATION RESPONSE: {generation_response.json()!s}")
 
             generation_stats: Dict[str, Any] = generation_response.json()
 
@@ -142,7 +149,7 @@ class ChineseAITranslator:
                     credits_api_url = "https://openrouter.ai/api/v1/credits"
                     credits_response = requests.get(credits_api_url, headers=headers)
                     credits_response.raise_for_status()
-                    self.log(f"CREDITS RESPONSE: {str(credits_response.json())}")
+                    self.log(f"CREDITS RESPONSE: {credits_response.json()!s}")
                     credits_data: Dict[str, Any] = credits_response.json()
 
                     self.log("\n=== Credits Information ===")

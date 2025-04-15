@@ -1,10 +1,11 @@
-import pytest
+import logging
 import os
 import sys
-from click.testing import CliRunner
 from pathlib import Path
-from unittest.mock import patch, MagicMock, ANY
-import logging
+from unittest.mock import ANY, MagicMock, patch
+
+import pytest
+from click.testing import CliRunner
 
 # Add src directory to Python path
 SRC_DIR = str(Path(__file__).parent.parent / "src")
@@ -12,9 +13,11 @@ if SRC_DIR not in sys.path:
     sys.path.insert(0, SRC_DIR)
 
 # Import CLI main function and version
-from enchant_cli.enchant_cli import main as cli_main
 from enchant_cli import __version__
-from enchant_cli.translation_service import OPENROUTER_API_KEY # Check if API key is set
+from enchant_cli.enchant_cli import main as cli_main
+from enchant_cli.translation_service import (
+    OPENROUTER_API_KEY,  # Check if API key is set
+)
 
 # Marker for tests requiring the API key (for potential integration tests later)
 needs_api_key = pytest.mark.skipif(

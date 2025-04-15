@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2024 Emasoft
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -10,13 +9,14 @@
 
 from __future__ import annotations
 
-import re
+import codecs
+import functools
 import html
+import re
 import string
 import unicodedata
-import functools
 from pathlib import Path
-import codecs
+
 from chardet.universaldetector import UniversalDetector
 
 # CHINESE PUNCTUATION sets.
@@ -261,7 +261,7 @@ def detect_file_encoding(file_path: Path) -> str | None:
             return result['encoding']
         return None # Or return a default like 'utf-8' or 'GB18030'
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def is_latin_char(char: str) -> bool:
     """Check if a non-ASCII character belongs to the Latin script."""
     try:
@@ -414,22 +414,22 @@ def decode_input_file_content(input_file: Path, logger) -> str:
         with codecs.open(input_file, 'r', encoding=encoding) as f:
             content = f.read()
     except Exception as e:
-        logger.debug(f"\nError reading file '{str(input_file)}' with detected encoding {encoding}: {e}")
+        logger.debug(f"\nError reading file '{input_file!s}' with detected encoding {encoding}: {e}")
         logger.debug("Falling back to GB18030 encoding.")
         encoding = 'GB18030'
         try:
             with codecs.open(input_file, 'r', encoding=encoding) as f:
                 content = f.read()
         except Exception as e:
-            logger.debug(f"\nError reading file '{str(input_file)}' with GB18030: {e}")
+            logger.debug(f"\nError reading file '{input_file!s}' with GB18030: {e}")
             logger.debug("Attempting decode with detected encoding, replacing errors.")
             try:
                 with open(input_file, 'rb') as file:
                     content_bytes = file.read()
                 content = content_bytes.decode(encoding or 'utf-8', errors='replace') # Use utf-8 if detection failed
             except Exception as final_e:
-                 logger.error(f"\nFATAL: Could not decode file '{str(input_file)}' even with error replacement: {final_e}")
-                 raise IOError(f"Could not decode file {input_file}") from final_e
+                 logger.error(f"\nFATAL: Could not decode file '{input_file!s}' even with error replacement: {final_e}")
+                 raise OSError(f"Could not decode file {input_file}") from final_e
 
     return content
 

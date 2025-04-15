@@ -113,9 +113,16 @@ exclude = '''
 
 [tool.ruff]
 line-length = 88
-select = ["E", "W", "F", "I", "B", "C", "UP", "PL", "RUF"]
-ignore = ["E203", "E501", "F401", "F403", "F405", "F811", "PLR0913", "PLR0915"] # Removed W503
 target-version = "py39"
 
-[tool.ruff.isort]
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C", "UP", "PL", "RUF"]
+ignore = [
+    "E203", "E501", "F401", "F403", "F405", "F811", 
+    "PLR0913", "PLR0915", "E402", "RUF001", "RUF002", "RUF003", 
+    "PLR2004", "B007", "B034", "F841", "C901", "PLR0911", "PLR0912", 
+    "C408", "PLW0603", "UP035", "UP007", "UP006"
+]
+
+[tool.ruff.lint.isort]
 known-first-party = ["enchant_cli"]

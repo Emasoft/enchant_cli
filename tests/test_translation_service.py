@@ -1,12 +1,13 @@
-import pytest
-import os
 import logging
-import requests
-import requests_mock # Keep this import for the library fixture
-import re # Added import
-from tenacity import RetryError, stop_after_attempt # Import stop_after_attempt
-from pathlib import Path
+import os
+import re  # Added import
 import sys
+from pathlib import Path
+
+import pytest
+import requests
+import requests_mock  # Keep this import for the library fixture
+from tenacity import RetryError, stop_after_attempt  # Import stop_after_attempt
 
 # Add src directory to Python path if needed
 SRC_DIR = str(Path(__file__).parent.parent / "src")
@@ -14,9 +15,9 @@ if SRC_DIR not in sys.path:
     sys.path.insert(0, SRC_DIR)
 
 from enchant_cli.translation_service import (
+    OPENROUTER_API_KEY,  # Check if API key is set
     ChineseAITranslator,
     TranslationException,
-    OPENROUTER_API_KEY # Check if API key is set
 )
 
 # Marker for tests requiring the API key
@@ -127,7 +128,7 @@ def test_compute_costs_real_api(translator):
         pytest.fail(f"Real API translation failed after retries: {e}")
 
 
-def test_compute_costs_mocked(translator, requests_mock): # noqa: F811
+def test_compute_costs_mocked(translator, requests_mock):
     """Test cost computation with mocked API responses."""
     # Mock the completion response (passed directly)
     mock_completion_resp = requests.Response()
@@ -167,7 +168,7 @@ def test_remove_translation_markers(translator):
     assert "[REVISED TEXT]" not in cleaned2
     assert cleaned2.strip() == "Some content."
 
-def test_translate_messages_success(translator, requests_mock): # noqa: F811
+def test_translate_messages_success(translator, requests_mock):
     """Test successful translation via translate_messages."""
     requests_mock.post(MOCK_API_URL, json=MOCK_SUCCESS_RESPONSE)
     requests_mock.get(f"{MOCK_GENERATION_URL}?id={MOCK_SUCCESS_RESPONSE['id']}", json=MOCK_GENERATION_STATS)
@@ -183,7 +184,7 @@ def test_translate_messages_success(translator, requests_mock): # noqa: F811
     assert post_request is not None
     assert post_request.json()["messages"][0]["content"] == prompt
 
-def test_translate_messages_http_error_retry(translator, requests_mock): # noqa: F811
+def test_translate_messages_http_error_retry(translator, requests_mock):
     """Test retry mechanism on HTTP 500 error."""
     requests_mock.post(MOCK_API_URL, [
         {'status_code': 500, 'text': 'Server Error'},
@@ -202,7 +203,7 @@ def test_translate_messages_http_error_retry(translator, requests_mock): # noqa:
     # Check call count based on verbose=True in translator fixture
     assert requests_mock.call_count == 3 + 2 # 3 POSTs + 2 GETs for cost
 
-def test_translate_messages_connection_error_retry(translator, requests_mock): # noqa: F811
+def test_translate_messages_connection_error_retry(translator, requests_mock):
     """Test retry mechanism on ConnectionError."""
     requests_mock.post(MOCK_API_URL, [
         {'exc': requests.exceptions.ConnectionError("Network Error")},
@@ -218,7 +219,7 @@ def test_translate_messages_connection_error_retry(translator, requests_mock): #
     # Check call count based on verbose=True in translator fixture
     assert requests_mock.call_count == 2 + 2 # 2 POSTs + 2 GETs for cost
 
-def test_translate_messages_retry_limit_exceeded(translator, requests_mock): # noqa: F811
+def test_translate_messages_retry_limit_exceeded(translator, requests_mock):
     """Test that RetryError is raised after exceeding retry limit."""
     # Simulate 5 failures (default stop_after_attempt)
     requests_mock.post(MOCK_API_URL, [{'status_code': 500}] * 5)
@@ -228,7 +229,7 @@ def test_translate_messages_retry_limit_exceeded(translator, requests_mock): # n
         translator.translate_messages(prompt)
     assert requests_mock.call_count == 5 # 5 POST attempts
 
-def test_translate_messages_unauthorized_no_retry(translator, requests_mock): # noqa: F811
+def test_translate_messages_unauthorized_no_retry(translator, requests_mock):
     """Test that 401 Unauthorized error stops retries immediately."""
     requests_mock.post(MOCK_API_URL, status_code=401)
 
@@ -241,7 +242,7 @@ def test_translate_messages_unauthorized_no_retry(translator, requests_mock): # 
     assert excinfo.value.response.status_code == 401
     assert requests_mock.call_count == 1 # Only 1 attempt
 
-def test_translate_messages_empty_content_retry(translator, requests_mock): # noqa: F811
+def test_translate_messages_empty_content_retry(translator, requests_mock):
     """Test retry when API returns empty content."""
     empty_response = MOCK_SUCCESS_RESPONSE.copy()
     empty_response["choices"][0]["message"]["content"] = ""
@@ -270,7 +271,7 @@ def test_translate_messages_empty_content_retry(translator, requests_mock): # no
     assert "API returned empty content" in str(excinfo.value.last_attempt.exception())
     assert requests_mock.call_count >= 2 # Ensure at least one retry happened
 
-def test_translate_messages_non_latin_retry(translator, requests_mock): # noqa: F811
+def test_translate_messages_non_latin_retry(translator, requests_mock):
     """Test retry when API returns non-Latin content."""
     non_latin_response = MOCK_SUCCESS_RESPONSE.copy()
     non_latin_response["choices"][0]["message"]["content"] = "你好世界" # Non-Latin
@@ -295,7 +296,7 @@ def test_translate_messages_non_latin_retry(translator, requests_mock): # noqa: 
     assert "Latin-based charset" in str(excinfo.value.last_attempt.exception())
     assert requests_mock.call_count >= 2 # Ensure at least one retry happened
 
-def test_translate_messages_too_short_retry(translator, requests_mock): # noqa: F811
+def test_translate_messages_too_short_retry(translator, requests_mock):
     """Test retry when API returns content shorter than min_chunk_length."""
     short_response = MOCK_SUCCESS_RESPONSE.copy()
     short_response["choices"][0]["message"]["content"] = "Hi" # Shorter than min_chunk_length (10 in test)
@@ -321,7 +322,7 @@ def test_translate_messages_too_short_retry(translator, requests_mock): # noqa: 
     assert "too short" in str(excinfo.value.last_attempt.exception())
     assert requests_mock.call_count >= 2 # Ensure at least one retry happened
 
-def test_translate_messages_too_short_last_chunk_no_retry(translator, requests_mock): # noqa: F811
+def test_translate_messages_too_short_last_chunk_no_retry(translator, requests_mock):
     """Test no retry for short content if it's the last chunk."""
     short_response = MOCK_SUCCESS_RESPONSE.copy()
     short_response["choices"][0]["message"]["content"] = "Hi"
@@ -339,7 +340,7 @@ def test_translate_messages_too_short_last_chunk_no_retry(translator, requests_m
     assert requests_mock.call_count == 1 + 2 # 1 POST + 2 GETs
 
 @pytest.mark.parametrize("double_translate_flag", [True, False])
-def test_translate_chunk_mocked(translator, requests_mock, double_translate_flag): # noqa: F811
+def test_translate_chunk_mocked(translator, requests_mock, double_translate_flag):
     """Test the translate_chunk method with mocking."""
     chunk = "你好世界"
     expected_calls = 2 if double_translate_flag else 1
@@ -377,7 +378,7 @@ def test_translate_chunk_mocked(translator, requests_mock, double_translate_flag
     post_requests = [r for r in requests_mock.request_history if r.method == 'POST']
     assert len(post_requests) == expected_calls
 
-def test_translate_entrypoint_mocked(translator, requests_mock): # noqa: F811
+def test_translate_entrypoint_mocked(translator, requests_mock):
     """Test the main translate entry point with mocking."""
     input_string = "你好"
     # Define expected response LOCALLY
@@ -404,7 +405,7 @@ def test_translate_entrypoint_empty_input(translator):
     assert text == ""
     assert cost == 0.0
 
-def test_translate_entrypoint_api_failure(translator, requests_mock): # noqa: F811
+def test_translate_entrypoint_api_failure(translator, requests_mock):
     """Test the main translate entry point when API calls fail after retries."""
     requests_mock.post(MOCK_API_URL, status_code=500) # Simulate persistent failure
 

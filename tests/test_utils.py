@@ -1,7 +1,8 @@
-import pytest
-from pathlib import Path
+import logging  # Added import
 import sys
-import logging # Added import
+from pathlib import Path
+
+import pytest
 
 # Add src directory to Python path if needed, though pytest often handles this
 SRC_DIR = str(Path(__file__).parent.parent / "src")
@@ -10,26 +11,26 @@ if SRC_DIR not in sys.path:
 
 # Import functions to test from utils
 from enchant_cli.utils import (
-    clean,
-    replace_repeated_chars,
-    limit_repeated_chars,
-    remove_html_markup,
-    normalize_spaces,
-    remove_excess_empty_lines,
-    strip_urls,
-    is_markdown,
-    detect_file_encoding,
-    decode_input_file_content,
-    split_on_punctuation_contextual,
-    clean_adverts,
-    is_latin_charset,
-    foreign_book_title_splitter, # Import the function from utils
-    PRESERVE_UNLIMITED,
     ALL_PUNCTUATION,
-    PARAGRAPH_DELIMITERS,
-    SENTENCE_ENDING,
     CLOSING_QUOTES,
     NON_BREAKING,
+    PARAGRAPH_DELIMITERS,
+    PRESERVE_UNLIMITED,
+    SENTENCE_ENDING,
+    clean,
+    clean_adverts,
+    decode_input_file_content,
+    detect_file_encoding,
+    foreign_book_title_splitter,  # Import the function from utils
+    is_latin_charset,
+    is_markdown,
+    limit_repeated_chars,
+    normalize_spaces,
+    remove_excess_empty_lines,
+    remove_html_markup,
+    replace_repeated_chars,
+    split_on_punctuation_contextual,
+    strip_urls,
 )
 
 # --- Test Data ---

@@ -40,15 +40,17 @@ touch .python-version
 
 # Create sample test file (if it doesn't exist)
 if [ ! -f tests/samples/test_sample.txt ]; then
-    echo "Test Sample Novel by Test Author (Test Author) - 测试样本小说 by 测试作者" > tests/samples/test_sample.txt
-    echo "" >> tests/samples/test_sample.txt
-    echo "第一章 测试内容" >> tests/samples/test_sample.txt
-    echo "" >> tests/samples/test_sample.txt
-    echo "这是一个测试文件，包含几个简短的段落。主要目的是验证翻译工具的基本功能。" >> tests/samples/test_sample.txt
-    echo "" >> tests/samples/test_sample.txt
-    echo "第一段：你好世界！这是一个简单的问候语。" >> tests/samples/test_sample.txt
-    echo "第二段：今天的天气很好，适合出去散步。" >> tests/samples/test_sample.txt
-    echo "第三段：请将这段文字翻译成英文，不要添加额外内容。" >> tests/samples/test_sample.txt
+    {
+        echo "Test Sample Novel by Test Author (Test Author) - 测试样本小说 by 测试作者"
+        echo ""
+        echo "第一章 测试内容"
+        echo ""
+        echo "这是一个测试文件，包含几个简短的段落。主要目的是验证翻译工具的基本功能。"
+        echo ""
+        echo "第一段：你好世界！这是一个简单的问候语。"
+        echo "第二段：今天的天气很好，适合出去散步。"
+        echo "第三段：请将这段文字翻译成英文，不要添加额外内容。"
+    } > tests/samples/test_sample.txt
     echo "Created minimal tests/samples/test_sample.txt"
 fi
 

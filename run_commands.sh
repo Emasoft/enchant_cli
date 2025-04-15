@@ -43,7 +43,7 @@ if ! git diff --quiet HEAD; then
     echo "⚙️ Running pre-commit hooks manually on staged files before commit..."
     STAGED_FILES=$(git diff --name-only --cached)
     if [ -n "$STAGED_FILES" ]; then
-        $PYTHON_CMD -m pre_commit run --files $STAGED_FILES || {
+        $PYTHON_CMD -m pre_commit run --files "$STAGED_FILES" || {
             echo >&2 "❌ Manual pre-commit run failed on staged files."
             echo >&2 "   Please check pre-commit logs and fix the hook issue manually."
             exit 1

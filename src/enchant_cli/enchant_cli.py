@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2024 Emasoft
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,68 +14,67 @@ from . import __version__
 APP_NAME = "enchant_cli"
 MIN_PYTHON_VERSION_REQUIRED = "3.8"
 
-from rich import print
-import colorama as cr
-from rich.console import RenderableType, Console
-from rich.table import Table
-from rich.text import Text
-
-import os
-import sys
-import re
+import codecs
+import enum
 import logging
+import os
+import re
 import signal
+import sys
 import time
 import uuid
-from pathlib import Path
-from datetime import datetime
-from threading import Event
-from time import sleep
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+from threading import Event
+from time import sleep
 
-# Import shared utilities
-from .utils import (
-    clean,
-    limit_repeated_chars,
-    remove_html_markup,
-    normalize_spaces,
-    remove_excess_empty_lines,
-    strip_urls,
-    is_markdown,
-    detect_file_encoding,
-    decode_input_file_content,
-    split_on_punctuation_contextual,
-    clean_adverts,
-    quick_replace,
-    flush_buffer,
-    replace_repeated_chars, # Ensure this is imported if used directly
-    foreign_book_title_splitter, # Import moved function
-    SENTENCE_ENDING, # Import constants if needed
-    CLOSING_QUOTES,
-    NON_BREAKING,
-    ALL_PUNCTUATION,
-    PARAGRAPH_DELIMITERS,
-    PRESERVE_UNLIMITED,
-    CHINESE_PUNCTUATION,
-    ENGLISH_PUNCTUATION,
-)
-
-from .translation_service import ChineseAITranslator # Use relative import
-
-import rich
-import rich.repr
-import enum
-import multiexit
-import click # Import click
-
-import codecs
 # from chardet.universaldetector import UniversalDetector # Moved to utils
-
 from typing import (
     TYPE_CHECKING,
     ClassVar,
 )
+
+import click  # Import click
+import colorama as cr
+import multiexit
+import rich
+import rich.repr
+from rich import print
+from rich.console import Console, RenderableType
+from rich.table import Table
+from rich.text import Text
+
+from .translation_service import ChineseAITranslator  # Use relative import
+
+# Import shared utilities
+from .utils import (
+    ALL_PUNCTUATION,
+    CHINESE_PUNCTUATION,
+    CLOSING_QUOTES,
+    ENGLISH_PUNCTUATION,
+    NON_BREAKING,
+    PARAGRAPH_DELIMITERS,
+    PRESERVE_UNLIMITED,
+    SENTENCE_ENDING,  # Import constants if needed
+    clean,
+    clean_adverts,
+    decode_input_file_content,
+    detect_file_encoding,
+    flush_buffer,
+    foreign_book_title_splitter,  # Import moved function
+    is_markdown,
+    limit_repeated_chars,
+    normalize_spaces,
+    quick_replace,
+    remove_excess_empty_lines,
+    remove_html_markup,
+    replace_repeated_chars,  # Ensure this is imported if used directly
+    split_on_punctuation_contextual,
+    strip_urls,
+)
+
 # import html # Moved to utils
 
 # Initialize translator later, inside main, once verbose flag is known
@@ -133,7 +131,7 @@ def load_text_file(txt_file_name):
 
 def save_text_file(text, filename):
         file_path = Path(Path.joinpath(Path.cwd(), Path(filename)))
-        with open(file_path, "wt", encoding="utf-8") as f:
+        with open(file_path, "w", encoding="utf-8") as f:
                 f.write(clean(text)) # Use clean from utils
         tolog.debug("Saved text file in: "+str(file_path))
 
@@ -232,7 +230,7 @@ def import_book_from_txt(file_path, chapter_pattern=r'Chapter \d+', max_chars: i
     # LOAD FILE CONTENT using robust util function
     try:
         book_content = decode_input_file_content(Path(file_path), tolog)
-    except IOError as e:
+    except OSError as e:
         tolog.error(f"Failed to load or decode file {file_path}: {e}")
         return None # Indicate failure
 
@@ -650,7 +648,7 @@ def save_translated_book(book_id, output_filename, double_translate: bool) -> fl
             )
             # Check if translation failed (indicated by empty string and zero cost from translate method)
             if not translated_text and chunk_cost == 0.0 and original_text:
-                 tolog.error(f"ERROR: Translation failed critically for chapter {str(chapter.chapter_number)}. Aborting save.")
+                 tolog.error(f"ERROR: Translation failed critically for chapter {chapter.chapter_number!s}. Aborting save.")
                  return None # Indicate critical failure
 
             total_cost += chunk_cost # Add cost of this chunk
@@ -669,9 +667,9 @@ def save_translated_book(book_id, output_filename, double_translate: bool) -> fl
 
 
         except Exception as e:
-            tolog.error(f"ERROR: Translation failed for chapter {str(chapter.chapter_number)} : {str(e)}", exc_info=tolog.level == logging.DEBUG)
+            tolog.error(f"ERROR: Translation failed for chapter {chapter.chapter_number!s} : {e!s}", exc_info=tolog.level == logging.DEBUG)
             # In case translation fails, append a marker
-            translated_text = original_text + f"\n\n\n[Translation Failed for chapter number {str(chapter.chapter_number)}]\n\n"
+            translated_text = original_text + f"\n\n\n[Translation Failed for chapter number {chapter.chapter_number!s}]\n\n"
             # Optionally return None here to indicate critical failure to the caller
             return None # Indicate critical failure
         # tolog.info(f"\nChapter {chapter.chapter_number}:\n{translated_text}\n\n") # Maybe too verbose for INFO

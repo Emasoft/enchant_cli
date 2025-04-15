@@ -40,7 +40,7 @@ if ! git diff --quiet HEAD; then
     if [ -n "$STAGED_FILES" ]; then
         # Run pre-commit only on the staged files
         # If this fails, it indicates a persistent hook issue or a real lint/format error
-        $PYTHON_CMD -m pre_commit run --files $STAGED_FILES || {
+        $PYTHON_CMD -m pre_commit run --files "$STAGED_FILES" || {
             echo >&2 "❌ Manual pre-commit run failed on staged files."
             echo >&2 "   Please check pre-commit logs and fix the hook issue manually."
             exit 1
