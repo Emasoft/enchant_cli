@@ -59,7 +59,14 @@ cd enchant-cli
 python -m venv .venv
 
 # 4. Activate the virtual environment (IMPORTANT!)
-source .venv/bin/activate  # On Windows use `.venv\Scripts\activate`
+# For macOS/Linux/BSD:
+source .venv/bin/activate
+# For Windows Command Prompt:
+# .venv\Scripts\activate.bat
+# For Windows PowerShell:
+# .venv\Scripts\Activate.ps1
+# For Git Bash on Windows:
+# source .venv/Scripts/activate
 # Your terminal prompt should now show (.venv)
 
 # 5. Install dependencies using uv (includes dev dependencies)
@@ -149,13 +156,34 @@ You can set these in your shell profile (e.g., `.zshrc`, `.bashrc`), export them
 
 See [Environment Configuration Reference](docs/environment.md) for more details.
 
+## Supported Platforms
+
+The Enchant CLI Translator supports multiple platforms:
+
+- **macOS** (Primary development platform)
+- **Linux** (Fully supported)
+- **BSD** (Compatible)
+- **Windows** (Supported via WSL or Git Bash; limited native support)
+
+### Platform-Specific Notes
+
+- **macOS/Linux/BSD**: Run all scripts directly (e.g., `./run_tests.sh`)
+- **Windows**:
+  - **Recommended**: Use Windows Subsystem for Linux (WSL) or Git Bash
+  - **Alternative**: Use `.bat` wrapper scripts (e.g., `run_tests.bat`) which automatically use WSL/Git Bash if available
+  - **Manual**: Follow Windows-specific instructions in the Development Setup section
+
+For cross-platform compatibility, use the platform-detection wrapper scripts (e.g., `run_platform.sh`) which automatically detect your OS and run the appropriate version.
+
 ## Limitations
 
 *   **In-Memory State:** The internal representation of the book (chapters, variations) is currently stored only in memory and is lost when the program exits. Only the final translated output file is saved persistently.
 *   **API Costs:** Translation relies on the OpenRouter API, which charges based on model usage. Be mindful of the costs associated with the chosen model and the amount of text translated. The `--double-translate` option will approximately double the cost.
 *   **Error Handling:** While basic error handling and retries for API calls are implemented, complex network issues or persistent API problems might require manual intervention.
 
-## Release Workflow (using automatic versioning)
+## Release Workflow
+
+### Minor Releases (Automatic Versioning)
 
 This project uses a pre-commit hook (`bump-my-version`) to automatically increment the **minor** version and create a tag on **every commit**. The release process leverages this:
 
@@ -173,9 +201,14 @@ This project uses a pre-commit hook (`bump-my-version`) to automatically increme
     *   A **tag** (e.g., `v0.2.0`) corresponding to the new version will be created automatically.
 5.  **Run Pre-Release Validation:** Execute the local validation script. This runs linters, tests, and build checks defined in `release.sh`.
     ```bash
+    # For macOS/Linux/BSD:
     ./publish_to_github.sh
+    # For Windows with WSL/Git Bash:
+    ./run_platform.sh publish_to_github
+    # For Windows native:
+    publish_to_github.bat
     ```
-    Fix any issues reported by the script and commit the fixes (which will trigger another version bump - this is expected with this workflow). Re-run `./publish_to_github.sh` until it passes.
+    Fix any issues reported by the script and commit the fixes (which will trigger another version bump - this is expected with this workflow). Re-run until it passes.
 6.  **Push Changes and Tag:** Push the latest commit and the automatically generated tag to GitHub:
     ```bash
     git push origin main --tags
@@ -183,6 +216,40 @@ This project uses a pre-commit hook (`bump-my-version`) to automatically increme
 7.  **Create GitHub Release:** Go to the repository's "Releases" page on GitHub and "Draft a new release". Choose the tag you just pushed (e.g., `v0.2.0`). Add release notes. Publishing the release triggers the `publish.yml` workflow.
 8.  **Monitor Workflow:** Check the "Actions" tab on GitHub to ensure the `Publish Python Package` workflow runs successfully and publishes the package to PyPI.
 9.  **Verify on PyPI:** Check the [enchant-cli page on PyPI](https://pypi.org/project/enchant-cli) to confirm the new version is available.
+
+### Major Releases (Breaking Changes)
+
+For major version increments (breaking changes), use the dedicated script:
+
+1. **Ensure Clean State:** Make sure your main branch is up-to-date and your working directory is clean (`git status`).
+2. **Activate Environment:** Activate your virtual environment.
+3. **Run Major Release Script:**
+   ```bash
+   # For macOS/Linux/BSD:
+   ./major_release.sh
+   # For Windows with WSL/Git Bash:
+   ./run_platform.sh major_release
+   # For Windows native:
+   major_release.bat
+   ```
+4. **Update CHANGELOG.md:** Document all breaking changes in detail.
+5. **Commit and Push:** Follow steps 6-9 from the minor release process.
+
+A major version increment should only be used for backward-incompatible API changes.
+
+## Development and CI/CD
+
+### Script Validation
+* All shell scripts are validated with ShellCheck using `--severity=error --extended-analysis=true`
+* Scripts use relative paths for environment portability
+* No private data is included in scripts - configuration is via environment variables
+
+### GitHub Workflows
+* **tests.yml**: Runs on every push/PR, tests with multiple Python versions (3.9-3.13)
+* **publish.yml**: Triggered by GitHub Releases, builds and publishes to PyPI
+* Both workflows mirror the behavior of local scripts for consistency
+
+For detailed CI/CD information, see the workflow files in `.github/workflows/`.
 
 ## Contributing
 

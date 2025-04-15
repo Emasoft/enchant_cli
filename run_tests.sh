@@ -17,12 +17,24 @@ fi
 echo "🐍 Using Python command: $PYTHON_CMD"
 
 echo "🧪 Running tests with pytest..."
+
+# Verify test sample exists
+if [ ! -f tests/samples/test_sample.txt ]; then
+    echo "❌ Test sample file missing!"
+    exit 1
+fi
+
+# Set a fixed timeout value (10 minutes = 600 seconds)
+# This matches the GitHub workflow timeout setting
+PYTEST_TIMEOUT=600
+echo "⏱️ Test timeout set to $PYTEST_TIMEOUT seconds (10 minutes)"
+
 # Run pytest using the virtual environment's Python.
 # Assumes pytest.ini handles PYTHONPATH=src or using editable install.
 # Pass environment variables needed for tests.
 TEST_ENV="true" \
 PYTHONUTF8=1 \
-"$PYTHON_CMD" -m pytest tests/ -v \
+timeout $PYTEST_TIMEOUT "$PYTHON_CMD" -m pytest tests/ -v \
     --cov=enchant_cli \
     --cov-report=term-missing:skip-covered \
     --cov-report=html:coverage_report \

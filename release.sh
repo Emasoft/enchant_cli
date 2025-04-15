@@ -64,8 +64,23 @@ fi
 
 # 6. Run tests and check coverage
 echo "🧪 Running tests and checking coverage..."
+
+# Verify test sample exists
+if [ ! -f tests/samples/test_sample.txt ]; then
+    echo "❌ Test sample file missing!"
+    exit 1
+fi
+
+# Set a fixed timeout value (10 minutes = 600 seconds)
+# This matches the GitHub workflow timeout setting
+PYTEST_TIMEOUT=600
+echo "⏱️ Test timeout set to $PYTEST_TIMEOUT seconds (10 minutes)"
+
 # Use pytest directly, assuming pytest.ini configures pythonpath etc.
-pytest tests/ -v \
+# Set environment variables needed for tests
+TEST_ENV="true" \
+PYTHONUTF8=1 \
+timeout $PYTEST_TIMEOUT pytest tests/ -v \
     --cov=enchant_cli \
     --cov-report=term-missing:skip-covered \
     --cov-fail-under=80 \

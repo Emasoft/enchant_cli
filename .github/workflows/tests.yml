@@ -3,6 +3,18 @@ name: Tests
 on: [push, pull_request]
 
 jobs:
+  shellcheck:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          severity: error
+          additional_args: "--extended-analysis=true"
+          scandir: '.'
+          # Only fail on error severity issues, with extended analysis
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -51,6 +63,7 @@ jobs:
           --strict-markers \
           --durations=10 # Show 10 slowest tests
       timeout-minutes: 10  # Add overall test job timeout
+                              # NOTE: This matches the 600 second (10 min) default in run_tests.sh
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4 # Use v4
