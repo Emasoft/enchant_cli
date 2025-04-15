@@ -11,30 +11,34 @@ echo "   NOTE: Version bumping and tagging are handled automatically on commit b
 echo "🔄 Synchronizing environment with uv..."
 uv sync || { echo >&2 "❌ uv sync failed."; exit 1; }
 
+# Proactively prepare pre-commit environment
+echo "🔧 Preparing pre-commit environment..."
+echo "   🧹 Cleaning pre-commit cache..."
+pre-commit clean || echo "   ⚠️  pre-commit clean failed, continuing..." # Allow to continue even if clean fails
+echo "   🔧 Reinstalling pre-commit hooks..."
+pre-commit install --install-hooks || { echo >&2 "❌ pre-commit install failed."; exit 1; }
+echo "   ✅ Pre-commit environment ready."
+
 # Check for uncommitted changes and commit them
 echo "🔍 Checking for uncommitted changes..."
 if ! git diff --quiet HEAD; then
     echo "⚠️ Uncommitted changes detected. Staging and attempting to commit automatically..."
     git add -A # Stage all changes first
 
-    echo "🧹 Cleaning pre-commit cache..."
-    pre-commit clean || echo "⚠️  pre-commit clean failed, continuing..." # Allow to continue even if clean fails
-    echo "🔧 Reinstalling pre-commit hooks..."
-    pre-commit install --install-hooks || { echo >&2 "❌ pre-commit install failed."; exit 1; }
-
     echo "⚙️ Running pre-commit hooks manually on staged files before commit..."
     # Get list of staged files
     STAGED_FILES=$(git diff --name-only --cached)
     if [ -n "$STAGED_FILES" ]; then
         # Run pre-commit only on the staged files
-        # If this fails, it indicates a persistent hook issue
+        # If this fails, it indicates a persistent hook issue or a real lint/format error
         pre-commit run --files $STAGED_FILES || {
-            echo >&2 "❌ Manual pre-commit run failed after cache clean/reinstall."
+            echo >&2 "❌ Manual pre-commit run failed on staged files."
             echo >&2 "   Please check pre-commit logs and fix the hook issue manually."
             exit 1
         }
         echo "✅ Manual pre-commit run successful."
         # Re-stage any files potentially modified by the hooks
+        echo "   Re-staging potentially modified files..."
         git add -A
     else
         echo "ℹ️ No files were staged for the pre-commit run (should not happen if changes were detected)."
@@ -71,7 +75,7 @@ else
     echo ""
     echo "🚀 Pushing latest commit and tags to GitHub..."
     # Assuming 'main' is the default branch and 'origin' is the remote name
-    git push origin main --tags || { echo >&2 "❌ git push failed."; exit 1; }
+    git push origin main --tags || { echo >&2 "❌ git push failed. Check remote, branch name, permissions, and conflicts."; exit 1; }
     echo "✅ Push successful."
     echo ""
     echo "➡️ Next Step to Publish:"
