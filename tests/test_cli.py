@@ -59,7 +59,7 @@ def test_cli_version(runner):
     result = runner.invoke(cli_main, ["--version"])
     assert result.exit_code == 0
     assert __version__ in result.output
-    assert "enchant_cli" in result.output.lower()
+    assert "enchant-cli" in result.output.lower()
 
 def test_cli_help(runner):
     """Test the --help option."""

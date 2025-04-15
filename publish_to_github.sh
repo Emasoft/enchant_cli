@@ -172,42 +172,14 @@ if ! git diff --quiet HEAD; then
         if command -v uv &> /dev/null; then
             uv tool run bump-my-version bump minor --commit --tag --allow-dirty || {
                 echo "⚠️ Version bump with uv failed. Trying direct approach..."
-                # Fallback to manual Python script
-                python -c "
-import re, sys;
-init_file = 'src/enchant_cli/__init__.py';
-with open(init_file, 'r') as f: content = f.read();
-version_match = re.search(r'__version__\\s*=\\s*\"([0-9]+)\\.([0-9]+)\\.([0-9]+)\"', content);
-if not version_match: sys.exit(1);
-major, minor, patch = map(int, version_match.groups());
-new_minor = minor + 1;
-new_version = f'{major}.{new_minor}.0';
-with open(init_file, 'w') as f: f.write(re.sub(r'__version__\\s*=\\s*\"[0-9]+\\.[0-9]+\\.[0-9]+\"', f'__version__ = \"{new_version}\"', content));
-print(f'Bumped version to {new_version}');
-git add src/enchant_cli/__init__.py;
-git commit -m \"chore: Bump version to {new_version}\" --no-verify;
-git tag -a \"v{new_version}\" -m \"Version {new_version}\";
-                " || {
+                # Fallback to hooks script
+                ./hooks/bump_version.sh || {
                     echo "⚠️ Manual version bump failed. Project will be published with existing version."
                 }
             }
         else
-            # Direct Python script approach
-            python -c "
-import re, sys;
-init_file = 'src/enchant_cli/__init__.py';
-with open(init_file, 'r') as f: content = f.read();
-version_match = re.search(r'__version__\\s*=\\s*\"([0-9]+)\\.([0-9]+)\\.([0-9]+)\"', content);
-if not version_match: sys.exit(1);
-major, minor, patch = map(int, version_match.groups());
-new_minor = minor + 1;
-new_version = f'{major}.{new_minor}.0';
-with open(init_file, 'w') as f: f.write(re.sub(r'__version__\\s*=\\s*\"[0-9]+\\.[0-9]+\\.[0-9]+\"', f'__version__ = \"{new_version}\"', content));
-print(f'Bumped version to {new_version}');
-git add src/enchant_cli/__init__.py;
-git commit -m \"chore: Bump version to {new_version}\" --no-verify;
-git tag -a \"v{new_version}\" -m \"Version {new_version}\";
-            " || echo "⚠️ Manual version bump failed. Project will be published with existing version."
+            # Direct shell script approach
+            ./hooks/bump_version.sh || echo "⚠️ Manual version bump failed. Project will be published with existing version."
         fi
     fi
     echo "✅ Changes committed."

@@ -15,24 +15,38 @@ elif command -v bump-my-version &>/dev/null; then
     bump-my-version bump minor --commit --tag --allow-dirty || echo "WARNING: Version bump with global binary failed, trying alternatives..."
 else
     # Fallback to Python script approach
-    python -c '
-import re, sys
-init_file = "src/enchant_cli/__init__.py"
-try:
-    with open(init_file, "r") as f:
-        content = f.read()
-    version_match = re.search(r"__version__\s*=\s*\"([0-9]+)\.([0-9]+)\.([0-9]+)\"", content)
-    if not version_match:
-        print("WARNING: Version pattern not found in __init__.py")
-        sys.exit(0)
-    major, minor, patch = map(int, version_match.groups())
-    new_minor = minor + 1
-    new_version = f"{major}.{new_minor}.0"
-    with open(init_file, "w") as f:
-        f.write(re.sub(r"__version__\s*=\s*\"[0-9]+\.[0-9]+\.[0-9]+\"", f"__version__ = \"{new_version}\"", content))
-    print(f"Bumped version to {new_version}")
-except Exception as e:
-    print(f"ERROR: {str(e)}")
-    sys.exit(1)
-'
+    # Get a clean version string without single or double quotes
+    INIT_PY="src/enchant_cli/__init__.py"
+    if [ ! -f "$INIT_PY" ]; then
+        echo "ERROR: $INIT_PY not found"
+        exit 1
+    fi
+    
+    # Extract current version using grep and sed
+    CURRENT_VERSION=$(grep -o '__version__[[:space:]]*=[[:space:]]*"[0-9]\+\.[0-9]\+\.[0-9]\+"' "$INIT_PY" | sed -E 's/__version__[[:space:]]*=[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)"/\1/')
+    
+    if [ -z "$CURRENT_VERSION" ]; then
+        echo "ERROR: Could not extract version from $INIT_PY"
+        exit 1
+    fi
+    
+    # Parse version components
+    MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
+    MINOR=$(echo "$CURRENT_VERSION" | cut -d. -f2)
+    PATCH=$(echo "$CURRENT_VERSION" | cut -d. -f3)
+    
+    # Increment minor version
+    NEW_MINOR=$((MINOR + 1))
+    NEW_VERSION="${MAJOR}.${NEW_MINOR}.0"
+    
+    # Update version in __init__.py
+    sed -i.bak "s/__version__ = \"[0-9]\+\.[0-9]\+\.[0-9]\+\"/__version__ = \"$NEW_VERSION\"/" "$INIT_PY"
+    rm -f "${INIT_PY}.bak"
+    
+    echo "Bumped version from $CURRENT_VERSION to $NEW_VERSION"
+    
+    # Create git commit and tag
+    git add "$INIT_PY"
+    git commit -m "chore: Bump version to $NEW_VERSION" --no-verify
+    git tag -a "v$NEW_VERSION" -m "Version $NEW_VERSION"
 fi
