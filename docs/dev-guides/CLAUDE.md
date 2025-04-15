@@ -21,6 +21,24 @@ The project is designed to be completely self-contained with a project-isolated 
 3. **Environment Verification**: Scripts check for external references and warn/abort if found
 4. **Self-healing**: The system automatically creates a clean environment when needed
 5. **Explicit Tool Paths**: All tool calls use explicit paths to the project's environment (`.venv/bin/...`)
+6. **Forced Environment Isolation**: The `ensure_env.sh` script:
+   - Deactivates any active conda environment
+   - Deactivates any active Python virtual environment
+   - Cleans PATH from external site-packages and conflicting Python environments
+   - Activates the project's own virtual environment
+   - Verifies Python and pip point to the project's environment
+
+All project scripts begin by sourcing the `ensure_env.sh` script:
+
+```bash
+# Example of how scripts start
+#!/bin/bash
+set -eo pipefail
+
+# First, ensure we have a clean environment
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+source "$SCRIPT_DIR/ensure_env.sh"
+```
 
 To ensure a clean environment after cloning the repository:
 
@@ -274,6 +292,14 @@ git commit -m "feat: Description of your feature"
   - Checks sample file existence
   - Verifies sample content integrity
   - Uses only relative paths
+
+- `./ensure_env.sh`: Core environment isolation script
+  - Deactivates any active conda or Python environments
+  - Cleans PATH from external environments
+  - Creates virtual environment if needed
+  - Activates project's environment
+  - Verifies Python and pip are from project's environment
+  - Used by all other scripts for environment consistency
 
 ## GitHub Workflows
 

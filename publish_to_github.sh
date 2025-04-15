@@ -1,41 +1,18 @@
 #!/bin/bash
 set -eo pipefail
 
+# First, ensure we have a clean environment
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+source "$SCRIPT_DIR/ensure_env.sh"
+
 echo "🚀 Starting automated pre-release preparation..."
 echo "   This script will sync, commit changes (if any), validate, and push."
 echo "   Publishing to PyPI still requires manually creating a GitHub Release."
 echo "   NOTE: Version bumping and tagging are handled automatically on commit by pre-commit hooks."
 
-# Check for uv and install if missing
-if ! command -v uv &> /dev/null; then
-    echo "⚠️ uv not found. Attempting to install..."
-    pip install --user uv || { echo >&2 "❌ Failed to install uv."; exit 1; }
-    export PATH="$HOME/.local/bin:$PATH"  # Add to PATH in case it was installed there
-    if ! command -v uv &> /dev/null; then
-        echo >&2 "❌ uv installation failed or not in PATH. Please install manually: pip install uv"
-        exit 1
-    fi
-    echo "✅ uv installed successfully."
-fi
-
-# Ensure virtual environment exists
-if [ ! -d ".venv" ]; then
-    echo "⚠️ Virtual environment not found. Creating .venv..."
-    uv venv .venv || { echo >&2 "❌ Failed to create virtual environment."; exit 1; }
-    echo "✅ Virtual environment created successfully."
-fi
-
 # Ensure environment is synchronized
 echo "🔄 Synchronizing environment with uv..."
 uv sync || { echo >&2 "❌ uv sync failed."; exit 1; }
-
-# Define Python command from virtual environment
-PYTHON_CMD=".venv/bin/python"
-if [ ! -f "$PYTHON_CMD" ]; then
-    echo >&2 "❌ Python not found in virtual environment. Something went wrong with environment setup."
-    exit 1
-fi
-echo "🐍 Using Python command: $PYTHON_CMD"
 
 # Install bump-my-version via uv tools if needed
 echo "🔧 Ensuring bump-my-version is available..."

@@ -4,12 +4,11 @@ set -eo pipefail
 # release.sh - Local validation script before pushing a release tag.
 # This script DOES NOT commit, tag, push, or set secrets.
 
-echo "🚀 Starting pre-release validation..."
-
-# Find script directory for relative paths
+# First, ensure we have a clean environment
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-VENV_DIR="$SCRIPT_DIR/.venv"
-PYTHON_CMD="$VENV_DIR/bin/python"
+source "$SCRIPT_DIR/ensure_env.sh"
+
+echo "🚀 Starting pre-release validation..."
 
 # 0. Check required commands and potentially install
 ensure_command() {

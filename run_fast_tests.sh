@@ -4,23 +4,9 @@ set -eo pipefail
 # run_fast_tests.sh - Fast test script for quick validation
 # Only runs a subset of tests for quick verification
 
-# Find script directory for relative paths
+# First, ensure we have a clean environment
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-VENV_DIR="$SCRIPT_DIR/.venv"
-PYTHON_CMD="$VENV_DIR/bin/python"
-
-if [ ! -f "$PYTHON_CMD" ]; then
-    echo "⚠️ Python not found in virtual environment. Creating with uv..."
-    if ! command -v uv &> /dev/null; then
-        echo "❌ uv not found. Please install with: pip install uv"
-        exit 1
-    fi
-    uv venv "$VENV_DIR"
-    if [ ! -f "$PYTHON_CMD" ]; then
-        echo "❌ Failed to create virtual environment."
-        exit 1
-    fi
-fi
+source "$SCRIPT_DIR/ensure_env.sh"
 
 echo "⚡ Running fast tests for quick validation..."
 
