@@ -154,16 +154,22 @@ cython_debug/
 # VS Code settings
 .vscode/
 
-# Aider Caches / Logs
+# AI Assistant & Tool Caches/Logs
 .aider*
-*.aider.chat.log.md
-*.aider.tags.cache.*
+*.aider.chat.*
+*.aider.tags.cache*
+.aider.chat.history.md 
+.aider.input.history
+.aider.tags.cache.v*
+report.html
+.claude/
 
 # Ruff Cache
 .ruff_cache/
 
 # macOS specific files
 .DS_Store
+**/.DS_Store
 
 # Custom
 *.orig
@@ -176,10 +182,13 @@ _setup* # Files starting with _setup
 # Lock files (keep uv.lock in repo for reproducibility)
 # uv.lock # Keep this commented - we want to track the lock file
 
-# Exclude all samples except the test sample in the tests directory
-# samples/* # This is too broad if samples dir exists at root
+# Test samples
 tests/samples/*
 !tests/samples/test_sample.txt
+
+# Examples directory - track only the README
+examples/*
+!examples/README.md
 
 # Changelog files (Track these now)
 # CHANGELOG.md # Removed from ignore

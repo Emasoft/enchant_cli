@@ -180,7 +180,7 @@ export CODECOV_API_TOKEN="your-codecov-token-here"
 ```
 You can set these in your shell profile (e.g., `.zshrc`, `.bashrc`), export them in your current session, or potentially use a `.env` file (though direct export is often clearer for CLI tools).
 
-See [Environment Configuration Reference](docs/environment.md) for more details.
+See [Environment Configuration Reference](docs/environment.md) and [Developer Guide](docs/dev-guides/CLAUDE.md) for more details.
 
 ## Supported Platforms
 

@@ -1,7 +1,21 @@
 # Include files not automatically handled by setuptools/pyproject.toml
+include LICENSE README.md pytest.ini
+include requirements*.txt
+
+# Tests
 include tests/samples/test_sample.txt
 graft tests/samples
-# recursive-include tests *.txt
-# Include a graft command to ensure tests directory is properly included
-# recursive-include src... is usually not needed with pyproject.toml and find:packages
-# global-exclude is also generally not needed for standard build artifacts
+
+# Documentation
+include docs/README.md
+include docs/environment.md
+include docs/dev-guides/CLAUDE.md
+
+# Exclude example files (not needed for package)
+prune examples
+
+# Exclude development files
+exclude *.sh
+exclude *.bat
+global-exclude *.py[cod] *.so *.dll *.swp *.bak
+global-exclude __pycache__/ .DS_Store .pytest_cache/ .ruff_cache/
