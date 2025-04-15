@@ -242,7 +242,7 @@ This project uses a pre-commit hook (`bump-my-version`) to automatically increme
 2. **Make Your Changes**
    - Implement code changes
    - Add tests as needed
-   - Run tests locally: `./run_tests.sh` or `./run_fast_tests.sh`
+   - Run tests locally: `./run_tests.sh` or `./run_tests.sh --fast`
 
 3. **Commit Changes**
    - Stage your changes: `git add .`

@@ -854,30 +854,20 @@ echo "- HTML Test Report: $SCRIPT_DIR/report.html"
 echo "- Coverage Report: $SCRIPT_DIR/coverage_report/index.html"
 ```
 
-- `./run_fast_tests.sh`: Runs a minimal subset of tests for quick validation
+- `./run_tests.sh --fast`: Runs a minimal subset of tests for quick validation
   - Only runs critical tests (version, help, etc.)
-  - Uses a strict 30-second timeout
+  - Uses the standard 15-minute timeout for consistency
   - Provides quick feedback during development
   - Perfect for pre-push validation
 
-Example `run_fast_tests.sh`:
+Example of running fast tests:
 
 ```bash
-#!/bin/bash
-set -eo pipefail
+# Run tests in fast mode with the --fast flag
+./run_tests.sh --fast
 
-# Get script directory and source environment setup
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-source "$SCRIPT_DIR/ensure_env.sh"
-
-# Run only critical tests with strict timeout
-echo "🔄 Running fast validation tests..."
-timeout 30 "$SCRIPT_DIR/.venv/bin/pytest" \
-    tests/test_cli.py::test_version \
-    tests/test_cli.py::test_help \
-    -v
-
-echo "✅ Fast tests completed successfully."
+# This runs only critical tests but with the same environment setup and timeout settings
+# as the full test suite for consistency
 ```
 
 ### 4.4 Utility Scripts

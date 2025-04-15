@@ -41,7 +41,7 @@ TIMEOUT=900
 
 # Check if any argument was passed to run in fast mode
 FAST_MODE=0
-if [[ "$1" == "--fast" || "$1" == "-f" || "$0" == *"run_fast_tests"* ]]; then
+if [[ "$1" == "--fast" || "$1" == "-f" ]]; then
     FAST_MODE=1
     print_info "Running in fast mode - only critical tests will be executed"
 fi

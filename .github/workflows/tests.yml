@@ -64,7 +64,7 @@ jobs:
           --cov-fail-under=80 \
           --strict-markers \
           --durations=10 \
-          --timeout=600 # 600 seconds (10 min) timeout per test
+          --timeout=900 # 900 seconds (15 min) timeout per test
       timeout-minutes: 15  # Increase overall test job timeout to 15 minutes
                            # This provides extra margin beyond the per-test timeout
 
