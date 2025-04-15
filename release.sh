@@ -96,10 +96,10 @@ if [ ! -f tests/samples/test_sample.txt ]; then
     exit 1
 fi
 
-# Set a fixed timeout value (10 minutes = 600 seconds)
-# This matches the GitHub workflow timeout setting
-PYTEST_TIMEOUT=600
-echo "⏱️ Test timeout set to $PYTEST_TIMEOUT seconds (10 minutes)"
+# Set a more conservative timeout for local runs (5 minutes = 300 seconds)
+# Tests that need more time can use the --timeout flag
+PYTEST_TIMEOUT=300
+echo "⏱️ Test timeout set to $PYTEST_TIMEOUT seconds (5 minutes)"
 
 # Use pytest directly, assuming pytest.ini configures pythonpath etc.
 # Set environment variables needed for tests
@@ -111,7 +111,8 @@ timeout $PYTEST_TIMEOUT pytest tests/ -v \
     --cov-fail-under=80 \
     --strict-markers \
     --html=report.html \
-    --self-contained-html || exit 1
+    --self-contained-html \
+    --timeout=300 || exit 1
 echo "📊 Test report generated: report.html"
 
 # 7. Build package (sdist and wheel)

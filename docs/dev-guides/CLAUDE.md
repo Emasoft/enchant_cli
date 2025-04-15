@@ -228,9 +228,15 @@ git commit -m "feat: Description of your feature"
   - Uses pytest with appropriate settings
   - Generates code coverage reports
   - Creates HTML test reports
-  - Fixed 10-minute timeout (600 seconds)
+  - Uses a 5-minute timeout (300 seconds) for local runs
   - Environment variables pre-configured
   - Uses only project-isolated environment paths
+
+- `./run_fast_tests.sh`: Runs a minimal subset of tests for quick validation
+  - Only runs critical tests (version, help, etc.)
+  - Uses a strict 30-second timeout
+  - Provides quick feedback during development
+  - Perfect for pre-push validation
 
 ### Utility Scripts
 
@@ -291,6 +297,10 @@ The project includes GitHub workflows that mirror the local scripts with robust 
 - Parallels `release.sh` and publishing workflow
 - Triggered when a GitHub Release is published
 - Uses trusted publishing with OIDC for PyPI (no token required)
+- Robust timeout handling:
+  - Uses more aggressive timeouts in workflows than local scripts
+  - Per-test timeouts (10 minutes) with overall job timeout (15 minutes)
+  - Handles timeouts gracefully with appropriate default behavior
 - Uses proper uv integration:
   - Creates dedicated virtual environment with `uv venv`
   - Syncs all dependencies with `uv sync`
