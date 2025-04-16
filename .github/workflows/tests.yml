@@ -173,14 +173,22 @@ EOF
           echo "✅ Test sample files created in all required locations"
         fi
         
-        # Ensure we're using the venv python
+        # CRITICAL FIX: Install pytest directly with the system python first
+        python -m pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
+        
+        # Now try to use venv if available
         source .venv/bin/activate || echo "Could not activate venv, using system Python"
         
-        # Install pytest using pip if it's not already installed
+        # Ensure pytest is installed - double check and install again if needed
         if ! python -c "import pytest" &>/dev/null; then
-          echo "Pytest not found, installing it directly with pip"
-          pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
+          echo "Pytest not found after activation, installing it directly"
+          python -m pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
         fi
+
+        # Print python and pytest versions for debugging
+        echo "Using Python at: $(which python)"
+        python --version
+        echo "Pytest version: $(python -m pytest --version)"
 
         # Run pytest with extended timeout
         python -m pytest tests/ -v \

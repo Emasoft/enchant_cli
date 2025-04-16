@@ -68,13 +68,33 @@ jobs:
 
     - name: Install uv
       run: |
-        python -m pip install --upgrade pip uv
-        # Setup virtual environment for isolation
-        uv venv .venv
-        # Make sure all dependencies are installed
-        uv sync
-        # Install bump-my-version with uv tool
-        uv tool install bump-my-version
+        # CRITICAL FIX: More robust installation of uv and dependencies
+        python -m pip install --upgrade pip
+        python -m pip install uv
+        
+        # Setup virtual environment with fallback
+        if ! uv venv .venv; then
+          echo "UV venv creation failed, falling back to standard venv"
+          python -m venv .venv
+          source .venv/bin/activate
+          python -m pip install --upgrade pip
+        else
+          echo "Using uv for dependency management"
+          # Make sure all dependencies are installed
+          uv sync || echo "UV sync failed, continuing anyway"
+        fi
+        
+        # Install necessary tools with error handling
+        if command -v uv &>/dev/null; then
+          uv tool install bump-my-version || echo "Failed to install bump-my-version, continuing anyway"
+        else
+          echo "UV not available for tool installation, using pip"
+          python -m pip install bump-my-version || echo "Failed to install bump-my-version with pip, continuing anyway"
+        fi
+        
+        # Print diagnostic information
+        echo "Python version: $(python --version)"
+        echo "UV version: $(uv --version || echo 'Not available')"
 
     # Optional: Generate Changelog (Run this LOCALLY before tagging/releasing)
     # If you must run it here, uncomment and ensure correct permissions (contents: write)

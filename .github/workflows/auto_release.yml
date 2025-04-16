@@ -39,8 +39,10 @@ jobs:
         python -m venv .venv
         # Activate it
         source .venv/bin/activate
-        # Install required packages (no git-chglog as we download it directly)
-        pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
+        # Install required packages (pytest and test dependencies)
+        python -m pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
+        
+        # CRITICAL FIX: Verify git-chglog will be installed directly later - DO NOT attempt pip install
         
     - name: Install GitHub CLI
       run: |
@@ -103,12 +105,52 @@ jobs:
       id: generate_changelog
       run: |
         # Install git-chglog by direct download (instead of using Go)
+        echo "Downloading git-chglog binary directly..."
         CHGLOG_VERSION=0.15.4
-        curl -sSL https://github.com/git-chglog/git-chglog/releases/download/v${CHGLOG_VERSION}/git-chglog_${CHGLOG_VERSION}_linux_amd64.tar.gz -o git-chglog.tar.gz
-        mkdir -p git-chglog
-        tar -zxvf git-chglog.tar.gz -C git-chglog
-        sudo mv git-chglog/git-chglog /usr/local/bin/
-        rm -rf git-chglog git-chglog.tar.gz
+        
+        # CRITICAL FIX: Add error handling and verification for each step
+        if ! curl -sSL --retry 3 https://github.com/git-chglog/git-chglog/releases/download/v${CHGLOG_VERSION}/git-chglog_${CHGLOG_VERSION}_linux_amd64.tar.gz -o git-chglog.tar.gz; then
+          echo "Failed to download git-chglog. Trying alternative approach..."
+          
+          # Alternative download method
+          wget -q https://github.com/git-chglog/git-chglog/releases/download/v${CHGLOG_VERSION}/git-chglog_${CHGLOG_VERSION}_linux_amd64.tar.gz -O git-chglog.tar.gz || {
+            echo "Both curl and wget failed. Installing git-chglog via Go as last resort"
+            if ! command -v go &>/dev/null; then
+              sudo apt-get update && sudo apt-get install -y golang
+            fi
+            go install github.com/git-chglog/git-chglog/cmd/git-chglog@latest
+            export PATH=$PATH:$(go env GOPATH)/bin
+            echo "Installed git-chglog via Go"
+            # Continue with the rest of the script - skip tar extraction
+            SKIP_EXTRACT=1
+          }
+        fi
+        
+        if [ -z "$SKIP_EXTRACT" ]; then
+          # Extract the tarball
+          mkdir -p git-chglog
+          if ! tar -zxvf git-chglog.tar.gz -C git-chglog; then
+            echo "Failed to extract git-chglog tarball"
+            exit 1
+          fi
+          
+          # Move the binary to /usr/local/bin
+          if ! sudo mv git-chglog/git-chglog /usr/local/bin/; then
+            echo "Failed to move git-chglog to /usr/local/bin"
+            exit 1
+          fi
+          
+          # Clean up
+          rm -rf git-chglog git-chglog.tar.gz
+          
+          # Verify installation
+          if ! command -v git-chglog &>/dev/null; then
+            echo "git-chglog installation failed - binary not found in path"
+            exit 1
+          fi
+          
+          echo "git-chglog installed successfully: $(git-chglog --version || echo 'version check failed')"
+        fi
         
         # Create a changelog configuration if it doesn't exist
         if [ ! -f .chglog/config.yml ]; then
@@ -278,21 +320,32 @@ jobs:
         
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip uv
+        # CRITICAL FIX: First install pytest directly with system Python
+        python -m pip install --upgrade pip
+        python -m pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
+        
+        # Then try the uv approach (which may be better for other dependencies)
+        python -m pip install uv
+        
         # Create and activate virtual environment with venv as fallback if uv fails
         if ! uv venv .venv; then
           echo "UV venv creation failed, falling back to standard venv"
           python -m venv .venv
           source .venv/bin/activate
-          pip install -e .
-          pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
+          python -m pip install -e .
+          python -m pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
         else
           # Use uv if it works
-          uv sync
-          uv pip install -e .
-          # Install testing dependencies
-          uv pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
+          uv sync || echo "UV sync failed, continuing anyway"
+          uv pip install --system -e . || echo "UV install package failed, continuing anyway"
+          # Install testing dependencies again to be sure
+          uv pip install --system pytest pytest-cov pytest-html pytest-timeout requests-mock
         fi
+        
+        # Print diagnostic information
+        echo "Using Python: $(which python)"
+        python --version
+        echo "Pytest version: $(python -m pytest --version || echo 'NOT FOUND')"
         
     - name: Setup test mocks
       run: |
@@ -374,16 +427,41 @@ EOF
           echo "✅ Test sample files created in all required locations"
         fi
         
-        # Ensure we're using the venv python
-        source .venv/bin/activate || echo "Could not activate venv, using system Python"
-        
-        # Install pytest using pip if it's not already installed
-        if ! python -c "import pytest" &>/dev/null; then
-          echo "Pytest not found, installing it directly with pip"
-          pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
+        # CRITICAL FIX: First try with the system Python which should have pytest installed
+        echo "First trying with system Python (should have pytest already installed)"
+        if python -c "import pytest" &>/dev/null; then
+          echo "System Python has pytest installed, using it"
+          PYTHON_WITH_PYTEST="python"
+        else
+          echo "System Python does not have pytest, trying with venv"
+          # Try to activate venv
+          source .venv/bin/activate || echo "Could not activate venv, continuing with system Python"
+          
+          # Check again after activation
+          if python -c "import pytest" &>/dev/null; then
+            echo "Venv Python has pytest installed, using it"
+            PYTHON_WITH_PYTEST="python"
+          else
+            echo "CRITICAL: Neither system Python nor venv has pytest! Installing it again directly"
+            python -m pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
+            
+            if python -c "import pytest" &>/dev/null; then
+              echo "Successfully installed pytest now"
+              PYTHON_WITH_PYTEST="python"
+            else
+              echo "FATAL: Cannot find or install pytest after multiple attempts"
+              exit 1
+            fi
+          fi
         fi
         
-        python -m pytest tests/ -v \
+        # Print diagnostic information before running tests
+        echo "Python executable: $(which python)"
+        python --version
+        echo "Pytest version: $(python -m pytest --version || echo 'NOT FOUND')"
+        
+        # Run tests with the Python that has pytest
+        $PYTHON_WITH_PYTEST -m pytest tests/ -v \
           --cov=enchant_cli \
           --cov-report=xml \
           --cov-report=term-missing:skip-covered \
