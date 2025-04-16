@@ -89,10 +89,13 @@ To ensure a clean environment after cloning the repository:
 # On Unix platforms (macOS, Linux, BSD)
 ./reinitialize_env.sh
 
-# On Windows (Command Prompt)
+# On Windows using Command Prompt
 reinitialize_env.bat
 
-# On Windows via WSL/Git Bash
+# On Windows using PowerShell
+.\reinitialize_env.bat
+
+# On Windows via WSL or Git Bash
 ./reinitialize_env.sh
 ```
 
@@ -543,6 +546,16 @@ The project uses platform-specific script wrappers to maintain compatibility:
   2. Try Git Bash if available 
   3. Fall back to native Windows commands where possible
 - **Platform Detection** (`run_platform.sh`): Auto-detects platform and runs the appropriate script
+
+For each shell script in the project, there's a matching Windows batch file with the same base name:
+- `reinitialize_env.sh` → `reinitialize_env.bat`
+- `run_tests.sh` → `run_tests.bat`
+- `publish_to_github.sh` → `publish_to_github.bat`
+- `major_release.sh` → `major_release.bat`
+- `run_commands.sh` → `run_commands.bat`
+- `bump_version.sh` → `bump_version.bat`
+
+All Windows batch files support passing command-line arguments through to their shell script counterparts.
 
 Example Windows wrapper script (`run_tests.bat`):
 
@@ -999,6 +1012,7 @@ source .venv/bin/activate  # or .venv\Scripts\activate.bat on Windows
 
 ### 5.2 Adding New Features
 
+#### Unix/Linux/macOS
 ```bash
 # Ensure you start with a clean environment
 ./reinitialize_env.sh
@@ -1014,6 +1028,33 @@ git commit -m "feat: Description of your feature"
 
 # Push to GitHub
 ./publish_to_github.sh
+```
+
+#### Windows (CMD or PowerShell)
+```cmd
+:: Ensure you start with a clean environment
+reinitialize_env.bat
+
+:: Make your code changes...
+
+:: Run tests
+run_tests.bat
+
+:: Commit changes (version will be automatically bumped)
+git add .
+git commit -m "feat: Description of your feature"
+
+:: Push to GitHub
+publish_to_github.bat
+```
+
+You can pass any command-line arguments to the batch files, which will be forwarded to the underlying shell scripts:
+```cmd
+:: Skip tests during publishing (example)
+publish_to_github.bat --skip-tests
+
+:: Run tests in fast mode
+run_tests.bat --fast
 ```
 
 ### 5.3 Release Workflow
@@ -1089,6 +1130,7 @@ This project strictly follows a standardized GitHub publishing protocol that ens
 
 4. **Usage Examples**
 
+##### Unix/Linux/macOS
 ```bash
 # Display help information
 ./publish_to_github.sh --help
@@ -1104,6 +1146,24 @@ This project strictly follows a standardized GitHub publishing protocol that ens
 
 # Dry run (execute all steps except final push)
 ./publish_to_github.sh --dry-run
+```
+
+##### Windows
+```cmd
+:: Display help information
+publish_to_github.bat --help
+
+:: Standard execution (commit changes, run tests, push to GitHub)
+publish_to_github.bat
+
+:: Skip tests (use with caution)
+publish_to_github.bat --skip-tests
+
+:: Force push (use with extreme caution)
+publish_to_github.bat --force
+
+:: Dry run (execute all steps except final push)
+publish_to_github.bat --dry-run
 ```
 
 5. **First-Time Setup Requirements**
@@ -1487,15 +1547,23 @@ Example workflow templates are provided in section 6.1.
 
 ### 8.1 Common Environment Issues
 
-**Issue**: External environment references in PATH
-**Solution**:
+#### External environment references in PATH
+
+**Unix/Linux/macOS**:
 ```bash
 # Run environment reset script
 ./reinitialize_env.sh
 ```
 
-**Issue**: Missing API keys or environment variables
-**Solution**:
+**Windows**:
+```cmd
+# Run environment reset script
+reinitialize_env.bat
+```
+
+#### Missing API keys or environment variables
+
+**Unix/Linux/macOS**:
 ```bash
 # Check if variables are set
 echo $OPENROUTER_API_KEY
@@ -1507,8 +1575,22 @@ export OPENROUTER_API_KEY="your-key-here"
 echo 'export OPENROUTER_API_KEY="your-key-here"' >> "${HOME}/.bashrc"  # or "${HOME}/.zshrc"
 ```
 
-**Issue**: Tool not found or incorrect version
-**Solution**:
+**Windows**:
+```cmd
+# Check if variables are set
+echo %OPENROUTER_API_KEY%
+
+# Set temporarily for current session
+set OPENROUTER_API_KEY=your-key-here
+
+# For persistence, use System Properties > Environment Variables
+# Or use PowerShell to set user environment variables:
+[Environment]::SetEnvironmentVariable("OPENROUTER_API_KEY", "your-key-here", "User")
+```
+
+#### Tool not found or incorrect version
+
+**Unix/Linux/macOS**:
 ```bash
 # Check if the tool exists in the project's virtual environment
 ls -la .venv/bin/tool-name
@@ -1520,10 +1602,23 @@ ls -la .venv/bin/tool-name
 .venv/bin/uv sync
 ```
 
+**Windows**:
+```cmd
+# Check if the tool exists in the project's virtual environment
+dir .venv\Scripts\tool-name*
+
+# Reinstall tools with explicit version
+.venv\Scripts\uv pip install tool-name==version
+
+# Update environment
+.venv\Scripts\uv sync
+```
+
 ### 8.2 Test Failures
 
-**Issue**: Tests timing out
-**Solution**:
+#### Tests timing out
+
+**Unix/Linux/macOS**:
 ```bash
 # Run with increased timeout
 PYTEST_TIMEOUT=600 ./run_tests.sh
@@ -1532,8 +1627,19 @@ PYTEST_TIMEOUT=600 ./run_tests.sh
 .venv/bin/pytest tests/test_specific.py --timeout=600
 ```
 
-**Issue**: Coverage below threshold
-**Solution**:
+**Windows**:
+```cmd
+# Run with increased timeout
+set PYTEST_TIMEOUT=600
+run_tests.bat
+
+# Or run specific test file with increased timeout
+.venv\Scripts\pytest tests/test_specific.py --timeout=600
+```
+
+#### Coverage below threshold
+
+**Unix/Linux/macOS**:
 ```bash
 # Identify uncovered code
 .venv/bin/pytest --cov=src --cov-report=term-missing
@@ -1541,10 +1647,19 @@ PYTEST_TIMEOUT=600 ./run_tests.sh
 # Add tests for uncovered code paths
 ```
 
+**Windows**:
+```cmd
+# Identify uncovered code
+.venv\Scripts\pytest --cov=src --cov-report=term-missing
+
+# Add tests for uncovered code paths
+```
+
 ### 8.3 Version Control Problems
 
-**Issue**: Pre-commit hooks not running
-**Solution**:
+#### Pre-commit hooks not running
+
+**Unix/Linux/macOS**:
 ```bash
 # Install pre-commit hooks manually
 .venv/bin/pre-commit install
@@ -1553,8 +1668,18 @@ PYTEST_TIMEOUT=600 ./run_tests.sh
 .venv/bin/pre-commit run --all-files
 ```
 
-**Issue**: Version not incrementing on commit
-**Solution**:
+**Windows**:
+```cmd
+# Install pre-commit hooks manually
+.venv\Scripts\pre-commit install
+
+# Run hooks manually
+.venv\Scripts\pre-commit run --all-files
+```
+
+#### Version not incrementing on commit
+
+**Unix/Linux/macOS**:
 ```bash
 # Check if hook is properly installed
 ls -la .git/hooks/pre-commit
@@ -1563,5 +1688,35 @@ ls -la .git/hooks/pre-commit
 ./hooks/bump_version.sh
 
 # Check version file
-cat src/your_project/__init__.py
+cat src/enchant_cli/__init__.py
 ```
+
+**Windows**:
+```cmd
+# Check if hook is properly installed
+dir .git\hooks\pre-commit
+
+# Run version bump manually via batch file
+bump_version.bat
+
+# Check version file
+type src\enchant_cli\__init__.py
+```
+
+#### Package Publication Verification Issue
+
+If the PyPI publication verification fails:
+
+1. Check if the package was properly published:
+   - Visit `https://pypi.org/project/enchant-cli/` to verify the latest version
+   - Look for the GitHub Action in the Actions tab for any error messages
+
+2. Verification failure with "Command entry point not found":
+   - Check the `pyproject.toml` file to ensure the entry points are correctly configured
+   - Verify that the package wheel was built correctly using `pip debug`
+   - Try installing with `pip install -e .` locally to test the entry point setup
+
+3. Version mismatch errors:
+   - Ensure the version in `__init__.py` matches the Git tag version
+   - Check if the pre-commit hook for version bumping is correctly installed
+   - Make sure the package is built from a clean commit with the latest version

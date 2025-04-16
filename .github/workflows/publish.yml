@@ -101,16 +101,28 @@ jobs:
       run: |
         echo "Attempting to install version ${{ steps.get_version.outputs.VERSION }} from PyPI..."
         # Use uv for installation consistency
-        .venv/bin/uv pip install enchant-cli==${{ steps.get_version.outputs.VERSION }}
+        .venv/bin/uv pip install --no-cache-dir enchant-cli==${{ steps.get_version.outputs.VERSION }}
+        
+        # Verify installed version matches expected version
+        INSTALLED_VERSION=$(.venv/bin/pip show enchant-cli | grep "Version:" | cut -d' ' -f2)
+        echo "Installed version: $INSTALLED_VERSION"
+        echo "Expected version: ${{ steps.get_version.outputs.VERSION }}"
+        if [ "$INSTALLED_VERSION" != "${{ steps.get_version.outputs.VERSION }}" ]; then
+          echo "::error::Version mismatch! Installed $INSTALLED_VERSION but expected ${{ steps.get_version.outputs.VERSION }}"
+          exit 1
+        fi
+        
         echo "Installation successful. Verifying command..."
         # Run a simple command to check if entry point works
-        .venv/bin/enchant_cli --version
+        .venv/bin/enchant_cli --version || {
+          echo "::error::Command entry point verification failed. Trying module directly..."
+          .venv/bin/python -m enchant_cli --version || {
+            echo "::error::Both command entry point and module verification failed."
+            exit 1
+          }
+        }
+        echo "Package verification successful!"
       env:
-        # uv handles caching differently, these might not be needed
-        # PIP_NO_CACHE_DIR: 'off'
-        # PIP_DISABLE_PIP_VERSION_CHECK: '1'
-        # Ensure API key is available if tests run post-install (they don't here)
-        # OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         PYTHONUTF8: 1
 
     # Running tests after publish might be redundant if tests.yml covers it well.

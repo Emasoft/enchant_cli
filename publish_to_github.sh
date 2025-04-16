@@ -718,17 +718,22 @@ if [[ $CREATE_RELEASE =~ ^[Yy]$ ]]; then
                     # Try running the CLI to verify basic functionality
                     if command -v enchant_cli &>/dev/null; then
                         print_info "Testing installed package functionality..."
-                        enchant_cli --version && print_success "CLI functionality verified!" || print_warning "CLI verification failed."
+                        enchant_cli --version && print_success "CLI functionality verified!" || print_warning "CLI verification failed: Command completed with errors."
                     else
-                        print_warning "CLI command not available. May need to restart shell."
+                        print_warning "CLI command not available. May need to restart shell or the CLI entry point is missing."
+                        print_info "Trying to access CLI directly through Python module..."
+                        "$PYTHON_CMD" -m enchant_cli --version && print_success "CLI module functionality verified!" || print_error "CLI module verification failed. The package may be incorrectly installed or configured."
                     fi
                 else
-                    print_warning "Installed version ($INSTALLED_VERSION) does not match expected version ($VERSION)."
+                    print_error "Installed version ($INSTALLED_VERSION) does not match expected version ($VERSION)."
+                    print_error "This indicates a version mismatch issue in the PyPI publishing process."
+                    print_info "Check if the version was properly bumped in __init__.py and if the build process is using the correct version."
                 fi
             else
                 print_warning "Package not yet available on PyPI. This is normal if the GitHub Action is still running."
                 print_info "You can check the status at: https://github.com/$REPO_FULL_NAME/actions"
                 print_info "And verify on PyPI later at: https://pypi.org/project/enchant-cli/$VERSION/"
+                print_info "If the package doesn't appear after 10 minutes, check GitHub Actions for errors in the publish workflow."
             fi
         fi
     fi
