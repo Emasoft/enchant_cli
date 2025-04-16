@@ -383,8 +383,13 @@ if [ ! -x "$RELEASE_SCRIPT" ]; then
 fi
 
 print_info "Executing validation script $RELEASE_SCRIPT (timeout: $TIMEOUT_RELEASE seconds)..."
-# Set a timeout for the validation script
-timeout $TIMEOUT_RELEASE "$RELEASE_SCRIPT"
+# Set a timeout for the validation script and pass the skip-tests flag if needed
+if [ $SKIP_TESTS -eq 1 ]; then
+    print_info "Test execution will be skipped as requested."
+    timeout $TIMEOUT_RELEASE "$RELEASE_SCRIPT" --skip-tests
+else
+    timeout $TIMEOUT_RELEASE "$RELEASE_SCRIPT"
+fi
 VALIDATION_EXIT_CODE=$?
 
 # Check if timeout occurred

@@ -9,6 +9,22 @@ set -eo pipefail
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source "$SCRIPT_DIR/ensure_env.sh"
 
+# Process command-line options
+SKIP_TESTS=0
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --skip-tests)
+            SKIP_TESTS=1
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Available options: --skip-tests"
+            exit 1
+            ;;
+    esac
+done
+
 # Utility functions for better output
 print_header() {
     echo ""
@@ -201,10 +217,10 @@ else
     fi
 fi
 
-# Step 6: Run tests with coverage
+# Step 6: Run tests with coverage (unless skipped)
 print_step "Running tests with coverage..."
 
-# Verify test sample exists
+# Verify test sample exists regardless of whether tests will run
 if [ ! -f tests/samples/test_sample.txt ]; then
     print_warning "Test sample file missing! Attempting to create sample directory..."
     mkdir -p tests/samples
@@ -212,40 +228,46 @@ if [ ! -f tests/samples/test_sample.txt ]; then
     print_success "Created sample test file."
 fi
 
-# Set test timeout
-print_info "Test timeout set to $TEST_TIMEOUT seconds (15 minutes)"
-
-# Prepare environment variables for testing
-export TEST_ENV="true"
-export PYTHONUTF8=1
-
-# Run tests with appropriate error handling
-print_info "Running tests with pytest..."
-if timeout $TEST_TIMEOUT pytest tests/ -v \
-    --cov=enchant_cli \
-    --cov-report=term-missing:skip-covered \
-    --cov-fail-under=80 \
-    --strict-markers \
-    --html=report.html \
-    --self-contained-html \
-    --timeout=900; then
-    
-    print_success "All tests passed successfully!"
+# If tests are being skipped, don't run them
+if [ $SKIP_TESTS -eq 1 ]; then
+    print_warning "Skipping test execution as requested with --skip-tests flag."
+    print_info "You should run tests manually before releasing to production."
 else
-    TEST_EXIT_CODE=$?
-    if [ $TEST_EXIT_CODE -eq 124 ]; then
-        print_warning "Tests timed out after $TEST_TIMEOUT seconds."
-        print_warning "This may indicate hanging tests or slow performance."
-        print_warning "Consider increasing the timeout or fixing slow tests."
-        # We'll continue anyway, assuming most tests probably passed
+    # Set test timeout
+    print_info "Test timeout set to $TEST_TIMEOUT seconds (15 minutes)"
+    
+    # Prepare environment variables for testing
+    export TEST_ENV="true"
+    export PYTHONUTF8=1
+    
+    # Run tests with appropriate error handling
+    print_info "Running tests with pytest..."
+    if timeout $TEST_TIMEOUT pytest tests/ -v \
+        --cov=enchant_cli \
+        --cov-report=term-missing:skip-covered \
+        --cov-fail-under=80 \
+        --strict-markers \
+        --html=report.html \
+        --self-contained-html \
+        --timeout=900; then
+        
+        print_success "All tests passed successfully!"
     else
-        print_error "Tests failed with exit code $TEST_EXIT_CODE."
-        print_error "Please fix failing tests before releasing."
-        exit $TEST_EXIT_CODE
+        TEST_EXIT_CODE=$?
+        if [ $TEST_EXIT_CODE -eq 124 ]; then
+            print_warning "Tests timed out after $TEST_TIMEOUT seconds."
+            print_warning "This may indicate hanging tests or slow performance."
+            print_warning "Consider increasing the timeout or fixing slow tests."
+            # We'll continue anyway, assuming most tests probably passed
+        else
+            print_error "Tests failed with exit code $TEST_EXIT_CODE."
+            print_error "Please fix failing tests before releasing."
+            exit $TEST_EXIT_CODE
+        fi
     fi
+    
+    print_success "Test report generated: report.html"
 fi
-
-print_success "Test report generated: report.html"
 
 # Step 7: Build package
 print_step "Building package distribution files..."
