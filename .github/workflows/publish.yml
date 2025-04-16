@@ -3,6 +3,7 @@ name: Publish Python Package
 on:
   release:
     types: [published] # Trigger only when a release is published on GitHub
+  workflow_dispatch:  # Allow manual triggering
 
 jobs:
   check_if_already_published:
@@ -12,10 +13,22 @@ jobs:
       already_published: ${{ steps.check_pypi.outputs.exists }}
     
     steps:
+      - name: Checkout code
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/checkout@v4
+        
       - name: Get Package Version from Tag
         id: get_version
         # Extracts version from tag like 'v0.1.0' -> '0.1.0'
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        # For workflow_dispatch events, get the version from __init__.py
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            # For workflow_dispatch events, get version from __init__.py
+            VERSION=$(grep -o '__version__[[:space:]]*=[[:space:]]*"[0-9]\+\.[0-9]\+\.[0-9]\+"' src/enchant_cli/__init__.py | sed -E 's/__version__[[:space:]]*=[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)"/\1/')
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          fi
       
       - name: Check if already on PyPI
         id: check_pypi
@@ -145,7 +158,15 @@ jobs:
     - name: Get Package Version from Tag
       id: get_version
       # Extracts version from tag like 'v0.1.0' -> '0.1.0'
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      # For workflow_dispatch events, get the version from __init__.py
+      run: |
+        if [[ "${{ github.event_name }}" == "release" ]]; then
+          echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+        else
+          # For workflow_dispatch events, get version from __init__.py
+          VERSION=$(grep -o '__version__[[:space:]]*=[[:space:]]*"[0-9]\+\.[0-9]\+\.[0-9]\+"' src/enchant_cli/__init__.py | sed -E 's/__version__[[:space:]]*=[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)"/\1/')
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        fi
 
     - name: Wait for PyPI index update
       run: sleep 60 # Increase wait time for PyPI index

@@ -667,12 +667,33 @@ fi
 
 print_success "Push to GitHub successful."
 
-# *** STEP 8: GitHub Release Information ***
+# *** STEP 8: Trigger GitHub Workflows ***
+# Ensure workflows are triggered even if there were no changes
+print_info "Ensuring GitHub workflows are triggered..."
+if [ $REPO_EXISTS -eq 1 ]; then
+    print_info "Triggering tests workflow..."
+    if gh workflow run tests.yml -R "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"; then
+        print_success "Tests workflow triggered successfully."
+    else
+        print_warning "Failed to trigger tests workflow. GitHub Actions will still run on push if changes were detected."
+    fi
+
+    print_info "Triggering auto_release workflow..."
+    if gh workflow run auto_release.yml -R "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"; then
+        print_success "Auto_release workflow triggered successfully."
+    else
+        print_warning "Failed to trigger auto_release workflow. GitHub Actions will still run on push if changes were detected."
+    fi
+else
+    print_warning "Repository not found on GitHub. Workflows will be triggered once the repository is created."
+fi
+
+# *** STEP 9: GitHub Release Information ***
 # Get the latest tag for instructions
 LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")
 print_info "Latest version tag: $LATEST_TAG"
 
-# *** STEP 9: Final instructions & verification ***
+# *** STEP 10: Final instructions & verification ***
 print_header "GitHub Integration Complete"
 print_success "All local checks passed and code has been pushed to GitHub."
 echo ""

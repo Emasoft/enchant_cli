@@ -1,0 +1,17 @@
+138-auto_release	Install dependencies	2025-04-16T14:27:14.6449065Z Collecting uv
+139-auto_release	Install dependencies	2025-04-16T14:27:14.6773612Z   Downloading uv-0.6.14-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (11 kB)
+140:auto_release	Install dependencies	2025-04-16T14:27:14.8152033Z ERROR: Could not find a version that satisfies the requirement git-chglog (from versions: none)
+141:auto_release	Install dependencies	2025-04-16T14:27:14.8405777Z ERROR: No matching distribution found for git-chglog
+142-auto_release	Install dependencies	2025-04-16T14:27:14.8961853Z ##[error]Process completed with exit code 1.
+143-auto_release	Post Checkout code	﻿2025-04-16T14:27:14.9170272Z Post job cleanup.
+144-auto_release	Post Checkout code	2025-04-16T14:27:15.0123450Z [command]/usr/bin/git version
+145-auto_release	Post Checkout code	2025-04-16T14:27:15.0160501Z git version 2.49.0
+146-auto_release	Post Checkout code	2025-04-16T14:27:15.0203919Z Temporarily overriding HOME='/home/runner/work/_temp/45d9e8b1-5cae-4e62-ad15-e6a66422492e' before making global git config changes
+140-auto_release	Install dependencies	2025-04-16T14:27:14.8152033Z ERROR: Could not find a version that satisfies the requirement git-chglog (from versions: none)
+141-auto_release	Install dependencies	2025-04-16T14:27:14.8405777Z ERROR: No matching distribution found for git-chglog
+142:auto_release	Install dependencies	2025-04-16T14:27:14.8961853Z ##[error]Process completed with exit code 1.
+143-auto_release	Post Checkout code	﻿2025-04-16T14:27:14.9170272Z Post job cleanup.
+144-auto_release	Post Checkout code	2025-04-16T14:27:15.0123450Z [command]/usr/bin/git version
+145-auto_release	Post Checkout code	2025-04-16T14:27:15.0160501Z git version 2.49.0
+146-auto_release	Post Checkout code	2025-04-16T14:27:15.0203919Z Temporarily overriding HOME='/home/runner/work/_temp/45d9e8b1-5cae-4e62-ad15-e6a66422492e' before making global git config changes
+147-auto_release	Post Checkout code	2025-04-16T14:27:15.0205489Z Adding repository directory to the temporary git global config as a safe directory

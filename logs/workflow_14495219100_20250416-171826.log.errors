@@ -1,0 +1,44 @@
+704-test (3.10)	Run tests with pytest	2025-04-16T14:27:25.7941345Z ##[endgroup]
+705-test (3.10)	Run tests with pytest	2025-04-16T14:27:25.8149127Z /opt/hostedtoolcache/Python/3.10.16/x64/bin/python: No module named pytest
+706:test (3.10)	Run tests with pytest	2025-04-16T14:27:25.8185148Z ##[error]Process completed with exit code 1.
+707-test (3.10)	Post Run actions/checkout@v4	﻿2025-04-16T14:27:25.8283861Z Post job cleanup.
+708-test (3.10)	Post Run actions/checkout@v4	2025-04-16T14:27:25.9216010Z [command]/usr/bin/git version
+709-test (3.10)	Post Run actions/checkout@v4	2025-04-16T14:27:25.9252371Z git version 2.49.0
+710-test (3.10)	Post Run actions/checkout@v4	2025-04-16T14:27:25.9296853Z Temporarily overriding HOME='/home/runner/work/_temp/ca2bf478-4419-4dc7-9e39-49ef267ec05a' before making global git config changes
+711-test (3.10)	Post Run actions/checkout@v4	2025-04-16T14:27:25.9298240Z Adding repository directory to the temporary git global config as a safe directory
+--
+1016-test (3.9)	Run tests with pytest	2025-04-16T14:27:26.6807007Z ##[endgroup]
+1017-test (3.9)	Run tests with pytest	2025-04-16T14:27:26.7081738Z /opt/hostedtoolcache/Python/3.9.21/x64/bin/python: No module named pytest
+1018:test (3.9)	Run tests with pytest	2025-04-16T14:27:26.7123713Z ##[error]Process completed with exit code 1.
+1019-test (3.9)	Post Run actions/checkout@v4	﻿2025-04-16T14:27:26.7227688Z Post job cleanup.
+1020-test (3.9)	Post Run actions/checkout@v4	2025-04-16T14:27:26.8186773Z [command]/usr/bin/git version
+1021-test (3.9)	Post Run actions/checkout@v4	2025-04-16T14:27:26.8224702Z git version 2.49.0
+1022-test (3.9)	Post Run actions/checkout@v4	2025-04-16T14:27:26.8268990Z Temporarily overriding HOME='/home/runner/work/_temp/35113e03-0fae-4f56-84da-c0d2a0712b9e' before making global git config changes
+1023-test (3.9)	Post Run actions/checkout@v4	2025-04-16T14:27:26.8270151Z Adding repository directory to the temporary git global config as a safe directory
+--
+1328-test (3.11)	Run tests with pytest	2025-04-16T14:27:25.5599837Z ##[endgroup]
+1329-test (3.11)	Run tests with pytest	2025-04-16T14:27:25.5811692Z /opt/hostedtoolcache/Python/3.11.11/x64/bin/python: No module named pytest
+1330:test (3.11)	Run tests with pytest	2025-04-16T14:27:25.5857200Z ##[error]Process completed with exit code 1.
+1331-test (3.11)	Post Run actions/checkout@v4	﻿2025-04-16T14:27:25.5961016Z Post job cleanup.
+1332-test (3.11)	Post Run actions/checkout@v4	2025-04-16T14:27:25.6922128Z [command]/usr/bin/git version
+1333-test (3.11)	Post Run actions/checkout@v4	2025-04-16T14:27:25.6960856Z git version 2.49.0
+1334-test (3.11)	Post Run actions/checkout@v4	2025-04-16T14:27:25.7005915Z Temporarily overriding HOME='/home/runner/work/_temp/3571f694-f549-427b-a004-d21320efb274' before making global git config changes
+1335-test (3.11)	Post Run actions/checkout@v4	2025-04-16T14:27:25.7007184Z Adding repository directory to the temporary git global config as a safe directory
+--
+1640-test (3.12)	Run tests with pytest	2025-04-16T14:27:25.5085603Z ##[endgroup]
+1641-test (3.12)	Run tests with pytest	2025-04-16T14:27:25.5266060Z /opt/hostedtoolcache/Python/3.12.9/x64/bin/python: No module named pytest
+1642:test (3.12)	Run tests with pytest	2025-04-16T14:27:25.5306331Z ##[error]Process completed with exit code 1.
+1643-test (3.12)	Post Run actions/checkout@v4	﻿2025-04-16T14:27:25.5406325Z Post job cleanup.
+1644-test (3.12)	Post Run actions/checkout@v4	2025-04-16T14:27:25.6356774Z [command]/usr/bin/git version
+1645-test (3.12)	Post Run actions/checkout@v4	2025-04-16T14:27:25.6394337Z git version 2.49.0
+1646-test (3.12)	Post Run actions/checkout@v4	2025-04-16T14:27:25.6437339Z Temporarily overriding HOME='/home/runner/work/_temp/697fffea-91de-4aea-b402-c7a11c79068b' before making global git config changes
+1647-test (3.12)	Post Run actions/checkout@v4	2025-04-16T14:27:25.6438655Z Adding repository directory to the temporary git global config as a safe directory
+--
+1948-test (3.13)	Run tests with pytest	2025-04-16T14:27:24.4937912Z ##[endgroup]
+1949-test (3.13)	Run tests with pytest	2025-04-16T14:27:24.5120111Z /opt/hostedtoolcache/Python/3.13.2/x64/bin/python: No module named pytest
+1950:test (3.13)	Run tests with pytest	2025-04-16T14:27:24.5154262Z ##[error]Process completed with exit code 1.
+1951-test (3.13)	Post Run actions/checkout@v4	﻿2025-04-16T14:27:24.5252790Z Post job cleanup.
+1952-test (3.13)	Post Run actions/checkout@v4	2025-04-16T14:27:24.6174866Z [command]/usr/bin/git version
+1953-test (3.13)	Post Run actions/checkout@v4	2025-04-16T14:27:24.6210875Z git version 2.49.0
+1954-test (3.13)	Post Run actions/checkout@v4	2025-04-16T14:27:24.6253501Z Temporarily overriding HOME='/home/runner/work/_temp/65a63386-f199-4db8-95f3-809c8b51329a' before making global git config changes
+1955-test (3.13)	Post Run actions/checkout@v4	2025-04-16T14:27:24.6254716Z Adding repository directory to the temporary git global config as a safe directory
