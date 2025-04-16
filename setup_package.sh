@@ -9,7 +9,6 @@ echo "🚀 Initializing basic project structure..."
 mkdir -p src/enchant_cli
 mkdir -p tests/samples
 mkdir -p .github/workflows
-mkdir -p docs
 
 # Create minimal package files
 touch src/enchant_cli/__init__.py
@@ -54,15 +53,12 @@ if [ ! -f tests/samples/test_sample.txt ]; then
     echo "Created minimal tests/samples/test_sample.txt"
 fi
 
-# Create basic docs directory structure
-mkdir -p docs/dev-guides
-
 # Create basic docs file
-if [ ! -f docs/dev-guides/CLAUDE.md ]; then
-    echo "# Project Environment & Development Guide" > docs/dev-guides/CLAUDE.md
-    echo "" >> docs/dev-guides/CLAUDE.md
-    echo "Comprehensive guide for project environment, development, and GitHub integration." >> docs/dev-guides/CLAUDE.md
-    echo "Created minimal docs/dev-guides/CLAUDE.md"
+if [ ! -f CLAUDE.md ]; then
+    echo "# Project Environment & Development Guide" > CLAUDE.md
+    echo "" >> CLAUDE.md
+    echo "Comprehensive guide for project environment, development, and GitHub integration." >> CLAUDE.md
+    echo "Created minimal CLAUDE.md"
 fi
 
 

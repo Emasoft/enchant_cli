@@ -68,7 +68,7 @@ EXAMPLES:
     ./publish_to_github.sh            # Standard execution
     ./publish_to_github.sh --help     # Show this help message
 
-For more information, see: docs/dev-guides/CLAUDE.md
+For more information, see: CLAUDE.md
 EOF
     exit 0
 }
@@ -560,7 +560,7 @@ if [ $REPO_EXISTS -eq 1 ]; then
 fi
 
 if [ $MISSING_VARS -eq 1 ]; then
-    print_warning "Some required environment variables are missing. See docs/dev-guides/CLAUDE.md section 1.4 for details."
+    print_warning "Some required environment variables are missing. See CLAUDE.md section 1.4 for details."
     read -p "Continue anyway? (y/N) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -736,6 +736,6 @@ fi
 
 print_info "📦 The package will be published to PyPI by the GitHub Action when you create a release."
 print_info "🔒 GitHub secrets (PYPI_API_TOKEN, OPENROUTER_API_KEY, CODECOV_API_TOKEN) are automatically configured from your local environment."
-print_info "📚 For more details on the workflow, see docs/dev-guides/CLAUDE.md section 6 (GitHub Integration)."
+print_info "📚 For more details on the workflow, see CLAUDE.md section 6 (GitHub Integration)."
 
 exit 0
