@@ -4,6 +4,7 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/enchant-cli)](https://pypi.org/project/enchant-cli)
 [![License](https://img.shields.io/pypi/l/enchant-cli)](https://github.com/Emasoft/enchant-cli/blob/main/LICENSE)
 [![Tests Status](https://github.com/Emasoft/enchant-cli/actions/workflows/tests.yml/badge.svg)](https://github.com/Emasoft/enchant-cli/actions/workflows/tests.yml)
+[![Auto Release](https://github.com/Emasoft/enchant-cli/actions/workflows/auto_release.yml/badge.svg)](https://github.com/Emasoft/enchant-cli/actions/workflows/auto_release.yml)
 [![codecov](https://codecov.io/gh/Emasoft/enchant_cli/graph/badge.svg?token=yWLqYmTdrM)](https://codecov.io/gh/Emasoft/enchant_cli)
 
 A command-line translation tool specifically designed for converting Chinese novels and technical documents into fluent English using AI via the OpenRouter API. It handles text splitting, context-aware translation, and basic formatting preservation.

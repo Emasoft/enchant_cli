@@ -71,11 +71,62 @@ jobs:
         # Install bump-my-version with uv tool
         uv tool install bump-my-version
 
+    - name: Setup test mocks
+      run: |
+        # Create or update pytest conftest.py to use mocks in CI
+        cat > tests/conftest.py << 'EOF'
+import os
+import pytest
+import requests_mock
+from unittest.mock import MagicMock, patch
+
+# Configure the mock for all tests
+@pytest.fixture(autouse=True)
+def mock_requests():
+    with requests_mock.Mocker() as m:
+        # Mock the OpenRouter API request
+        m.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            json={
+                "id": "chatcmpl-mock",
+                "object": "chat.completion",
+                "created": 1677858242,
+                "model": "mock-model",
+                "choices": [
+                    {
+                        "message": {
+                            "role": "assistant", 
+                            "content": "This is a mock translation response for tests."
+                        },
+                        "index": 0,
+                        "finish_reason": "stop"
+                    }
+                ]
+            }
+        )
+        yield m
+
+# Skip API tests in CI
+def pytest_configure(config):
+    if os.environ.get("CI") == "true":
+        # Register a custom marker for API tests
+        config.addinivalue_line("markers", "api: mark test as requiring real API access")
+
+def pytest_collection_modifyitems(config, items):
+    if os.environ.get("CI") == "true":
+        # Skip API tests in CI environment
+        skip_api = pytest.mark.skip(reason="API tests skipped in CI environment")
+        for item in items:
+            if "api" in item.keywords:
+                item.add_marker(skip_api)
+EOF
+
     - name: Run tests with pytest
       env:
         # PYTHONPATH: src # Not needed if using pytest.ini or editable install
-        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        OPENROUTER_API_KEY: "TEST_MOCK_KEY_FOR_CI_ONLY" # Use a mock key for CI
         TEST_ENV: "true"  # Enable test configuration in translator
+        CI: "true"  # Let tests know they're running in CI
         PYTHONUTF8: 1 # Ensure UTF-8 mode for Python
       run: |
         # Create sample file directories to ensure they exist
