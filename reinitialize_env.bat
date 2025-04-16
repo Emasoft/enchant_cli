@@ -39,17 +39,14 @@ IF %ERRORLEVEL% EQU 0 (
 echo Using system Python to bootstrap environment: %PYTHON_CMD%
 
 REM Ensure system Python has pip
+echo Installing or upgrading pip...
 %PYTHON_CMD% -m ensurepip --upgrade
 
-REM Check if pip is installed
+REM Check if pip is installed properly
 %PYTHON_CMD% -m pip --version >nul 2>nul
 IF %ERRORLEVEL% NEQ 0 (
-    echo Installing pip...
-    %PYTHON_CMD% -m ensurepip --upgrade
-    IF %ERRORLEVEL% NEQ 0 (
-        echo Failed to install pip. Please install pip manually.
-        exit /b 1
-    )
+    echo Failed to install pip. Please install pip manually.
+    exit /b 1
 )
 
 REM Check if uv is installed
@@ -70,10 +67,8 @@ IF %ERRORLEVEL% NEQ 0 (
     exit /b 1
 )
 
-echo Installing pip in new environment...
+echo Installing and upgrading pip in new environment...
 "%VENV_DIR%\Scripts\python.exe" -m ensurepip --upgrade
-
-echo Upgrading pip to latest version...
 "%VENV_DIR%\Scripts\python.exe" -m pip install --upgrade pip
 
 echo Installing dependencies...

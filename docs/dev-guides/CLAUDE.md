@@ -129,6 +129,7 @@ fi
 
 # Clean PATH from conflicting Python environments
 echo "🔄 Cleaning PATH from external Python environments..."
+# Use a portable approach that doesn't depend on specific paths
 PATH=$(echo $PATH | tr ":" "\n" | grep -v "site-packages" | grep -v "ComfyUI" | tr "\n" ":" | sed 's/:$//')
 
 # Create virtual environment if it doesn't exist
@@ -214,10 +215,16 @@ The `first_push.sh` script contains commands using the `gh` CLI to set up the ne
 
 Example commands from `first_push.sh`:
 ```bash
-gh secret set PYPI_API_TOKEN -b"$PYPI_API_TOKEN" --repo "Emasoft/enchant_cli" # For PyPI trusted publishing (OIDC preferred)
-gh secret set OPENROUTER_API_KEY -b"$OPENROUTER_API_KEY" --repo "Emasoft/enchant_cli" # For API access in tests/app
-gh secret set CODECOV_API_TOKEN -b"$CODECOV_API_TOKEN" --repo "Emasoft/enchant_cli" # For Codecov uploads
+# To set a secret for a specific remote repository always use this syntax:
+$ gh secret set MYSECRET --repo origin/repo --body "$ENV_VALUE"
+
+# Example
+$ gh secret set OPENROUTER_API_KEY --repo "Emasoft/enchant_cli" --body "$OPENROUTER_API_KEY"
 ```
+
+IMPORTANT: Always use the `--body` flag instead of `-b` for setting secret values to ensure compatibility with all `gh` CLI versions.
+
+NOTE: The `--repo` flag usage differs between `gh secret` commands and other `gh` commands. For `gh secret` commands, the format is `--repo "org/repo"`, while other `gh` commands may use different formats.
 
 **No manual exporting needed for Actions** - these should be configured via:
  1. Your local environment (via shell profile/CI variables) for local development/testing.
@@ -588,6 +595,11 @@ All scripts follow these conventions:
 5. **Return Codes**: Check exit codes and handle errors
 6. **Logging**: Use emoji prefixes for visibility (✅, ⚠️, ❌, 🔄)
 7. **Robust Timeouts**: Include appropriate timeouts for long-running operations
+8. **Cross-Platform Path Handling**: 
+   - Use `${HOME}` instead of `~` for home directory references
+   - Use correct directory separators per platform (`/` for Unix, `\` for Windows)
+   - For Windows `.bat` files, use `%SCRIPT_DIR%` for paths
+   - For Unix `.sh` files, use `$SCRIPT_DIR` for paths
 
 Basic script template:
 
@@ -1492,7 +1504,7 @@ echo $OPENROUTER_API_KEY
 export OPENROUTER_API_KEY="your-key-here"
 
 # Or add to your shell profile for persistence
-echo 'export OPENROUTER_API_KEY="your-key-here"' >> ~/.bashrc  # or ~/.zshrc
+echo 'export OPENROUTER_API_KEY="your-key-here"' >> "${HOME}/.bashrc"  # or "${HOME}/.zshrc"
 ```
 
 **Issue**: Tool not found or incorrect version

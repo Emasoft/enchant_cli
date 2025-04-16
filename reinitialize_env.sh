@@ -37,12 +37,9 @@ echo "🔨 Creating fresh virtual environment with venv module..."
 $SYSTEM_PYTHON -m venv "$VENV_DIR"
 PYTHON_CMD="$VENV_DIR/bin/python"
 
-# Ensure the new environment has pip
-echo "📦 Installing pip in new environment..."
+# Ensure and upgrade pip in the new environment
+echo "📦 Installing and upgrading pip in new environment..."
 $PYTHON_CMD -m ensurepip --upgrade
-
-# Upgrade pip to latest version
-echo "📦 Upgrading pip to latest version..."
 $PYTHON_CMD -m pip install --upgrade pip
 
 echo "📦 Installing dependencies..."

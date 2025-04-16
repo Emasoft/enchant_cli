@@ -219,7 +219,7 @@ fi
 
 # Clean pre-commit cache to avoid potential issues
 print_info "Forcefully cleaning pre-commit cache..."
-rm -rf ~/.cache/pre-commit || print_warning "Failed to remove pre-commit cache, continuing..."
+rm -rf "${HOME}/.cache/pre-commit" || print_warning "Failed to remove pre-commit cache, continuing..."
 
 # Install pre-commit hooks
 print_info "Installing pre-commit hooks..."
@@ -510,21 +510,21 @@ if [ $REPO_EXISTS -eq 1 ]; then
         
         if [ -n "$OPENROUTER_API_KEY" ] && ! check_github_secret "OPENROUTER_API_KEY" &>/dev/null; then
             print_info "Setting GitHub secret OPENROUTER_API_KEY from local environment..."
-            gh secret set OPENROUTER_API_KEY -b"$OPENROUTER_API_KEY" --repo "$REPO_FULL_NAME" && \
+            gh secret set OPENROUTER_API_KEY --repo "$REPO_FULL_NAME" --body "$OPENROUTER_API_KEY" && \
                 print_success "GitHub secret OPENROUTER_API_KEY set successfully." || \
                 print_warning "Failed to set GitHub secret OPENROUTER_API_KEY."
         fi
         
         if [ -n "$CODECOV_API_TOKEN" ] && ! check_github_secret "CODECOV_API_TOKEN" &>/dev/null; then
             print_info "Setting GitHub secret CODECOV_API_TOKEN from local environment..."
-            gh secret set CODECOV_API_TOKEN -b"$CODECOV_API_TOKEN" --repo "$REPO_FULL_NAME" && \
+            gh secret set CODECOV_API_TOKEN --repo "$REPO_FULL_NAME" --body "$CODECOV_API_TOKEN" && \
                 print_success "GitHub secret CODECOV_API_TOKEN set successfully." || \
                 print_warning "Failed to set GitHub secret CODECOV_API_TOKEN."
         fi
         
         if [ -n "$PYPI_API_TOKEN" ] && ! check_github_secret "PYPI_API_TOKEN" &>/dev/null; then
             print_info "Setting GitHub secret PYPI_API_TOKEN from local environment..."
-            gh secret set PYPI_API_TOKEN -b"$PYPI_API_TOKEN" --repo "$REPO_FULL_NAME" && \
+            gh secret set PYPI_API_TOKEN --repo "$REPO_FULL_NAME" --body "$PYPI_API_TOKEN" && \
                 print_success "GitHub secret PYPI_API_TOKEN set successfully." || \
                 print_warning "Failed to set GitHub secret PYPI_API_TOKEN."
         fi
