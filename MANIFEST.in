@@ -8,8 +8,7 @@ graft tests/samples
 graft src/enchant_cli/samples
 
 # Documentation
-include docs/README.md
-include docs/dev-guides/CLAUDE.md
+include CLAUDE.md
 
 # Exclude example files (not needed for package)
 prune examples

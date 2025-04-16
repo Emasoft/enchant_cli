@@ -36,8 +36,9 @@ setup(
     include_package_data=True,
     package_data={
         "enchant_cli": ["samples/*.txt"],  # Include samples within the package
+        "": ["tests/samples/*.txt"],       # Include test samples from root
     },
     data_files=[
-        ("tests/samples", ["tests/samples/test_sample.txt"]),
+        ("share/enchant-cli/tests/samples", ["tests/samples/test_sample.txt"]),
     ],
 )

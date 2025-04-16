@@ -88,12 +88,16 @@ enchant_cli = "enchant_cli.enchant_cli:main"
 [project.urls]
 Homepage = "https://github.com/Emasoft/enchant-cli"
 Repository = "https://github.com/Emasoft/enchant-cli"
-Documentation = "https://github.com/Emasoft/enchant-cli/blob/main/docs/dev-guides/CLAUDE.md"
+Documentation = "https://github.com/Emasoft/enchant-cli/blob/main/CLAUDE.md"
 Issues = "https://github.com/Emasoft/enchant-cli/issues"
 
 [tool.setuptools]
 package-dir = {"" = "src"} # Specify the package directory
 include-package-data = true
+
+[tool.setuptools.package-data]
+"enchant_cli" = ["samples/*.txt"]
+"*" = ["tests/samples/*.txt"]
 
 [tool.setuptools.packages.find]
 where = ["src"] # Explicitly tell find where the packages are
