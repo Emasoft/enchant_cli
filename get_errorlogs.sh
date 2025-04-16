@@ -2556,6 +2556,14 @@ case "$1" in
         echo "  $0 build           - Get logs for build/release workflows"
         echo "  $0 lint            - Get logs for linting workflows (if available)"
         echo "  $0 docs            - Get logs for documentation workflows (if available)"
+        
+        # Add final status summary line
+        echo ""
+        if [ "$recent_failure_count" -gt 0 ]; then
+            echo -e "[1;31m❌ GITHUB JOBS SUMMARY: $recent_success_count/$all_runs_count WORKFLOWS COMPLETED SUCCESSFULLY, $recent_failure_count WITH ERRORS[0m"
+        else
+            echo -e "[1;32m✅ GITHUB JOBS COMPLETED SUCCESSFULLY[0m"
+        fi
         ;;
 esac
 

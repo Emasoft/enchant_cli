@@ -551,6 +551,19 @@ IF "%1"=="detect" (
     echo.
     echo [92m✅ Detection complete.[0m
     
+    REM Add final status summary
+    FOR /F %%i IN ('gh run list --repo "%REPO_FULL_NAME%" --limit 100 --status failure --json status -q "[.[] | select(.status==\"failure\")] | length" 2^>nul') DO set "failed_runs=%%i" 
+    
+    if not defined failed_runs set "failed_runs=0"
+    
+    if !failed_runs! GTR 0 (
+        echo.
+        echo [91m❌ GITHUB JOBS SUMMARY: FOUND !failed_runs! WORKFLOWS WITH ERRORS[0m
+    ) else (
+        echo.
+        echo [92m✅ GITHUB JOBS COMPLETED SUCCESSFULLY[0m
+    )
+    
     exit /b 0
 )
 
@@ -623,6 +636,24 @@ if !found_logs! GTR 0 (
     echo   %0 build     - View build workflow logs
     echo   %0 latest    - View the 3 most recent logs
     echo ----------------------------------------
+    
+    REM Add final status summary for saved logs
+    echo.
+    set "has_errors=0"
+    for %%f in (logs\workflow_*.log.errors) do (
+        if exist "%%f" (
+            if not "%%~zf"=="0" (
+                set "has_errors=1"
+            )
+        )
+    )
+    
+    if !has_errors! EQU 1 (
+        echo [91m❌ GITHUB JOBS SUMMARY: FOUND LOGS WITH ERRORS[0m
+    ) else (
+        echo [92m✅ GITHUB JOBS COMPLETED SUCCESSFULLY[0m
+    )
+    
     exit /b 0
 )
 
@@ -650,6 +681,19 @@ IF "!build_run_id!"=="" (
 ) ELSE (
     call :get_workflow_logs "!build_run_id!"
 )
+
+REM Add final status summary
+echo.
+FOR /F %%i IN ('gh run list --repo "%REPO_FULL_NAME%" --limit 100 --json status -q "length"') DO set "all_runs=%%i"
+FOR /F %%i IN ('gh run list --repo "%REPO_FULL_NAME%" --limit 100 --status completed --json status -q "[.[] | select(.status==\"completed\")] | length"') DO set "success_runs=%%i"
+FOR /F %%i IN ('gh run list --repo "%REPO_FULL_NAME%" --limit 100 --status failure --json status -q "[.[] | select(.status==\"failure\")] | length"') DO set "failed_runs=%%i"
+
+if !failed_runs! GTR 0 (
+    echo [91m❌ GITHUB JOBS SUMMARY: !success_runs!/!all_runs! WORKFLOWS COMPLETED SUCCESSFULLY, !failed_runs! WITH ERRORS[0m
+) else (
+    echo [92m✅ GITHUB JOBS COMPLETED SUCCESSFULLY[0m
+)
+
 exit /b 0
 
 :list_workflows
