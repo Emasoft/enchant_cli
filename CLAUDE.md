@@ -1112,9 +1112,11 @@ A major version increment should only be used for backward-incompatible API chan
 
 This project strictly follows a standardized GitHub publishing protocol that ensures consistent, validated releases:
 
-1. **IMPORTANT: Never Push Directly to GitHub**
-   - All pushes MUST be performed via the `publish_to_github.sh` script
-   - Direct git pushes are prohibited as they bypass crucial validation
+1. **IMPORTANT: ALWAYS Use publish_to_github.sh with --skip-tests**
+   - All pushes MUST be performed via the `publish_to_github.sh --skip-tests` command
+   - NEVER use direct git commands like `git push` or `git commit` as they bypass crucial validation
+   - The `--skip-tests` flag prevents timeouts during local testing, while still ensuring tests run on GitHub
+   - This rule MUST be followed without exception, even when not explicitly stated in a request
 
 2. **The `publish_to_github.sh` Script**
    - Comprehensive tool that handles the entire GitHub workflow
@@ -1836,6 +1838,28 @@ To ensure PyPI documentation is correctly published:
    - Republish with a new version
 
 ### 8.4 Version Control Problems
+
+#### CRITICAL: Always use publish_to_github.sh --skip-tests
+
+**Problem**: Incorrectly using direct git commands can cause workflow failures and inconsistent releases.
+
+**Solution**:
+- ALWAYS use the project's official script with the --skip-tests flag:
+```bash
+# The only correct way to push to GitHub
+./publish_to_github.sh --skip-tests
+```
+
+**Why this is important**:
+- Ensures proper environment validation
+- Configures GitHub repository secrets 
+- Handles version bumping correctly
+- Properly triggers GitHub workflows
+- Avoids test timeouts
+- Provides standardized commit messages
+- Prevents inconsistent states in the repository
+
+**Warning**: Never use direct git commands like `git push`, `git commit`, or other variations when working with this project.
 
 #### Pre-commit hooks not running
 
