@@ -13,6 +13,9 @@ print_success() { echo -e "\033[1;32m✅ $1\033[0m"; }
 print_error() { echo -e "\033[1;31m❌ $1\033[0m"; }
 print_warning() { echo -e "\033[1;33m⚠️ $1\033[0m"; }
 print_info() { echo -e "\033[1;34mℹ️ $1\033[0m"; }
+print_critical() { echo -e "\033[1;37;41m🚨 $1\033[0m"; }  # White text on red background
+print_severe() { echo -e "\033[1;37;45m🔥 $1\033[0m"; }    # White text on purple background
+print_important() { echo -e "\033[1;97;44m📣 $1\033[0m"; } # White text on blue background
 
 # Check if gh CLI is installed
 if ! command -v gh &> /dev/null; then
@@ -142,21 +145,38 @@ EOF
     
     # Only process if the log file is not empty
     if [ "$log_file_size" -gt 0 ]; then
-        # Look for different types of errors with context
-        grep -n -A 5 -B 2 "Error:" "$log_file" >> "$error_file" 2>/dev/null || true
-        grep -n -A 5 -B 2 "error:" "$log_file" >> "$error_file" 2>/dev/null || true
-        grep -n -A 5 -B 2 "ERROR:" "$log_file" >> "$error_file" 2>/dev/null || true
-        grep -n -A 5 -B 2 "failed with exit code" "$log_file" >> "$error_file" 2>/dev/null || true
-        grep -n -A 5 -B 2 "FAILED" "$log_file" >> "$error_file" 2>/dev/null || true
-        grep -n -A 5 -B 2 "Process completed with exit code [1-9]" "$log_file" >> "$error_file" 2>/dev/null || true
+        # Extract errors with context using our error patterns
+        print_info "Extracting critical errors..."
+        grep -n -A 5 -B 2 -E "${ERROR_PATTERNS["critical"]}" "$log_file" >> "$error_file" 2>/dev/null || true
+        
+        print_info "Extracting severe errors..."
+        grep -n -A 5 -B 2 -E "${ERROR_PATTERNS["severe"]}" "$log_file" | grep -v -E "${ERROR_PATTERNS["critical"]}" >> "$error_file" 2>/dev/null || true
+        
+        print_info "Extracting warnings..."
+        grep -n -A 3 -B 1 -E "${ERROR_PATTERNS["warning"]}" "$log_file" | grep -v -E "${ERROR_PATTERNS["critical"]}|${ERROR_PATTERNS["severe"]}" >> "$error_file" 2>/dev/null || true
+        
+        # Capture additional context around errors (like function names, class names, file paths)
+        print_info "Searching for code context..."
+        grep -n -B 2 -A 0 -E "at [a-zA-Z0-9_.]+\.[a-zA-Z0-9_]+\(" "$log_file" >> "$error_file" 2>/dev/null || true
+        grep -n -B 0 -A 0 -E "File \"[^\"]+\", line [0-9]+" "$log_file" >> "$error_file" 2>/dev/null || true
+        grep -n -B 0 -A 0 -E "\s+in [a-zA-Z0-9_.]+\.[a-zA-Z0-9_]+" "$log_file" >> "$error_file" 2>/dev/null || true
         
         # Check if any errors were found
         if [ ! -s "$error_file" ]; then
             print_info "No specific errors found. Doing a broader search..."
             # Fallback to more generic error patterns
-            grep -n -A 3 -B 1 "fail" "$log_file" >> "$error_file" 2>/dev/null || true
-            grep -n -A 3 -B 1 "exception" "$log_file" >> "$error_file" 2>/dev/null || true 
-            grep -n -A 3 -B 1 "fatal" "$log_file" >> "$error_file" 2>/dev/null || true
+            grep -n -A 3 -B 1 -E "fail|warn|except|wrong|incorrect|invalid|could not|cannot|unexpected" "$log_file" >> "$error_file" 2>/dev/null || true
+        fi
+        
+        # Run more advanced classification for structured errors
+        tmp_classified="${error_file}.classified"
+        classify_errors "$log_file" "$tmp_classified"
+        
+        # Append classified errors to normal error file
+        if [ -f "$tmp_classified" ]; then
+            echo -e "\n\n--- CLASSIFIED ERROR SUMMARY ---\n" >> "$error_file"
+            cat "$tmp_classified" >> "$error_file"
+            rm -f "$tmp_classified"
         fi
         
         # Show some statistics
@@ -252,6 +272,18 @@ get_latest_workflow_run() {
     echo "$run_id"
 }
 
+# Constants for log settings
+MAX_LOGS_PER_WORKFLOW=5  # Maximum number of log files to keep per workflow ID
+MAX_LOG_AGE_DAYS=30      # Maximum age in days for log files before cleanup
+MAX_TOTAL_LOGS=50        # Maximum total log files to keep
+
+# Enhanced error pattern categories
+declare -A ERROR_PATTERNS=(
+    ["critical"]="Process completed with exit code [1-9]|fatal error|fatal:|FATAL ERROR|Assertion failed|Segmentation fault|core dumped|killed|ERROR:|Connection refused"
+    ["severe"]="exit code [1-9]|failure:|failed with|FAILED|Exception|exception:|Error:|error:|WARNING:|warning:|undefined reference|Cannot find|not found|No such file|Permission denied|AccessDenied|Could not access|Cannot access"
+    ["warning"]="deprecated|Deprecated|DEPRECATED|fixme|FIXME|TODO|todo:|warning|Warning"
+)
+
 # Function to find local logs for a workflow ID
 find_local_logs() {
     local run_id="$1"
@@ -275,6 +307,146 @@ find_local_logs() {
 
     # No local logs found
     return 1
+}
+
+# Function to perform log rotation/cleanup to prevent disk space issues
+cleanup_old_logs() {
+    local max_age="$1"  # In days, defaults to MAX_LOG_AGE_DAYS if not specified
+    local dry_run="$2"  # Set to "true" for dry run
+    
+    if [ -z "$max_age" ]; then
+        max_age=$MAX_LOG_AGE_DAYS
+    fi
+    
+    print_header "Log Maintenance"
+    print_info "Cleaning up logs older than $max_age days"
+    
+    local old_logs=()
+    local total_size=0
+    local current_date=$(date +%s)
+    
+    # Find log files older than max_age days
+    for log_file in logs/workflow_*.log logs/workflow_*.log.errors; do
+        if [ -f "$log_file" ]; then
+            # Extract timestamp from filename (format: workflow_ID_YYYYMMDD-HHMMSS.log)
+            local log_timestamp
+            log_timestamp=$(echo "$log_file" | grep -o "[0-9]\{8\}-[0-9]\{6\}")
+            
+            if [ -n "$log_timestamp" ]; then
+                # Convert timestamp to seconds since epoch
+                local log_date
+                log_date=$(date -d "${log_timestamp:0:8} ${log_timestamp:9:2}:${log_timestamp:11:2}:${log_timestamp:13:2}" +%s 2>/dev/null || \
+                          date -j -f "%Y%m%d-%H%M%S" "$log_timestamp" +%s 2>/dev/null)
+                
+                if [ -n "$log_date" ]; then
+                    # Calculate age in days
+                    local age_seconds=$((current_date - log_date))
+                    local age_days=$((age_seconds / 86400))
+                    
+                    if [ "$age_days" -gt "$max_age" ]; then
+                        old_logs+=("$log_file")
+                        total_size=$((total_size + $(stat -c %s "$log_file" 2>/dev/null || stat -f %z "$log_file" 2>/dev/null)))
+                    fi
+                fi
+            fi
+        fi
+    done
+    
+    # Report findings
+    local file_count=${#old_logs[@]}
+    local size_mb=$(echo "scale=2; $total_size / 1048576" | bc)
+    
+    if [ "$file_count" -gt 0 ]; then
+        print_info "Found $file_count log files older than $max_age days (approx. ${size_mb}MB)"
+        
+        if [ "$dry_run" = "true" ]; then
+            print_warning "Dry run mode, not deleting any files"
+            for log_file in "${old_logs[@]}"; do
+                echo "Would delete: $log_file"
+            done
+        else
+            print_warning "Deleting $file_count old log files to free up space"
+            for log_file in "${old_logs[@]}"; do
+                rm -f "$log_file"
+                echo "Deleted: $log_file"
+            done
+            print_success "Cleanup completed, freed approximately ${size_mb}MB"
+        fi
+    else
+        print_success "No old log files to clean up"
+    fi
+    
+    # Also maintain total log count - keep only the MAX_TOTAL_LOGS most recent
+    local all_logs=()
+    
+    # Get all log files (not errors)
+    for log_file in logs/workflow_*.log; do
+        if [ -f "$log_file" ] && ! [[ "$log_file" == *".errors" ]]; then
+            all_logs+=("$log_file")
+        fi
+    done
+    
+    # Calculate how many files to delete
+    local total_log_count=${#all_logs[@]}
+    local delete_count=$((total_log_count - MAX_TOTAL_LOGS))
+    
+    if [ "$delete_count" -gt 0 ]; then
+        # Sort by timestamp, oldest first
+        mapfile -t sorted_logs < <(printf '%s\n' "${all_logs[@]}" | sort)
+        
+        print_info "Maintaining maximum of $MAX_TOTAL_LOGS log files (currently have $total_log_count)"
+        
+        # Delete oldest files
+        if [ "$dry_run" = "true" ]; then
+            print_warning "Dry run mode, not deleting any files"
+            for ((i=0; i<delete_count; i++)); do
+                echo "Would delete: ${sorted_logs[$i]}"
+                echo "Would delete: ${sorted_logs[$i]}.errors (if exists)"
+            done
+        else
+            for ((i=0; i<delete_count; i++)); do
+                rm -f "${sorted_logs[$i]}"
+                rm -f "${sorted_logs[$i]}.errors"
+                echo "Deleted: ${sorted_logs[$i]}"
+            done
+            print_success "Removed $delete_count oldest log files"
+        fi
+    fi
+    
+    return 0
+}
+
+# Function to classify errors by severity
+classify_errors() {
+    local log_file="$1"
+    local output_file="$2"
+    
+    if [ ! -f "$log_file" ]; then
+        print_error "Log file not found: $log_file"
+        return 1
+    fi
+    
+    # Clear or create output file
+    > "$output_file"
+    
+    # Check for critical errors
+    print_critical "CRITICAL ERRORS:" >> "$output_file"
+    echo "───────────────────────────────────────────────────────────────" >> "$output_file"
+    grep -n -E "${ERROR_PATTERNS["critical"]}" "$log_file" | head -20 >> "$output_file" 2>/dev/null || echo "None found" >> "$output_file"
+    echo "" >> "$output_file"
+    
+    # Check for severe errors
+    print_severe "SEVERE ERRORS:" >> "$output_file"
+    echo "───────────────────────────────────────────────────────────────" >> "$output_file"
+    grep -n -E "${ERROR_PATTERNS["severe"]}" "$log_file" | grep -v -E "${ERROR_PATTERNS["critical"]}" | head -20 >> "$output_file" 2>/dev/null || echo "None found" >> "$output_file"
+    echo "" >> "$output_file"
+    
+    # Check for warnings
+    print_warning "WARNINGS:" >> "$output_file"
+    echo "───────────────────────────────────────────────────────────────" >> "$output_file"
+    grep -n -E "${ERROR_PATTERNS["warning"]}" "$log_file" | grep -v -E "${ERROR_PATTERNS["critical"]}|${ERROR_PATTERNS["severe"]}" | head -10 >> "$output_file" 2>/dev/null || echo "None found" >> "$output_file"
+    
+    return 0
 }
 
 # Function to check for saved logs after a given date
@@ -364,6 +536,192 @@ find_local_logs_after_last_commit() {
     return 1
 }
 
+# Function to search across all log files
+search_logs() {
+    local search_pattern="$1"
+    local case_sensitive="${2:-false}"
+    local max_results="${3:-50}"
+    
+    print_header "Searching logs for pattern: '$search_pattern'"
+    
+    if [ -z "$search_pattern" ]; then
+        print_error "Search pattern is required"
+        return 1
+    fi
+    
+    # Setup grep options
+    local grep_opts="-n"
+    if [ "$case_sensitive" = "false" ]; then
+        grep_opts="$grep_opts -i"
+    fi
+    
+    # Get all log files
+    local all_logs=()
+    for log_file in logs/workflow_*.log; do
+        if [ -f "$log_file" ] && ! [[ "$log_file" == *".errors" ]]; then
+            all_logs+=("$log_file")
+        fi
+    done
+    
+    # Sort by timestamp, newest first
+    mapfile -t sorted_logs < <(printf '%s\n' "${all_logs[@]}" | sort -r)
+    
+    local total_matches=0
+    local files_with_matches=0
+    local results_file=$(mktemp)
+    
+    # Search each file
+    for log_file in "${sorted_logs[@]}"; do
+        local matches=$(grep $grep_opts -A 2 -B 2 -E "$search_pattern" "$log_file" | head -n "$max_results" 2>/dev/null)
+        
+        if [ -n "$matches" ]; then
+            run_id=$(basename "$log_file" | cut -d '_' -f 2)
+            timestamp=$(basename "$log_file" | cut -d '_' -f 3 | cut -d '.' -f 1)
+            
+            # Try to get workflow name
+            local workflow_type="Unknown"
+            if grep -q -i "Tests" "$log_file" 2>/dev/null; then
+                workflow_type="Tests"
+            elif grep -q -i "Auto Release" "$log_file" 2>/dev/null; then
+                workflow_type="Auto Release"
+            fi
+            
+            # Count matches
+            local match_count=$(echo "$matches" | grep -c -E "$search_pattern")
+            total_matches=$((total_matches + match_count))
+            files_with_matches=$((files_with_matches + 1))
+            
+            # Output to temp file
+            echo -e "\n\033[1;36m=== $workflow_type workflow ($timestamp) - Run ID: $run_id - $match_count matches ===\033[0m" >> "$results_file"
+            echo "File: $log_file" >> "$results_file"
+            echo "───────────────────────────────────────────────────────────────" >> "$results_file"
+            echo "$matches" >> "$results_file"
+            echo "───────────────────────────────────────────────────────────────" >> "$results_file"
+            
+            # Limit total files searched
+            if [ "$files_with_matches" -ge 5 ]; then
+                echo -e "\nMaximum number of files reached, stopping search." >> "$results_file"
+                break
+            fi
+        fi
+    done
+    
+    # Display results
+    if [ "$total_matches" -gt 0 ]; then
+        print_success "Found $total_matches matches in $files_with_matches files."
+        cat "$results_file"
+    else
+        print_warning "No matches found for '$search_pattern'"
+    fi
+    
+    rm -f "$results_file"
+    return 0
+}
+
+# Function to generate statistics from log files
+generate_stats() {
+    print_header "Workflow Logs Statistics"
+    
+    # Create logs directory if it doesn't exist
+    mkdir -p logs
+    
+    # Count log files
+    local total_logs=0
+    local error_logs=0
+    local test_logs=0
+    local build_logs=0
+    local other_logs=0
+    local total_size=0
+    
+    # Get all log files
+    for log_file in logs/workflow_*.log; do
+        if [ -f "$log_file" ] && ! [[ "$log_file" == *".errors" ]]; then
+            total_logs=$((total_logs + 1))
+            
+            # Determine log type
+            if grep -q -i "Tests" "$log_file" 2>/dev/null; then
+                test_logs=$((test_logs + 1))
+            elif grep -q -i "Auto Release" "$log_file" 2>/dev/null; then
+                build_logs=$((build_logs + 1))
+            else
+                other_logs=$((other_logs + 1))
+            fi
+            
+            # Check if it has errors
+            if [ -f "${log_file}.errors" ] && [ -s "${log_file}.errors" ]; then
+                error_logs=$((error_logs + 1))
+            fi
+            
+            # Get file size
+            local file_size=$(stat -c %s "$log_file" 2>/dev/null || stat -f %z "$log_file" 2>/dev/null)
+            total_size=$((total_size + file_size))
+        fi
+    done
+    
+    # Calculate size in MB
+    local size_mb=$(echo "scale=2; $total_size / 1048576" | bc)
+    
+    # Determine if there are logs after last commit
+    local logs_after_commit=0
+    readarray -t recent_logs < <(find_local_logs_after_last_commit "" 50)
+    logs_after_commit=${#recent_logs[@]}
+    
+    # Display statistics
+    print_important "Log Files Summary"
+    echo "───────────────────────────────────────────────────────────────"
+    echo "Total log files:       $total_logs"
+    echo "Files with errors:     $error_logs"
+    echo "Test workflow logs:    $test_logs"
+    echo "Build workflow logs:   $build_logs"
+    echo "Other workflow logs:   $other_logs"
+    echo "Logs after last commit: $logs_after_commit"
+    echo "Total log size:        ${size_mb}MB"
+    echo "───────────────────────────────────────────────────────────────"
+    
+    # Show latest logs
+    if [ "$total_logs" -gt 0 ]; then
+        print_info "Most recent logs:"
+        echo "───────────────────────────────────────────────────────────────"
+        
+        # Get most recent logs
+        local recent_logs=()
+        for log_file in logs/workflow_*.log; do
+            if [ -f "$log_file" ] && ! [[ "$log_file" == *".errors" ]]; then
+                recent_logs+=("$log_file")
+            fi
+        done
+        
+        # Sort by timestamp, newest first
+        mapfile -t sorted_logs < <(printf '%s\n' "${recent_logs[@]}" | sort -r)
+        
+        # Display top 5 most recent logs
+        for ((i=0; i<5 && i<${#sorted_logs[@]}; i++)); do
+            log_file="${sorted_logs[$i]}"
+            run_id=$(basename "$log_file" | cut -d '_' -f 2)
+            timestamp=$(basename "$log_file" | cut -d '_' -f 3 | cut -d '.' -f 1)
+            
+            # Determine log type
+            local workflow_type="Unknown"
+            if grep -q -i "Tests" "$log_file" 2>/dev/null; then
+                workflow_type="Tests"
+            elif grep -q -i "Auto Release" "$log_file" 2>/dev/null; then
+                workflow_type="Auto Release"
+            fi
+            
+            # Check if it has errors
+            local status="✓"
+            if [ -f "${log_file}.errors" ] && [ -s "${log_file}.errors" ]; then
+                status="✗"
+            fi
+            
+            echo "$status $workflow_type ($timestamp) - Run ID: $run_id - $log_file"
+        done
+        echo "───────────────────────────────────────────────────────────────"
+    fi
+    
+    return 0
+}
+
 # Main execution
 case "$1" in
     list)
@@ -373,15 +731,48 @@ case "$1" in
         get_workflow_logs "$2"
         ;;
     saved)
-        # New command to list saved logs
+        # List saved logs
         print_header "Listing saved workflow logs"
         for log_file in logs/workflow_*.log; do
             if [ -f "$log_file" ] && ! [[ "$log_file" == *".errors" ]]; then
                 run_id=$(basename "$log_file" | cut -d '_' -f 2)
                 timestamp=$(basename "$log_file" | cut -d '_' -f 3 | cut -d '.' -f 1)
-                echo "$log_file - Run ID: $run_id, Timestamp: $timestamp"
+                
+                # Determine workflow type
+                workflow_type="Unknown"
+                if grep -q -i "Tests" "$log_file" 2>/dev/null; then
+                    workflow_type="Tests"
+                elif grep -q -i "Auto Release" "$log_file" 2>/dev/null; then
+                    workflow_type="Auto Release"
+                fi
+                
+                # Check if it has errors
+                status="✓"
+                if [ -f "${log_file}.errors" ] && [ -s "${log_file}.errors" ]; then
+                    status="✗"
+                    echo -e "\033[1;31m$status\033[0m [$workflow_type] $log_file - Run ID: $run_id, Timestamp: $timestamp"
+                else
+                    echo -e "\033[1;32m$status\033[0m [$workflow_type] $log_file - Run ID: $run_id, Timestamp: $timestamp"
+                fi
             fi
         done
+        ;;
+    search)
+        # Search across all log files
+        search_logs "$2" "${3:-false}" "${4:-50}"
+        ;;
+    stats)
+        # Generate statistics
+        generate_stats
+        ;;
+    cleanup)
+        # Perform log cleanup
+        max_age="${2:-$MAX_LOG_AGE_DAYS}"
+        if [ "$3" = "--dry-run" ]; then
+            cleanup_old_logs "$max_age" "true"
+        else
+            cleanup_old_logs "$max_age" "false"
+        fi
         ;;
     test|tests)
         # First check for saved test logs
@@ -402,9 +793,20 @@ case "$1" in
                 echo "───────────────────────────────────────────────────────────────"
             else
                 # If no error file, show the log content
-                print_info "Processing log file to extract errors:"
+                print_info "Processing log file to extract errors..."
                 echo "───────────────────────────────────────────────────────────────"
-                grep -n -A 5 -B 2 -i -E "error:|failed with exit code|FAILED" "$log_file" || cat "$log_file" | head -50
+                # Use the same pattern extraction as in get_workflow_logs
+                tmp_error_file=$(mktemp)
+                grep -n -A 5 -B 2 -E "${ERROR_PATTERNS["critical"]}" "$log_file" > "$tmp_error_file" 2>/dev/null
+                grep -n -A 5 -B 2 -E "${ERROR_PATTERNS["severe"]}" "$log_file" >> "$tmp_error_file" 2>/dev/null
+                
+                if [ -s "$tmp_error_file" ]; then
+                    cat "$tmp_error_file"
+                else
+                    cat "$log_file" | head -50
+                fi
+                
+                rm -f "$tmp_error_file"
                 echo "..."
                 echo "[log truncated, see full file at $log_file]"
                 echo "───────────────────────────────────────────────────────────────"
@@ -443,9 +845,20 @@ case "$1" in
                 echo "───────────────────────────────────────────────────────────────"
             else
                 # If no error file, show the log content
-                print_info "Processing log file to extract errors:"
+                print_info "Processing log file to extract errors..."
                 echo "───────────────────────────────────────────────────────────────"
-                grep -n -A 5 -B 2 -i -E "error:|failed with exit code|FAILED" "$log_file" || cat "$log_file" | head -50
+                # Use the same pattern extraction as in get_workflow_logs
+                tmp_error_file=$(mktemp)
+                grep -n -A 5 -B 2 -E "${ERROR_PATTERNS["critical"]}" "$log_file" > "$tmp_error_file" 2>/dev/null
+                grep -n -A 5 -B 2 -E "${ERROR_PATTERNS["severe"]}" "$log_file" >> "$tmp_error_file" 2>/dev/null
+                
+                if [ -s "$tmp_error_file" ]; then
+                    cat "$tmp_error_file"
+                else
+                    cat "$log_file" | head -50
+                fi
+                
+                rm -f "$tmp_error_file"
                 echo "..."
                 echo "[log truncated, see full file at $log_file]"
                 echo "───────────────────────────────────────────────────────────────"
@@ -511,24 +924,64 @@ case "$1" in
         fi
         ;;
         
+    help|--help|-h)
+        # Show help
+        print_header "GitHub Actions Workflow Logs Helper"
+        echo "Usage: $0 [command] [options]"
+        echo ""
+        print_important "Commands:"
+        echo "  list                      List recent workflow runs from GitHub"
+        echo "  logs [RUN_ID]             Get logs for a specific workflow run"
+        echo "  tests                     Get logs for the latest test workflow run"
+        echo "  build                     Get logs for the latest build/release workflow run"
+        echo "  saved                     List all saved log files"
+        echo "  latest                    Get the 3 most recent logs after last commit"
+        echo "  search PATTERN [CASE_SENSITIVE] [MAX_RESULTS]"
+        echo "                            Search all log files for a pattern"
+        echo "  stats                     Show statistics about saved log files"
+        echo "  cleanup [DAYS] [--dry-run] Clean up logs older than DAYS (default: 30)"
+        echo "  help, --help, -h          Show this help message"
+        echo ""
+        print_important "Examples:"
+        echo "  $0 list                   List all recent workflow runs"
+        echo "  $0 logs 123456789         Get logs for workflow run ID 123456789"
+        echo "  $0 tests                  Get logs for the latest test workflow run"
+        echo "  $0 saved                  List all saved log files"
+        echo "  $0 latest                 Get the 3 most recent logs after the last commit"
+        echo "  $0 search \"error\"       Search all logs for 'error' (case insensitive)"
+        echo "  $0 search \"Exception\" true  Search logs for 'Exception' (case sensitive)"
+        echo "  $0 cleanup 10             Delete logs older than 10 days"
+        echo "  $0 cleanup 30 --dry-run   Show what logs would be deleted without deleting"
+        echo ""
+        ;;
     *)
         # Default action - show help and then fetch logs
-        echo "Usage: $0 [command]"
+        print_header "GitHub Actions Workflow Logs Helper"
+        echo "Usage: $0 [command] [options]"
         echo ""
-        echo "Commands:"
-        echo "  list               List recent workflow runs from GitHub"
-        echo "  logs [RUN_ID]      Get logs for a specific workflow run"
-        echo "  tests              Get logs for the latest test workflow run"
-        echo "  build              Get logs for the latest build/release workflow run"
-        echo "  saved              List all saved log files"
-        echo "  latest             Get the 3 most recent logs after the last commit (default action)"
+        print_important "Commands:"
+        echo "  list                      List recent workflow runs from GitHub"
+        echo "  logs [RUN_ID]             Get logs for a specific workflow run"
+        echo "  tests                     Get logs for the latest test workflow run"
+        echo "  build                     Get logs for the latest build/release workflow run"
+        echo "  saved                     List all saved log files"
+        echo "  latest                    Get the 3 most recent logs after last commit"
+        echo "  search PATTERN [CASE_SENSITIVE] [MAX_RESULTS]"
+        echo "                            Search all log files for a pattern"
+        echo "  stats                     Show statistics about saved log files"
+        echo "  cleanup [DAYS] [--dry-run] Clean up logs older than DAYS (default: 30)"
+        echo "  help, --help, -h          Show this help message"
         echo ""
-        echo "Examples:"
-        echo "  $0 list            List all recent workflow runs"
-        echo "  $0 logs 123456789  Get logs for workflow run ID 123456789"
-        echo "  $0 tests           Get logs for the latest test workflow run"
-        echo "  $0 saved           List all saved log files"
-        echo "  $0 latest          Get the 3 most recent logs after the last commit"
+        print_important "Examples:"
+        echo "  $0 list                   List all recent workflow runs"
+        echo "  $0 logs 123456789         Get logs for workflow run ID 123456789"
+        echo "  $0 tests                  Get logs for the latest test workflow run"
+        echo "  $0 saved                  List all saved log files"
+        echo "  $0 latest                 Get the 3 most recent logs after the last commit"
+        echo "  $0 search \"error\"       Search all logs for 'error' (case insensitive)"
+        echo "  $0 search \"Exception\" true  Search logs for 'Exception' (case sensitive)"
+        echo "  $0 cleanup 10             Delete logs older than 10 days"
+        echo "  $0 cleanup 30 --dry-run   Show what logs would be deleted without deleting"
         echo ""
         
         # First try to find saved logs after last commit
