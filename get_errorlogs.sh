@@ -252,6 +252,118 @@ get_latest_workflow_run() {
     echo "$run_id"
 }
 
+# Function to find local logs for a workflow ID
+find_local_logs() {
+    local run_id="$1"
+    local log_files=()
+
+    # Find all matching log files
+    for log_file in logs/workflow_${run_id}_*.log; do
+        if [ -f "$log_file" ]; then
+            log_files+=("$log_file")
+        fi
+    done
+
+    # If logs found, return the most recent one
+    if [ ${#log_files[@]} -gt 0 ]; then
+        # Sort by timestamp in filename (most recent last)
+        local newest_log
+        newest_log=$(printf '%s\n' "${log_files[@]}" | sort -n | tail -n 1)
+        echo "$newest_log"
+        return 0
+    fi
+
+    # No local logs found
+    return 1
+}
+
+# Function to check for saved logs after a given date
+find_local_logs_after_last_commit() {
+    local workflow_name="$1"  # Optional workflow name filter
+    local target_count="${2:-1}"  # Number of logs to return (default 1)
+    
+    # Get the date of the last commit
+    local last_commit_date
+    last_commit_date=$(git log -1 --format="%cd" --date=format:"%Y%m%d-%H%M%S" 2>/dev/null)
+    
+    if [ -z "$last_commit_date" ]; then
+        print_warning "Could not determine last commit date, using all logs"
+        # List all log files
+        find logs -name "workflow_*.log" -not -name "*.errors" | sort -n
+        return
+    fi
+    
+    print_info "Finding logs created after last commit ($last_commit_date)"
+    
+    # Find all log files matching the workflow name if specified
+    local all_logs=()
+    
+    if [ -n "$workflow_name" ]; then
+        # Find logs that might contain the specified workflow name
+        for log_file in logs/workflow_*.log; do
+            if [ -f "$log_file" ] && ! [[ "$log_file" == *".errors" ]]; then
+                # Check if the log file contains the workflow name (case insensitive)
+                if grep -q -i "$workflow_name" "$log_file" 2>/dev/null; then
+                    all_logs+=("$log_file")
+                fi
+            fi
+        done
+    else
+        # No workflow name specified, get all logs
+        for log_file in logs/workflow_*.log; do
+            if [ -f "$log_file" ] && ! [[ "$log_file" == *".errors" ]]; then
+                all_logs+=("$log_file")
+            fi
+        done
+    fi
+    
+    # Sort logs by timestamp in filename
+    mapfile -t sorted_logs < <(printf '%s\n' "${all_logs[@]}" | sort -n)
+    
+    # Filter logs created after the last commit
+    local recent_logs=()
+    for log_file in "${sorted_logs[@]}"; do
+        # Extract timestamp from filename (format: workflow_ID_YYYYMMDD-HHMMSS.log)
+        local log_timestamp
+        log_timestamp=$(echo "$log_file" | grep -o "[0-9]\{8\}-[0-9]\{6\}")
+        
+        # Compare to last commit date, keep if newer
+        if [[ "$log_timestamp" > "$last_commit_date" ]]; then
+            recent_logs+=("$log_file")
+        fi
+    done
+    
+    # Return the most recent logs, limited by target_count
+    if [ ${#recent_logs[@]} -gt 0 ]; then
+        # Get the most recent logs
+        local count=0
+        for ((i=${#recent_logs[@]}-1; i>=0; i--)); do
+            echo "${recent_logs[i]}"
+            count=$((count + 1))
+            if [ "$count" -eq "$target_count" ]; then
+                break
+            fi
+        done
+        return 0
+    fi
+    
+    # If no logs after commit, return the most recent logs regardless of date
+    if [ ${#sorted_logs[@]} -gt 0 ]; then
+        print_warning "No logs found after last commit, using most recent logs instead"
+        local count=0
+        for ((i=${#sorted_logs[@]}-1; i>=0; i--)); do
+            echo "${sorted_logs[i]}"
+            count=$((count + 1))
+            if [ "$count" -eq "$target_count" ]; then
+                break
+            fi
+        done
+        return 0
+    fi
+    
+    return 1
+}
+
 # Main execution
 case "$1" in
     list)
@@ -260,49 +372,216 @@ case "$1" in
     logs)
         get_workflow_logs "$2"
         ;;
+    saved)
+        # New command to list saved logs
+        print_header "Listing saved workflow logs"
+        for log_file in logs/workflow_*.log; do
+            if [ -f "$log_file" ] && ! [[ "$log_file" == *".errors" ]]; then
+                local run_id
+                run_id=$(basename "$log_file" | cut -d '_' -f 2)
+                local timestamp
+                timestamp=$(basename "$log_file" | cut -d '_' -f 3 | cut -d '.' -f 1)
+                echo "$log_file - Run ID: $run_id, Timestamp: $timestamp"
+            fi
+        done
+        ;;
     test|tests)
-        # Get the latest Tests workflow run
-        print_info "Finding the latest test workflow run..."
-        test_run_id=$(get_latest_workflow_run "Tests")
-        if [ -n "$test_run_id" ]; then
-            get_workflow_logs "$test_run_id"
+        # First check for saved test logs
+        print_info "Looking for saved test workflow logs..."
+        readarray -t saved_test_logs < <(find_local_logs_after_last_commit "Tests" 1)
+        
+        if [ ${#saved_test_logs[@]} -gt 0 ]; then
+            log_file="${saved_test_logs[0]}"
+            run_id=$(basename "$log_file" | cut -d '_' -f 2)
+            print_success "Using saved test log file: $log_file (Run ID: $run_id)"
+            
+            # Check if error file exists
+            error_file="${log_file}.errors"
+            if [ -f "$error_file" ]; then
+                print_info "Found error log file: $error_file"
+                echo "───────────────────────────────────────────────────────────────"
+                cat "$error_file"
+                echo "───────────────────────────────────────────────────────────────"
+            else
+                # If no error file, show the log content
+                print_info "Processing log file to extract errors:"
+                echo "───────────────────────────────────────────────────────────────"
+                grep -n -A 5 -B 2 -i -E "error:|failed with exit code|FAILED" "$log_file" || cat "$log_file" | head -50
+                echo "..."
+                echo "[log truncated, see full file at $log_file]"
+                echo "───────────────────────────────────────────────────────────────"
+            fi
         else
-            print_warning "No test workflow runs found with logs. Trying any workflow run..."
-            any_run_id=$(get_latest_workflow_run "")
-            if [ -n "$any_run_id" ]; then
-                get_workflow_logs "$any_run_id"
+            # If no saved logs, try to fetch from GitHub
+            print_info "No saved test logs found. Finding the latest test workflow run..."
+            test_run_id=$(get_latest_workflow_run "Tests")
+            if [ -n "$test_run_id" ]; then
+                get_workflow_logs "$test_run_id"
+            else
+                print_warning "No test workflow runs found with logs. Trying any workflow run..."
+                any_run_id=$(get_latest_workflow_run "")
+                if [ -n "$any_run_id" ]; then
+                    get_workflow_logs "$any_run_id"
+                fi
             fi
         fi
         ;;
     build|release)
-        # Get the latest Auto Release workflow run
-        print_info "Finding the latest build/release workflow run..."
-        release_run_id=$(get_latest_workflow_run "Auto Release")
-        if [ -n "$release_run_id" ]; then
-            get_workflow_logs "$release_run_id"
+        # First check for saved build logs
+        print_info "Looking for saved build/release workflow logs..."
+        readarray -t saved_build_logs < <(find_local_logs_after_last_commit "Auto Release" 1)
+        
+        if [ ${#saved_build_logs[@]} -gt 0 ]; then
+            log_file="${saved_build_logs[0]}"
+            run_id=$(basename "$log_file" | cut -d '_' -f 2)
+            print_success "Using saved build log file: $log_file (Run ID: $run_id)"
+            
+            # Check if error file exists
+            error_file="${log_file}.errors"
+            if [ -f "$error_file" ]; then
+                print_info "Found error log file: $error_file"
+                echo "───────────────────────────────────────────────────────────────"
+                cat "$error_file"
+                echo "───────────────────────────────────────────────────────────────"
+            else
+                # If no error file, show the log content
+                print_info "Processing log file to extract errors:"
+                echo "───────────────────────────────────────────────────────────────"
+                grep -n -A 5 -B 2 -i -E "error:|failed with exit code|FAILED" "$log_file" || cat "$log_file" | head -50
+                echo "..."
+                echo "[log truncated, see full file at $log_file]"
+                echo "───────────────────────────────────────────────────────────────"
+            fi
         else
-            print_warning "No build/release workflow runs found with logs. Trying any workflow run..."
-            any_run_id=$(get_latest_workflow_run "")
-            if [ -n "$any_run_id" ]; then
-                get_workflow_logs "$any_run_id"
+            # If no saved logs, try to fetch from GitHub
+            print_info "No saved build logs found. Finding the latest build/release workflow run..."
+            release_run_id=$(get_latest_workflow_run "Auto Release")
+            if [ -n "$release_run_id" ]; then
+                get_workflow_logs "$release_run_id"
+            else
+                print_warning "No build/release workflow runs found with logs. Trying any workflow run..."
+                any_run_id=$(get_latest_workflow_run "")
+                if [ -n "$any_run_id" ]; then
+                    get_workflow_logs "$any_run_id"
+                fi
             fi
         fi
         ;;
+    latest)
+        # Get the 3 most recent logs after the last commit
+        print_header "Finding the 3 most recent workflow logs"
+        readarray -t recent_logs < <(find_local_logs_after_last_commit "" 3)
+        
+        if [ ${#recent_logs[@]} -gt 0 ]; then
+            for log_file in "${recent_logs[@]}"; do
+                local run_id
+                run_id=$(basename "$log_file" | cut -d '_' -f 2)
+                print_success "Using saved log file: $log_file (Run ID: $run_id)"
+                
+                # Display content with error highlighting
+                print_info "Contents of $log_file:"
+                echo "───────────────────────────────────────────────────────────────"
+                
+                # Check if error file exists
+                local error_file="${log_file}.errors"
+                if [ -f "$error_file" ]; then
+                    print_info "Found error file: $error_file"
+                    cat "$error_file"
+                else
+                    # If no error file, show the log content
+                    cat "$log_file" | head -50  # Show first 50 lines
+                    echo "..."
+                    echo "[log truncated, see full file at $log_file]"
+                fi
+                echo "───────────────────────────────────────────────────────────────"
+            done
+        else
+            print_error "No saved log files found after the last commit."
+            print_info "Trying to fetch logs from GitHub instead..."
+            
+            # Fall back to fetching from GitHub
+            get_workflow_runs
+            
+            # Try to get any workflow logs
+            print_header "Fetching logs from any available workflow run"
+            any_run_id=$(get_latest_workflow_run "")
+            if [ -n "$any_run_id" ]; then
+                get_workflow_logs "$any_run_id"
+            else
+                print_error "Could not find any workflow runs with available logs."
+                print_info "Try running 'gh run list' manually to see available workflow runs."
+            fi
+        fi
+        ;;
+        
     *)
-        # Default action - show help and then fetch logs for both tests and builds
+        # Default action - show help and then fetch logs
         echo "Usage: $0 [command]"
         echo ""
         echo "Commands:"
-        echo "  list               List recent workflow runs"
+        echo "  list               List recent workflow runs from GitHub"
         echo "  logs [RUN_ID]      Get logs for a specific workflow run"
         echo "  tests              Get logs for the latest test workflow run"
         echo "  build              Get logs for the latest build/release workflow run"
+        echo "  saved              List all saved log files"
+        echo "  latest             Get the 3 most recent logs after the last commit (default action)"
         echo ""
         echo "Examples:"
         echo "  $0 list            List all recent workflow runs"
         echo "  $0 logs 123456789  Get logs for workflow run ID 123456789"
         echo "  $0 tests           Get logs for the latest test workflow run"
+        echo "  $0 saved           List all saved log files"
+        echo "  $0 latest          Get the 3 most recent logs after the last commit"
         echo ""
+        
+        # First try to find saved logs after last commit
+        print_header "Checking for logs from after the last commit"
+        readarray -t recent_logs < <(find_local_logs_after_last_commit "" 3)
+        
+        if [ ${#recent_logs[@]} -gt 0 ]; then
+            for log_file in "${recent_logs[@]}"; do
+                local run_id
+                run_id=$(basename "$log_file" | cut -d '_' -f 2)
+                local workflow_type=""
+                
+                # Determine if this is a test or build log
+                if grep -q -i "Tests" "$log_file" 2>/dev/null; then
+                    workflow_type="Tests"
+                elif grep -q -i "Auto Release" "$log_file" 2>/dev/null; then
+                    workflow_type="Auto Release"
+                else
+                    workflow_type="Unknown"
+                fi
+                
+                print_header "Found saved $workflow_type workflow log (Run ID: $run_id)"
+                
+                # Check if error file exists
+                local error_file="${log_file}.errors"
+                if [ -f "$error_file" ]; then
+                    print_info "Found error log file: $error_file"
+                    echo "───────────────────────────────────────────────────────────────"
+                    cat "$error_file" | head -50  # Show first 50 lines
+                    echo "..."
+                    echo "[log truncated, see full file at $error_file]"
+                    echo "───────────────────────────────────────────────────────────────"
+                else
+                    # If no error file, show the log content
+                    print_info "Processing log file to extract errors:"
+                    echo "───────────────────────────────────────────────────────────────"
+                    # Extract errors on the fly
+                    grep -n -A 5 -B 2 -i -E "error:|failed with exit code|FAILED" "$log_file" | head -50
+                    echo "..."
+                    echo "[log truncated, see full file at $log_file]"
+                    echo "───────────────────────────────────────────────────────────────"
+                fi
+            done
+            
+            return 0
+        fi
+        
+        # If no saved logs, try to fetch from GitHub
+        print_warning "No saved logs found after the last commit."
+        print_info "Trying to fetch logs from GitHub instead..."
         
         # Show recent workflow runs
         get_workflow_runs
@@ -311,14 +590,32 @@ case "$1" in
         print_header "Fetching latest test workflow logs"
         test_run_id=$(get_latest_workflow_run "Tests")
         if [ -n "$test_run_id" ]; then
-            get_workflow_logs "$test_run_id"
+            # First check if we have it saved locally
+            local saved_log
+            if saved_log=$(find_local_logs "$test_run_id"); then
+                print_success "Using saved log file: $saved_log"
+                cat "$saved_log" | head -50
+                echo "..."
+                echo "[log truncated, see full file at $saved_log]"
+            else
+                get_workflow_logs "$test_run_id"
+            fi
         fi
         
         # Get the latest build workflow run
         print_header "Fetching latest build/release workflow logs"
         build_run_id=$(get_latest_workflow_run "Auto Release")
         if [ -n "$build_run_id" ]; then
-            get_workflow_logs "$build_run_id"
+            # First check if we have it saved locally
+            local saved_log
+            if saved_log=$(find_local_logs "$build_run_id"); then
+                print_success "Using saved log file: $saved_log"
+                cat "$saved_log" | head -50
+                echo "..."
+                echo "[log truncated, see full file at $saved_log]"
+            else
+                get_workflow_logs "$build_run_id"
+            fi
         fi
         
         # If none of the specific workflows had logs, try to get any workflow logs
@@ -327,7 +624,16 @@ case "$1" in
             # Use empty string to force the fallback logic in get_latest_workflow_run
             any_run_id=$(get_latest_workflow_run "")
             if [ -n "$any_run_id" ]; then
-                get_workflow_logs "$any_run_id"
+                # First check if we have it saved locally
+                local saved_log
+                if saved_log=$(find_local_logs "$any_run_id"); then
+                    print_success "Using saved log file: $saved_log"
+                    cat "$saved_log" | head -50
+                    echo "..."
+                    echo "[log truncated, see full file at $saved_log]"
+                else
+                    get_workflow_logs "$any_run_id"
+                fi
             else
                 print_error "Could not find any workflow runs with available logs."
                 print_info "Try running 'gh run list' manually to see available workflow runs."
