@@ -2,6 +2,7 @@
 
 import os
 import shutil
+
 from setuptools import setup
 
 # This setup.py is minimal and delegates to pyproject.toml
