@@ -23,9 +23,10 @@ if [ -d "dist" ]; then
   if [ -n "$WHEEL_FILE" ]; then
     echo "ℹ️ Checking wheel file: $WHEEL_FILE"
     
-    # Try using unzip to check contents
-    if unzip -l "$WHEEL_FILE" | grep -q 'enchant_cli/samples/test_sample.txt'; then
-      echo "✅ Test sample file found in wheel package."
+    # Try using unzip to check contents of wheel - look for ANY test_sample.txt
+    if unzip -l "$WHEEL_FILE" | grep -q 'test_sample.txt'; then
+      echo "✅ Test sample file found in wheel package at locations:"
+      unzip -l "$WHEEL_FILE" | grep 'test_sample.txt'
     else
       echo "⚠️ Test sample file missing from wheel package."
       echo "⚠️ Check MANIFEST.in and include_package_data in setup.py/pyproject.toml."

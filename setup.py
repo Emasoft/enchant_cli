@@ -23,22 +23,30 @@ if not os.path.exists(sample_file):
         f.write("第二段：今天的天气很好，适合出去散步。\n")
         f.write("第三段：请将这段文字翻译成英文，不要添加额外内容。")
 
-# Create a copy of the sample in src directory to ensure it's included in wheel
-src_sample_dir = "src/enchant_cli/samples"
-if not os.path.exists(src_sample_dir):
-    os.makedirs(src_sample_dir, exist_ok=True)
+# Create directories for samples to be included in wheel and sdist
+sample_dirs = [
+    "src/enchant_cli/samples",            # Main package samples (for import)
+    "src/enchant_cli/tests/samples",      # Test samples inside package (will be included in wheel)
+]
 
-# Copy the sample file to the package directory
-shutil.copy2(sample_file, os.path.join(src_sample_dir, "test_sample.txt"))
+# Create all sample directories
+for dir_path in sample_dirs:
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path, exist_ok=True)
+
+# Copy the sample file to all package directories
+for dir_path in sample_dirs:
+    shutil.copy2(sample_file, os.path.join(dir_path, "test_sample.txt"))
 
 # Include test samples
 setup(
     include_package_data=True,
     package_data={
-        "enchant_cli": ["samples/*.txt"],  # Include samples within the package
-        "": ["tests/samples/*.txt"],       # Include test samples from root
+        "enchant_cli": ["samples/*.txt", "tests/samples/*.txt"],  # Include both sample directories in package
+        "": ["tests/samples/*.txt"],                              # Include test samples from root
     },
     data_files=[
         ("share/enchant-cli/tests/samples", ["tests/samples/test_sample.txt"]),
+        ("share/enchant-cli/sample", ["src/enchant_cli/samples/test_sample.txt"]),  # Also include in data_files
     ],
 )
