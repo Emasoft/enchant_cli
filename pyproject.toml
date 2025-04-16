@@ -100,7 +100,7 @@ exclude = ["tests*"]
 
 [tool.setuptools.package-data]
 # Include test sample files in the wheel package
-"*" = ["tests/samples/*.txt"]
+"enchant_cli" = ["../../tests/samples/*.txt"]
 
 [tool.setuptools.dynamic]
 readme = {file = ["README.md"], content-type = "text/markdown"} # Specify content type
