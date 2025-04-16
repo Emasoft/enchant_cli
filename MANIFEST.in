@@ -2,9 +2,10 @@
 include LICENSE README.md pytest.ini
 include requirements*.txt
 
-# Tests
+# Tests and sample files
 include tests/samples/test_sample.txt
 graft tests/samples
+graft src/enchant_cli/samples
 
 # Documentation
 include docs/README.md
@@ -13,8 +14,9 @@ include docs/dev-guides/CLAUDE.md
 # Exclude example files (not needed for package)
 prune examples
 
-# Exclude development files
+# Exclude development files, but ensure test script is included
 exclude *.sh
 exclude *.bat
+include tests/verify_samples.sh
 global-exclude *.py[cod] *.so *.dll *.swp *.bak
 global-exclude __pycache__/ .DS_Store .pytest_cache/ .ruff_cache/

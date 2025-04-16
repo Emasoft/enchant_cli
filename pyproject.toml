@@ -93,14 +93,13 @@ Issues = "https://github.com/Emasoft/enchant-cli/issues"
 
 [tool.setuptools]
 package-dir = {"" = "src"} # Specify the package directory
+include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"] # Explicitly tell find where the packages are
 exclude = ["tests*"]
 
-[tool.setuptools.package-data]
-# Include test sample files in the wheel package
-"enchant_cli" = ["../../tests/samples/*.txt"]
+# The package data configuration is handled directly in setup.py
 
 [tool.setuptools.dynamic]
 readme = {file = ["README.md"], content-type = "text/markdown"} # Specify content type
