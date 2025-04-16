@@ -8,7 +8,7 @@ from setuptools import setup
 # Ensure test samples directory exists
 if not os.path.exists('tests/samples'):
     os.makedirs('tests/samples', exist_ok=True)
-    
+
 # Make sure the test sample file exists
 sample_file = 'tests/samples/test_sample.txt'
 if not os.path.exists(sample_file):
@@ -24,7 +24,7 @@ if not os.path.exists(sample_file):
 src_sample_dir = 'src/enchant_cli/samples'
 if not os.path.exists(src_sample_dir):
     os.makedirs(src_sample_dir, exist_ok=True)
-    
+
 # Copy the sample file to the package directory
 shutil.copy2(sample_file, os.path.join(src_sample_dir, 'test_sample.txt'))
 
