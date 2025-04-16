@@ -458,7 +458,9 @@ else
     else
         print_info "Attempting to create repository or connect to it..."
         # Try to create, but if it fails (e.g., because it exists), just add the remote
-        gh repo create "$REPO_FULL_NAME" --public --source=. --remote=origin 2>/dev/null || {
+        if gh repo create "$REPO_FULL_NAME" --public --source=. --remote=origin 2>/dev/null; then
+            print_success "Repository created successfully."
+        else
             print_warning "Could not create repository. It may already exist."
             # Check if origin remote exists
             if git remote get-url origin &>/dev/null; then
@@ -474,8 +476,8 @@ else
                     exit 1
                 }
             fi
-        }
-    }
+        fi
+    fi
     print_success "Repository $REPO_FULL_NAME configured as remote 'origin'."
 fi
 
