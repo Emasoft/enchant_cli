@@ -11,6 +11,7 @@ REPO_FULL_NAME="$REPO_OWNER/$REPO_NAME"
 print_header() { echo -e "\033[1;33m🔶 $1\033[0m"; }
 print_success() { echo -e "\033[1;32m✅ $1\033[0m"; }
 print_error() { echo -e "\033[1;31m❌ $1\033[0m"; }
+print_warning() { echo -e "\033[1;33m⚠️ $1\033[0m"; }
 print_info() { echo -e "\033[1;34mℹ️ $1\033[0m"; }
 
 # Check if gh CLI is installed
@@ -129,16 +130,46 @@ get_latest_workflow_run() {
 
     # List all recent runs and filter by workflow name (don't print to stdout during command)
     echo "Searching for $workflow_name workflow runs..." >&2
-    run_id=$(gh run list --repo "$REPO_FULL_NAME" --limit 20 --json databaseId,name -q '.[] | select(.name | contains("'"$workflow_name"'")) | .databaseId' | head -n 1)
+    
+    # Try to find workflow by specific name first
+    local runs_with_logs=()
+    
+    # Get all recent runs, with their IDs and log information
+    local all_runs=$(gh run list --repo "$REPO_FULL_NAME" --limit 20 --json databaseId,name,url -q '.')
+    
+    # First, try to find runs that match the requested workflow name
+    run_id=$(echo "$all_runs" | jq -r '.[] | select(.name | contains("'"$workflow_name"'")) | .databaseId' | head -n 1)
     
     if [ -z "$run_id" ]; then
-        # Fallback to just getting the latest run
-        echo "No exact match found, getting latest workflow run..." >&2
-        run_id=$(gh run list --repo "$REPO_FULL_NAME" --limit 1 --json databaseId -q '.[0].databaseId')
+        # Fallback to finding any run with logs available
+        echo "No exact match found, searching for any workflows with logs..." >&2
         
-        if [ -z "$run_id" ]; then
-            print_error "No recent workflow runs found."
-            return 1
+        # Loop through all runs and check each one for log availability
+        for run_data in $(echo "$all_runs" | jq -c '.[]'); do
+            local id=$(echo "$run_data" | jq -r '.databaseId')
+            
+            # Try to check if logs exist without downloading them
+            # Just check if we can download a small part of the log (first 10 lines)
+            if gh run view "$id" --repo "$REPO_FULL_NAME" --log | head -n 10 &>/dev/null; then
+                # Run has logs we can access
+                runs_with_logs+=("$id")
+                echo "Found workflow run with accessible logs: $id" >&2
+            fi
+        done
+        
+        # If we found any runs with logs, use the first one
+        if [ ${#runs_with_logs[@]} -gt 0 ]; then
+            run_id="${runs_with_logs[0]}"
+            echo "Found workflow run with accessible logs: $run_id" >&2
+        else
+            # Final fallback - just get the latest run and hope for the best
+            echo "No runs with confirmed logs found, trying latest run..." >&2
+            run_id=$(echo "$all_runs" | jq -r '.[0].databaseId')
+            
+            if [ -z "$run_id" ]; then
+                print_error "No recent workflow runs found."
+                return 1
+            fi
         fi
     fi
     
@@ -160,6 +191,12 @@ case "$1" in
         test_run_id=$(get_latest_workflow_run "Tests")
         if [ -n "$test_run_id" ]; then
             get_workflow_logs "$test_run_id"
+        else
+            print_warning "No test workflow runs found with logs. Trying any workflow run..."
+            any_run_id=$(get_latest_workflow_run "")
+            if [ -n "$any_run_id" ]; then
+                get_workflow_logs "$any_run_id"
+            fi
         fi
         ;;
     build|release)
@@ -168,6 +205,12 @@ case "$1" in
         release_run_id=$(get_latest_workflow_run "Auto Release")
         if [ -n "$release_run_id" ]; then
             get_workflow_logs "$release_run_id"
+        else
+            print_warning "No build/release workflow runs found with logs. Trying any workflow run..."
+            any_run_id=$(get_latest_workflow_run "")
+            if [ -n "$any_run_id" ]; then
+                get_workflow_logs "$any_run_id"
+            fi
         fi
         ;;
     *)
@@ -201,6 +244,19 @@ case "$1" in
         build_run_id=$(get_latest_workflow_run "Auto Release")
         if [ -n "$build_run_id" ]; then
             get_workflow_logs "$build_run_id"
+        fi
+        
+        # If none of the specific workflows had logs, try to get any workflow logs
+        if [ -z "$test_run_id" ] && [ -z "$build_run_id" ]; then
+            print_header "Fetching logs from any available workflow run"
+            # Use empty string to force the fallback logic in get_latest_workflow_run
+            any_run_id=$(get_latest_workflow_run "")
+            if [ -n "$any_run_id" ]; then
+                get_workflow_logs "$any_run_id"
+            else
+                print_error "Could not find any workflow runs with available logs."
+                print_info "Try running 'gh run list' manually to see available workflow runs."
+            fi
         fi
         ;;
 esac
