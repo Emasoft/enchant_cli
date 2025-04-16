@@ -377,9 +377,7 @@ case "$1" in
         print_header "Listing saved workflow logs"
         for log_file in logs/workflow_*.log; do
             if [ -f "$log_file" ] && ! [[ "$log_file" == *".errors" ]]; then
-                local run_id
                 run_id=$(basename "$log_file" | cut -d '_' -f 2)
-                local timestamp
                 timestamp=$(basename "$log_file" | cut -d '_' -f 3 | cut -d '.' -f 1)
                 echo "$log_file - Run ID: $run_id, Timestamp: $timestamp"
             fi
@@ -474,7 +472,6 @@ case "$1" in
         
         if [ ${#recent_logs[@]} -gt 0 ]; then
             for log_file in "${recent_logs[@]}"; do
-                local run_id
                 run_id=$(basename "$log_file" | cut -d '_' -f 2)
                 print_success "Using saved log file: $log_file (Run ID: $run_id)"
                 
@@ -483,7 +480,7 @@ case "$1" in
                 echo "───────────────────────────────────────────────────────────────"
                 
                 # Check if error file exists
-                local error_file="${log_file}.errors"
+                error_file="${log_file}.errors"
                 if [ -f "$error_file" ]; then
                     print_info "Found error file: $error_file"
                     cat "$error_file"
@@ -540,9 +537,8 @@ case "$1" in
         
         if [ ${#recent_logs[@]} -gt 0 ]; then
             for log_file in "${recent_logs[@]}"; do
-                local run_id
                 run_id=$(basename "$log_file" | cut -d '_' -f 2)
-                local workflow_type=""
+                workflow_type=""
                 
                 # Determine if this is a test or build log
                 if grep -q -i "Tests" "$log_file" 2>/dev/null; then
@@ -556,7 +552,7 @@ case "$1" in
                 print_header "Found saved $workflow_type workflow log (Run ID: $run_id)"
                 
                 # Check if error file exists
-                local error_file="${log_file}.errors"
+                error_file="${log_file}.errors"
                 if [ -f "$error_file" ]; then
                     print_info "Found error log file: $error_file"
                     echo "───────────────────────────────────────────────────────────────"
@@ -591,7 +587,6 @@ case "$1" in
         test_run_id=$(get_latest_workflow_run "Tests")
         if [ -n "$test_run_id" ]; then
             # First check if we have it saved locally
-            local saved_log
             if saved_log=$(find_local_logs "$test_run_id"); then
                 print_success "Using saved log file: $saved_log"
                 cat "$saved_log" | head -50
@@ -607,7 +602,6 @@ case "$1" in
         build_run_id=$(get_latest_workflow_run "Auto Release")
         if [ -n "$build_run_id" ]; then
             # First check if we have it saved locally
-            local saved_log
             if saved_log=$(find_local_logs "$build_run_id"); then
                 print_success "Using saved log file: $saved_log"
                 cat "$saved_log" | head -50
@@ -625,7 +619,6 @@ case "$1" in
             any_run_id=$(get_latest_workflow_run "")
             if [ -n "$any_run_id" ]; then
                 # First check if we have it saved locally
-                local saved_log
                 if saved_log=$(find_local_logs "$any_run_id"); then
                     print_success "Using saved log file: $saved_log"
                     cat "$saved_log" | head -50
