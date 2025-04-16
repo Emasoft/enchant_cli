@@ -1951,13 +1951,17 @@ The project includes a set of specialized helper scripts designed by Claude to f
 ### 9.1 Error Log Analysis Scripts
 
 - **get_errorlogs.sh/bat**: Advanced GitHub Actions workflow log analysis
-  - Dynamically detects repository information and workflows from the current project
-  - Auto-detects workflow types (tests, releases, lint, docs) without hardcoding
-  - Provides intelligent classification of errors by severity with root cause analysis
-  - Shows full errors by default, with optional truncation via `--truncate` flag
-  - Searches across logs for specific patterns with intelligent context extraction
-  - Manages log rotation and cleanup with age-based policies
-  - Fully portable - works across projects with zero configuration needed
+  - **Zero-input required:** Run without arguments to get fully automated analysis
+  - **Auto-prioritizes failures:** Automatically identifies and shows failed workflows first
+  - **Comprehensive detection:** Dynamically identifies repository information, workflow types, project structure
+  - **Advanced workflow categorization:** Uses multi-signal detection to accurately classify workflows
+  - **Smart error classification:** Provides intelligent categorization with root cause analysis
+  - **Full visibility by default:** Shows complete error logs with option to truncate via `--truncate`
+  - **Cross-repository portability:** Works in any project directory without configuration
+  - **All-in-one analysis:** Provides workflow statistics, recent activity, and next step recommendations
+  - **Improved shell compatibility:** Works with older Bash versions by avoiding advanced features
+  - **Enhanced GitHub API integration:** Retrieves detailed workflow information when possible
+  - **Better CodeCov integration:** Improved coverage reporting and badge generation
 
 #### Key Features
 
@@ -1987,26 +1991,39 @@ The project includes a set of specialized helper scripts designed by Claude to f
    - Cleanup of old logs to prevent disk space issues
    - Smart detection of logs related to recent commits
 
-#### Command Reference
+#### Zero-Configuration Usage
+
+```bash
+# Run without any arguments for smart automatic analysis
+./get_errorlogs.sh
+
+# The script will automatically:
+# 1. Detect repository and workflow information
+# 2. Identify and prioritize any failed workflows
+# 3. Display error logs with intelligent classification
+# 4. Show workflow statistics and activity summary
+# 5. Provide recommendations for next steps
+```
+
+#### Additional Commands (Optional)
 
 ```bash
 # Get help and see all available commands
 ./get_errorlogs.sh help
 
-# Detect repository and workflow information without fetching logs
+# Explicitly detect repository and workflow information
 ./get_errorlogs.sh detect
 
 # List workflows detected in the repository, categorized by type
 ./get_errorlogs.sh workflows
 
-# Get logs for specific workflow types
+# Get logs for specific workflow types (when you need targeted analysis)
 ./get_errorlogs.sh tests      # Test workflows
 ./get_errorlogs.sh build      # Build/release workflows
 ./get_errorlogs.sh lint       # Linting/quality workflows
 ./get_errorlogs.sh docs       # Documentation workflows
 
-# Control output verbosity
-./get_errorlogs.sh tests                # Full error output (default)
+# Control output verbosity when needed
 ./get_errorlogs.sh --truncate tests     # Truncated output for readability
 
 # Advanced log management

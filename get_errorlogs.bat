@@ -1,6 +1,6 @@
 @echo off
 REM get_errorlogs.bat - CLAUDE HELPER SCRIPT for GitHub Actions workflow log analysis
-REM Version 1.1.0 - Enhanced to be fully portable and auto-detect repository details
+REM Version 1.2.0 - Enhanced workflow detection and improved GitHub API integration
 
 setlocal enabledelayedexpansion
 
@@ -49,14 +49,14 @@ IF %ERRORLEVEL% EQU 0 (
 )
 
 :show_version
-echo [93m🔶 CLAUDE HELPER SCRIPT: GitHub Actions Workflow Logs Tool v1.1.0[0m
+echo [93m🔶 CLAUDE HELPER SCRIPT: GitHub Actions Workflow Logs Tool v1.2.0[0m
 echo.
 echo This script is part of the CLAUDE HELPER SCRIPTS collection.
 echo For more information, see the CLAUDE.md documentation.
 exit /b 0
 
 :show_help
-echo [93m🔶 CLAUDE HELPER SCRIPT: GitHub Actions Workflow Logs Tool v1.1.0[0m
+echo [93m🔶 CLAUDE HELPER SCRIPT: GitHub Actions Workflow Logs Tool v1.2.0[0m
 echo Usage: %0 [global_options] ^<command^> [command_options]
 echo.
 echo [94m📣 Global Options:[0m
@@ -83,10 +83,13 @@ echo   help^|--help^|-h            Show this help message
 echo.
 echo [94m📣 Features:[0m
 echo   ✓ Auto-detection of repository info from git, project files, etc.
-echo   ✓ Dynamic workflow detection and categorization by type (test, release, etc.)
+echo   ✓ Advanced workflow detection with multi-signal categorization
+echo   ✓ Enhanced GitHub API integration for better workflow analysis
 echo   ✓ Intelligent error classification with context and root cause analysis
 echo   ✓ Full output by default, with optional truncation via --truncate flag
 echo   ✓ Works across projects - fully portable with zero configuration
+echo   ✓ Improved shell compatibility for all platforms
+echo   ✓ Better CodeCov integration with custom reporting
 echo.
 echo [94m📣 Examples:[0m
 echo   %0 list                   List all recent workflow runs
@@ -122,6 +125,31 @@ IF %ERRORLEVEL% NEQ 0 (
     exit /b 1
 )
 
+REM Detect repository info from git (similar to bash version)
+FOR /F "tokens=*" %%g IN ('git config --get remote.origin.url 2^>nul') do (SET "GIT_REMOTE_URL=%%g")
+
+IF "%GIT_REMOTE_URL%"=="" (
+    echo Failed to detect repository from git remote.
+    echo Please specify your repository explicitly with --repo owner/name
+    exit /b 1
+)
+
+REM Try to extract owner and name from remote URL
+REM This is a simplified version that works for the most common cases
+FOR /F "tokens=4,5 delims=/:." %%a IN ("%GIT_REMOTE_URL%") DO (
+    SET REPO_OWNER=%%a
+    SET REPO_NAME=%%b
+)
+
+REM Handle GitHub URLs with .git extension
+IF "%REPO_NAME:~-4%"==".git" (
+    SET REPO_NAME=%REPO_NAME:~0,-4%
+)
+
+REM Form full repository name
+SET REPO_FULL_NAME=%REPO_OWNER%/%REPO_NAME%
+echo Using repository: %REPO_FULL_NAME%
+
 echo ==========================================
 echo Fetching GitHub Actions Workflow Logs
 echo ==========================================
@@ -132,6 +160,58 @@ IF NOT EXIST logs mkdir logs
 REM Process commands
 IF "%1"=="list" (
     call :list_workflows
+    exit /b 0
+)
+
+IF "%1"=="workflows" (
+    echo [93m🔶 Detecting GitHub Workflows[0m
+    echo.
+    
+    REM Try to find workflows in this repo
+    set "workflow_count=0"
+    
+    REM Check local .github/workflows directory
+    if exist ".github\workflows" (
+        for %%f in (.github\workflows\*.yml .github\workflows\*.yaml) do (
+            if exist "%%f" (
+                set /a workflow_count+=1
+                
+                REM Try to determine workflow type
+                set "workflow_type=Other"
+                findstr /i /c:"test" /c:"ci" "%%f" >nul 2>&1
+                if !ERRORLEVEL! EQU 0 (
+                    set "workflow_type=Test"
+                ) else (
+                    findstr /i /c:"release" /c:"deploy" /c:"publish" /c:"build" "%%f" >nul 2>&1
+                    if !ERRORLEVEL! EQU 0 (
+                        set "workflow_type=Release"
+                    ) else (
+                        findstr /i /c:"lint" /c:"style" /c:"format" "%%f" >nul 2>&1
+                        if !ERRORLEVEL! EQU 0 (
+                            set "workflow_type=Lint"
+                        ) else (
+                            findstr /i /c:"doc" "%%f" >nul 2>&1
+                            if !ERRORLEVEL! EQU 0 (
+                                set "workflow_type=Documentation"
+                            )
+                        )
+                    )
+                )
+                
+                echo Detected workflow: %%f (Type: !workflow_type!)
+            )
+        )
+    )
+    
+    REM If no workflows found locally, try to get from GitHub
+    if !workflow_count! EQU 0 (
+        echo No local workflows found. Checking GitHub API...
+        gh workflow list --repo "%REPO_FULL_NAME%" --json name,path,state
+    ) else (
+        echo.
+        echo Found !workflow_count! workflow files locally.
+    )
+    
     exit /b 0
 )
 
@@ -149,6 +229,59 @@ IF "%1"=="saved" (
         )
     )
     echo ----------------------------------------
+    exit /b 0
+)
+
+IF "%1"=="search" (
+    set "search_pattern=%~2"
+    set "case_sensitive=%~3"
+    set "max_results=%~4"
+    
+    if "%search_pattern%"=="" (
+        echo Error: No search pattern provided.
+        echo Usage: %0 search "pattern" [case_sensitive] [max_results]
+        exit /b 1
+    )
+    
+    if "%max_results%"=="" (
+        set "max_results=100"
+    )
+    
+    echo Searching for pattern: "%search_pattern%" in saved logs
+    echo Max results: %max_results%
+    echo Case sensitive: %case_sensitive%
+    echo ----------------------------------------
+    
+    set "found_matches=0"
+    
+    for %%f in (logs\workflow_*.log) do (
+        if exist "%%f" (
+            if "%case_sensitive%"=="true" (
+                findstr /n /c:"%search_pattern%" "%%f" > search_results.tmp
+            ) else (
+                findstr /n /i /c:"%search_pattern%" "%%f" > search_results.tmp
+            )
+            
+            if not !ERRORLEVEL! EQU 1 (
+                set /a found_matches+=1
+                echo.
+                echo [File: %%f]
+                echo ----------------------------------------
+                type search_results.tmp
+                echo ----------------------------------------
+                echo.
+            )
+        )
+    )
+    
+    del search_results.tmp
+    
+    if !found_matches! EQU 0 (
+        echo No matches found.
+    ) else (
+        echo Found matches in !found_matches! files.
+    )
+    
     exit /b 0
 )
 
@@ -251,23 +384,210 @@ IF "%1"=="build" (
     exit /b 0
 )
 
-REM Default action - help and check for saved logs
-echo Usage: %0 [command]
+IF "%1"=="lint" (
+    echo Looking for saved lint workflow logs...
+    
+    REM Try to find a saved lint workflow log
+    set "found_lint_log="
+    for %%f in (logs\workflow_*.log) do (
+        if exist "%%f" (
+            findstr /i /c:"Lint" /c:"Style" "%%f" >nul 2>&1
+            if !ERRORLEVEL! EQU 0 (
+                set "found_lint_log=%%f"
+                goto :found_lint
+            )
+        )
+    )
+    
+    :found_lint
+    if defined found_lint_log (
+        echo Using saved lint log file: !found_lint_log!
+        echo ----------------------------------------
+        type "!found_lint_log!" | findstr /i /c:"error" /c:"failed" /c:"failure"
+        echo ----------------------------------------
+        echo [Log truncated, see full file at !found_lint_log!]
+    ) else (
+        echo No saved lint logs found.
+        echo Looking for a lint workflow in the repository...
+        
+        REM Try to find a lint workflow file
+        set "lint_workflow="
+        if exist ".github\workflows" (
+            for %%f in (.github\workflows\*.yml .github\workflows\*.yaml) do (
+                if exist "%%f" (
+                    findstr /i /c:"lint" /c:"style" /c:"format" "%%f" >nul 2>&1
+                    if !ERRORLEVEL! EQU 0 (
+                        set "lint_workflow=%%~nf"
+                        echo Found potential lint workflow: %%f
+                    )
+                )
+            )
+        )
+        
+        if not "!lint_workflow!"=="" (
+            echo Fetching logs for !lint_workflow! workflow...
+            FOR /F %%i IN ('gh run list --repo "%REPO_FULL_NAME%" --workflow "!lint_workflow!.yml" --limit 1 --json databaseId -q ".[0].databaseId"') DO set "lint_run_id=%%i"
+            IF "!lint_run_id!"=="" (
+                echo No lint workflow runs found.
+            ) ELSE (
+                call :get_workflow_logs "!lint_run_id!"
+            )
+        ) else (
+            echo No lint workflow found. Please check GitHub repository.
+        )
+    )
+    exit /b 0
+)
+
+IF "%1"=="docs" (
+    echo Looking for saved documentation workflow logs...
+    
+    REM Try to find a saved docs workflow log
+    set "found_docs_log="
+    for %%f in (logs\workflow_*.log) do (
+        if exist "%%f" (
+            findstr /i /c:"Documentation" /c:"Docs" "%%f" >nul 2>&1
+            if !ERRORLEVEL! EQU 0 (
+                set "found_docs_log=%%f"
+                goto :found_docs
+            )
+        )
+    )
+    
+    :found_docs
+    if defined found_docs_log (
+        echo Using saved documentation log file: !found_docs_log!
+        echo ----------------------------------------
+        type "!found_docs_log!" | findstr /i /c:"error" /c:"failed" /c:"failure"
+        echo ----------------------------------------
+        echo [Log truncated, see full file at !found_docs_log!]
+    ) else (
+        echo No saved documentation logs found.
+        echo Looking for a documentation workflow in the repository...
+        
+        REM Try to find a docs workflow file
+        set "docs_workflow="
+        if exist ".github\workflows" (
+            for %%f in (.github\workflows\*.yml .github\workflows\*.yaml) do (
+                if exist "%%f" (
+                    findstr /i /c:"docs" /c:"documentation" "%%f" >nul 2>&1
+                    if !ERRORLEVEL! EQU 0 (
+                        set "docs_workflow=%%~nf"
+                        echo Found potential documentation workflow: %%f
+                    )
+                )
+            )
+        )
+        
+        if not "!docs_workflow!"=="" (
+            echo Fetching logs for !docs_workflow! workflow...
+            FOR /F %%i IN ('gh run list --repo "%REPO_FULL_NAME%" --workflow "!docs_workflow!.yml" --limit 1 --json databaseId -q ".[0].databaseId"') DO set "docs_run_id=%%i"
+            IF "!docs_run_id!"=="" (
+                echo No documentation workflow runs found.
+            ) ELSE (
+                call :get_workflow_logs "!docs_run_id!"
+            )
+        ) else (
+            echo No documentation workflow found. Please check GitHub repository.
+        )
+    )
+    exit /b 0
+)
+
+IF "%1"=="detect" (
+    echo [93m🔶 CLAUDE HELPER SCRIPT: Repository and Workflow Detection[0m
+    echo.
+    echo [94mℹ️ Repository Information[0m
+    echo Using repository: %REPO_FULL_NAME%
+    echo Owner: %REPO_OWNER%
+    echo Name: %REPO_NAME%
+    echo.
+    
+    echo [94mℹ️ Detecting Available Workflows[0m
+    
+    REM Try to find workflows in this repo
+    set "workflow_count=0"
+    set "test_workflows=0"
+    set "release_workflows=0"
+    
+    REM Check local .github/workflows directory
+    if exist ".github\workflows" (
+        for %%f in (.github\workflows\*.yml .github\workflows\*.yaml) do (
+            if exist "%%f" (
+                set /a workflow_count+=1
+                
+                REM Try to determine workflow type
+                set "workflow_type=Other"
+                findstr /i /c:"test" /c:"ci" "%%f" >nul 2>&1
+                if !ERRORLEVEL! EQU 0 (
+                    set "workflow_type=Test"
+                    set /a test_workflows+=1
+                ) else (
+                    findstr /i /c:"release" /c:"deploy" /c:"publish" /c:"build" "%%f" >nul 2>&1
+                    if !ERRORLEVEL! EQU 0 (
+                        set "workflow_type=Release"
+                        set /a release_workflows+=1
+                    )
+                )
+                
+                echo Detected workflow: %%f (Type: !workflow_type!)
+            )
+        )
+    )
+    
+    REM If no workflows found locally, try to get from GitHub
+    if !workflow_count! EQU 0 (
+        echo No local workflows found. Checking GitHub API...
+        gh workflow list --repo "%REPO_FULL_NAME%" --json name,path,state
+    )
+    
+    echo.
+    echo [94mℹ️ Configuration Summary[0m
+    echo Working directory: %CD%
+    echo Repository: %REPO_FULL_NAME%
+    echo Total workflows detected: !workflow_count!
+    echo Test workflows: !test_workflows!
+    echo Release workflows: !release_workflows!
+    echo.
+    echo [92m✅ Detection complete.[0m
+    
+    exit /b 0
+)
+
+REM Automatic workflow analysis in Windows Batch mode
+echo [93m🔶 CLAUDE HELPER SCRIPT: Automatic Workflow Analysis[0m
 echo.
-echo Commands:
-echo   list               List recent workflow runs from GitHub
-echo   logs [RUN_ID]      Get logs for a specific workflow run
-echo   tests              Get logs for the latest test workflow run
-echo   build              Get logs for the latest build/release workflow run
-echo   saved              List all saved log files
-echo   latest             Get the 3 most recent logs (default action)
+echo This script automatically:
+echo   1. Detects repository information and available workflows
+echo   2. Categorizes workflows by type (test, release, lint, docs)
+echo   3. Prioritizes finding failed workflows that need attention
+echo   4. Analyzes logs with intelligent error classification
+echo   5. Shows workflow run statistics and activity summary
 echo.
-echo Examples:
-echo   %0 list            List all recent workflow runs
-echo   %0 logs 123456789  Get logs for workflow run ID 123456789
-echo   %0 tests           Get logs for the latest test workflow run
-echo   %0 saved           List all saved log files
+echo [94mℹ️ IMPORTANT:[0m For full functionality on Windows, please use WSL or Git Bash:
+echo   wsl ./get_errorlogs.sh    [Using WSL]
+echo   bash ./get_errorlogs.sh   [Using Git Bash]
+echo.
+echo [94mℹ️ Available Commands:[0m
+echo   %0 detect          Auto-detect repository info and workflows
+echo   %0 workflows       List detected workflows with types
+echo   %0 tests           Get logs for test workflows
+echo   %0 build           Get logs for build/release workflows
+echo   %0 lint            Get logs for linting workflows
+echo   %0 docs            Get logs for documentation workflows
 echo   %0 latest          Get the 3 most recent logs
+echo   %0 search "pattern" Search all logs for a specific pattern
+echo   %0 saved           List all saved log files
+echo   %0 list            List all workflow runs from GitHub
+echo   %0 help            Show complete help with all commands
+echo.
+echo [94mℹ️ ENHANCED AUTOMATIC DETECTION:[0m
+echo   This script features improved detection:
+echo   - Multi-signal workflow categorization for better accuracy
+echo   - Enhanced GitHub API integration for detailed workflow information
+echo   - Automatic repository detection from git remote URLs
+echo   - Smart workflow classification based on file content and naming
+echo   - Improved workflow analysis with failure prioritization
 echo.
 
 REM Check if we have any saved logs first

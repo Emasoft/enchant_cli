@@ -244,13 +244,17 @@ jobs:
     #     TEST_ENV: "true" # Ensure test config is used
     #   timeout-minutes: 15 # Generous overall timeout
 
-    # - name: Upload coverage to Codecov (Post-Publish)
-    #   uses: codecov/codecov-action@v4 # Use v4
-    #   with:
-    #     token: ${{ secrets.CODECOV_API_TOKEN }} # Use token from secrets
-    #     # file: ./coverage.xml # Default is ./coverage.xml
-    #     flags: postpublish_tests # Use a different flag if running tests here
-    #     fail_ci_if_error: true # Fail workflow if upload error occurs
-    #   env:
-    #      CODECOV_TOKEN: ${{ secrets.CODECOV_API_TOKEN }} # Some actions prefer env var
+    - name: Upload coverage to Codecov (Post-Publish)
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_API_TOKEN || secrets.CODECOV_TOKEN }} # Try both token formats
+        file: ./coverage.xml # Explicitly specify the coverage file
+        flags: pypi_publish # Flag for categorization in Codecov UI
+        fail_ci_if_error: false # Don't fail workflow if upload error occurs
+        verbose: true # Enable verbose output for better debugging
+        name: codecov-publish # Add custom upload name for context
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_API_TOKEN || secrets.CODECOV_TOKEN }} # Some actions prefer env var
+        # Add GitHub context as environment variables for better reporting
+        CODECOV_ENV: GITHUB_WORKFLOW,GITHUB_RUN_ID,GITHUB_REF,GITHUB_SHA
 

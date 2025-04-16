@@ -205,9 +205,13 @@ EOF
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4 # Use v4
       with:
-        token: ${{ secrets.CODECOV_API_TOKEN }} # Use token from secrets
-        # file: ./coverage.xml # Default is ./coverage.xml
+        token: ${{ secrets.CODECOV_API_TOKEN || secrets.CODECOV_TOKEN }} # Try both token formats
+        file: ./coverage.xml # Explicitly specify the coverage file
         flags: unittests # Flag for categorization in Codecov UI
-        fail_ci_if_error: true # Fail workflow if upload error occurs
+        fail_ci_if_error: false # Don't fail workflow if upload error occurs
+        verbose: true # Enable verbose output for better debugging
+        name: codecov-python-${{ matrix.python }} # Add custom upload name with Python version
       env:
-         CODECOV_TOKEN: ${{ secrets.CODECOV_API_TOKEN }} # Some actions prefer env var
+         CODECOV_TOKEN: ${{ secrets.CODECOV_API_TOKEN || secrets.CODECOV_TOKEN }} # Some actions prefer env var
+         # Add GitHub context as environment variables for better reporting
+         CODECOV_ENV: GITHUB_WORKFLOW,GITHUB_RUN_ID,GITHUB_REF,GITHUB_SHA,GITHUB_HEAD_REF

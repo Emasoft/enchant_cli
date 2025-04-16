@@ -1,10 +1,10 @@
 #!/bin/bash
 # get_errorlogs.sh - CLAUDE HELPER SCRIPT to fetch error logs from GitHub Actions workflows
-# Version 1.1.0 - Enhanced to be fully portable and auto-detect repository details
+# Version 1.2.0 - Enhanced workflow detection and improved GitHub API integration
 set -eo pipefail
 
 # Script version
-SCRIPT_VERSION="1.1.0"
+SCRIPT_VERSION="1.2.0"
 
 # Default configuration settings
 CONFIG_FILE=".claude_helper_config"
@@ -13,6 +13,19 @@ MAX_LOG_AGE_DAYS=30        # Maximum age in days for log files before cleanup
 MAX_TOTAL_LOGS=50          # Maximum total log files to keep
 DEFAULT_OUTPUT_LINES=50    # Default number of lines to display when truncating
 DO_TRUNCATE=false          # Default truncation behavior - now false by default
+
+# Initialize common arrays (needed for wider shell compatibility)
+declare -a AVAILABLE_WORKFLOWS=()
+declare -a TEST_WORKFLOWS=()
+declare -a RELEASE_WORKFLOWS=()
+declare -a LINT_WORKFLOWS=()
+declare -a DOCS_WORKFLOWS=()
+declare -a OTHER_WORKFLOWS=()
+declare -a recent_logs=()
+declare -a saved_lint_logs=()
+declare -a saved_docs_logs=()
+declare -a saved_test_logs=()
+declare -a saved_build_logs=()
 
 # Parse command-line options
 for arg in "$@"; do
@@ -185,23 +198,85 @@ detect_workflows() {
             if [ -f "$workflow_file" ]; then
                 workflow_files+=("$workflow_file")
                 
-                # Extract workflow name from the file
-                local workflow_name=$(grep -E "name:" "$workflow_file" | head -1 | sed 's/name:[[:space:]]*//g' | tr -d '"'"'" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                # Enhanced extraction of workflow name with better pattern matching
+                local workflow_name=$(grep -E "^[ \t]*name:" "$workflow_file" | head -1 | sed 's/name:[[:space:]]*//g' | tr -d '"'"'" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                
+                # If that fails, try with awk for more robust extraction
+                if [ -z "$workflow_name" ]; then
+                    workflow_name=$(awk '/^name:/ {sub(/^name:[[:space:]]*/, ""); gsub(/^[[:space:]]+|[[:space:]]+$/, ""); gsub(/["\047]/, ""); print; exit}' "$workflow_file" 2>/dev/null || echo "")
+                fi
+                
                 if [ -n "$workflow_name" ]; then
                     workflows+=("$workflow_name")
                     print_info "Detected local workflow: $workflow_name ($workflow_file)"
                     
-                    # Try to determine workflow type
-                    if grep -i -E "\btests\b|\btest\b|\btesting\b|\bci\b" "$workflow_file" >/dev/null; then
+                    # Enhanced workflow type detection with multiple signals
+                    local is_test=false
+                    local is_release=false
+                    local is_lint=false
+                    local is_docs=false
+                    
+                    # Check workflow name first
+                    if [[ "$workflow_name" =~ [tT]est|CI ]]; then
+                        is_test=true
+                    elif [[ "$workflow_name" =~ [rR]elease|[dD]eploy|[pP]ublish|[bB]uild|CD ]]; then
+                        is_release=true
+                    elif [[ "$workflow_name" =~ [lL]int|[sS]tyle|[fF]ormat|[qQ]uality ]]; then
+                        is_lint=true
+                    elif [[ "$workflow_name" =~ [dD]ocs|[dD]ocumentation ]]; then
+                        is_docs=true
+                    fi
+                    
+                    # Check workflow content for more signals
+                    if grep -i -E "\btests\b|\btest\b|\btesting\b|\bci\b|\bpytest\b|\bunit\b|\bintegration\b" "$workflow_file" >/dev/null; then
+                        is_test=true
+                    fi
+                    if grep -i -E "\brelease\b|\bdeploy\b|\bpublish\b|\bbuild\b|\bcd\b|\bpypi\b|\bnpm\b|\bdocker\b|\bregistry\b" "$workflow_file" >/dev/null; then
+                        is_release=true
+                    fi
+                    if grep -i -E "\blint\b|\bstyle\b|\bformat\b|\bquality\b|\bblack\b|\bflake8\b|\beslint\b|\bruff\b|\bchecks\b|\bpre-commit\b" "$workflow_file" >/dev/null; then
+                        is_lint=true
+                    fi
+                    if grep -i -E "\bdocs\b|\bdocumentation\b|\bsphinx\b|\bmdbook\b|\bgithub\s+pages\b|\bgh\s+pages\b" "$workflow_file" >/dev/null; then
+                        is_docs=true
+                    fi
+                    
+                    # Check for specific job types as additional signal
+                    if grep -i -E "steps:.*pytest|steps:.*\btest\b|steps:.*\bunit\b|steps:.*\bintegration\b" "$workflow_file" >/dev/null; then
+                        is_test=true
+                    fi
+                    if grep -i -E "steps:.*\bpypi\b|steps:.*\bnpm\b|steps:.*\bdocker\b|steps:.*\bpublish\b|steps:.*\brelease\b" "$workflow_file" >/dev/null; then
+                        is_release=true
+                    fi
+                    if grep -i -E "steps:.*\blint\b|steps:.*\bstyle\b|steps:.*\bformat\b|steps:.*\black\b|steps:.*\bflake8\b|steps:.*eslint\b" "$workflow_file" >/dev/null; then
+                        is_lint=true
+                    fi
+                    if grep -i -E "steps:.*\bdocs\b|steps:.*\bsphinx\b|steps:.*\bgh-pages\b" "$workflow_file" >/dev/null; then
+                        is_docs=true
+                    fi
+                    
+                    # Check file path as final signal
+                    if [[ "$workflow_file" =~ [tT]est|CI ]]; then
+                        is_test=true
+                    elif [[ "$workflow_file" =~ [rR]elease|[dD]eploy|[pP]ublish|[bB]uild|CD ]]; then
+                        is_release=true
+                    elif [[ "$workflow_file" =~ [lL]int|[sS]tyle|[fF]ormat|[qQ]uality ]]; then
+                        is_lint=true
+                    elif [[ "$workflow_file" =~ [dD]ocs|[dD]ocumentation ]]; then
+                        is_docs=true
+                    fi
+                    
+                    # Determine final type based on cumulative signals
+                    if [ "$is_test" = "true" ]; then
                         workflow_types+=("test")
                         print_info "  - Type: Testing workflow"
-                    elif grep -i -E "\brelease\b|\bdeploy\b|\bpublish\b|\bbuild\b|\bcd\b" "$workflow_file" >/dev/null; then
+                    elif [ "$is_release" = "true" ]; then
                         workflow_types+=("release")
                         print_info "  - Type: Release/Deployment workflow"
-                    elif grep -i -E "\blint\b|\bstyle\b|\bformat\b|\bquality\b" "$workflow_file" >/dev/null; then
+                    elif [ "$is_lint" = "true" ]; then
                         workflow_types+=("lint")
                         print_info "  - Type: Linting/Code quality workflow"
-                    elif grep -i -E "\bdocs\b|\bdocumentation\b" "$workflow_file" >/dev/null; then
+                    elif [ "$is_docs" = "true" ]; then
                         workflow_types+=("docs")
                         print_info "  - Type: Documentation workflow"
                     else
@@ -284,24 +359,108 @@ detect_workflows() {
             # Try to list workflows from GitHub
             if gh workflow list --repo "$REPO_FULL_NAME" &>/dev/null; then
                 print_success "Successfully connected to GitHub API for $REPO_FULL_NAME"
-                mapfile -t remote_workflows < <(gh workflow list --repo "$REPO_FULL_NAME" --json name,path -q '.[] | "\(.name)|\(.path)"' 2>/dev/null)
+                # More compatible approach than mapfile
+                unset remote_workflows
+                while IFS= read -r line; do
+                    remote_workflows+=("$line")
+                done < <(gh workflow list --repo "$REPO_FULL_NAME" --json name,path,state -q '.[] | "\(.name)|\(.path)|\(.state)"' 2>/dev/null)
+                
+                # Get more workflow details in a separate step if possible
+                local has_detailed_info=false
+                unset workflow_details
+                if gh api repos/$REPO_FULL_NAME/actions/workflows &>/dev/null; then
+                    has_detailed_info=true
+                    while IFS= read -r line; do
+                        workflow_details+=("$line")
+                    done < <(gh api repos/$REPO_FULL_NAME/actions/workflows -q '.workflows[] | "\(.id)|\(.name)|\(.path)|\(.state)"' 2>/dev/null)
+                fi
+                
                 for workflow_data in "${remote_workflows[@]}"; do
                     local workflow_name=$(echo "$workflow_data" | cut -d'|' -f1)
                     local workflow_path=$(echo "$workflow_data" | cut -d'|' -f2)
+                    local workflow_state=$(echo "$workflow_data" | cut -d'|' -f3)
                     workflows+=("$workflow_name")
-                    print_info "Detected remote workflow: $workflow_name ($workflow_path)"
                     
-                    # Try to determine workflow type from name
+                    # Print state information if available
+                    if [ -n "$workflow_state" ]; then
+                        print_info "Detected remote workflow: $workflow_name ($workflow_path, state: $workflow_state)"
+                    else
+                        print_info "Detected remote workflow: $workflow_name ($workflow_path)"
+                    fi
+                    
+                    # Enhanced workflow type detection with multiple signals
+                    local is_test=false
+                    local is_release=false
+                    local is_lint=false
+                    local is_docs=false
+                    
+                    # Check workflow name first
                     if [[ "$workflow_name" =~ [tT]est|CI ]]; then
+                        is_test=true
+                    elif [[ "$workflow_name" =~ [rR]elease|[dD]eploy|[pP]ublish|[bB]uild|CD ]]; then
+                        is_release=true
+                    elif [[ "$workflow_name" =~ [lL]int|[sS]tyle|[fF]ormat|[qQ]uality ]]; then
+                        is_lint=true
+                    elif [[ "$workflow_name" =~ [dD]ocs|[dD]ocumentation ]]; then
+                        is_docs=true
+                    fi
+                    
+                    # Check path as additional signal
+                    if [[ "$workflow_path" =~ [tT]est|CI ]]; then
+                        is_test=true
+                    elif [[ "$workflow_path" =~ [rR]elease|[dD]eploy|[pP]ublish|[bB]uild|CD ]]; then
+                        is_release=true
+                    elif [[ "$workflow_path" =~ [lL]int|[sS]tyle|[fF]ormat|[qQ]uality ]]; then
+                        is_lint=true
+                    elif [[ "$workflow_path" =~ [dD]ocs|[dD]ocumentation ]]; then
+                        is_docs=true
+                    fi
+                    
+                    # Try to fetch and check workflow file contents
+                    if [ "$has_detailed_info" = "true" ]; then
+                        # We can try to get more details about this workflow
+                        for detail in "${workflow_details[@]}"; do
+                            local detail_path=$(echo "$detail" | cut -d'|' -f3)
+                            if [ "$detail_path" = "$workflow_path" ]; then
+                                # Found matching workflow details
+                                local detail_id=$(echo "$detail" | cut -d'|' -f1)
+                                
+                                # Use workflow detail to enhance detection if possible
+                                if gh api repos/$REPO_FULL_NAME/actions/workflows/$detail_id/content &>/dev/null; then
+                                    # We can fetch the actual workflow content
+                                    local workflow_content
+                                    workflow_content=$(gh api repos/$REPO_FULL_NAME/actions/workflows/$detail_id/content --raw-field "ref=main" 2>/dev/null)
+                                    
+                                    # Check content for signals
+                                    if echo "$workflow_content" | grep -i -E "\btest\b|\btesting\b|\bci\b|\bpytest\b|\bunit\b|\bintegration\b" &>/dev/null; then
+                                        is_test=true
+                                    fi
+                                    if echo "$workflow_content" | grep -i -E "\brelease\b|\bdeploy\b|\bpublish\b|\bbuild\b|\bcd\b|\bpypi\b|\bnpm\b|\bdocker\b|\bregistry\b" &>/dev/null; then
+                                        is_release=true
+                                    fi
+                                    if echo "$workflow_content" | grep -i -E "\blint\b|\bstyle\b|\bformat\b|\bquality\b|\bblack\b|\bflake8\b|\beslint\b|\bruff\b" &>/dev/null; then
+                                        is_lint=true
+                                    fi
+                                    if echo "$workflow_content" | grep -i -E "\bdocs\b|\bdocumentation\b|\bsphinx\b|\bmdbook\b|\bgithub pages\b|\bgh-pages\b" &>/dev/null; then
+                                        is_docs=true
+                                    fi
+                                fi
+                                break
+                            fi
+                        done
+                    fi
+                    
+                    # Determine final type based on cumulative signals
+                    if [ "$is_test" = "true" ]; then
                         workflow_types+=("test")
                         print_info "  - Type: Testing workflow"
-                    elif [[ "$workflow_name" =~ [rR]elease|[dD]eploy|[pP]ublish|[bB]uild|CD ]]; then
+                    elif [ "$is_release" = "true" ]; then
                         workflow_types+=("release")
                         print_info "  - Type: Release/Deployment workflow"
-                    elif [[ "$workflow_name" =~ [lL]int|[sS]tyle|[fF]ormat|[qQ]uality ]]; then
+                    elif [ "$is_lint" = "true" ]; then
                         workflow_types+=("lint")
                         print_info "  - Type: Linting/Code quality workflow"
-                    elif [[ "$workflow_name" =~ [dD]ocs|[dD]ocumentation ]]; then
+                    elif [ "$is_docs" = "true" ]; then
                         workflow_types+=("docs")
                         print_info "  - Type: Documentation workflow"
                     else
@@ -677,13 +836,13 @@ EOF
         print_info "Extracting detailed errors with context..."
         
         # Extract critical errors with more context
-        grep -n -A 10 -B 5 -E "${ERROR_PATTERNS["critical"]}" "$log_file" >> "$error_file" 2>/dev/null || true
+        grep -n -A 10 -B 5 -E "$ERROR_PATTERN_CRITICAL" "$log_file" >> "$error_file" 2>/dev/null || true
         
         # Extract severe errors with context 
-        grep -n -A 8 -B 3 -E "${ERROR_PATTERNS["severe"]}" "$log_file" | grep -v -E "${ERROR_PATTERNS["critical"]}" >> "$error_file" 2>/dev/null || true
+        grep -n -A 8 -B 3 -E "$ERROR_PATTERN_SEVERE" "$log_file" | grep -v -E "$ERROR_PATTERN_CRITICAL" >> "$error_file" 2>/dev/null || true
         
         # Extract warnings with less context
-        grep -n -A 3 -B 1 -E "${ERROR_PATTERNS["warning"]}" "$log_file" | grep -v -E "${ERROR_PATTERNS["critical"]}|${ERROR_PATTERNS["severe"]}" >> "$error_file" 2>/dev/null || true
+        grep -n -A 3 -B 1 -E "$ERROR_PATTERN_WARNING" "$log_file" | grep -v -E "$ERROR_PATTERN_CRITICAL|$ERROR_PATTERN_SEVERE" >> "$error_file" 2>/dev/null || true
         
         # Capture additional context around errors (like function names, class names, file paths)
         grep -n -B 2 -A 0 -E "at [a-zA-Z0-9_.]+\.[a-zA-Z0-9_]+\(" "$log_file" >> "$error_file" 2>/dev/null || true
@@ -864,12 +1023,10 @@ MAX_LOGS_PER_WORKFLOW=5  # Maximum number of log files to keep per workflow ID
 MAX_LOG_AGE_DAYS=30      # Maximum age in days for log files before cleanup
 MAX_TOTAL_LOGS=50        # Maximum total log files to keep
 
-# Enhanced error pattern categories
-declare -A ERROR_PATTERNS=(
-    ["critical"]="Process completed with exit code [1-9]|fatal error|fatal:|FATAL ERROR|Assertion failed|Segmentation fault|core dumped|killed|ERROR:|Connection refused|panic|PANIC|assert|ASSERT|terminated|abort|SIGSEGV|SIGABRT|SIGILL|SIGFPE"
-    ["severe"]="exit code [1-9]|failure:|failed with|FAILED|Exception|exception:|Error:|error:|undefined reference|Cannot find|not found|No such file|Permission denied|AccessDenied|Could not access|Cannot access|ImportError|ModuleNotFoundError|TypeError|ValueError|KeyError|AttributeError|AssertionError|UnboundLocalError|IndexError|SyntaxError|NameError|RuntimeError|unexpected|failed to|EACCES|EPERM|ENOENT|compilation failed|command failed|exited with code"
-    ["warning"]="WARNING:|warning:|deprecated|Deprecated|DEPRECATED|fixme|FIXME|TODO|todo:|ignored|skipped|suspicious|insecure|unsafe|consider|recommended|inconsistent|possibly|PendingDeprecationWarning|FutureWarning|UserWarning|ResourceWarning"
-)
+# Enhanced error pattern categories - use separate variables instead of associative array
+ERROR_PATTERN_CRITICAL="Process completed with exit code [1-9]|fatal error|fatal:|FATAL ERROR|Assertion failed|Segmentation fault|core dumped|killed|ERROR:|Connection refused|panic|PANIC|assert|ASSERT|terminated|abort|SIGSEGV|SIGABRT|SIGILL|SIGFPE"
+ERROR_PATTERN_SEVERE="exit code [1-9]|failure:|failed with|FAILED|Exception|exception:|Error:|error:|undefined reference|Cannot find|not found|No such file|Permission denied|AccessDenied|Could not access|Cannot access|ImportError|ModuleNotFoundError|TypeError|ValueError|KeyError|AttributeError|AssertionError|UnboundLocalError|IndexError|SyntaxError|NameError|RuntimeError|unexpected|failed to|EACCES|EPERM|ENOENT|compilation failed|command failed|exited with code"
+ERROR_PATTERN_WARNING="WARNING:|warning:|deprecated|Deprecated|DEPRECATED|fixme|FIXME|TODO|todo:|ignored|skipped|suspicious|insecure|unsafe|consider|recommended|inconsistent|possibly|PendingDeprecationWarning|FutureWarning|UserWarning|ResourceWarning"
 
 # Function to find local logs for a workflow ID
 find_local_logs() {
@@ -979,7 +1136,11 @@ cleanup_old_logs() {
     
     if [ "$delete_count" -gt 0 ]; then
         # Sort by timestamp, oldest first
-        mapfile -t sorted_logs < <(printf '%s\n' "${all_logs[@]}" | sort)
+        # More compatible approach than mapfile
+        unset sorted_logs
+        while IFS= read -r line; do
+            sorted_logs+=("$line")
+        done < <(printf '%s\n' "${all_logs[@]}" | sort)
         
         print_info "Maintaining maximum of $MAX_TOTAL_LOGS log files (currently have $total_log_count)"
         
@@ -1032,9 +1193,9 @@ classify_errors() {
     echo "───────────────────────────────────────────────────────────────" >> "$output_file"
     
     # First, check if there are any critical errors
-    if grep -q -E "${ERROR_PATTERNS["critical"]}" "$log_file"; then
+    if grep -q -E "$ERROR_PATTERN_CRITICAL" "$log_file"; then
         # Get critical errors with line numbers
-        local critical_lines=$(grep -n -E "${ERROR_PATTERNS["critical"]}" "$log_file" | cut -d':' -f1 | head -20)
+        local critical_lines=$(grep -n -E "$ERROR_PATTERN_CRITICAL" "$log_file" | cut -d':' -f1 | head -20)
         critical_count=$(echo "$critical_lines" | wc -l)
         
         # Process each critical error line to extract meaningful context
@@ -1079,9 +1240,9 @@ classify_errors() {
     print_severe "SEVERE ERRORS:" >> "$output_file"
     echo "───────────────────────────────────────────────────────────────" >> "$output_file"
     
-    if grep -q -E "${ERROR_PATTERNS["severe"]}" "$log_file" && ! grep -q -E "${ERROR_PATTERNS["critical"]}" "$log_file"; then
+    if grep -q -E "$ERROR_PATTERN_SEVERE" "$log_file" && ! grep -q -E "$ERROR_PATTERN_CRITICAL" "$log_file"; then
         # Get severe errors with line numbers, excluding critical patterns
-        local severe_lines=$(grep -n -E "${ERROR_PATTERNS["severe"]}" "$log_file" | grep -v -E "${ERROR_PATTERNS["critical"]}" | cut -d':' -f1 | head -15)
+        local severe_lines=$(grep -n -E "$ERROR_PATTERN_SEVERE" "$log_file" | grep -v -E "$ERROR_PATTERN_CRITICAL" | cut -d':' -f1 | head -15)
         severe_count=$(echo "$severe_lines" | wc -l)
         
         # Process each severe error line
@@ -1110,9 +1271,9 @@ classify_errors() {
     print_warning "WARNINGS:" >> "$output_file"
     echo "───────────────────────────────────────────────────────────────" >> "$output_file"
     
-    if grep -q -E "${ERROR_PATTERNS["warning"]}" "$log_file" && ! grep -q -E "${ERROR_PATTERNS["critical"]}|${ERROR_PATTERNS["severe"]}" "$log_file"; then
+    if grep -q -E "$ERROR_PATTERN_WARNING" "$log_file" && ! grep -q -E "$ERROR_PATTERN_CRITICAL|$ERROR_PATTERN_SEVERE" "$log_file"; then
         # Get warnings with line numbers, excluding critical and severe patterns
-        local warning_lines=$(grep -n -E "${ERROR_PATTERNS["warning"]}" "$log_file" | grep -v -E "${ERROR_PATTERNS["critical"]}|${ERROR_PATTERNS["severe"]}" | cut -d':' -f1 | head -10)
+        local warning_lines=$(grep -n -E "$ERROR_PATTERN_WARNING" "$log_file" | grep -v -E "$ERROR_PATTERN_CRITICAL|$ERROR_PATTERN_SEVERE" | cut -d':' -f1 | head -10)
         warning_count=$(echo "$warning_lines" | wc -l)
         
         # Process each warning line
@@ -1195,11 +1356,21 @@ find_local_logs_after_last_commit() {
     if [ -z "$last_commit_date" ]; then
         print_warning "Could not determine last commit date, using all logs"
         # List all log files
-        find logs -name "workflow_*.log" -not -name "*.errors" | sort -n
+        # Check if logs directory exists first
+        if [ -d "logs" ]; then
+            find logs -name "workflow_*.log" -not -name "*.errors" | sort -n
+        fi
         return
     fi
     
     print_info "Finding logs created after last commit ($last_commit_date)"
+    
+    # Verify logs directory exists
+    if [ ! -d "logs" ]; then
+        print_info "No logs directory found - creating it"
+        mkdir -p logs
+        return
+    fi
     
     # Find all log files matching the workflow name if specified
     local all_logs=()
@@ -1224,7 +1395,11 @@ find_local_logs_after_last_commit() {
     fi
     
     # Sort logs by timestamp in filename
-    mapfile -t sorted_logs < <(printf '%s\n' "${all_logs[@]}" | sort -n)
+    # More compatible approach than mapfile
+    unset sorted_logs
+    while IFS= read -r line; do
+        sorted_logs+=("$line")
+    done < <(printf '%s\n' "${all_logs[@]}" | sort -n)
     
     # Filter logs created after the last commit
     local recent_logs=()
@@ -1298,7 +1473,11 @@ search_logs() {
     done
     
     # Sort by timestamp, newest first
-    mapfile -t sorted_logs < <(printf '%s\n' "${all_logs[@]}" | sort -r)
+    # More compatible approach than mapfile
+    unset sorted_logs
+    while IFS= read -r line; do
+        sorted_logs+=("$line")
+    done < <(printf '%s\n' "${all_logs[@]}" | sort -r)
     
     local total_matches=0
     local files_with_matches=0
@@ -1397,7 +1576,11 @@ generate_stats() {
     
     # Determine if there are logs after last commit
     local logs_after_commit=0
-    readarray -t recent_logs < <(find_local_logs_after_last_commit "" 50)
+    # More compatible approach than readarray
+    unset recent_logs
+    while IFS= read -r line; do
+        recent_logs+=("$line")
+    done < <(find_local_logs_after_last_commit "" 50)
     logs_after_commit=${#recent_logs[@]}
     
     # Display statistics
@@ -1426,7 +1609,11 @@ generate_stats() {
         done
         
         # Sort by timestamp, newest first
-        mapfile -t sorted_logs < <(printf '%s\n' "${recent_logs[@]}" | sort -r)
+        # More compatible approach than mapfile
+        unset sorted_logs
+        while IFS= read -r line; do
+            sorted_logs+=("$line")
+        done < <(printf '%s\n' "${recent_logs[@]}" | sort -r)
         
         # Display top 5 most recent logs
         for ((i=0; i<5 && i<${#sorted_logs[@]}; i++)); do
@@ -1693,7 +1880,11 @@ case "$1" in
             
             # First check for saved lint logs
             print_info "Looking for saved logs for workflow: $lint_workflow"
-            readarray -t saved_lint_logs < <(find_local_logs_after_last_commit "$lint_workflow" 1)
+            # More compatible approach than readarray
+            unset saved_lint_logs
+            while IFS= read -r line; do
+                saved_lint_logs+=("$line")
+            done < <(find_local_logs_after_last_commit "$lint_workflow" 1)
             
             if [ ${#saved_lint_logs[@]} -gt 0 ]; then
                 log_file="${saved_lint_logs[0]}"
@@ -1739,8 +1930,8 @@ case "$1" in
                 else
                     print_info "No errors file found. Extracting errors now..."
                     # Create an error file on the fly
-                    grep -n -B 5 -A 10 -E "${ERROR_PATTERNS["critical"]}" "$log_file" > "$error_file" 2>/dev/null || true
-                    grep -n -B 3 -A 8 -E "${ERROR_PATTERNS["severe"]}" "$log_file" | grep -v -E "${ERROR_PATTERNS["critical"]}" >> "$error_file" 2>/dev/null || true
+                    grep -n -B 5 -A 10 -E "$ERROR_PATTERN_CRITICAL" "$log_file" > "$error_file" 2>/dev/null || true
+                    grep -n -B 3 -A 8 -E "$ERROR_PATTERN_SEVERE" "$log_file" | grep -v -E "$ERROR_PATTERN_CRITICAL" >> "$error_file" 2>/dev/null || true
                     
                     if [ -s "$error_file" ]; then
                         if [ "$DO_TRUNCATE" = "true" ]; then
@@ -1779,7 +1970,11 @@ case "$1" in
             
             # First check for saved docs logs
             print_info "Looking for saved logs for workflow: $docs_workflow"
-            readarray -t saved_docs_logs < <(find_local_logs_after_last_commit "$docs_workflow" 1)
+            # More compatible approach than readarray
+            unset saved_docs_logs
+            while IFS= read -r line; do
+                saved_docs_logs+=("$line")
+            done < <(find_local_logs_after_last_commit "$docs_workflow" 1)
             
             if [ ${#saved_docs_logs[@]} -gt 0 ]; then
                 log_file="${saved_docs_logs[0]}"
@@ -1825,8 +2020,8 @@ case "$1" in
                 else
                     print_info "No errors file found. Extracting errors now..."
                     # Create an error file on the fly
-                    grep -n -B 5 -A 10 -E "${ERROR_PATTERNS["critical"]}" "$log_file" > "$error_file" 2>/dev/null || true
-                    grep -n -B 3 -A 8 -E "${ERROR_PATTERNS["severe"]}" "$log_file" | grep -v -E "${ERROR_PATTERNS["critical"]}" >> "$error_file" 2>/dev/null || true
+                    grep -n -B 5 -A 10 -E "$ERROR_PATTERN_CRITICAL" "$log_file" > "$error_file" 2>/dev/null || true
+                    grep -n -B 3 -A 8 -E "$ERROR_PATTERN_SEVERE" "$log_file" | grep -v -E "$ERROR_PATTERN_CRITICAL" >> "$error_file" 2>/dev/null || true
                     
                     if [ -s "$error_file" ]; then
                         if [ "$DO_TRUNCATE" = "true" ]; then
@@ -1889,7 +2084,11 @@ case "$1" in
         
         # First check for saved test logs
         print_info "Looking for saved logs for workflow: $test_workflow"
-        readarray -t saved_test_logs < <(find_local_logs_after_last_commit "$test_workflow" 1)
+        # More compatible approach than readarray
+        unset saved_test_logs
+        while IFS= read -r line; do
+            saved_test_logs+=("$line")
+        done < <(find_local_logs_after_last_commit "$test_workflow" 1)
         
         if [ ${#saved_test_logs[@]} -gt 0 ]; then
             log_file="${saved_test_logs[0]}"
@@ -1908,8 +2107,8 @@ case "$1" in
                 classify_errors "$log_file" "$classified_file"
                 
                 # Extract errors with context
-                grep -n -A 10 -B 5 -E "${ERROR_PATTERNS["critical"]}" "$log_file" > "$error_file" 2>/dev/null || true
-                grep -n -A 8 -B 3 -E "${ERROR_PATTERNS["severe"]}" "$log_file" | grep -v -E "${ERROR_PATTERNS["critical"]}" >> "$error_file" 2>/dev/null || true
+                grep -n -A 10 -B 5 -E "$ERROR_PATTERN_CRITICAL" "$log_file" > "$error_file" 2>/dev/null || true
+                grep -n -A 8 -B 3 -E "$ERROR_PATTERN_SEVERE" "$log_file" | grep -v -E "$ERROR_PATTERN_CRITICAL" >> "$error_file" 2>/dev/null || true
             fi
             
             # Display the error summary
@@ -1998,7 +2197,11 @@ case "$1" in
         
         # First check for saved build logs
         print_info "Looking for saved logs for workflow: $build_workflow"
-        readarray -t saved_build_logs < <(find_local_logs_after_last_commit "$build_workflow" 1)
+        # More compatible approach than readarray
+        unset saved_build_logs
+        while IFS= read -r line; do
+            saved_build_logs+=("$line")
+        done < <(find_local_logs_after_last_commit "$build_workflow" 1)
         
         if [ ${#saved_build_logs[@]} -gt 0 ]; then
             log_file="${saved_build_logs[0]}"
@@ -2017,8 +2220,8 @@ case "$1" in
                 classify_errors "$log_file" "$classified_file"
                 
                 # Extract errors with context
-                grep -n -A 10 -B 5 -E "${ERROR_PATTERNS["critical"]}" "$log_file" > "$error_file" 2>/dev/null || true
-                grep -n -A 8 -B 3 -E "${ERROR_PATTERNS["severe"]}" "$log_file" | grep -v -E "${ERROR_PATTERNS["critical"]}" >> "$error_file" 2>/dev/null || true
+                grep -n -A 10 -B 5 -E "$ERROR_PATTERN_CRITICAL" "$log_file" > "$error_file" 2>/dev/null || true
+                grep -n -A 8 -B 3 -E "$ERROR_PATTERN_SEVERE" "$log_file" | grep -v -E "$ERROR_PATTERN_CRITICAL" >> "$error_file" 2>/dev/null || true
             fi
             
             # Display the error summary
@@ -2075,11 +2278,29 @@ case "$1" in
     latest)
         # Get the 3 most recent logs after the last commit
         print_header "Finding the 3 most recent workflow logs"
-        readarray -t recent_logs < <(find_local_logs_after_last_commit "" 3)
+        
+        # Create logs directory if it doesn't exist
+        if [ ! -d "logs" ]; then
+            mkdir -p logs
+            print_info "Created logs directory"
+        fi
+        
+        # More compatible approach than readarray
+        unset recent_logs
+        while IFS= read -r line; do
+            # Only add the line if it's a valid file path to a log file
+            if [ -f "$line" ]; then
+                recent_logs+=("$line")
+            fi
+        done < <(find_local_logs_after_last_commit "" 3)
         
         if [ ${#recent_logs[@]} -gt 0 ]; then
             # Sort logs by the detected workflow type for better organization
-            declare -A workflow_logs
+            # Use non-associative arrays for better compatibility
+            unset workflow_types
+            unset workflow_files
+            declare -a workflow_types=()
+            declare -a workflow_files=()
             
             # Group logs by workflow type
             for log_file in "${recent_logs[@]}"; do
@@ -2093,46 +2314,54 @@ case "$1" in
                 done
                 
                 # Add to the appropriate group
-                if [ -n "${workflow_logs[$workflow_type]}" ]; then
-                    workflow_logs[$workflow_type]="${workflow_logs[$workflow_type]} $log_file"
-                else
-                    workflow_logs[$workflow_type]="$log_file"
-                fi
+                workflow_types+=("$workflow_type")
+                workflow_files+=("$log_file")
             done
             
-            # Process each workflow type
-            for workflow_type in "${!workflow_logs[@]}"; do
+            # Process each workflow type/file pair
+            for ((i=0; i<${#workflow_types[@]}; i++)); do
+                workflow_type="${workflow_types[$i]}"
+                log_file="${workflow_files[$i]}"
+                
+                # Skip if the log file doesn't exist
+                if [ ! -f "$log_file" ]; then
+                    continue
+                fi
+                
                 print_header "Logs for workflow: $workflow_type"
                 
-                # Process each log file for this workflow
-                for log_file in ${workflow_logs[$workflow_type]}; do
-                    run_id=$(basename "$log_file" | cut -d '_' -f 2)
-                    timestamp=$(basename "$log_file" | cut -d '_' -f 3 | cut -d '.' -f 1)
-                    print_success "Log file: $log_file (Run ID: $run_id, Timestamp: $timestamp)"
-                    
-                    # Process the saved log
-                    error_file="${log_file}.errors"
-                    classified_file="${log_file}.classified"
-                    
-                    # If we don't have the error files, create them
-                    if [ ! -f "$classified_file" ]; then
-                        print_info "Analyzing log file..."
-                        # Run the classification
-                        classify_errors "$log_file" "$classified_file"
-                    fi
-                    
-                    # Display the error summary
-                    if [ -f "$classified_file" ] && [ -s "$classified_file" ]; then
-                        print_important "CLASSIFIED ERROR SUMMARY:"
-                        cat "$classified_file"
-                        echo ""
-                    else
-                        print_info "No classified error summary available."
-                    fi
-                    
-                    # Display a separator between logs
-                    echo "───────────────────────────────────────────────────────────────"
-                done
+                # Extract the run ID and timestamp from the filename if possible
+                run_id=""
+                timestamp=""
+                if [[ "$log_file" =~ workflow_([^_]+)_([^.]+) ]]; then
+                    run_id="${BASH_REMATCH[1]}"
+                    timestamp="${BASH_REMATCH[2]}"
+                fi
+                
+                print_success "Log file: $log_file (Run ID: $run_id, Timestamp: $timestamp)"
+                
+                # Process the saved log
+                error_file="${log_file}.errors"
+                classified_file="${log_file}.classified"
+                
+                # If we don't have the error files, create them
+                if [ ! -f "$classified_file" ]; then
+                    print_info "Analyzing log file..."
+                    # Run the classification
+                    classify_errors "$log_file" "$classified_file"
+                fi
+                
+                # Display the error summary
+                if [ -f "$classified_file" ] && [ -s "$classified_file" ]; then
+                    print_important "CLASSIFIED ERROR SUMMARY:"
+                    cat "$classified_file"
+                    echo ""
+                else
+                    print_info "No classified error summary available."
+                fi
+                
+                # Display a separator between logs
+                echo "───────────────────────────────────────────────────────────────"
             done
         else
             print_error "No saved log files found after the last commit."
@@ -2215,23 +2444,118 @@ case "$1" in
         echo ""
         ;;
     *)
-        # Handle action based on what we have available
-        if [ -d "logs" ] && [ "$(find logs -name "workflow_*.log" | wc -l)" -gt 0 ]; then
-            # We have saved logs, show the latest ones
-            print_info "No command specified. Showing the latest logs..."
-            "$0" latest
-        else
-            # No saved logs available, run list first
-            print_info "No saved logs found. Showing available workflow runs..."
-            get_workflow_runs
-            
-            # Also show available commands
-            print_header "Available Commands"
-            echo "Try one of these commands:"
-            echo "  $0 logs <RUN_ID>      - Get logs for a specific workflow run"
-            echo "  $0 tests              - Get logs for the latest test workflow run"
-            echo "  $0 help               - Show all available commands"
+        # Handle action based on what we have available - fully automatic mode
+        print_header "CLAUDE HELPER SCRIPT: Automatic Workflow Analysis"
+        echo ""
+        
+        # Initialize script environment to detect repository and workflow information
+        initialize_script
+        
+        # Auto-classify the current repository state
+        print_header "Auto-detecting Project State"
+        
+        # Check if we have any failed workflows
+        print_info "Checking for failed workflows..."
+        failed_workflow_found=false
+        
+        # Check for test workflow failures first
+        if [ ${#TEST_WORKFLOWS[@]} -gt 0 ]; then
+            for test_workflow in "${TEST_WORKFLOWS[@]}"; do
+                print_info "Checking for failed '$test_workflow' runs..."
+                
+                # Try to find a failed run for this workflow
+                failed_run_id=$(gh run list --repo "$REPO_FULL_NAME" --workflow "$test_workflow" --status failure --limit 1 --json databaseId -q '.[0].databaseId' 2>/dev/null || echo "")
+                
+                if [ -n "$failed_run_id" ]; then
+                    print_warning "Found failed '$test_workflow' run with ID: $failed_run_id"
+                    print_info "Fetching error logs for this failure..."
+                    get_workflow_logs "$failed_run_id"
+                    failed_workflow_found=true
+                    break  # Exit after finding first failure
+                fi
+            done
         fi
+        
+        # If no test failures found, check for release workflow failures
+        if [ "$failed_workflow_found" = "false" ] && [ ${#RELEASE_WORKFLOWS[@]} -gt 0 ]; then
+            for release_workflow in "${RELEASE_WORKFLOWS[@]}"; do
+                print_info "Checking for failed '$release_workflow' runs..."
+                
+                # Try to find a failed run for this workflow
+                failed_run_id=$(gh run list --repo "$REPO_FULL_NAME" --workflow "$release_workflow" --status failure --limit 1 --json databaseId -q '.[0].databaseId' 2>/dev/null || echo "")
+                
+                if [ -n "$failed_run_id" ]; then
+                    print_warning "Found failed '$release_workflow' run with ID: $failed_run_id"
+                    print_info "Fetching error logs for this failure..."
+                    get_workflow_logs "$failed_run_id"
+                    failed_workflow_found=true
+                    break  # Exit after finding first failure
+                fi
+            done
+        fi
+        
+        # If no failures found yet, check any other workflows
+        if [ "$failed_workflow_found" = "false" ]; then
+            # Check if we have any saved logs to work with
+            if [ -d "logs" ] && [ "$(find logs -name "workflow_*.log" | wc -l)" -gt 0 ]; then
+                # We have saved logs, show the latest ones
+                print_info "No recent workflow failures found. Showing the latest logs..."
+                "$0" latest
+            else
+                # No saved logs available, check for any most recent workflow runs
+                print_info "No workflow failures or saved logs found. Checking most recent runs..."
+                
+                # Get the most recent workflow run of any type
+                latest_run_id=$(gh run list --repo "$REPO_FULL_NAME" --limit 1 --json databaseId -q '.[0].databaseId' 2>/dev/null || echo "")
+                
+                if [ -n "$latest_run_id" ]; then
+                    print_info "Found most recent workflow run with ID: $latest_run_id"
+                    print_info "Fetching logs for this run..."
+                    get_workflow_logs "$latest_run_id"
+                else
+                    # No workflow runs at all - inform the user and show options
+                    print_warning "No recent workflow runs found for this repository."
+                    print_info "You can list all workflow commands with:"
+                    echo "  $0 help"
+                    print_info "Or run one of these commands:"
+                    echo "  $0 detect          - Detect repository and workflow info"
+                    echo "  $0 workflows       - Show detected workflows"
+                    echo "  $0 list            - List recent GitHub workflow runs"
+                fi
+            fi
+        fi
+        
+        # Show workflow summary
+        print_header "Workflow Activity Summary"
+        print_info "Total workflows detected: ${#AVAILABLE_WORKFLOWS[@]}"
+        
+        if [ ${#AVAILABLE_WORKFLOWS[@]} -gt 0 ]; then
+            # Get counts of recent runs by status
+            print_info "Recent workflow activity (last 7 days):"
+            
+            # Try to fetch workflow run statistics
+            all_runs_count=$(gh run list --repo "$REPO_FULL_NAME" --limit 100 --json status,createdAt -q 'length' 2>/dev/null || echo "0")
+            recent_success_count=$(gh run list --repo "$REPO_FULL_NAME" --limit 100 --status completed --json status -q '[.[] | select(.status=="completed")] | length' 2>/dev/null || echo "0")
+            recent_failure_count=$(gh run list --repo "$REPO_FULL_NAME" --limit 100 --status failure --json status -q '[.[] | select(.status=="failure")] | length' 2>/dev/null || echo "0")
+            recent_cancelled_count=$(gh run list --repo "$REPO_FULL_NAME" --limit 100 --status cancelled --json status -q '[.[] | select(.status=="cancelled")] | length' 2>/dev/null || echo "0")
+            
+            echo "  Total runs: $all_runs_count"
+            echo "  Successful: $recent_success_count"
+            echo "  Failed: $recent_failure_count"
+            echo "  Cancelled: $recent_cancelled_count"
+            
+            # Show command for detailed stats
+            echo ""
+            print_info "For more detailed statistics, run:"
+            echo "  $0 stats"
+        fi
+        
+        echo ""
+        print_info "You can get logs for specific workflow types with:"
+        echo "  $0 tests           - Get logs for test workflows"
+        echo "  $0 build           - Get logs for build/release workflows"
+        echo "  $0 lint            - Get logs for linting workflows (if available)"
+        echo "  $0 docs            - Get logs for documentation workflows (if available)"
         ;;
 esac
 
