@@ -6,12 +6,21 @@ SETLOCAL EnableDelayedExpansion
 
 echo === Enchant CLI GitHub Publisher for Windows ===
 
+REM Parse command line arguments to pass through to shell script
+SET ARGS=
+:parse_args
+IF "%~1"=="" GOTO :done_args
+SET ARGS=%ARGS% %1
+SHIFT
+GOTO :parse_args
+:done_args
+
 REM Check for WSL
 WHERE wsl >nul 2>nul
 IF NOT ERRORLEVEL 1 (
     echo Found Windows Subsystem for Linux
     echo Running publish script through WSL...
-    wsl ./publish_to_github.sh
+    wsl ./publish_to_github.sh%ARGS%
     GOTO :END
 )
 
@@ -19,12 +28,12 @@ REM Check for Git Bash
 IF EXIST "%PROGRAMFILES%\Git\bin\bash.exe" (
     echo Found Git Bash
     echo Running publish script through Git Bash...
-    "%PROGRAMFILES%\Git\bin\bash.exe" -c "./publish_to_github.sh"
+    "%PROGRAMFILES%\Git\bin\bash.exe" -c "./publish_to_github.sh%ARGS%"
     GOTO :END
 ) ELSE IF EXIST "%PROGRAMFILES(x86)%\Git\bin\bash.exe" (
     echo Found Git Bash
     echo Running publish script through Git Bash...
-    "%PROGRAMFILES(x86)%\Git\bin\bash.exe" -c "./publish_to_github.sh"
+    "%PROGRAMFILES(x86)%\Git\bin\bash.exe" -c "./publish_to_github.sh%ARGS%"
     GOTO :END
 )
 

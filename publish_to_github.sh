@@ -647,7 +647,7 @@ print_success "Push to GitHub successful."
 LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")
 print_info "Latest version tag: $LATEST_TAG"
 
-# *** STEP 9: Final instructions ***
+# *** STEP 9: Final instructions & verification ***
 print_header "GitHub Integration Complete"
 print_success "All local checks passed and code has been pushed to GitHub."
 echo ""
@@ -669,6 +669,71 @@ echo ""
 echo "      gh release create $LATEST_TAG -t \"Release $LATEST_TAG\" \\"
 echo "        -n \"## What's Changed\\n- Improvements and bug fixes\\n\\n**Full Changelog**: https://github.com/$REPO_FULL_NAME/commits/$LATEST_TAG\""
 echo ""
+
+# Offer to create the release directly if asked
+read -p "Would you like to create the GitHub release now? (y/N) " -n 1 -r CREATE_RELEASE
+echo
+if [[ $CREATE_RELEASE =~ ^[Yy]$ ]]; then
+    print_info "Creating GitHub release for tag $LATEST_TAG..."
+    gh release create "$LATEST_TAG" -t "Release $LATEST_TAG" \
+        -n "## What's Changed
+- Improvements and bug fixes
+- Test sample inclusion fixed
+- Local validation improved
+
+**Full Changelog**: https://github.com/$REPO_FULL_NAME/commits/$LATEST_TAG" || {
+        print_error "Failed to create GitHub release. Please create it manually."
+    }
+    
+    print_success "GitHub release created. The publish workflow should start automatically."
+    print_info "You can monitor its progress at: https://github.com/$REPO_FULL_NAME/actions"
+    
+    # Wait for PyPI publication if the release was created
+    if [ -z "$DRY_RUN" ]; then
+        print_info "Would you like to wait and verify PyPI publication? (This may take several minutes)"
+        read -p "Wait for PyPI publication? (y/N) " -n 1 -r WAIT_PYPI
+        echo
+        
+        if [[ $WAIT_PYPI =~ ^[Yy]$ ]]; then
+            # Extract version number from tag (remove 'v' prefix)
+            VERSION=${LATEST_TAG#v}
+            
+            print_info "Waiting for GitHub Actions workflow to complete and PyPI to update (about 2-3 minutes)..."
+            echo "This will attempt to install version $VERSION from PyPI in 2 minutes..."
+            
+            # Wait for PyPI index to update
+            sleep 120
+            
+            # Try to install the package
+            print_info "Attempting to install enchant-cli==$VERSION from PyPI..."
+            if timeout $TIMEOUT_TESTS "$PYTHON_CMD" -m pip install --no-cache-dir enchant-cli=="$VERSION"; then
+                print_success "Package published and installed successfully from PyPI!"
+                
+                # Verify the installed version
+                print_info "Verifying installed version..."
+                INSTALLED_VERSION=$("$PYTHON_CMD" -m pip show enchant-cli | grep "Version:" | cut -d' ' -f2)
+                if [ "$INSTALLED_VERSION" = "$VERSION" ]; then
+                    print_success "Installed version ($INSTALLED_VERSION) matches expected version ($VERSION)."
+                    
+                    # Try running the CLI to verify basic functionality
+                    if command -v enchant_cli &>/dev/null; then
+                        print_info "Testing installed package functionality..."
+                        enchant_cli --version && print_success "CLI functionality verified!" || print_warning "CLI verification failed."
+                    else
+                        print_warning "CLI command not available. May need to restart shell."
+                    fi
+                else
+                    print_warning "Installed version ($INSTALLED_VERSION) does not match expected version ($VERSION)."
+                fi
+            else
+                print_warning "Package not yet available on PyPI. This is normal if the GitHub Action is still running."
+                print_info "You can check the status at: https://github.com/$REPO_FULL_NAME/actions"
+                print_info "And verify on PyPI later at: https://pypi.org/project/enchant-cli/$VERSION/"
+            fi
+        fi
+    fi
+fi
+
 print_info "📦 The package will be published to PyPI by the GitHub Action when you create a release."
 print_info "🔒 GitHub secrets (PYPI_API_TOKEN, OPENROUTER_API_KEY, CODECOV_API_TOKEN) are automatically configured from your local environment."
 print_info "📚 For more details on the workflow, see docs/dev-guides/CLAUDE.md section 6 (GitHub Integration)."
