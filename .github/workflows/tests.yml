@@ -62,16 +62,32 @@ jobs:
 
     - name: Install dependencies using uv
       run: |
-        # Setup virtual environment for isolation
-        uv venv .venv
-        # Install main dependencies from lock file
-        uv sync
-        # Install the package itself in editable mode
-        uv pip install --system -e .
-        # Install testing dependencies
-        uv pip install --system pytest pytest-cov pytest-html pytest-timeout requests-mock
-        # Install bump-my-version with uv tool
-        uv tool install bump-my-version
+        # Try uv first, then fall back to standard pip if needed
+        if ! command -v uv &> /dev/null; then
+          echo "UV not available, falling back to standard pip"
+          python -m venv .venv
+          source .venv/bin/activate
+          python -m pip install -e .
+          python -m pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
+        else
+          # Setup virtual environment for isolation (with fallback)
+          if ! uv venv .venv; then
+            echo "UV venv creation failed, falling back to standard venv"
+            python -m venv .venv
+            source .venv/bin/activate
+            python -m pip install -e .
+            python -m pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
+          else
+            # Install main dependencies from lock file
+            uv sync || echo "UV sync failed, continuing anyway"
+            # Install the package itself in editable mode
+            uv pip install --system -e .
+            # Install testing dependencies
+            uv pip install --system pytest pytest-cov pytest-html pytest-timeout requests-mock
+            # Install bump-my-version with uv tool (optional)
+            uv tool install bump-my-version || echo "Failed to install bump-my-version, continuing anyway"
+          fi
+        fi
 
     - name: Setup test mocks
       run: |
@@ -152,6 +168,15 @@ EOF
           cp tests/samples/test_sample.txt src/enchant_cli/samples/
           cp tests/samples/test_sample.txt src/enchant_cli/tests/samples/
           echo "✅ Test sample files created in all required locations"
+        fi
+        
+        # Ensure we're using the venv python
+        source .venv/bin/activate || echo "Could not activate venv, using system Python"
+        
+        # Install pytest using pip if it's not already installed
+        if ! python -c "import pytest" &>/dev/null; then
+          echo "Pytest not found, installing it directly with pip"
+          pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
         fi
 
         # Run pytest with extended timeout

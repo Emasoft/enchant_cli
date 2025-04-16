@@ -34,6 +34,12 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install uv
+        # Create a virtual environment
+        python -m venv .venv
+        # Activate it
+        source .venv/bin/activate
+        # Install required packages (no git-chglog as we download it directly)
+        pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
         
     - name: Install GitHub CLI
       run: |
@@ -272,11 +278,20 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip uv
-        uv venv .venv
-        uv sync
-        uv pip install -e .
-        # Install testing dependencies
-        uv pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
+        # Create and activate virtual environment with venv as fallback if uv fails
+        if ! uv venv .venv; then
+          echo "UV venv creation failed, falling back to standard venv"
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -e .
+          pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
+        else
+          # Use uv if it works
+          uv sync
+          uv pip install -e .
+          # Install testing dependencies
+          uv pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
+        fi
         
     - name: Setup test mocks
       run: |
@@ -358,6 +373,15 @@ EOF
           echo "✅ Test sample files created in all required locations"
         fi
         
+        # Ensure we're using the venv python
+        source .venv/bin/activate || echo "Could not activate venv, using system Python"
+        
+        # Install pytest using pip if it's not already installed
+        if ! python -c "import pytest" &>/dev/null; then
+          echo "Pytest not found, installing it directly with pip"
+          pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
+        fi
+        
         python -m pytest tests/ -v \
           --cov=enchant_cli \
           --cov-report=xml \
@@ -397,8 +421,18 @@ EOF
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip uv
-        uv venv .venv
-        uv sync
+        # Create and activate virtual environment with venv as fallback if uv fails
+        if ! uv venv .venv; then
+          echo "UV venv creation failed, falling back to standard venv"
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -e .
+          pip install twine build
+        else
+          # Use uv if it works
+          uv sync
+          uv pip install twine build
+        fi
         
     - name: Check if package already exists on PyPI
       id: check_pypi
