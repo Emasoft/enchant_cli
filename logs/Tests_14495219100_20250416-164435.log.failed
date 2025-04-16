@@ -1,0 +1,12 @@
+124:Shellcheck	Run ShellCheck	2025-04-16T14:27:11.8882960Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+130:Shellcheck	Run ShellCheck	2025-04-16T14:27:12.2647677Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+143:Shellcheck	Run ShellCheck	2025-04-16T14:27:12.2803137Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+175:Shellcheck	Run ShellCheck	2025-04-16T14:27:12.2972715Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+187:Shellcheck	Run ShellCheck	2025-04-16T14:27:12.3179032Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+258:Shellcheck	Run ShellCheck	2025-04-16T14:27:12.3360152Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+268:Shellcheck	Run ShellCheck	2025-04-16T14:27:13.2959442Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+689:test (3.10)	Run tests with pytest	2025-04-16T14:27:25.7888857Z [36;1m  --cov-fail-under=80 \[0m
+1001:test (3.9)	Run tests with pytest	2025-04-16T14:27:26.6755210Z [36;1m  --cov-fail-under=80 \[0m
+1313:test (3.11)	Run tests with pytest	2025-04-16T14:27:25.5547487Z [36;1m  --cov-fail-under=80 \[0m
+1625:test (3.12)	Run tests with pytest	2025-04-16T14:27:25.5033899Z [36;1m  --cov-fail-under=80 \[0m
+1933:test (3.13)	Run tests with pytest	2025-04-16T14:27:24.4886250Z [36;1m  --cov-fail-under=80 \[0m

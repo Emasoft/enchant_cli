@@ -68,6 +68,8 @@ jobs:
         uv sync
         # Install the package itself in editable mode
         uv pip install --system -e .
+        # Install testing dependencies
+        uv pip install --system pytest pytest-cov pytest-html pytest-timeout requests-mock
         # Install bump-my-version with uv tool
         uv tool install bump-my-version
 
@@ -124,9 +126,8 @@ EOF
     - name: Run tests with pytest
       env:
         # PYTHONPATH: src # Not needed if using pytest.ini or editable install
-        OPENROUTER_API_KEY: "TEST_MOCK_KEY_FOR_CI_ONLY" # Use a mock key for CI
+        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }} # Use the real API key from secrets
         TEST_ENV: "true"  # Enable test configuration in translator
-        CI: "true"  # Let tests know they're running in CI
         PYTHONUTF8: 1 # Ensure UTF-8 mode for Python
       run: |
         # Create sample file directories to ensure they exist

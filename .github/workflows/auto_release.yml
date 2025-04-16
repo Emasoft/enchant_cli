@@ -275,6 +275,8 @@ jobs:
         uv venv .venv
         uv sync
         uv pip install -e .
+        # Install testing dependencies
+        uv pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
         
     - name: Setup test mocks
       run: |
@@ -328,9 +330,8 @@ EOF
 
     - name: Run tests
       env:
-        OPENROUTER_API_KEY: "TEST_MOCK_KEY_FOR_CI_ONLY" # Use a mock key for CI
+        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }} # Use the real API key from secrets
         TEST_ENV: "true"
-        CI: "true"  # Let tests know they're running in CI
         PYTHONUTF8: 1
       run: |
         # Create sample file directories to ensure they exist
