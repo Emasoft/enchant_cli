@@ -1944,3 +1944,121 @@ If the PyPI publication verification fails:
      sleep 120 # Wait 2 minutes
      ./publish_to_github.sh --verify-pypi
      ```
+## 9. CLAUDE HELPER SCRIPTS
+
+The project includes a set of specialized helper scripts designed by Claude to facilitate various development and debugging tasks. These scripts are designed to be portable, self-configuring, and adaptable to different project environments.
+
+### 9.1 Error Log Analysis Scripts
+
+- **get_errorlogs.sh/bat**: Advanced GitHub Actions workflow log analysis
+  - Dynamically detects repository information and workflows from the current project
+  - Auto-detects workflow types (tests, releases, lint, docs) without hardcoding
+  - Provides intelligent classification of errors by severity with root cause analysis
+  - Shows full errors by default, with optional truncation via `--truncate` flag
+  - Searches across logs for specific patterns with intelligent context extraction
+  - Manages log rotation and cleanup with age-based policies
+  - Fully portable - works across projects with zero configuration needed
+
+#### Key Features
+
+1. **Intelligent Auto-Detection Capabilities**:
+   - Detects repository owner and name from git config, project files, package metadata
+   - Identifies and categorizes workflows by type (tests, releases, lint, docs)
+   - Extracts project structure information for smart defaults when possible
+   - Falls back gracefully with sensible defaults if detection fails
+   - Works across different project types (Python, Node.js, Rust, etc.)
+
+2. **Advanced Error Analysis & Root Cause Detection**:
+   - Classifies errors by severity (critical, severe, warning)
+   - Intelligently extracts stack traces and context around errors
+   - Performs automated root cause analysis with suggested fixes
+   - Identifies common failure patterns (memory issues, network errors, etc.)
+   - Creates concise classified error summaries with statistics
+   - Shows full error details by default, with truncation optional via --truncate
+
+3. **Improved User Experience**:
+   - Full error output by default (not truncated) for detailed error review
+   - Optional truncation with `--truncate` flag when needed for cleaner display
+   - Organization of logs by workflow type for easier navigation
+   - Color-coded output with severity indicators for better readability
+
+4. **Disk Management**:
+   - Automatic log rotation based on age and count
+   - Cleanup of old logs to prevent disk space issues
+   - Smart detection of logs related to recent commits
+
+#### Command Reference
+
+```bash
+# Get help and see all available commands
+./get_errorlogs.sh help
+
+# Detect repository and workflow information without fetching logs
+./get_errorlogs.sh detect
+
+# List workflows detected in the repository, categorized by type
+./get_errorlogs.sh workflows
+
+# Get logs for specific workflow types
+./get_errorlogs.sh tests      # Test workflows
+./get_errorlogs.sh build      # Build/release workflows
+./get_errorlogs.sh lint       # Linting/quality workflows
+./get_errorlogs.sh docs       # Documentation workflows
+
+# Control output verbosity
+./get_errorlogs.sh tests                # Full error output (default)
+./get_errorlogs.sh --truncate tests     # Truncated output for readability
+
+# Advanced log management
+./get_errorlogs.sh latest     # Get the 3 most recent logs after the last commit
+./get_errorlogs.sh saved      # List all saved log files
+./get_errorlogs.sh logs 123456789  # Get logs for a specific workflow run ID
+
+# Search and analyze
+./get_errorlogs.sh search "error message"  # Search all logs (case insensitive)
+./get_errorlogs.sh search "Exception" true  # Search case-sensitive
+./get_errorlogs.sh classify logs/workflow_12345.log  # Analyze specific log file
+
+# Log maintenance
+./get_errorlogs.sh cleanup 15         # Clean up logs older than 15 days
+./get_errorlogs.sh cleanup --dry-run  # Show what would be cleaned up
+./get_errorlogs.sh stats              # Display log statistics and summary
+```
+
+### 9.2 Using CLAUDE HELPER SCRIPTS Across Projects
+
+The CLAUDE HELPER SCRIPTS are designed to be completely portable and adaptable across different projects without any configuration required:
+
+1. **Zero-Configuration Design**:
+   - Automatically detects repository information from multiple sources
+   - Intelligently identifies project structure and relevant workflow patterns
+   - Adapts to different technology stacks (Python, Node.js, Rust, etc.)
+   - Uses multi-tier detection with graceful fallbacks for maximum reliability
+
+2. **Multi-Source Information Gathering**:
+   - Extracts data from git configuration (remote URLs, branches)
+   - Reads package metadata files (pyproject.toml, package.json, Cargo.toml)
+   - Parses GitHub workflow files to identify workflow types
+   - Uses project directory structure to infer project type
+   - Falls back to environment variables or reasonable defaults when needed
+
+3. **Self-Healing Functionality**:
+   - Handles missing or incomplete data gracefully
+   - Provides reasonable defaults when detection fails
+   - Works in partial GitHub environments (detached checkouts, etc.)
+   - Includes comprehensive backup methods for critical operations
+
+4. **Cross-Platform & Cross-Project Design**:
+   - Bash scripts for Unix-like systems (macOS, Linux, BSD)
+   - Batch file wrappers for Windows compatibility with WSL integration
+   - Dynamic tool detection and graceful fallbacks for missing dependencies
+   - Automatic adaptation to different project environments and structures
+
+5. **Installation & Usage**:
+   - Simply copy the scripts to any project directory
+   - Run without any configuration or setup required
+   - Invoke `./get_errorlogs.sh detect` to see what the script detected
+   - Immediately usable with default commands (`tests`, `latest`, etc.)
+
+To use these scripts in a different project, simply copy them to the new project's root directory and run them - no configuration required. The scripts will automatically detect all needed information about the repository, available workflows, and project structure.
+EOF < /dev/null

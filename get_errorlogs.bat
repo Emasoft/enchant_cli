@@ -1,29 +1,37 @@
 @echo off
-REM get_errorlogs.bat - Windows batch script to fetch error logs from GitHub Actions workflows
+REM get_errorlogs.bat - CLAUDE HELPER SCRIPT for GitHub Actions workflow log analysis
+REM Version 1.1.0 - Enhanced to be fully portable and auto-detect repository details
 
 setlocal enabledelayedexpansion
 
-REM Repository information
-set "REPO_OWNER=Emasoft"
-set "REPO_NAME=enchant_cli"
-set "REPO_FULL_NAME=%REPO_OWNER%/%REPO_NAME%"
+REM Parse command-line options
+set DO_TRUNCATE=false
+for %%a in (%*) do (
+    if "%%a"=="--truncate" (
+        set DO_TRUNCATE=true
+    )
+)
+
+REM Display version information
+IF "%1"=="version" goto :show_version
+IF "%1"=="--version" goto :show_version
+IF "%1"=="-v" goto :show_version
 
 REM Display enhanced help message
-IF "%1"=="help" (
-    goto :show_help
-)
-IF "%1"=="--help" (
-    goto :show_help
-)
-IF "%1"=="-h" (
-    goto :show_help
-)
+IF "%1"=="help" goto :show_help
+IF "%1"=="--help" goto :show_help
+IF "%1"=="-h" goto :show_help
 
 REM Check if we can use WSL
 WHERE wsl >nul 2>&1
 IF %ERRORLEVEL% EQU 0 (
     echo Using WSL to run the script...
-    wsl ./get_errorlogs.sh %*
+    set "args=%*"
+    if "%DO_TRUNCATE%"=="true" (
+        wsl ./get_errorlogs.sh --truncate !args:--truncate=!
+    ) else (
+        wsl ./get_errorlogs.sh %*
+    )
     exit /b %ERRORLEVEL%
 )
 
@@ -31,36 +39,71 @@ REM Check if we can use Git Bash
 WHERE bash >nul 2>&1
 IF %ERRORLEVEL% EQU 0 (
     echo Using Git Bash to run the script...
-    bash ./get_errorlogs.sh %*
+    set "args=%*"
+    if "%DO_TRUNCATE%"=="true" (
+        bash ./get_errorlogs.sh --truncate !args:--truncate=!
+    ) else (
+        bash ./get_errorlogs.sh %*
+    )
     exit /b %ERRORLEVEL%
 )
 
+:show_version
+echo [93m🔶 CLAUDE HELPER SCRIPT: GitHub Actions Workflow Logs Tool v1.1.0[0m
+echo.
+echo This script is part of the CLAUDE HELPER SCRIPTS collection.
+echo For more information, see the CLAUDE.md documentation.
+exit /b 0
+
 :show_help
-echo [93m🔶 GitHub Actions Workflow Logs Helper[0m
-echo Usage: %0 [command] [options]
+echo [93m🔶 CLAUDE HELPER SCRIPT: GitHub Actions Workflow Logs Tool v1.1.0[0m
+echo Usage: %0 [global_options] ^<command^> [command_options]
+echo.
+echo [94m📣 Global Options:[0m
+echo   --truncate                Truncate output for readability (by default, full output is shown)
 echo.
 echo [94m📣 Commands:[0m
 echo   list                      List recent workflow runs from GitHub
 echo   logs [RUN_ID]             Get logs for a specific workflow run
 echo   tests                     Get logs for the latest test workflow run
-echo   build                     Get logs for the latest build/release workflow run
+echo   build^|release             Get logs for the latest build/release workflow run
+echo   lint                      Get logs for the latest linting workflow run
+echo   docs                      Get logs for the latest documentation workflow run
 echo   saved                     List all saved log files
 echo   latest                    Get the 3 most recent logs after last commit
-echo   search PATTERN            Search all log files for a pattern
+echo   workflow^|workflows        List detected workflows in the repository
+echo   search PATTERN [CASE_SENSITIVE] [MAX_RESULTS]
+echo                             Search all log files for a pattern
 echo   stats                     Show statistics about saved log files
-echo   cleanup [DAYS]            Clean up logs older than DAYS (default: 30)
-echo   help, --help, -h          Show this help message
+echo   cleanup [DAYS] [--dry-run] Clean up logs older than DAYS (default: 30)
+echo   classify [LOG_FILE]       Classify errors in a specific log file
+echo   detect                    Detect repository info and workflows without fetching logs
+echo   version^|--version^|-v      Show script version and configuration
+echo   help^|--help^|-h            Show this help message
+echo.
+echo [94m📣 Features:[0m
+echo   ✓ Auto-detection of repository info from git, project files, etc.
+echo   ✓ Dynamic workflow detection and categorization by type (test, release, etc.)
+echo   ✓ Intelligent error classification with context and root cause analysis
+echo   ✓ Full output by default, with optional truncation via --truncate flag
+echo   ✓ Works across projects - fully portable with zero configuration
 echo.
 echo [94m📣 Examples:[0m
 echo   %0 list                   List all recent workflow runs
 echo   %0 logs 123456789         Get logs for workflow run ID 123456789
 echo   %0 tests                  Get logs for the latest test workflow run
 echo   %0 saved                  List all saved log files
-echo   %0 latest                 Get the 3 most recent logs after the last commit
-echo   %0 search "error"         Search all logs for 'error'
+echo   %0 detect                 Detect repository info and available workflows
+echo   %0 --truncate latest      Get the 3 most recent logs with truncated output
+echo   %0 search "error"         Search all logs for 'error' (case insensitive)
+echo   %0 search "Exception" true  Search logs for 'Exception' (case sensitive)
 echo   %0 cleanup 10             Delete logs older than 10 days
+echo   %0 cleanup --dry-run      Show what logs would be deleted without deleting
+echo   %0 classify logs\workflow_12345.log  Classify errors in a specific log file
 echo.
-echo [93mNOTE:[0m For full functionality, run this script using WSL or Git Bash.
+echo [93mNOTE:[0m For full functionality, run this script using WSL or Git Bash,
+echo       which will provide access to all features of the bash version.
+exit /b 0
 
 REM Fall back to Windows native commands
 echo Using Windows native commands...
