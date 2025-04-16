@@ -34,10 +34,12 @@ DESCRIPTION:
     environment checks pass before publishing.
 
 OPTIONS:
-    -h, --help     Show this help message and exit
-    --skip-tests   Skip running tests (use with caution, only for urgent fixes)
-    --force        Force push to repository (use with extreme caution)
-    --dry-run      Execute all steps except final GitHub push
+    -h, --help         Show this help message and exit
+    --skip-tests       Skip running tests (use with caution, only for urgent fixes)
+    --force            Force push to repository (use with extreme caution)
+    --dry-run          Execute all steps except final GitHub push
+    --verify-pypi      Check if the package is available on PyPI after publishing
+    --check-version VER  Check if a specific version is available on PyPI (implies --verify-pypi)
 
 REQUIREMENTS:
     - GitHub CLI (gh) must be installed
@@ -65,8 +67,10 @@ ENVIRONMENT VARIABLES:
     - PYPI_API_TOKEN: Required for PyPI publishing
 
 EXAMPLES:
-    ./publish_to_github.sh            # Standard execution
-    ./publish_to_github.sh --help     # Show this help message
+    ./publish_to_github.sh                       # Standard execution
+    ./publish_to_github.sh --help                # Show this help message
+    ./publish_to_github.sh --verify-pypi         # Check latest package on PyPI after publishing
+    ./publish_to_github.sh --check-version 0.1.0 # Check if version 0.1.0 is on PyPI
 
 For more information, see: CLAUDE.md
 EOF
@@ -77,6 +81,8 @@ EOF
 SKIP_TESTS=0
 FORCE_PUSH=0
 DRY_RUN=0
+VERIFY_PYPI=0
+SPECIFIC_VERSION=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -94,6 +100,19 @@ while [[ $# -gt 0 ]]; do
         --dry-run)
             DRY_RUN=1
             shift
+            ;;
+        --verify-pypi)
+            VERIFY_PYPI=1
+            shift
+            ;;
+        --check-version)
+            if [[ -z "$2" || "$2" == -* ]]; then
+                echo "Error: --check-version requires a version argument"
+                show_help
+            fi
+            SPECIFIC_VERSION="$2"
+            VERIFY_PYPI=1
+            shift 2
             ;;
         *)
             echo "Unknown option: $1"
@@ -326,12 +345,18 @@ if ! git diff --quiet HEAD 2>/dev/null; then
         git add -A
     fi
 
-    # Use a standard commit message. The pre-commit hook should trigger the version bump.
+    # Generate a commit message based on whether tests were skipped
+    COMMIT_MESSAGE="chore: Prepare for release validation"
+    if [ $SKIP_TESTS -eq 1 ]; then
+        # Add skip-tests marker for GitHub Actions to detect
+        COMMIT_MESSAGE="$COMMIT_MESSAGE [skip-tests]"
+    fi
+    
     print_info "Committing staged changes..."
-    if ! git commit -m "chore: Prepare for release validation"; then
+    if ! git commit -m "$COMMIT_MESSAGE"; then
         print_warning "Git commit failed. Attempting to bypass pre-commit hooks..."
         # If commit failed, try bypassing pre-commit hooks
-        git commit -m "chore: Prepare for release validation" --no-verify || {
+        git commit -m "$COMMIT_MESSAGE" --no-verify || {
             print_error "Git commit failed even with --no-verify. Manual intervention required."
             exit 1
         }
@@ -739,8 +764,88 @@ if [[ $CREATE_RELEASE =~ ^[Yy]$ ]]; then
     fi
 fi
 
-print_info "📦 The package will be published to PyPI by the GitHub Action when you create a release."
-print_info "🔒 GitHub secrets (PYPI_API_TOKEN, OPENROUTER_API_KEY, CODECOV_API_TOKEN) are automatically configured from your local environment."
-print_info "📚 For more details on the workflow, see CLAUDE.md section 6 (GitHub Integration)."
+# Function to verify PyPI publication
+verify_pypi_publication() {
+    local version="$1"
+    local timeout_val="${2:-$TIMEOUT_TESTS}"
+    
+    print_header "Verifying PyPI Publication"
+    
+    # Determine version to check
+    if [ -z "$version" ]; then
+        # Extract version number from tag (remove 'v' prefix)
+        version=${LATEST_TAG#v}
+    fi
+    
+    print_info "Checking PyPI for enchant-cli version $version..."
+    
+    # Try to install the package
+    print_info "Attempting to install enchant-cli==$version from PyPI..."
+    if timeout "$timeout_val" "$PYTHON_CMD" -m pip install --no-cache-dir enchant-cli=="$version"; then
+        print_success "Package exists on PyPI and was installed successfully!"
+        
+        # Verify the installed version
+        print_info "Verifying installed version..."
+        INSTALLED_VERSION=$("$PYTHON_CMD" -m pip show enchant-cli | grep "Version:" | cut -d' ' -f2)
+        if [ "$INSTALLED_VERSION" = "$version" ]; then
+            print_success "Installed version ($INSTALLED_VERSION) matches expected version ($version)."
+            
+            # Try running the CLI to verify basic functionality
+            if command -v enchant_cli &>/dev/null; then
+                print_info "Testing installed package functionality..."
+                enchant_cli --version && print_success "CLI functionality verified!" || print_warning "CLI verification failed: Command completed with errors."
+            else
+                print_warning "CLI command not available. May need to restart shell or the CLI entry point is missing."
+                print_info "Trying to access CLI directly through Python module..."
+                "$PYTHON_CMD" -m enchant_cli --version && print_success "CLI module functionality verified!" || print_error "CLI module verification failed. The package may be incorrectly installed or configured."
+            fi
+        else
+            print_error "Installed version ($INSTALLED_VERSION) does not match expected version ($version)."
+            print_error "This indicates a version mismatch issue in the PyPI publishing process."
+            print_info "Check if the version was properly bumped in __init__.py and if the build process is using the correct version."
+        fi
+        
+        return 0
+    else
+        print_warning "Package version $version not found on PyPI or installation failed."
+        print_info "If a GitHub release was created, the package may still be in the publishing pipeline."
+        print_info "Check PyPI at: https://pypi.org/project/enchant-cli/"
+        print_info "And GitHub Actions at: https://github.com/$REPO_FULL_NAME/actions"
+        
+        return 1
+    fi
+}
+
+# Check if direct PyPI verification was requested
+if [ $VERIFY_PYPI -eq 1 ]; then
+    if [ -n "$SPECIFIC_VERSION" ]; then
+        # Verify specific version
+        verify_pypi_publication "$SPECIFIC_VERSION"
+    else
+        # Verify latest version (extract from tag)
+        verify_pypi_publication
+    fi
+else
+    # Ask if user wants to verify PyPI
+    print_info "Would you like to verify if the package is available on PyPI? (y/N)"
+    read -p "Verify PyPI publication? " -n 1 -r CHECK_PYPI
+    echo
+    if [[ $CHECK_PYPI =~ ^[Yy]$ ]]; then
+        # Use version from tag
+        version=${LATEST_TAG#v}
+        print_info "Waiting 20 seconds for PyPI to update..."
+        sleep 20
+        verify_pypi_publication "$version"
+    fi
+    
+    print_info "🚀 The auto_release GitHub workflow will automatically create a release for version $version (if not already created)."
+    print_info "📦 The package will be published to PyPI by the GitHub Actions workflow."
+    print_info "🔒 GitHub secrets (PYPI_API_TOKEN, OPENROUTER_API_KEY, CODECOV_API_TOKEN) are automatically configured from your local environment."
+    print_info "✅ The GitHub Actions workflow will verify the package was published correctly with version $version."
+    print_info "🧪 Tests will automatically run on GitHub Actions" $([ $SKIP_TESTS -eq 1 ] && echo "(since they were skipped locally)")
+    print_info "📊 Code coverage will be uploaded to Codecov automatically."
+    print_info "📝 A changelog will be automatically generated for the release."
+    print_info "📚 For more details on the workflow, see CLAUDE.md section 6 (GitHub Integration)."
+fi
 
 exit 0

@@ -190,6 +190,7 @@ tests/samples/*
 examples/*
 !examples/README.md
 
-# Changelog files (Track these now)
-# CHANGELOG.md # Removed from ignore
-# git-chglog.yml # Removed from ignore
+# Changelog files (Track these)
+# Keep changelog files in version control
+# .chglog/ directory with templates should be committed
+# CHANGELOG.md should be committed when generated

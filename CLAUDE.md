@@ -39,7 +39,8 @@
 - [8. Troubleshooting](#8-troubleshooting)
   - [8.1 Common Environment Issues](#81-common-environment-issues)
   - [8.2 Test Failures](#82-test-failures)
-  - [8.3 Version Control Problems](#83-version-control-problems)
+  - [8.3 Documentation and Badge Management](#83-documentation-and-badge-management)
+  - [8.4 Version Control Problems](#84-version-control-problems)
 
 ## 1. Environment Configuration
 
@@ -1127,6 +1128,7 @@ This project strictly follows a standardized GitHub publishing protocol that ens
    - **Secret Configuration**: Automatically configures GitHub secrets from local environment
    - **Error Recovery**: Detects and resolves common issues automatically
    - **Release Management**: Provides guidance for creating GitHub releases
+   - **PyPI Verification**: Validates successful package publication to PyPI with version checks
 
 4. **Usage Examples**
 
@@ -1146,6 +1148,12 @@ This project strictly follows a standardized GitHub publishing protocol that ens
 
 # Dry run (execute all steps except final push)
 ./publish_to_github.sh --dry-run
+
+# Verify package was published to PyPI after a GitHub release
+./publish_to_github.sh --verify-pypi
+
+# Check if a specific version is available on PyPI
+./publish_to_github.sh --check-version 0.1.0
 ```
 
 ##### Windows
@@ -1164,6 +1172,12 @@ publish_to_github.bat --force
 
 :: Dry run (execute all steps except final push)
 publish_to_github.bat --dry-run
+
+:: Verify package was published to PyPI after a GitHub release
+publish_to_github.bat --verify-pypi
+
+:: Check if a specific version is available on PyPI
+publish_to_github.bat --check-version 0.1.0
 ```
 
 5. **First-Time Setup Requirements**
@@ -1211,162 +1225,258 @@ The `publish_to_github.sh` script automatically configures the GitHub repository
 
 ### 6.3 GitHub Workflows
 
-The project includes automated GitHub Actions workflows that mirror the local scripts:
+The project uses a coordinated system of GitHub Actions workflows that work in tandem with the local scripts to ensure consistent testing, releasing, and publishing. This design prevents redundant operations while ensuring nothing is missed.
 
-#### tests.yml
+#### Workflow Coordination
+
+1. **Local Scripts & GitHub Actions Synchronization**
+   - If tests are skipped locally with `--skip-tests`, the GitHub Actions will detect this and run them
+   - If a release is created locally, the GitHub workflows will skip creating a duplicate release
+   - If a package is already published to PyPI, workflows will detect and skip republishing
+   - Releases are automatically created with changelogs when code is pushed to main or PRs are merged
+
+2. **How It Works**
+   - Local commits with `--skip-tests` are marked with a `[skip-tests]` tag in commit messages
+   - GitHub workflows check if packages already exist on PyPI before publishing
+   - The auto_release workflow creates releases for new versions that don't have releases yet
+   - Tests always run on GitHub regardless of local skipping to ensure code quality
+
+#### Key Workflows
+
+##### auto_release.yml
+
+This workflow automatically creates GitHub releases with changelogs and ensures tests are run:
+
+```yaml
+name: Auto Release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  # Check if a release is needed and create it with an auto-generated changelog
+  auto_release:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    # ...creates a release if one doesn't exist for the current version
+    
+  # Run tests on multiple Python versions, especially if skipped locally
+  verify_tests:
+    needs: auto_release
+    if: needs.auto_release.outputs.release_created == 'true' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main')
+    # ...runs tests with a 15-minute timeout
+
+  # Check if package needs to be published to PyPI
+  verify_pypi:
+    needs: [auto_release, verify_tests]
+    if: needs.auto_release.outputs.release_created == 'true'
+    # ...checks if package exists on PyPI and publishes if needed
+```
+
+##### tests.yml
+
+This workflow runs tests for all pushes and pull requests, acting as a safety net:
 
 ```yaml
 name: Tests
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+on: [push, pull_request]
 
 jobs:
+  # Run shellcheck on all shell scripts
+  shellcheck:
+    name: Shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          severity: error
+          additional_args: "--extended-analysis=true"
+          scandir: '.'
+  
+  # Check if tests were skipped locally
+  check_commit_message:
+    runs-on: ubuntu-latest
+    outputs:
+      skip_tests: ${{ steps.check_skip.outputs.skip_tests }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Check if tests were skipped locally
+        id: check_skip
+        run: |
+          # Check last commit message for skip-tests indicator
+          if git log -1 --pretty=%B | grep -q "\\[skip-tests\\]"; then
+            echo "Tests were explicitly skipped in the local commit"
+            echo "skip_tests=false" >> $GITHUB_OUTPUT
+          else
+            echo "No skip-tests marker found, running all tests"
+            echo "skip_tests=false" >> $GITHUB_OUTPUT
+          fi
+  
+  # Run tests on multiple Python versions with 15-minute timeout
   test:
+    needs: check_commit_message
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
-
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+      fail-fast: false
+    
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Install and configure uv
-      run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-    
-    - name: Create virtual environment
-      run: |
-        uv venv .venv
-        echo ".venv/bin" >> $GITHUB_PATH
-    
-    - name: Install dependencies
-      run: |
-        uv sync
-    
-    - name: Install project in development mode
-      run: |
-        uv pip install -e .
-    
-    - name: Install bump-my-version
-      run: |
-        uv tool install bump-my-version
-    
-    - name: Install shellcheck
-      run: |
-        sudo apt-get install -y shellcheck
-    
-    - name: Run pre-commit
-      run: |
-        pip install pre-commit
-        pre-commit run --all-files
-    
-    - name: Run tests
-      env:
-        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-      run: |
-        pytest tests --cov=src --html=report.html --cov-report=html:coverage_report --cov-report=xml --timeout=600
-    
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        token: ${{ secrets.CODECOV_API_TOKEN }}
-        file: ./coverage.xml
-        fail_ci_if_error: false
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      
+      - name: Install dependencies with uv
+        run: |
+          python -m pip install --upgrade pip uv
+          uv venv .venv
+          uv sync
+          uv pip install --system -e .
+      
+      - name: Run tests with pytest
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          TEST_ENV: "true"
+          PYTHONUTF8: 1
+        run: |
+          python -m pytest tests/ -v \
+            --cov=enchant_cli \
+            --cov-report=xml \
+            --cov-report=term-missing:skip-covered \
+            --cov-fail-under=80 \
+            --timeout=900  # 15 minutes timeout per test
+        timeout-minutes: 15  # Overall job timeout
 ```
 
 #### publish.yml
+
+This workflow handles PyPI package publishing when releases are created, with duplication prevention:
 
 ```yaml
 name: Publish Python Package
 
 on:
   release:
-    types: [published]
+    types: [published] # Trigger only when a release is published on GitHub
 
 jobs:
+  # Verify if package already exists on PyPI
+  check_if_already_published:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      already_published: ${{ steps.check_pypi.outputs.exists }}
+    
+    steps:
+      - name: Get Package Version from Tag
+        id: get_version
+        # Extracts version from tag like 'v0.1.0' -> '0.1.0'
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+      - name: Check if already on PyPI
+        id: check_pypi
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          # Try to download package metadata from PyPI
+          if python -m pip index versions enchant-cli | grep -q "$VERSION"; then
+            echo "Package version $VERSION already exists on PyPI."
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Package version $VERSION not found on PyPI."
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+  # Only deploy if not already published
   deploy:
+    needs: check_if_already_published
+    if: needs.check_if_already_published.outputs.already_published == 'false'
     runs-on: ubuntu-latest
     permissions:
       id-token: write  # For PyPI trusted publishing
-
+    
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-    
-    - name: Install and configure uv
-      run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-    
-    - name: Create virtual environment
-      run: |
-        uv venv .venv
-        echo ".venv/bin" >> $GITHUB_PATH
-    
-    - name: Install dependencies
-      run: |
-        uv sync
-    
-    - name: Install project in development mode
-      run: |
-        uv pip install -e .
-    
-    - name: Run tests
-      env:
-        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-      run: |
-        pytest tests --cov=src --timeout=600
-    
-    - name: Build package
-      run: |
-        uv build
-    
-    - name: Verify package contents
-      run: |
-        ls -la dist/
-        if [ ! -f "dist/enchant_cli-*.whl" ] || [ ! -f "dist/enchant_cli-*.tar.gz" ]; then
-          echo "Package files not found in dist directory"
-          exit 1
-        fi
-    
-    - name: Publish package
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        packages-dir: dist/
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install uv
+        run: |
+          python -m pip install --upgrade pip uv
+          uv venv .venv
+          uv sync
+      
+      - name: Build package
+        run: |
+          .venv/bin/uv build --no-sources
+      
+      - name: Verify package contents
+        run: |
+          # Verify wheel contents
+          echo "Verifying wheel contents..."
+          unzip -l dist/*.whl | grep 'tests/samples/test_sample.txt'
+          
+          # Verify sdist contents
+          echo "Verifying sdist contents..."
+          tar -ztvf dist/*.tar.gz | grep 'tests/samples/test_sample.txt'
+      
+      - name: Publish to PyPI using uv
+        run: .venv/bin/uv publish --no-build
+      
+      - name: Wait for PyPI index update
+        run: sleep 60
+      
+      - name: Verify package installation from PyPI
+        run: |
+          VERSION="${{ needs.check_if_already_published.outputs.version }}"
+          
+          # Install package and verify version
+          .venv/bin/uv pip install --no-cache-dir enchant-cli==$VERSION
+          
+          # Verify CLI functionality
+          .venv/bin/enchant_cli --version || {
+            echo "Command entry point verification failed. Trying module..."
+            .venv/bin/python -m enchant_cli --version
+          }
 ```
 
 ### 6.4 Release Process
 
-The release process is standardized and follows these steps:
+The release process is fully automated and follows these steps:
 
 1. **Prepare Changes**
-   - Make code changes and ensure all tests pass locally
+   - Make code changes and ensure all tests pass locally (or use `--skip-tests` to defer testing to GitHub)
    - Commit changes locally
 
 2. **Run `publish_to_github.sh`**
-   - This validates, packages, and pushes your changes
+   - This validates, packages, and pushes your changes to GitHub
    - Automatic version bumping occurs through pre-commit hooks
-   - Script handles all validation and publishing details
+   - Script marks commits with `[skip-tests]` if tests were skipped locally
 
-3. **Create GitHub Release**
-   - After successful push, create a GitHub Release
-   - The script provides detailed instructions for this step
-   - You can also use the command line:
+3. **Automated Release (new automated workflow)**
+   - The `auto_release.yml` workflow detects the new version
+   - If a release doesn't already exist, one is created automatically
+   - A changelog is generated automatically from commit history
+   - Tests run on multiple Python versions with 15-minute timeouts
+   - The package is checked on PyPI and published if needed
+
+4. **Manual Release Option**
+   - You can still manually create a GitHub Release if preferred
+   - The script provides guidance for manual release creation:
      ```bash
      gh release create v0.3.5 -t "Release v0.3.5" \
        -n "## What's Changed
@@ -1374,11 +1484,14 @@ The release process is standardized and follows these steps:
      
      **Full Changelog**: https://github.com/Emasoft/enchant_cli/commits/v0.3.5"
      ```
+   - Manual releases also trigger the `publish.yml` workflow
 
-4. **Monitor Workflow**
-   - Publishing the release triggers the GitHub Action
-   - The Action builds and publishes to PyPI
-   - You can monitor progress in the Actions tab of the repository
+5. **Coordination Between Local and GitHub**
+   - If tests were skipped locally (`--skip-tests`), they run on GitHub
+   - If a release already exists, no duplicate release is created
+   - If a package is already on PyPI, no republishing occurs
+   - All tests use standard 15-minute timeouts for consistency
+   - Coverage is automatically uploaded to Codecov
 
 ### 6.5 Pull Request Process
 
@@ -1655,7 +1768,74 @@ run_tests.bat
 # Add tests for uncovered code paths
 ```
 
-### 8.3 Version Control Problems
+### 8.3 Documentation and Badge Management
+
+#### README.md Badge Management
+
+To ensure all badges in README.md are correctly configured:
+
+1. **Codecov Badge**
+   ```markdown
+   [![codecov](https://codecov.io/gh/Emasoft/enchant_cli/graph/badge.svg?token=yWLqYmTdrM)](https://codecov.io/gh/Emasoft/enchant_cli)
+   ```
+
+2. **PyPI Badges**
+   ```markdown
+   [![PyPI Version](https://img.shields.io/pypi/v/enchant-cli)](https://pypi.org/project/enchant-cli)
+   [![Python Versions](https://img.shields.io/pypi/pyversions/enchant-cli)](https://pypi.org/project/enchant-cli)
+   [![License](https://img.shields.io/pypi/l/enchant-cli)](https://github.com/Emasoft/enchant-cli/blob/main/LICENSE)
+   ```
+
+3. **GitHub Workflow Badge**
+   ```markdown
+   [![Tests Status](https://github.com/Emasoft/enchant-cli/actions/workflows/tests.yml/badge.svg)](https://github.com/Emasoft/enchant-cli/actions/workflows/tests.yml)
+   ```
+
+#### Skipping Tests Workflow
+
+To skip local tests while ensuring they run on GitHub:
+
+1. Use the `--skip-tests` flag with `publish_to_github.sh`:
+   ```bash
+   ./publish_to_github.sh --skip-tests
+   ```
+
+2. This will:
+   - Add a `[skip-tests]` marker to the commit message
+   - Push changes to GitHub without running tests locally
+   - Trigger the GitHub workflows that will run tests automatically
+   - Create a release with auto-generated changelog if version changed
+
+3. Verify workflow execution:
+   - Check GitHub Actions tab to see workflow progress
+   - The tests will run with standard 15-minute timeouts
+   - Test results and coverage will be uploaded to Codecov
+
+#### PyPI Documentation Verification
+
+To ensure PyPI documentation is correctly published:
+
+1. After a successful release, check the PyPI page:
+   ```bash
+   # Run with the --verify-pypi flag
+   ./publish_to_github.sh --verify-pypi
+   
+   # Or to check a specific version
+   ./publish_to_github.sh --check-version 0.1.0
+   ```
+
+2. Verify the PyPI page manually:
+   - Visit https://pypi.org/project/enchant-cli/
+   - Check that README content is rendered correctly
+   - Ensure badges are displaying properly
+   - Verify installation instructions work as expected
+
+3. If documentation issues are found:
+   - Fix formatting in README.md
+   - Update long_description_content_type in pyproject.toml if needed
+   - Republish with a new version
+
+### 8.4 Version Control Problems
 
 #### Pre-commit hooks not running
 
@@ -1710,13 +1890,33 @@ If the PyPI publication verification fails:
 1. Check if the package was properly published:
    - Visit `https://pypi.org/project/enchant-cli/` to verify the latest version
    - Look for the GitHub Action in the Actions tab for any error messages
+   - Use the verification tools provided in the script:
+     ```bash
+     # Verify the most recent version
+     ./publish_to_github.sh --verify-pypi
+     
+     # Check a specific version
+     ./publish_to_github.sh --check-version 0.1.0
+     ```
 
 2. Verification failure with "Command entry point not found":
    - Check the `pyproject.toml` file to ensure the entry points are correctly configured
    - Verify that the package wheel was built correctly using `pip debug`
    - Try installing with `pip install -e .` locally to test the entry point setup
+   - Test CLI access through the Python module: `python -m enchant_cli --version`
 
 3. Version mismatch errors:
    - Ensure the version in `__init__.py` matches the Git tag version
    - Check if the pre-commit hook for version bumping is correctly installed
    - Make sure the package is built from a clean commit with the latest version
+   - Verify package metadata with `pip show enchant-cli`
+
+4. PyPI publication delay issues:
+   - PyPI index updates can take up to several minutes (especially for new packages)
+   - The verification tool includes a 20-second wait by default
+   - For new packages or slow index updates, wait longer before verifying:
+     ```bash
+     # Wait manually then verify
+     sleep 120 # Wait 2 minutes
+     ./publish_to_github.sh --verify-pypi
+     ```

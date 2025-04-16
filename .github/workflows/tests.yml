@@ -15,7 +15,35 @@ jobs:
           additional_args: "--extended-analysis=true"
           scandir: '.'
           # Only fail on error severity issues, with extended analysis
+  
+  check_commit_message:
+    runs-on: ubuntu-latest
+    outputs:
+      skip_tests: ${{ steps.check_skip.outputs.skip_tests }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Get at least the last commit
+      
+      - name: Check if tests were skipped locally
+        id: check_skip
+        run: |
+          # Check last commit message for skip-tests indicator
+          if git log -1 --pretty=%B | grep -q "\\[skip-tests\\]"; then
+            echo "Tests were explicitly skipped in the local commit with [skip-tests] marker."
+            echo "skip_tests=false" >> $GITHUB_OUTPUT
+          else
+            # Always run tests by default
+            echo "No skip-tests marker found, running all tests."
+            echo "skip_tests=false" >> $GITHUB_OUTPUT
+          fi
+  
   test:
+    needs: check_commit_message
+    # Always run tests - this is our safeguard to ensure tests are run
+    # even if they were skipped locally with --skip-tests
     runs-on: ubuntu-latest
     strategy:
       matrix:

@@ -5,7 +5,34 @@ on:
     types: [published] # Trigger only when a release is published on GitHub
 
 jobs:
+  check_if_already_published:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      already_published: ${{ steps.check_pypi.outputs.exists }}
+    
+    steps:
+      - name: Get Package Version from Tag
+        id: get_version
+        # Extracts version from tag like 'v0.1.0' -> '0.1.0'
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+      - name: Check if already on PyPI
+        id: check_pypi
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          # Try to download package metadata from PyPI (will fail if not exists)
+          if python -m pip index versions enchant-cli | grep -q "$VERSION"; then
+            echo "Package version $VERSION already exists on PyPI."
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Package version $VERSION not found on PyPI. Will publish."
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
   deploy:
+    needs: check_if_already_published
+    if: needs.check_if_already_published.outputs.already_published == 'false'
     runs-on: ubuntu-latest
     permissions:
       # IMPORTANT: Needed for Trusted Publishing to PyPI

@@ -3,8 +3,8 @@
 [![PyPI Version](https://img.shields.io/pypi/v/enchant-cli)](https://pypi.org/project/enchant-cli)
 [![Python Versions](https://img.shields.io/pypi/pyversions/enchant-cli)](https://pypi.org/project/enchant-cli)
 [![License](https://img.shields.io/pypi/l/enchant-cli)](https://github.com/Emasoft/enchant-cli/blob/main/LICENSE)
-[![Tests Status](https://github.com/Emasoft/enchant-cli/actions/workflows/tests.yml/badge.svg)](https://github.com/Emasoft/enchant-cli/actions/workflows/tests.yml) <!-- Link to tests workflow -->
-[![Codecov](https://codecov.io/gh/Emasoft/enchant-cli/graph/badge.svg?token=YOUR_ACTUAL_CODECOV_TOKEN_HERE)](https://codecov.io/gh/Emasoft/enchant-cli) <!-- IMPORTANT: Replace YOUR_ACTUAL_CODECOV_TOKEN_HERE with the token from your Codecov repository settings page (under 'Badge') -->
+[![Tests Status](https://github.com/Emasoft/enchant-cli/actions/workflows/tests.yml/badge.svg)](https://github.com/Emasoft/enchant-cli/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/gh/Emasoft/enchant_cli/graph/badge.svg?token=yWLqYmTdrM)](https://codecov.io/gh/Emasoft/enchant_cli)
 
 A command-line translation tool specifically designed for converting Chinese novels and technical documents into fluent English using AI via the OpenRouter API. It handles text splitting, context-aware translation, and basic formatting preservation.
 
@@ -187,7 +187,7 @@ export CODECOV_API_TOKEN="your-codecov-token-here"
 ```
 You can set these in your shell profile (e.g., `.zshrc`, `.bashrc`), export them in your current session, or potentially use a `.env` file (though direct export is often clearer for CLI tools).
 
-See [Developer Guide](docs/dev-guides/CLAUDE.md) for detailed environment configuration and more information.
+See [Developer Guide](CLAUDE.md) for detailed environment configuration and more information.
 
 ## Supported Platforms
 
@@ -269,9 +269,10 @@ This project uses a pre-commit hook (`bump-my-version`) to automatically increme
      - Push your changes and tags to GitHub
      - Provide instructions for creating a release
 
-5. **Create GitHub Release**
-   - Follow the instructions provided by the publish script
-   - OR use the GitHub CLI: 
+5. **GitHub Release (Automatic)**
+   - A GitHub release is automatically created by the auto_release.yml workflow
+   - Includes an auto-generated changelog based on commit history
+   - Alternatively, you can manually create a release:
      ```bash
      gh release create v0.3.5 -t "Release v0.3.5" \
        -n "## What's Changed
@@ -319,7 +320,7 @@ If you're setting up a new development environment:
    export PYPI_API_TOKEN="your-token-here"     # Optional, for manual PyPI uploads
    ```
 
-For more detailed information, see the [GitHub Integration](docs/dev-guides/CLAUDE.md#6-github-integration) section of the developer guide.
+For more detailed information, see the [GitHub Integration](CLAUDE.md#6-github-integration) section of the developer guide.
 
 ## Development and CI/CD
 
@@ -330,8 +331,10 @@ For more detailed information, see the [GitHub Integration](docs/dev-guides/CLAU
 
 ### GitHub Workflows
 * **tests.yml**: Runs on every push/PR, tests with multiple Python versions (3.9-3.13)
+* **auto_release.yml**: Automatically creates releases with changelogs when code is pushed to main
 * **publish.yml**: Triggered by GitHub Releases, builds and publishes to PyPI
-* Both workflows mirror the behavior of local scripts for consistency
+* All workflows coordinate with local scripts to prevent redundant operations
+* Standard 15-minute timeouts used consistently across all environments
 
 For detailed CI/CD information, see the workflow files in `.github/workflows/`.
 

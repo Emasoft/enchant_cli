@@ -1,0 +1,344 @@
+name: Auto Release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  auto_release:
+    # Only run this job if the PR was merged or it's a direct push to main
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Needed for creating releases
+      
+    outputs:
+      release_created: ${{ steps.check_release.outputs.created }}
+      version: ${{ steps.extract_version.outputs.version }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for version checking
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install uv git-chglog
+
+    - name: Extract version
+      id: extract_version
+      run: |
+        # Extract version from __init__.py
+        VERSION=$(grep -o '__version__[[:space:]]*=[[:space:]]*"[0-9]\+\.[0-9]\+\.[0-9]\+"' src/enchant_cli/__init__.py | sed -E 's/__version__[[:space:]]*=[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)"/\1/')
+        echo "Found version: $VERSION"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "tag_version=v$VERSION" >> $GITHUB_OUTPUT
+        
+        # Also extract the latest tag for comparison
+        if git describe --tags --abbrev=0 2>/dev/null; then
+          LATEST_TAG=$(git describe --tags --abbrev=0)
+          echo "Latest tag: $LATEST_TAG"
+          echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+        else
+          echo "No tags found, assuming first release"
+          echo "latest_tag=none" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Check if release already exists
+      id: check_release
+      run: |
+        TAG_VERSION="v${{ steps.extract_version.outputs.version }}"
+        # Check if the version tag already exists or if a GitHub release already exists
+        if git tag | grep -q "^$TAG_VERSION$"; then
+          echo "Tag $TAG_VERSION already exists."
+          if gh release view "$TAG_VERSION" --json name &>/dev/null; then
+            echo "Release $TAG_VERSION already exists on GitHub."
+            echo "created=false" >> $GITHUB_OUTPUT
+          else
+            echo "Tag exists but no GitHub release found. Will create release."
+            echo "created=true" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "Tag $TAG_VERSION does not exist. Will create tag and release."
+          echo "created=true" >> $GITHUB_OUTPUT
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Generate Changelog
+      if: steps.check_release.outputs.created == 'true'
+      id: generate_changelog
+      run: |
+        # Install git-chglog if needed
+        if ! command -v git-chglog >/dev/null; then
+          go install github.com/git-chglog/git-chglog/cmd/git-chglog@latest
+        fi
+        
+        # Create a changelog configuration if it doesn't exist
+        if [ ! -f .chglog/config.yml ]; then
+          mkdir -p .chglog
+          cat > .chglog/config.yml << 'EOL'
+        style: github
+        template: CHANGELOG.tpl.md
+        info:
+          title: CHANGELOG
+          repository_url: https://github.com/Emasoft/enchant-cli
+        options:
+          commits:
+            filters:
+              Type:
+                - feat
+                - fix
+                - perf
+                - refactor
+                - chore
+                - docs
+          commit_groups:
+            title_maps:
+              feat: Features
+              fix: Bug Fixes
+              perf: Performance Improvements
+              refactor: Code Refactoring
+              chore: Maintenance
+              docs: Documentation
+          header:
+            pattern: "^(\\w*)(?:\\(([\\w\\$\\.\\-\\*\\s]*)\\))?\\:\\s(.*)$"
+            pattern_maps:
+              - Type
+              - Scope
+              - Subject
+          notes:
+            keywords:
+              - BREAKING CHANGE
+              - BREAKING CHANGES
+        EOL
+          
+          cat > .chglog/CHANGELOG.tpl.md << 'EOL'
+        {{ range .Versions }}
+        <a name="{{ .Tag.Name }}"></a>
+        ## {{ if .Tag.Previous }}[{{ .Tag.Name }}]({{ $.Info.RepositoryURL }}/compare/{{ .Tag.Previous.Name }}...{{ .Tag.Name }}){{ else }}{{ .Tag.Name }}{{ end }} ({{ datetime "2006-01-02" .Tag.Date }})
+
+        {{ range .CommitGroups -}}
+        ### {{ .Title }}
+
+        {{ range .Commits -}}
+        * {{ .Subject }}
+        {{ end }}
+        {{ end -}}
+
+        {{- if .RevertCommits -}}
+        ### Reverts
+
+        {{ range .RevertCommits -}}
+        * {{ .Revert.Header }}
+        {{ end }}
+        {{ end -}}
+
+        {{- if .MergeCommits -}}
+        ### Pull Requests
+
+        {{ range .MergeCommits -}}
+        * {{ .Header }}
+        {{ end }}
+        {{ end -}}
+
+        {{- if .NoteGroups -}}
+        {{ range .NoteGroups -}}
+        ### {{ .Title }}
+
+        {{ range .Notes }}
+        {{ .Body }}
+        {{ end }}
+        {{ end -}}
+        {{ end -}}
+        {{ end -}}
+        EOL
+        fi
+        
+        # Generate the changelog
+        TAG_VERSION="v${{ steps.extract_version.outputs.version }}"
+        if [ "${{ steps.extract_version.outputs.latest_tag }}" == "none" ]; then
+          # First release - use all history
+          git-chglog --output RELEASE_CHANGELOG.md
+        else
+          # Use changes since the last tag
+          git-chglog --output RELEASE_CHANGELOG.md "$TAG_VERSION"
+        fi
+        
+        # Store the changelog content in step output
+        CHANGELOG=$(cat RELEASE_CHANGELOG.md)
+        # Format for GitHub output
+        CHANGELOG="${CHANGELOG//'%'/'%25'}"
+        CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
+        CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
+        echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
+
+    - name: Create GitHub Release
+      if: steps.check_release.outputs.created == 'true'
+      run: |
+        TAG_VERSION="v${{ steps.extract_version.outputs.version }}"
+        
+        # Check if the tag already exists in git
+        if ! git tag | grep -q "^$TAG_VERSION$"; then
+          echo "Tag $TAG_VERSION doesn't exist. Creating..."
+          git tag -a "$TAG_VERSION" -m "Release $TAG_VERSION"
+        else
+          echo "Tag $TAG_VERSION already exists."
+        fi
+        
+        # Create GitHub release with changelog
+        gh release create "$TAG_VERSION" \
+          --title "Release $TAG_VERSION" \
+          --notes "$(cat RELEASE_CHANGELOG.md)" \
+          --target main
+        
+        echo "GitHub release $TAG_VERSION created successfully!"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  verify_tests:
+    needs: auto_release
+    runs-on: ubuntu-latest
+    # Run this if either a new release was created OR it's a PR to main
+    if: needs.auto_release.outputs.release_created == 'true' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main')
+    
+    strategy:
+      matrix:
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+      fail-fast: false
+        
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip uv
+        uv venv .venv
+        uv sync
+        uv pip install -e .
+        
+    - name: Run tests
+      env:
+        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        TEST_ENV: "true"
+        PYTHONUTF8: 1
+      run: |
+        python -m pytest tests/ -v \
+          --cov=enchant_cli \
+          --cov-report=xml \
+          --cov-report=term-missing:skip-covered \
+          --cov-fail-under=80 \
+          --strict-markers \
+          --durations=10 \
+          --timeout=900  # 15 minutes timeout per test
+      timeout-minutes: 15
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        flags: auto_release_tests
+        fail_ci_if_error: true
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  verify_pypi:
+    needs: [auto_release, verify_tests]
+    runs-on: ubuntu-latest
+    # Only run if a new release was created
+    if: needs.auto_release.outputs.release_created == 'true'
+    permissions:
+      id-token: write  # Needed for Trusted Publishing to PyPI
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip uv
+        uv venv .venv
+        uv sync
+        
+    - name: Check if package already exists on PyPI
+      id: check_pypi
+      run: |
+        VERSION="${{ needs.auto_release.outputs.version }}"
+        # Try to download package metadata from PyPI (will fail if not exists)
+        if python -m pip index versions enchant-cli | grep -q "$VERSION"; then
+          echo "Package version $VERSION already exists on PyPI."
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "Package version $VERSION not found on PyPI. Will publish."
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Build and publish package
+      if: steps.check_pypi.outputs.exists == 'false'
+      run: |
+        # Clean any previous builds
+        rm -rf dist/ build/ *.egg-info/
+        
+        # Build package
+        .venv/bin/uv build
+        
+        # Verify package contents
+        echo "Verifying wheel contents..."
+        unzip -l dist/*.whl | grep 'tests/samples/test_sample.txt' || (echo "❌ Test sample file not found in wheel!" && exit 1)
+        
+        echo "Verifying sdist contents..."
+        tar -ztvf dist/*.tar.gz | grep 'tests/samples/test_sample.txt' || (echo "❌ Test sample file not found in sdist!" && exit 1)
+        
+        # Publish to PyPI using trusted publishing
+        .venv/bin/uv publish --no-build
+        
+    - name: Wait for PyPI index update
+      if: steps.check_pypi.outputs.exists == 'false'
+      run: sleep 60
+      
+    - name: Verify package installation
+      if: steps.check_pypi.outputs.exists == 'false'
+      run: |
+        VERSION="${{ needs.auto_release.outputs.version }}"
+        
+        # Install package from PyPI
+        .venv/bin/uv pip install --no-cache-dir enchant-cli==$VERSION
+        
+        # Verify installed version
+        INSTALLED_VERSION=$(.venv/bin/pip show enchant-cli | grep "Version:" | cut -d' ' -f2)
+        echo "Installed version: $INSTALLED_VERSION"
+        echo "Expected version: $VERSION"
+        if [ "$INSTALLED_VERSION" != "$VERSION" ]; then
+          echo "::error::Version mismatch! Installed $INSTALLED_VERSION but expected $VERSION"
+          exit 1
+        fi
+        
+        # Verify CLI functionality
+        .venv/bin/enchant_cli --version || {
+          echo "::error::Command entry point verification failed. Trying module directly..."
+          .venv/bin/python -m enchant_cli --version || {
+            echo "::error::Both command entry point and module verification failed."
+            exit 1
+          }
+        }
+        echo "Package verification successful!"
