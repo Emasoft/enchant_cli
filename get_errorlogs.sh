@@ -51,11 +51,23 @@ get_workflow_logs() {
         run_id=$(gh run list --repo "$REPO_FULL_NAME" --status failure --limit 1 --json databaseId -q '.[0].databaseId')
         
         if [ -z "$run_id" ]; then
-            print_error "No failed workflow runs found."
-            exit 1
+            # Try to get any completed workflow run
+            run_id=$(gh run list --repo "$REPO_FULL_NAME" --status completed --limit 1 --json databaseId -q '.[0].databaseId')
+            
+            if [ -z "$run_id" ]; then
+                # Last resort - get any workflow run
+                run_id=$(gh run list --repo "$REPO_FULL_NAME" --limit 1 --json databaseId -q '.[0].databaseId')
+                
+                if [ -z "$run_id" ]; then
+                    print_error "No workflow runs found at all."
+                    exit 1
+                fi
+            fi
+            
+            print_info "No failed runs found. Using most recent workflow run: $run_id"
+        else
+            print_info "Using most recent failed workflow run: $run_id"
         fi
-        
-        print_info "Using most recent failed workflow run: $run_id"
     else
         print_info "Fetching logs for workflow run: $run_id"
     fi
@@ -63,15 +75,60 @@ get_workflow_logs() {
     # Create a logs directory if it doesn't exist
     mkdir -p logs
     
-    # Get workflow name (sanitize it to avoid path issues)
-    workflow_name=$(gh run view "$run_id" --repo "$REPO_FULL_NAME" --json name -q '.name' | tr ' ' '_' | tr '/' '_')
+    # Get workflow information 
+    workflow_info=$(gh run view "$run_id" --repo "$REPO_FULL_NAME" --json name,url,status,conclusion,createdAt,displayTitle 2>/dev/null)
+    
+    if [ -z "$workflow_info" ]; then
+        print_error "Could not get workflow information for run ID: $run_id"
+        print_warning "This might be a permissions issue or the workflow has been deleted."
+        return 1
+    fi
+    
+    # Get and display workflow details
+    workflow_name=$(echo "$workflow_info" | jq -r '.name // "Unknown"' | tr ' ' '_' | tr '/' '_')
+    workflow_status=$(echo "$workflow_info" | jq -r '.status // "Unknown"')
+    workflow_conclusion=$(echo "$workflow_info" | jq -r '.conclusion // "Unknown"')
+    workflow_url=$(echo "$workflow_info" | jq -r '.url // "Unknown"')
+    created_at=$(echo "$workflow_info" | jq -r '.createdAt // "Unknown"')
+    
+    print_info "Workflow: $workflow_name"
+    print_info "Status: $workflow_status (Conclusion: $workflow_conclusion)"
+    print_info "Created: $created_at"
+    print_info "URL: $workflow_url"
+    
+    # Setup log file path
     timestamp=$(date +"%Y%m%d-%H%M%S")
     log_file="logs/workflow_${run_id}_${timestamp}.log"
+    error_log_file="${log_file}.errors"
     
     print_info "Downloading logs to $log_file..."
     
-    # Download the logs
-    gh run view "$run_id" --repo "$REPO_FULL_NAME" --log > "$log_file"
+    # Try to download the logs, but handle failure gracefully
+    if ! gh run view "$run_id" --repo "$REPO_FULL_NAME" --log > "$log_file" 2>/dev/null; then
+        print_error "Failed to download logs for workflow run: $run_id"
+        print_warning "Likely causes:"
+        print_warning "1. The workflow is still in progress"
+        print_warning "2. The workflow did not generate any logs"
+        print_warning "3. You don't have permissions to access the logs"
+        print_warning "4. The logs have expired or been deleted"
+        
+        # Create a minimal log file with the information we have
+        cat > "$log_file" << EOF
+# Workflow Log Information
+- **Run ID:** $run_id
+- **Workflow:** $workflow_name
+- **Status:** $workflow_status ($workflow_conclusion)
+- **Created:** $created_at
+- **URL:** $workflow_url
+
+## Error
+Failed to download the actual log content. 
+Please check the workflow directly on GitHub: $workflow_url
+EOF
+        
+        # Return but don't exit, so we can try other workflows
+        return 1
+    fi
     
     # Get just the failed jobs with better error detection
     print_info "Extracting errors from log..."
@@ -80,47 +137,65 @@ get_workflow_logs() {
     error_file="${log_file}.errors"
     > "$error_file"  # Clear or create the file
     
-    # Look for different types of errors with context
-    grep -n -A 5 -B 2 "Error:" "$log_file" >> "$error_file" || true
-    grep -n -A 5 -B 2 "error:" "$log_file" >> "$error_file" || true
-    grep -n -A 5 -B 2 "ERROR:" "$log_file" >> "$error_file" || true
-    grep -n -A 5 -B 2 "failed with exit code" "$log_file" >> "$error_file" || true
-    grep -n -A 5 -B 2 "FAILED" "$log_file" >> "$error_file" || true
-    grep -n -A 5 -B 2 "Process completed with exit code [1-9]" "$log_file" >> "$error_file" || true
+    # Get file size
+    log_file_size=$(wc -c < "$log_file")
     
-    # Check if any errors were found
-    if [ ! -s "$error_file" ]; then
-        print_info "No specific errors found. Doing a broader search..."
-        # Fallback to more generic error patterns
-        grep -n -A 3 -B 1 "fail" "$log_file" >> "$error_file" || true
-    fi
-    
-    # Show some statistics
-    total_lines=$(wc -l < "$log_file")
-    error_count=$(grep -c -v "^--$" "$error_file" 2>/dev/null || echo "0")
-    
-    print_success "Logs downloaded successfully: $log_file ($total_lines lines)"
-    
-    if [ -s "$error_file" ]; then
-        print_info "Found potential errors in the log."
-        print_info "Most significant errors:"
-        echo "───────────────────────────────────────────────────────────────"
-        # Show the first 20 lines of the error file
-        head -n 20 "$error_file"
-        echo "..."
-        echo "───────────────────────────────────────────────────────────────"
+    # Only process if the log file is not empty
+    if [ "$log_file_size" -gt 0 ]; then
+        # Look for different types of errors with context
+        grep -n -A 5 -B 2 "Error:" "$log_file" >> "$error_file" 2>/dev/null || true
+        grep -n -A 5 -B 2 "error:" "$log_file" >> "$error_file" 2>/dev/null || true
+        grep -n -A 5 -B 2 "ERROR:" "$log_file" >> "$error_file" 2>/dev/null || true
+        grep -n -A 5 -B 2 "failed with exit code" "$log_file" >> "$error_file" 2>/dev/null || true
+        grep -n -A 5 -B 2 "FAILED" "$log_file" >> "$error_file" 2>/dev/null || true
+        grep -n -A 5 -B 2 "Process completed with exit code [1-9]" "$log_file" >> "$error_file" 2>/dev/null || true
         
-        # Show the last errors as well - often the most important
-        print_info "Last errors in the log (usually most relevant):"
-        echo "───────────────────────────────────────────────────────────────"
-        tail -n 20 "$error_file"
-        echo "───────────────────────────────────────────────────────────────"
+        # Check if any errors were found
+        if [ ! -s "$error_file" ]; then
+            print_info "No specific errors found. Doing a broader search..."
+            # Fallback to more generic error patterns
+            grep -n -A 3 -B 1 "fail" "$log_file" >> "$error_file" 2>/dev/null || true
+            grep -n -A 3 -B 1 "exception" "$log_file" >> "$error_file" 2>/dev/null || true 
+            grep -n -A 3 -B 1 "fatal" "$log_file" >> "$error_file" 2>/dev/null || true
+        fi
         
-        print_info "Full error log written to: $error_file"
-        print_info "For complete logs, see: $log_file"
+        # Show some statistics
+        total_lines=$(wc -l < "$log_file")
+        error_count=$(grep -c -v "^--$" "$error_file" 2>/dev/null || echo "0")
+        
+        print_success "Logs downloaded successfully: $log_file ($total_lines lines)"
+        
+        if [ -s "$error_file" ]; then
+            print_info "Found potential errors in the log."
+            print_info "Most significant errors:"
+            echo "───────────────────────────────────────────────────────────────"
+            # Show the first 20 lines of the error file
+            head -n 20 "$error_file"
+            echo "..."
+            echo "───────────────────────────────────────────────────────────────"
+            
+            # Show the last errors as well - often the most important
+            print_info "Last errors in the log (usually most relevant):"
+            echo "───────────────────────────────────────────────────────────────"
+            tail -n 20 "$error_file"
+            echo "───────────────────────────────────────────────────────────────"
+            
+            print_info "Full error log written to: $error_file"
+            print_info "For complete logs, see: $log_file"
+        else
+            print_info "No clear errors detected. Please check the full log file: $log_file"
+        fi
     else
-        print_info "No clear errors detected. Please check the full log file: $log_file"
+        print_warning "Log file is empty or contains no usable content."
+        print_info "Please check directly on GitHub:"
+        print_info "$workflow_url"
+        
+        # Create a basic error note
+        echo "Log file was empty. Please check workflow directly on GitHub: $workflow_url" > "$error_file"
     fi
+    
+    # Return success even if we couldn't find errors, as we want to continue with other workflows
+    return 0
 }
 
 # Get the latest run ID for a specific workflow
