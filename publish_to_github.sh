@@ -450,12 +450,33 @@ if gh repo view --repo "$REPO_FULL_NAME" --json name &>/dev/null; then
         print_success "Local repository correctly configured with GitHub remote."
     fi
 else
-    print_warning "Repository $REPO_FULL_NAME does not exist on GitHub. Creating it..."
-    gh repo create "$REPO_FULL_NAME" --public --source=. --remote=origin || {
-        print_error "Failed to create GitHub repository. Check your permissions."
-        exit 1
+    print_warning "Repository $REPO_FULL_NAME does not exist on GitHub or there was an error checking it."
+    
+    # Check if we already have a remote origin pointing to this repo
+    if git remote get-url origin 2>/dev/null | grep -q "$REPO_FULL_NAME"; then
+        print_info "Local git is already configured with the correct remote. Continuing..."
+    else
+        print_info "Attempting to create repository or connect to it..."
+        # Try to create, but if it fails (e.g., because it exists), just add the remote
+        gh repo create "$REPO_FULL_NAME" --public --source=. --remote=origin 2>/dev/null || {
+            print_warning "Could not create repository. It may already exist."
+            # Check if origin remote exists
+            if git remote get-url origin &>/dev/null; then
+                print_info "Remote 'origin' already exists. Updating URL..."
+                git remote set-url origin "https://github.com/$REPO_FULL_NAME.git" || {
+                    print_error "Failed to update remote URL. Check your permissions."
+                    exit 1
+                }
+            else
+                print_info "Adding remote 'origin'..."
+                git remote add origin "https://github.com/$REPO_FULL_NAME.git" || {
+                    print_error "Failed to add remote 'origin'. Check your permissions."
+                    exit 1
+                }
+            fi
+        }
     }
-    print_success "Repository $REPO_FULL_NAME created on GitHub and connected to local repo."
+    print_success "Repository $REPO_FULL_NAME configured as remote 'origin'."
 fi
 
 # *** STEP 6: Check and configure GitHub secrets ***
