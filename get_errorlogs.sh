@@ -1,11 +1,21 @@
 #!/bin/bash
 # get_errorlogs.sh - GitHub Actions Workflow Log Analysis Tool
-# Version: 1.0.0
+# Version: 1.1.0
 # A portable tool for retrieving, analyzing, and classifying GitHub Actions workflow logs
 
+# Enable strict mode for better error handling
+set -o pipefail  # Fail if any command in a pipe fails
+
 #=========================================================================
+# Get script directory for relative paths
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
 # CONFIGURATION
 #=========================================================================
+
+# Python command path - auto-detected
+PYTHON_CMD="python3"
+
 
 # Constants for log settings
 SCRIPT_VERSION="1.0.0"
@@ -829,7 +839,19 @@ classify_errors() {
     grep -n -B 5 -A 10 -E "$ERROR_PATTERN_CRITICAL" "$log_file" > "$error_file" 2>/dev/null || true
     grep -n -B 3 -A 8 -E "$ERROR_PATTERN_SEVERE" "$log_file" | grep -v -E "$ERROR_PATTERN_CRITICAL" >> "$error_file" 2>/dev/null || true
     
-    return 0
+    
+    # Use check_summary_output.py for enhanced analysis if available
+    if [ -f "$SCRIPT_DIR/check_summary_output.py" ]; then
+        print_info "Running enhanced error analysis..."
+        if [ -x "$SCRIPT_DIR/check_summary_output.py" ]; then
+            "$PYTHON_CMD" "$SCRIPT_DIR/check_summary_output.py" "$log_file" >> "$output_file"
+        else
+            chmod +x "$SCRIPT_DIR/check_summary_output.py"
+            "$PYTHON_CMD" "$SCRIPT_DIR/check_summary_output.py" "$log_file" >> "$output_file"
+        fi
+    fi
+
+return 0
 }
 
 # Function to find local logs after last commit
@@ -1543,6 +1565,23 @@ list_saved_logs() {
 #=========================================================================
 # MAIN SCRIPT EXECUTION
 #=========================================================================
+
+# Detect and validate Python interpreter
+print_info "Detecting Python interpreter..."
+if command -v python3 &>/dev/null; then
+    PYTHON_CMD="python3"
+elif command -v python &>/dev/null; then
+    PYTHON_CMD="python"
+else
+    print_warning "No Python interpreter found. Enhanced analysis will not be available."
+fi
+
+# Verify Python version
+if [ -n "$PYTHON_CMD" ]; then
+    PY_VERSION=$($PYTHON_CMD --version 2>&1)
+    print_success "Using Python: $PY_VERSION"
+fi
+
 
 # Check for global options
 DO_TRUNCATE=false

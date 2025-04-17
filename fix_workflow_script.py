@@ -1,124 +1,125 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
-Comprehensive fix script for GitHub workflow integration issues
-- Fixes repository detection
-- Enhances workflow triggering
-- Adds workflow ID lookup
+Helper script to fix common issues in the publish_to_github.sh script.
+This ensures the script runs correctly with the new --wait-for-logs option.
 """
 
-def fix_publish_to_github():
-    """Fix the repository detection and workflow triggering issues in publish_to_github.sh"""
-    script_path = "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/enchant_cli/publish_to_github.sh"
-    
-    with open(script_path, "r") as file:
-        content = file.read()
-    
-    # Fix 1: Correct workflow run syntax to use --repo instead of -R
-    content = content.replace(
-        'gh workflow run tests.yml -R "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"',
-        'gh workflow run tests.yml --repo "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"'
-    )
-    content = content.replace(
-        'gh workflow run auto_release.yml -R "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"',
-        'gh workflow run auto_release.yml --repo "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"'
-    )
-    
-    # Fix 2: Correct API paths with proper quotes
-    content = content.replace(
-        'gh api repos/$REPO_FULL_NAME/actions/workflows/tests.yml/dispatches',
-        'gh api "repos/$REPO_FULL_NAME/actions/workflows/tests.yml/dispatches"'
-    )
-    content = content.replace(
-        'gh api repos/$REPO_FULL_NAME/actions/workflows/auto_release.yml/dispatches',
-        'gh api "repos/$REPO_FULL_NAME/actions/workflows/auto_release.yml/dispatches"'
-    )
-    
-    # Fix 3: Convert boolean text to actual bash boolean strings
-    content = content.replace('SUCCESS=false', 'SUCCESS="false"')
-    content = content.replace('SUCCESS=true', 'SUCCESS="true"')
-    
-    # Fix 4: Add advanced workflow ID lookup for more reliable triggering
-    workflows_section = """
-                    # Third approach: Try to find the workflow ID and use that
-                    print_warning "API approach failed. Trying one more method with workflow ID..."
-                    WORKFLOW_ID=$(gh api "repos/$REPO_FULL_NAME/actions/workflows" --jq '.workflows[] | select(.name=="Tests" or .path==".github/workflows/tests.yml") | .id')
-                    
-                    if [ -n "$WORKFLOW_ID" ]; then
-                        print_info "Found workflow ID: $WORKFLOW_ID, attempting to trigger using ID..."
-                        if gh api "repos/$REPO_FULL_NAME/actions/workflows/$WORKFLOW_ID/dispatches" -f ref="$CURRENT_BRANCH" --silent; then
-                            print_success "Tests workflow triggered successfully via workflow ID."
-                            SUCCESS="true"
-                        else
-                            print_error "Failed to trigger tests workflow after multiple approaches."
-                            print_warning "This is a critical error. Tests must always run on GitHub."
-                            print_info "Please manually trigger the workflow from the GitHub Actions tab at:"
-                            print_info "https://github.com/$REPO_FULL_NAME/actions/workflows/tests.yml"
-                        fi
-                    else
-                        print_error "Could not find workflow ID for tests.yml."
-                        print_warning "This is a critical error. Tests must always run on GitHub."
-                        print_info "Please manually trigger the workflow from the GitHub Actions tab at:"
-                        print_info "https://github.com/$REPO_FULL_NAME/actions/workflows/tests.yml"
-                    fi
-    """
-    content = content.replace(
-        'print_error "Failed to trigger tests workflow after multiple attempts."',
-        workflows_section
-    )
-    
-    # Add similar fix for auto_release workflow
-    auto_release_section = """
-                    # Third approach: Try to find the workflow ID and use that
-                    print_warning "API approach failed. Trying one more method with workflow ID..."
-                    WORKFLOW_ID=$(gh api "repos/$REPO_FULL_NAME/actions/workflows" --jq '.workflows[] | select(.name=="Auto Release" or .path==".github/workflows/auto_release.yml") | .id')
-                    
-                    if [ -n "$WORKFLOW_ID" ]; then
-                        print_info "Found workflow ID: $WORKFLOW_ID, attempting to trigger using ID..."
-                        if gh api "repos/$REPO_FULL_NAME/actions/workflows/$WORKFLOW_ID/dispatches" -f ref="$CURRENT_BRANCH" --silent; then
-                            print_success "Auto_release workflow triggered successfully via workflow ID."
-                            SUCCESS="true"
-                        else
-                            print_error "Failed to trigger auto_release workflow after multiple approaches."
-                            print_warning "This is a critical error. Releases must always be validated on GitHub."
-                            print_info "Please manually trigger the workflow from the GitHub Actions tab at:"
-                            print_info "https://github.com/$REPO_FULL_NAME/actions/workflows/auto_release.yml"
-                        fi
-                    else
-                        print_error "Could not find workflow ID for auto_release.yml."
-                        print_warning "This is a critical error. Releases must always be validated on GitHub."
-                        print_info "Please manually trigger the workflow from the GitHub Actions tab at:"
-                        print_info "https://github.com/$REPO_FULL_NAME/actions/workflows/auto_release.yml"
-                    fi
-    """
-    content = content.replace(
-        'print_error "Failed to trigger auto_release workflow after $MAX_RETRIES attempts."',
-        auto_release_section
-    )
-    
-    # Write the updated content back to the file
-    with open(script_path, "w") as file:
-        file.write(content)
-    
-    return "Fixed GitHub integration issues in publish_to_github.sh script"
+import re
+import sys
+from pathlib import Path
 
-def fix_get_errorlogs():
+
+def fix_workflow_script():
+    """
+    Fix common issues in the publish_to_github.sh script to ensure compatibility
+    with the --wait-for-logs option and other enhancements.
+    """
+    script_path = Path('/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/enchant_cli/publish_to_github.sh')
+    
+    # Ensure the script exists
+    if not script_path.exists():
+        print("Error: publish_to_github.sh not found", file=sys.stderr)
+        return 1
+    
+    # Read the file content
+    content = script_path.read_text()
+    
+    # Fix any missing elements in the script
+    changes_made = 0
+    
+    # Ensure the --wait-for-logs flag is properly handled when invoked
+    if "--wait-for-logs" in content and "get_errorlogs.sh latest" not in content:
+        # Find the section where workflow logs are waited for
+        wait_logs_section = re.search(r'# \*\*\* STEP 10: Wait for workflow logs.*?fi', content, re.DOTALL)
+        
+        if wait_logs_section:
+            original_section = wait_logs_section.group(0)
+            
+            # Find the part where get_errorlogs.sh is called
+            if "if \"$SCRIPT_DIR/get_errorlogs.sh\"" in original_section:
+                enhanced_section = original_section.replace(
+                    'if "$SCRIPT_DIR/get_errorlogs.sh"',
+                    'if "$SCRIPT_DIR/get_errorlogs.sh" latest'
+                )
+                content = content.replace(original_section, enhanced_section)
+                changes_made += 1
+                print("Added 'latest' parameter to get_errorlogs.sh call")
+    
+    # Fix any exit calls that don't include an error code
+    exit_calls = re.findall(r'print_error "[^"]+"\s+exit 1', content)
+    exit_calls_fixed = 0
+    
+    for exit_call in exit_calls:
+        if "print_error" in exit_call and "exit 1" in exit_call and '" 1' not in exit_call:
+            new_exit_call = exit_call.replace('exit 1', '" 1\n            exit 1')
+            content = content.replace(exit_call, new_exit_call)
+            exit_calls_fixed += 1
+    
+    if exit_calls_fixed > 0:
+        changes_made += exit_calls_fixed
+        print(f"Fixed {exit_calls_fixed} exit calls to include error code in print_error")
+    
+    # Ensure UV_CMD variable is properly used throughout the script
+    if "UV_CMD=" in content:
+        # Find places where "uv" is used directly instead of $UV_CMD
+        direct_uv_calls = re.findall(r'command -v uv.*?uv tool', content, re.DOTALL)
+        
+        for direct_call in direct_uv_calls:
+            if "UV_CMD" not in direct_call and "command -v uv" in direct_call:
+                # Replace only the command call, not the check
+                fixed_call = direct_call.replace("uv tool", '"$UV_CMD" tool')
+                content = content.replace(direct_call, fixed_call)
+                changes_made += 1
+                print("Fixed direct uv tool call to use UV_CMD variable")
+    
+    # For macOS compatibility in get_errorlogs.sh 
+    fix_get_errorlogs_mac_compatibility()
+    
+    # Write the updated content back to the script if changes were made
+    if changes_made > 0:
+        script_path.write_text(content)
+        print(f"Made {changes_made} fixes to {script_path}")
+        return 0
+    else:
+        print(f"No issues found in {script_path}")
+        return 0
+
+
+def fix_get_errorlogs_mac_compatibility():
     """Fix macOS compatibility issues in get_errorlogs.sh"""
-    script_path = "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/enchant_cli/get_errorlogs.sh"
+    script_path = Path("/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/enchant_cli/get_errorlogs.sh")
     
-    with open(script_path, "r") as file:
-        content = file.read()
+    if not script_path.exists():
+        print("Warning: get_errorlogs.sh not found", file=sys.stderr)
+        return 1
     
-    # Fix 5: Replace readarray with a more portable approach
-    content = content.replace(
-        'readarray -t recent_logs < <(find_local_logs_after_last_commit "" 3)',
-        """recent_logs=()
-    while IFS= read -r line; do
-        recent_logs+=("$line")
-    done < <(find_local_logs_after_last_commit "" 3)"""
-    )
+    content = script_path.read_text()
+    changes_made = 0
     
-    # Fix 6: Initialize variables before comparison to fix MacOS Bash issues
-    display_function = """
+    # Fix 1: Replace readarray with a more portable approach if needed
+    if "readarray -t" in content:
+        # This pattern may need refinement based on the actual content
+        readarray_pattern = r'readarray -t (\w+) < <\(([^)]+)\)'
+        for match in re.finditer(readarray_pattern, content):
+            var_name = match.group(1)
+            command = match.group(2)
+            
+            replacement = f"""# Use a more portable approach instead of readarray
+{var_name}=()
+while IFS= read -r line; do
+    {var_name}+=("$line")
+done < <({command})"""
+            
+            content = content.replace(match.group(0), replacement)
+            changes_made += 1
+            print(f"Replaced readarray for {var_name} with a more portable while-loop approach")
+    
+    # Fix 2: Initialize variables before comparison to fix MacOS Bash issues
+    display_function_pattern = r'# Function to display workflow summary.*?^\}'
+    display_function_match = re.search(display_function_pattern, content, re.DOTALL | re.MULTILINE)
+    
+    if display_function_match and "recent_failure_count=${recent_failure_count:-0}" not in content:
+        new_display_function = """
 # Function to display workflow summary
 display_workflow_summary() {
     echo ""
@@ -136,40 +137,17 @@ display_workflow_summary() {
     fi
 }
 """
+        content = content.replace(display_function_match.group(0), new_display_function.strip())
+        changes_made += 1
+        print("Fixed display_workflow_summary function to initialize variables for macOS compatibility")
     
-    # Find and replace the display_workflow_summary function
-    start = content.find("# Function to display workflow summary")
-    if start > 0:
-        end = content.find("}", start) + 1
-        content = content[:start] + display_function.strip() + content[end:]
+    # Write the updated content back if changes were made
+    if changes_made > 0:
+        script_path.write_text(content)
+        print(f"Made {changes_made} macOS compatibility fixes to get_errorlogs.sh")
     
-    # Write the updated content back to the file
-    with open(script_path, "w") as file:
-        file.write(content)
-    
-    return "Fixed macOS compatibility issues in get_errorlogs.sh script"
+    return 0
 
-def main():
-    """Execute all fixes"""
-    results = []
-    
-    try:
-        results.append(fix_publish_to_github())
-    except Exception as e:
-        results.append(f"Error fixing publish_to_github.sh: {str(e)}")
-    
-    try:
-        results.append(fix_get_errorlogs())
-    except Exception as e:
-        results.append(f"Error fixing get_errorlogs.sh: {str(e)}")
-    
-    print("\n".join(results))
-    print("\nFix Summary:")
-    print("1. Resolved repository detection issue in publish_to_github.sh")
-    print("2. Improved workflow triggering with retry logic and multiple approaches")
-    print("3. Enhanced error handling with better diagnostic messages")
-    print("4. Fixed macOS compatibility issues in get_errorlogs.sh")
-    print("5. Added advanced workflow ID lookup for more reliable triggering")
 
 if __name__ == "__main__":
-    main()
+    sys.exit(fix_workflow_script())

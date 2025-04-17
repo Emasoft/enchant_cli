@@ -9,7 +9,7 @@ set -eo pipefail
 # ***************************************************************************************
 #
 # This enhanced script handles the complete workflow from local validation to GitHub:
-# 1. Environment setup and validation
+# 1. Environment setup and validation with thorough uv checks
 # 2. YAML validation with comprehensive workflow checking (skippable with --skip-linters)
 # 3. Testing and code quality checks (skippable with --skip-tests)
 # 4. GitHub repository creation (if needed)
@@ -17,7 +17,8 @@ set -eo pipefail
 # 6. Committing changes (if needed)
 # 7. Pushing to GitHub
 # 8. DYNAMIC WORKFLOW TRIGGERING - detects and triggers workflows even if no changes were made
-# 9. Release management
+# 9. Optional waiting for workflow logs with new --wait-for-logs option
+# 10. Release management
 #
 # It's designed to handle various scenarios:
 # - First-time setup
@@ -28,16 +29,63 @@ set -eo pipefail
 # - Adding workflow_dispatch triggers if missing
 # - Failure recovery with clear diagnostics
 
+# ANSI color codes for prettier output - defined at top level for use throughout script
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+BOLD='\033[1m'
+UNDERLINE='\033[4m'
+
+# Print functions for consistent formatting - defined at top level for use throughout script
+print_header() {
+    printf "\n${BOLD}${BLUE}=== %s ===${NC}\n" "$1"
+}
+
+print_step() {
+    printf "\n${CYAN}🔄 %s${NC}\n" "$1"
+}
+
+print_info() {
+    printf "${BLUE}ℹ️ %s${NC}\n" "$1"
+}
+
+print_success() {
+    printf "${GREEN}✅ %s${NC}\n" "$1"
+}
+
+print_warning() {
+    printf "${YELLOW}⚠️ %s${NC}\n" "$1"
+}
+
+print_error() {
+    printf "${RED}❌ %s${NC}\n" "$1"
+    # If error code provided as second parameter, exit with it
+    if [ -n "$2" ]; then
+        exit "$2"
+    fi
+}
+
+# Check for required commands
+check_command() {
+    if ! command -v "$1" &> /dev/null; then
+        print_error "$1 command not found. Please install it first." 1
+        if [ "$1" = "gh" ]; then
+            echo "   Install GitHub CLI from: https://cli.github.com/manual/installation"
+        elif [ "$1" = "uv" ]; then
+            echo "   Install uv from: https://github.com/astral-sh/uv#installation"
+            echo "   Or run: curl --proto '=https' --tlsv1.2 -sSf https://astral.sh/uv/install.sh | sh"
+        fi
+        exit 1
+    fi
+}
+
 # Display help information
 show_help() {
     # Use ANSI colors for better readability
-    RED='\033[0;31m'
-    GREEN='\033[0;32m'
-    YELLOW='\033[0;33m'
-    BLUE='\033[0;34m'
-    NC='\033[0m' # No Color
-    BOLD='\033[1m'
-    
     cat << EOF
 ${BOLD}USAGE:${NC} 
     ${GREEN}./publish_to_github.sh --skip-tests${NC} [options]
@@ -64,15 +112,18 @@ ${BOLD}OPTIONS:${NC}
     --dry-run          Execute all steps except final GitHub push
     --verify-pypi      Check if the package is available on PyPI after publishing
     --check-version VER  Check if a specific version is available on PyPI (implies --verify-pypi)
+    --wait-for-logs    Wait for workflow logs after pushing to GitHub (60s max)
 
 ${BOLD}REQUIRED WORKFLOW:${NC}
     1. Make your code changes
     2. Run: ${GREEN}./publish_to_github.sh --skip-tests${NC}
     3. The script will automatically:
+       - Validate environment with enhanced uv checks
        - Validate YAML files with enhanced workflow detection
        - Push changes to GitHub
        - Automatically trigger all workflows without manual intervention
        - Verify that workflows are running
+       - Optionally wait for and display workflow logs (with --wait-for-logs)
     4. Workflows will run on GitHub (even though they were skipped locally)
 
 ${BOLD}REQUIREMENTS:${NC}
@@ -80,6 +131,8 @@ ${BOLD}REQUIREMENTS:${NC}
         Install from: https://cli.github.com/manual/installation
     - GitHub CLI must be authenticated 
         Run 'gh auth login' if not already authenticated
+    - uv package manager
+        Install from: https://github.com/astral-sh/uv#installation
 
 ${BOLD}DETAILED SCENARIOS:${NC}
     1. First-time repository setup:
@@ -94,6 +147,10 @@ ${BOLD}DETAILED SCENARIOS:${NC}
        ${GREEN}./publish_to_github.sh --skip-tests${NC}
        (Then follow instructions to create a GitHub Release)
 
+    4. Monitoring workflow execution:
+       ${GREEN}./publish_to_github.sh --skip-tests --wait-for-logs${NC}
+       (Will wait for workflow logs and display any errors)
+
 ${BOLD}ENVIRONMENT VARIABLES:${NC}
     The script automatically checks and configures required secrets:
     - OPENROUTER_API_KEY: Required for translation API
@@ -105,6 +162,7 @@ ${BOLD}EXAMPLES:${NC}
     ./publish_to_github.sh --help                # Show this help message
     ${GREEN}./publish_to_github.sh --skip-tests${NC} --skip-linters  # Skip both tests and YAML validation
     ${GREEN}./publish_to_github.sh --skip-tests${NC} --verify-pypi # Check latest package on PyPI after publishing
+    ${GREEN}./publish_to_github.sh --skip-tests${NC} --wait-for-logs # Wait for workflow logs after pushing
 
 For more information, see: CLAUDE.md
 EOF
@@ -117,6 +175,7 @@ SKIP_LINTERS=0
 FORCE_PUSH=0
 DRY_RUN=0
 VERIFY_PYPI=0
+WAIT_FOR_LOGS=0
 SPECIFIC_VERSION=""
 
 while [[ $# -gt 0 ]]; do
@@ -144,9 +203,13 @@ while [[ $# -gt 0 ]]; do
             VERIFY_PYPI=1
             shift
             ;;
+        --wait-for-logs)
+            WAIT_FOR_LOGS=1
+            shift
+            ;;
         --check-version)
             if [[ -z "$2" || "$2" == -* ]]; then
-                echo "Error: --check-version requires a version argument"
+                print_error "--check-version requires a version argument" 1
                 show_help
             fi
             SPECIFIC_VERSION="$2"
@@ -154,88 +217,162 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         *)
-            echo "Unknown option: $1"
+            print_error "Unknown option: $1" 1
             show_help
             ;;
     esac
 done
 
-# ANSI color codes for prettier output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[0;34m'
-MAGENTA='\033[0;35m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
-BOLD='\033[1m'
-UNDERLINE='\033[4m'
-
-# Print functions for consistent formatting
-print_header() {
-    printf "\n${BOLD}${BLUE}=== %s ===${NC}\n" "$1"
-}
-
-print_step() {
-    printf "\n${CYAN}🔄 %s${NC}\n" "$1"
-}
-
-print_info() {
-    printf "${BLUE}ℹ️ %s${NC}\n" "$1"
-}
-
-print_success() {
-    printf "${GREEN}✅ %s${NC}\n" "$1"
-}
-
-print_warning() {
-    printf "${YELLOW}⚠️ %s${NC}\n" "$1"
-}
-
-print_error() {
-    printf "${RED}❌ %s${NC}\n" "$1"
-}
-
-check_command() {
-    if ! command -v "$1" &> /dev/null; then
-        print_error "$1 command not found. Please install it first."
-        if [ "$1" = "gh" ]; then
-            echo "   Install GitHub CLI from: https://cli.github.com/manual/installation"
-        fi
-        exit 1
-    fi
-}
-
 # First, ensure we have a clean environment
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# *** STEP 0: Enhanced Environment Validation ***
+print_header "Validating Environment Setup"
+
+# Verify that required commands are available
+print_step "Checking for required tools..."
+
+# Check for required system commands
+check_command git
+check_command curl
+
+# Check for uv availability - explicit uv check is now required
+check_command uv
+print_success "Found uv: $(uv --version 2>&1 | head -n 1)"
+
+# Check GitHub CLI
+check_command gh
+print_success "Found GitHub CLI: $(gh --version 2>&1 | head -n 1)"
+
+# Validate uv installation and configuration before sourcing ensure_env.sh
+print_step "Performing enhanced uv validation..."
+
+# Validate uv installation is correct
+UV_PATH=$(which uv)
+print_info "Using uv from: $UV_PATH"
+
+# Verify uv tool command works properly
+if ! uv --help &>/dev/null; then
+    print_error "uv installation appears to be broken. Reinstall uv via curl --proto '=https' --tlsv1.2 -sSf https://astral.sh/uv/install.sh | sh" 1
+fi
+
+# Verify uv tool command works for installing tools (critical for bump-my-version)
+print_info "Verifying uv tool command functionality..."
+if ! uv tool --help &>/dev/null; then
+    print_error "uv tool command is not working. This is required for bump-my-version installation." 1
+    print_info "Please see: https://www.andrlik.org/dispatches/til-bump-my-version-uv/"
+    exit 1
+fi
+print_success "uv tool command is working correctly"
+
+# Source the environment setup script which activates the virtual environment
+print_step "Setting up isolated Python environment..."
 source "$SCRIPT_DIR/ensure_env.sh"
 
-# Set Python command based on environment
-if [ -n "$VIRTUAL_ENV" ]; then
-    VENV_DIR="$VIRTUAL_ENV"
-    PYTHON_CMD="$VENV_DIR/bin/python"
-elif [ -d "$SCRIPT_DIR/.venv" ]; then
-    VENV_DIR="$SCRIPT_DIR/.venv"
-    PYTHON_CMD="$VENV_DIR/bin/python"
+# Double-check virtual environment activation
+if [ -z "$VIRTUAL_ENV" ]; then
+    print_error "Virtual environment activation failed in ensure_env.sh" 1
+    exit 1
+fi
+
+# Set Python command variables
+VENV_DIR="$VIRTUAL_ENV"
+PYTHON_CMD="$VENV_DIR/bin/python"
+print_info "Using virtual environment: $VENV_DIR"
+
+# Verify Python command works
+if ! $PYTHON_CMD --version &>/dev/null; then
+    print_error "Python command $PYTHON_CMD not found in virtual environment." 1
+    exit 1
+fi
+
+# Verify that Python is the correct version
+PYTHON_VERSION=$($PYTHON_CMD --version 2>&1)
+print_success "Using Python: $PYTHON_VERSION"
+
+# Check if Python version meets minimum requirements (3.9+)
+PY_MAJOR_VERSION=$(echo $PYTHON_VERSION | cut -d' ' -f2 | cut -d'.' -f1)
+PY_MINOR_VERSION=$(echo $PYTHON_VERSION | cut -d' ' -f2 | cut -d'.' -f2)
+if [ "$PY_MAJOR_VERSION" -lt 3 ] || ([ "$PY_MAJOR_VERSION" -eq 3 ] && [ "$PY_MINOR_VERSION" -lt 9 ]); then
+    print_error "Python version must be at least 3.9. Found: $PYTHON_VERSION" 1
+    exit 1
+fi
+
+# Validate pip installation in virtual environment
+if ! $PYTHON_CMD -m pip --version &>/dev/null; then
+    print_error "pip not found in virtual environment." 1
+    exit 1
+fi
+print_success "pip is properly installed: $($PYTHON_CMD -m pip --version)"
+
+# Check if uv is working inside the virtual environment
+UV_VENV="$VENV_DIR/bin/uv"
+if [ ! -f "$UV_VENV" ]; then
+    print_warning "uv not found in virtual environment. Installing..."
+    $PYTHON_CMD -m pip install uv || {
+        print_error "Failed to install uv in virtual environment." 1
+        exit 1
+    }
+    print_success "uv installed in virtual environment"
 else
-    VENV_DIR=""
-    PYTHON_CMD="python3"
+    print_success "uv is installed in virtual environment: $($UV_VENV --version 2>&1 | head -n 1)"
 fi
 
-# Check if Python command works
-if ! $PYTHON_CMD --version &> /dev/null; then
-    print_warning "Python command $PYTHON_CMD not found. Falling back to system Python."
-    PYTHON_CMD="python3"
-    if ! $PYTHON_CMD --version &> /dev/null; then
-        PYTHON_CMD="python"
-        if ! $PYTHON_CMD --version &> /dev/null; then
-            print_error "No Python interpreter found. Please install Python 3.x."
-            exit 1
-        fi
-    fi
+# Validate uv sync functionality
+print_info "Verifying uv sync functionality..."
+if ! "$UV_VENV" sync --check &>/dev/null; then
+    print_warning "uv sync --check failed. This might indicate environment inconsistencies."
+    print_info "Attempting to sync dependencies..."
+    "$UV_VENV" sync || {
+        print_error "uv sync failed. Environment may be in an inconsistent state." 1
+        exit 1
+    }
+else
+    print_success "uv sync verification passed"
 fi
 
-print_info "Using Python: $($PYTHON_CMD --version 2>&1)"
+# Validate bump-my-version installation via uv
+print_step "Verifying bump-my-version installation..."
+if ! "$UV_VENV" tool list 2>/dev/null | grep -q "bump-my-version"; then
+    print_warning "bump-my-version not found in uv tools. Installing..."
+    "$UV_VENV" tool install bump-my-version || {
+        print_error "Failed to install bump-my-version using uv tool." 1
+        print_info "See: https://www.andrlik.org/dispatches/til-bump-my-version-uv/"
+        exit 1
+    }
+fi
+
+# Verify bump-my-version works
+if ! "$UV_VENV" tool run bump-my-version --version &>/dev/null; then
+    print_error "bump-my-version installation is broken or incomplete." 1
+    print_info "Try: uv tool uninstall bump-my-version && uv tool install bump-my-version"
+    exit 1
+fi
+print_success "bump-my-version is properly installed: $("$UV_VENV" tool run bump-my-version --version 2>&1 | head -n 1)"
+
+# Validate pre-commit installation
+print_info "Verifying pre-commit installation..."
+if ! "$PYTHON_CMD" -m pip show pre-commit &>/dev/null; then
+    print_warning "pre-commit not found. Installing..."
+    "$PYTHON_CMD" -m pip install pre-commit || {
+        print_error "Failed to install pre-commit." 1
+        exit 1
+    }
+fi
+print_success "pre-commit is properly installed: $("$VENV_DIR/bin/pre-commit" --version 2>&1 | head -n 1)"
+
+# Check if pre-commit hooks are installed
+if [ ! -f "$SCRIPT_DIR/.git/hooks/pre-commit" ]; then
+    print_warning "pre-commit hooks not installed. Installing..."
+    "$VENV_DIR/bin/pre-commit" install || {
+        print_error "Failed to install pre-commit hooks." 1
+        exit 1
+    }
+fi
+print_success "pre-commit hooks are installed"
+
+# Basic summary of environment validation
+print_success "Environment validation complete. All required tools are properly configured."
 
 # Script configuration
 REPO_NAME="enchant_cli"  # GitHub repository name
@@ -257,120 +394,129 @@ print_step "Checking GitHub CLI authentication..."
 
 if ! gh auth status &> /dev/null; then
     print_error "Not authenticated with GitHub CLI. Please run 'gh auth login' first."
-    exit 1
+    " 1
+            exit 1
 fi
 
 GITHUB_USER=$(gh api user | grep login | cut -d'"' -f4)
 if [ -z "$GITHUB_USER" ]; then
     print_error "Failed to get GitHub username. Please check your authentication."
-    exit 1
+    " 1
+            exit 1
 fi
 print_success "Authenticated with GitHub as user: $GITHUB_USER"
 
 # *** STEP 2: Environment Synchronization ***
-print_step "Synchronizing development environment..."
+print_step "Performing environment synchronization with uv..."
 
-if command -v uv &> /dev/null; then
-    uv sync || { print_error "uv sync failed."; exit 1; }
-else
-    # If uv is not globally available, try with project's uv
-    if [ -f "$VENV_DIR/bin/uv" ]; then
-        "$VENV_DIR/bin/uv" sync || { print_error "uv sync failed."; exit 1; }
-    else
-        # Install uv if it's missing
-        print_warning "uv not found. Installing via pip..."
-        $PYTHON_CMD -m pip install uv || { print_error "Failed to install uv."; exit 1; }
-        "$VENV_DIR/bin/uv" sync || { print_error "uv sync failed."; exit 1; }
-    fi
+# We must use our project-specific uv from the virtual environment
+UV_CMD="$VENV_DIR/bin/uv"
+if [ ! -f "$UV_CMD" ]; then
+    print_error "uv not found in virtual environment. This is required." 1
+    print_info "Try running: ./reinitialize_env.sh"
+    exit 1
 fi
 
-# Install bump-my-version via uv tools if needed
-print_step "Ensuring version management tools are available..."
+# Sync dependencies
+print_info "Synchronizing dependencies with uv..."
+"$UV_CMD" sync || {
+    print_error "uv sync failed. Environment may be in an inconsistent state." 1
+    print_info "Try running: ./reinitialize_env.sh"
+    exit 1
+}
+print_success "Dependency synchronization successful"
 
-if command -v uv &> /dev/null; then
-    uv tool install --quiet bump-my-version || {
-        print_warning "Installing bump-my-version via uv failed. Will try via pip..."
-        $PYTHON_CMD -m pip install bump-my-version || print_warning "Failed to install bump-my-version. Version bumping may fail."
+# Verify pip installation
+if ! $PYTHON_CMD -m pip --version &> /dev/null; then
+    print_error "pip not found in virtual environment. This is required." 1
+    print_info "Try running: ./reinitialize_env.sh"
+    exit 1
+fi
+
+# Ensure bump-my-version is installed via uv tool (required method)
+print_step "Verifying bump-my-version installation via uv..."
+
+if ! "$UV_CMD" tool list 2>/dev/null | grep -q "bump-my-version"; then
+    print_info "bump-my-version not found in uv tools. Installing..."
+    "$UV_CMD" tool install bump-my-version || {
+        print_error "Failed to install bump-my-version using uv tool." 1
+        print_info "See: https://www.andrlik.org/dispatches/til-bump-my-version-uv/"
+        print_info "Try running: uv tool install bump-my-version"
+        exit 1
     }
 fi
 
-# Ensure pip is installed correctly
-if ! $PYTHON_CMD -m pip --version &> /dev/null; then
-    print_warning "pip not found in virtual environment. Installing..."
-    $PYTHON_CMD -m ensurepip --upgrade || true
-    $PYTHON_CMD -m pip install --upgrade pip || { print_error "Failed to install pip. Run ./reinitialize_env.sh"; exit 1; }
+# Verify bump-my-version works
+if ! "$UV_CMD" tool run bump-my-version --version &>/dev/null; then
+    print_error "bump-my-version installation is broken or incomplete." 1
+    print_info "Try: uv tool uninstall bump-my-version && uv tool install bump-my-version"
+    exit 1
 fi
+BUMP_VERSION=$("$UV_CMD" tool run bump-my-version --version 2>&1 | head -n 1)
+print_success "bump-my-version is properly installed: $BUMP_VERSION"
 
-# Ensure pre-commit is installed
+# Ensure pre-commit is installed and working
 print_step "Preparing pre-commit environment..."
 if ! $PYTHON_CMD -m pip show pre-commit &> /dev/null; then
-    print_warning "pre-commit not found in virtual environment. Installing..."
-    $PYTHON_CMD -m pip install pre-commit || { 
-        print_error "Failed to install pre-commit. Try running ./reinitialize_env.sh first."; 
+    print_info "pre-commit not found in virtual environment. Installing..."
+    "$UV_CMD" pip install pre-commit || { 
+        print_error "Failed to install pre-commit. Try running ./reinitialize_env.sh first." 1
         exit 1; 
     }
 fi
 
 # Clean pre-commit cache to avoid potential issues
-print_info "Forcefully cleaning pre-commit cache..."
+print_info "Cleaning pre-commit cache..."
 rm -rf "${HOME}/.cache/pre-commit" || print_warning "Failed to remove pre-commit cache, continuing..."
 
 # Install pre-commit hooks
 print_info "Installing pre-commit hooks..."
 $PYTHON_CMD -m pre_commit install --install-hooks || { 
-    print_warning "pre-commit install failed. Retrying with manual setup..."
+    print_warning "pre-commit install failed. Creating manual backup hook..."
     # If pre-commit installation fails, create a backup manual hook
     mkdir -p .git/hooks
     cat > .git/hooks/pre-commit << 'EOF'
 #!/bin/sh
 set -e
-# Run ruff for code formatting
-if [ -f .venv/bin/ruff ]; then
-    .venv/bin/ruff --fix .
+
+# Get the directory of this script
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+PROJECT_ROOT=$(dirname "$SCRIPT_DIR")
+
+# Run code formatting with ruff if available
+if [ -f "$PROJECT_ROOT/.venv/bin/ruff" ]; then
+    "$PROJECT_ROOT/.venv/bin/ruff" --fix "$PROJECT_ROOT"
 elif command -v ruff &> /dev/null; then
-    ruff --fix .
+    ruff --fix "$PROJECT_ROOT"
 fi
 
-# Run shellcheck on shell scripts
+# Run shellcheck on shell scripts if available
 if command -v shellcheck &> /dev/null; then
-    for file in $(find . -name "*.sh"); do
-        shellcheck "$file" || echo "WARNING: Shellcheck found issues in $file"
-    done
+    find "$PROJECT_ROOT" -name "*.sh" -maxdepth 3 -print0 | xargs -0 -n1 shellcheck || echo "WARNING: Shellcheck found issues"
 fi
 
-# Use uv to run bump-my-version
-if command -v uv &> /dev/null; then
-    uv tool run bump-my-version minor --commit --tag --allow-dirty || \
+# IMPORTANT: Use uv to run bump-my-version (required method)
+if [ -f "$PROJECT_ROOT/.venv/bin/uv" ]; then
+    "$PROJECT_ROOT/.venv/bin/uv" tool run bump-my-version minor --commit --tag --allow-dirty || \
     echo "WARNING: Version bump with uv tool failed, continuing commit"
-elif [ -f ".venv/bin/bump-my-version" ]; then
-    .venv/bin/bump-my-version minor --commit --tag --allow-dirty || \
-    echo "WARNING: Version bump with .venv binary failed, continuing commit"
-elif command -v bump-my-version &> /dev/null; then
-    bump-my-version minor --commit --tag --allow-dirty || \
-    echo "WARNING: Version bump failed, continuing commit"
+elif command -v uv &> /dev/null; then
+    "$UV_CMD" tool run bump-my-version minor --commit --tag --allow-dirty || \
+    echo "WARNING: Version bump with uv tool failed, continuing commit"
 else
-    # Fallback to inline Python script if all else fails
-    python -c "
-import re, sys;
-init_file = 'src/enchant_cli/__init__.py';
-with open(init_file, 'r') as f: content = f.read();
-version_match = re.search(r'__version__\\s*=\\s*\"([0-9]+)\\.([0-9]+)\\.([0-9]+)\"', content);
-if not version_match: 
-    print('WARNING: Version pattern not found in __init__.py');
-    sys.exit(0);
-major, minor, patch = map(int, version_match.groups());
-new_minor = minor + 1;
-new_version = f'{major}.{new_minor}.0';
-with open(init_file, 'w') as f: f.write(re.sub(r'__version__\\s*=\\s*\"[0-9]+\\.[0-9]+\\.[0-9]+\"', f'__version__ = \"{new_version}\"', content));
-print(f'Bumped version to {new_version}');
-" || echo "WARNING: Version bump failed, continuing commit"
+    echo "WARNING: uv not found, version bump might fail!"
+    # Try any available bump-my-version method
+    if [ -f "$PROJECT_ROOT/.venv/bin/bump-my-version" ]; then
+        "$PROJECT_ROOT/.venv/bin/bump-my-version" minor --commit --tag --allow-dirty || echo "WARNING: Version bump failed"
+    elif command -v bump-my-version &> /dev/null; then
+        bump-my-version minor --commit --tag --allow-dirty || echo "WARNING: Version bump failed"
+    fi
 fi
 EOF
     chmod +x .git/hooks/pre-commit
     print_warning "Created manual pre-commit hook as fallback."
 }
 
-print_success "Pre-commit environment ready."
+print_success "Environment synchronization complete. All dependencies are up-to-date."
 
 # *** STEP 3: YAML Validation ***
 print_step "Validating YAML files with enhanced validation..."
@@ -381,21 +527,36 @@ if [ $SKIP_LINTERS -eq 1 ]; then
 else
     # Ensure yamllint is available
     if ! command -v yamllint &> /dev/null; then
-        print_info "Installing yamllint..."
-        # Ensure PYTHON_CMD is defined
-        if [ -z "$PYTHON_CMD" ]; then
-            PYTHON_CMD="$VENV_DIR/bin/python"
-            if [ ! -f "$PYTHON_CMD" ]; then
-                PYTHON_CMD="python3"
-            fi
+        print_info "Installing yamllint for enhanced YAML validation..."
+        
+        # Use uv for installation (preferred method)
+        if [ -f "$UV_CMD" ]; then
+            "$UV_CMD" pip install yamllint || { 
+                print_warning "Failed to install yamllint via uv. Trying pip directly..."
+                "$PYTHON_CMD" -m pip install yamllint || { 
+                    print_warning "Failed to install yamllint. Will use fallback validation methods."
+                    YAMLLINT_AVAILABLE=0
+                }
+            }
+        else
+            # Fall back to pip if uv isn't available (shouldn't happen with our checks)
+            "$PYTHON_CMD" -m pip install yamllint || { 
+                print_warning "Failed to install yamllint. Will use fallback validation methods."
+                YAMLLINT_AVAILABLE=0
+            }
         fi
         
-        $PYTHON_CMD -m pip install yamllint || { 
-            print_warning "Failed to install yamllint. Will use fallback validation methods."; 
+        # Verify installation was successful
+        if command -v yamllint &> /dev/null || [ -f "$VENV_DIR/bin/yamllint" ]; then
+            YAMLLINT_AVAILABLE=1
+            print_success "yamllint installed successfully"
+        else
             YAMLLINT_AVAILABLE=0
-        }
+            print_warning "yamllint installation could not be verified"
+        fi
     else
         YAMLLINT_AVAILABLE=1
+        print_success "yamllint is already installed"
     fi
     
     # Create a relaxed yamllint configuration with special focus on workflow files
@@ -721,25 +882,26 @@ if ! git diff --quiet HEAD 2>/dev/null; then
         print_warning "Git commit failed. Attempting to bypass pre-commit hooks..."
         # If commit failed, try bypassing pre-commit hooks
         git commit -m "$COMMIT_MESSAGE" --no-verify || {
-            print_error "Git commit failed even with --no-verify. Manual intervention required."
+            print_error "Git commit failed even with --no-verify. Manual intervention required." 1
             exit 1
         }
+        
         # Manually run version bump if the hook was bypassed
-        if command -v uv &> /dev/null; then
-            uv tool run bump-my-version bump minor --commit --tag --allow-dirty || {
-                print_warning "Version bump with uv failed. Trying direct approach..."
-                # Fallback to hooks script
-                if [ -f "./hooks/bump_version.sh" ]; then
-                    ./hooks/bump_version.sh || {
-                        print_warning "Manual version bump failed. Project will be published with existing version."
-                    }
-                else
-                    print_warning "bump_version.sh not found. Project will be published with existing version."
-                fi
+        print_info "Running manual version bump since pre-commit hook was bypassed..."
+        
+        # IMPORTANT: Must use uv tool run for bump-my-version per requirements
+        if [ -f "$UV_CMD" ]; then
+            print_info "Using uv tool run for bump-my-version (recommended method)"
+            "$UV_CMD" tool run bump-my-version bump minor --commit --tag --allow-dirty || {
+                print_error "Version bump with uv tool failed." 1
+                print_info "See: https://www.andrlik.org/dispatches/til-bump-my-version-uv/"
+                exit 1
             }
-        elif [ -f "./hooks/bump_version.sh" ]; then
-            # Direct shell script approach
-            ./hooks/bump_version.sh || print_warning "Manual version bump failed. Project will be published with existing version."
+            print_success "Version bumped successfully using uv tool run"
+        else
+            print_error "uv not found in virtual environment. Cannot perform version bump." 1
+            print_info "Try running: ./reinitialize_env.sh"
+            exit 1
         fi
     fi
     print_success "Changes committed."
@@ -747,9 +909,20 @@ elif ! git rev-parse --verify HEAD &>/dev/null; then
     print_warning "Empty repository with no commits. Creating initial commit..."
     git add -A
     git commit -m "Initial commit" --no-verify || {
-        print_error "Failed to create initial commit. Manual intervention required."
+        print_error "Failed to create initial commit. Manual intervention required." 1
         exit 1
     }
+    
+    # Run initial version bump after first commit
+    print_info "Running version bump for initial commit..."
+    if [ -f "$UV_CMD" ]; then
+        "$UV_CMD" tool run bump-my-version bump minor --commit --tag --allow-dirty || {
+            print_warning "Version bump failed for initial commit. Continuing anyway..."
+        }
+    else
+        print_warning "uv not available for initial version bump. Continuing anyway..."
+    fi
+    
     print_success "Initial commit created."
 else
     print_success "Working directory is clean with existing commits."
@@ -760,13 +933,13 @@ print_step "Running local validation scripts..."
 
 RELEASE_SCRIPT="$SCRIPT_DIR/release.sh"
 if [ ! -f "$RELEASE_SCRIPT" ]; then
-    print_error "The validation script '$RELEASE_SCRIPT' was not found."
+    print_error "The validation script '$RELEASE_SCRIPT' was not found." 1
     exit 1
 fi
 if [ ! -x "$RELEASE_SCRIPT" ]; then
     print_warning "The validation script '$RELEASE_SCRIPT' is not executable. Setting permissions..."
     chmod +x "$RELEASE_SCRIPT" || {
-        print_error "Failed to set permissions. Please run 'chmod +x $RELEASE_SCRIPT'."
+        print_error "Failed to set permissions. Please run 'chmod +x $RELEASE_SCRIPT'." 1
         exit 1
     }
 fi
@@ -822,7 +995,7 @@ if gh repo view "$REPO_FULL_NAME" --json name &>/dev/null; then
     if ! git remote get-url origin &>/dev/null; then
         print_warning "Local repository not connected to GitHub. Adding remote..."
         git remote add origin "https://github.com/$REPO_FULL_NAME.git" || {
-            print_error "Failed to add GitHub remote. Check your permissions."
+            print_error "Failed to add GitHub remote. Check your permissions." 1
             exit 1
         }
         print_success "Remote 'origin' added pointing to GitHub repository."
@@ -830,11 +1003,11 @@ if gh repo view "$REPO_FULL_NAME" --json name &>/dev/null; then
         print_warning "Remote 'origin' does not point to the expected GitHub repository."
         print_info "Current remote: $(git remote get-url origin)"
         print_info "Expected: https://github.com/$REPO_FULL_NAME.git"
-        read -p "Do you want to update the remote to point to $REPO_FULL_NAME? (y/N) " -n 1 -r
+        read -r -p "Do you want to update the remote to point to $REPO_FULL_NAME? (y/N) " -n 1 REPLY
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             git remote set-url origin "https://github.com/$REPO_FULL_NAME.git" || {
-                print_error "Failed to update GitHub remote. Check your permissions."
+                print_error "Failed to update GitHub remote. Check your permissions." 1
                 exit 1
             }
             print_success "Remote 'origin' updated to point to GitHub repository."
@@ -862,13 +1035,15 @@ else
                 print_info "Remote 'origin' already exists. Updating URL..."
                 git remote set-url origin "https://github.com/$REPO_FULL_NAME.git" || {
                     print_error "Failed to update remote URL. Check your permissions."
-                    exit 1
+                    " 1
+            exit 1
                 }
             else
                 print_info "Adding remote 'origin'..."
                 git remote add origin "https://github.com/$REPO_FULL_NAME.git" || {
                     print_error "Failed to add remote 'origin'. Check your permissions."
-                    exit 1
+                    " 1
+            exit 1
                 }
             fi
         fi
@@ -975,14 +1150,16 @@ if [ -z "$(git branch --list "$CURRENT_BRANCH")" ]; then
     print_warning "Branch $CURRENT_BRANCH does not exist locally. Creating it..."
     git checkout -b "$CURRENT_BRANCH" || {
         print_error "Failed to create branch $CURRENT_BRANCH."
-        exit 1
+        " 1
+            exit 1
     }
     print_success "Branch $CURRENT_BRANCH created."
 elif [ "$CURRENT_BRANCH" = "HEAD" ]; then
     print_warning "Detached HEAD state detected. Creating and checking out $DEFAULT_BRANCH branch..."
     git checkout -b "$DEFAULT_BRANCH" || {
         print_error "Failed to create branch $DEFAULT_BRANCH."
-        exit 1
+        " 1
+            exit 1
     }
     CURRENT_BRANCH="$DEFAULT_BRANCH"
     print_success "Branch $DEFAULT_BRANCH created and checked out."
@@ -1015,7 +1192,8 @@ if [ $BRANCH_EXISTS_ON_REMOTE -eq 1 ]; then
             print_warning "Attempting force push..."
             git push --force origin "$CURRENT_BRANCH" --tags || {
                 print_error "Force push failed. Manual intervention required."
-                exit 1
+                " 1
+            exit 1
             }
             print_success "Force push successful."
         else
@@ -1047,6 +1225,22 @@ sleep 120
 # CRITICAL: Always trigger workflows even if there were no changes
 print_header "Ensuring GitHub workflows are ALWAYS triggered"
 print_info "This step is MANDATORY - workflows MUST run even if no changes were committed or pushed!"
+
+# Check if get_errorlogs.sh exists and is executable (needed for --wait-for-logs option)
+if [ $WAIT_FOR_LOGS -eq 1 ]; then
+    if [ ! -f "$SCRIPT_DIR/get_errorlogs.sh" ]; then
+        print_warning "get_errorlogs.sh not found. Cannot wait for workflow logs."
+        WAIT_FOR_LOGS=0
+    elif [ ! -x "$SCRIPT_DIR/get_errorlogs.sh" ]; then
+        print_warning "get_errorlogs.sh not executable. Setting permissions..."
+        chmod +x "$SCRIPT_DIR/get_errorlogs.sh" || {
+            print_warning "Failed to set permissions on get_errorlogs.sh. Cannot wait for workflow logs."
+            WAIT_FOR_LOGS=0
+        }
+    else
+        print_info "get_errorlogs.sh found and executable. Will wait for workflow logs after pushing."
+    fi
+fi
 
 # Function to detect the available workflows 
 # This is an improved version that uses a multi-tiered detection approach
@@ -1911,7 +2105,56 @@ fi
 LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")
 print_info "Latest version tag: $LATEST_TAG"
 
-# *** STEP 10: Final instructions & verification ***
+# *** STEP 10: Wait for workflow logs if requested ***
+if [ $WAIT_FOR_LOGS -eq 1 ] && [ $REPO_EXISTS -eq 1 ]; then
+    print_header "Waiting for Workflow Logs"
+    print_info "Will wait up to 60 seconds for workflows to start and generate logs..."
+    
+    # Wait for workflows to start (up to 60 seconds)
+    WAIT_TIME=0
+    MAX_WAIT_TIME=60
+    WORKFLOWS_RUNNING=0
+    
+    while [ $WAIT_TIME -lt $MAX_WAIT_TIME ] && [ $WORKFLOWS_RUNNING -eq 0 ]; do
+        # Wait 5 seconds between checks
+        sleep 5
+        WAIT_TIME=$((WAIT_TIME + 5))
+        
+        # Check if any workflows are running
+        if command -v gh &>/dev/null && [ -n "$REPO_FULL_NAME" ]; then
+            RUNNING_WORKFLOWS=$(gh run list --repo "$REPO_FULL_NAME" --limit 3 --json status -q '.[] | select(.status == "in_progress" or .status == "queued") | .status' 2>/dev/null)
+            if [ -n "$RUNNING_WORKFLOWS" ]; then
+                WORKFLOWS_RUNNING=1
+                print_success "Workflows are now running! Getting logs..."
+                break
+            else
+                print_info "No running workflows yet. Waiting... ($WAIT_TIME seconds elapsed)"
+            fi
+        else
+            print_warning "GitHub CLI not configured correctly. Cannot check workflow status."
+            WAIT_TIME=$MAX_WAIT_TIME # Force exit from loop
+        fi
+    done
+    
+    # If workflows are running, execute get_errorlogs.sh with appropriate flags
+    if [ $WORKFLOWS_RUNNING -eq 1 ]; then
+        print_info "Running get_errorlogs.sh to analyze workflows..."
+        
+        # Execute get_errorlogs.sh script
+        if "$SCRIPT_DIR/get_errorlogs.sh" latest; then
+            print_success "Workflow log analysis complete."
+        else
+            print_warning "Workflow log analysis encountered issues."
+            print_info "You can manually check logs later with: ./get_errorlogs.sh latest"
+        fi
+    else
+        print_warning "No workflows were detected as running within the timeout period."
+        print_info "Workflows may still be starting up. Check manually with: gh run list --repo $REPO_FULL_NAME"
+        print_info "You can check logs later with: ./get_errorlogs.sh latest"
+    fi
+fi
+
+# *** STEP 11: Final instructions & verification ***
 print_header "GitHub Integration Complete"
 print_success "All local checks passed and code has been pushed to GitHub."
 echo ""
@@ -1932,6 +2175,10 @@ echo "   3. Or create the release automatically now with:"
 echo ""
 echo "      gh release create $LATEST_TAG -t \"Release $LATEST_TAG\" \\"
 echo "        -n \"## What's Changed\\n- Improvements and bug fixes\\n\\n**Full Changelog**: https://github.com/$REPO_FULL_NAME/commits/$LATEST_TAG\""
+echo ""
+echo "   4. To check workflow logs again later:"
+echo "      ./get_errorlogs.sh latest  # Show the most recent logs"
+echo "      ./get_errorlogs.sh tests   # Show logs from test workflows"
 echo ""
 
 # Offer to create the release directly if asked
