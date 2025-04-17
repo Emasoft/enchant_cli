@@ -3,7 +3,7 @@ name: Publish Python Package
 on:
   release:
     types: [published] # Trigger only when a release is published on GitHub
-  workflow_dispatch:  # Allow manual triggering
+  workflow_dispatch:
     inputs:
       reason:
         description: 'Reason for manual trigger'

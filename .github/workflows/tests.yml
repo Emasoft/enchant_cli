@@ -1,9 +1,9 @@
 name: Tests
 
 on:
-  push: {}
-  pull_request: {}
-  workflow_dispatch:  # Allow manual triggering - ESSENTIAL for publish_to_github.sh automation
+  push:
+  pull_request:
+  workflow_dispatch:
     inputs:
       reason:
         description: 'Reason for manual trigger'
