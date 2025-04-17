@@ -683,6 +683,10 @@ fi
 
 print_success "Push to GitHub successful."
 
+# Give GitHub systems time to process workflow file changes
+print_info "Waiting 30 seconds for GitHub to process workflow file changes..."
+sleep 30
+
 # *** STEP 8: Trigger GitHub Workflows ***
 # CRITICAL: Always trigger workflows even if there were no changes
 print_header "Ensuring GitHub workflows are ALWAYS triggered"
@@ -829,7 +833,7 @@ trigger_workflow() {
                 
                 # Alternative approach using API directly with explicit inputs
                 print_info "Attempting to trigger workflow via API with explicit payload..."
-                if gh api --method POST "repos/$repo_fullname/actions/workflows/$workflow_file/dispatches" -f "ref=$branch" -f "inputs={}" --silent; then
+                if gh api --method POST "repos/$repo_fullname/actions/workflows/$workflow_file/dispatches" -f "ref=$branch" -f 'inputs[reason]=Triggered via publish_to_github.sh script' --silent; then
                     print_success "$workflow_type workflow triggered successfully via API."
                     success="true"
                 else
@@ -842,7 +846,7 @@ trigger_workflow() {
                     
                     if [ -n "$workflow_id" ]; then
                         print_info "Found workflow ID: $workflow_id, attempting to trigger using ID..."
-                        if gh api --method POST "repos/$repo_fullname/actions/workflows/$workflow_id/dispatches" -f "ref=$branch" -f "inputs={}" --silent; then
+                        if gh api --method POST "repos/$repo_fullname/actions/workflows/$workflow_id/dispatches" -f "ref=$branch" -f 'inputs[reason]=Triggered via publish_to_github.sh script' --silent; then
                             print_success "$workflow_type workflow triggered successfully via workflow ID."
                             success="true"
                         else
@@ -856,7 +860,7 @@ trigger_workflow() {
                                 if curl -s -X POST -H "Authorization: token $GH_TOKEN" \
                                     -H "Accept: application/vnd.github.v3+json" \
                                     "https://api.github.com/repos/$repo_fullname/actions/workflows/$workflow_id/dispatches" \
-                                    -d "{\"ref\":\"$branch\",\"inputs\":{}}"; then
+                                    -d "{\"ref\":\"$branch\",\"inputs\":{\"reason\":\"Triggered via publish_to_github.sh script\"}}"; then
                                     print_success "$workflow_type workflow triggered successfully via curl."
                                     success="true"
                                 else
@@ -873,7 +877,7 @@ trigger_workflow() {
                                         if curl -s -X POST -H "Authorization: token $GH_TOKEN" \
                                             -H "Accept: application/vnd.github.v3+json" \
                                             "https://api.github.com/repos/$repo_fullname/actions/workflows/$any_workflow_id/dispatches" \
-                                            -d "{\"ref\":\"$branch\",\"inputs\":{}}"; then
+                                            -d "{\"ref\":\"$branch\",\"inputs\":{\"reason\":\"Triggered via publish_to_github.sh script\"}}"; then
                                             print_success "Alternative workflow triggered successfully. This will at least run basic checks."
                                             success="true"
                                         fi
@@ -949,16 +953,43 @@ if [ $REPO_EXISTS -eq 1 ]; then
         print_info "Found the following workflows: $ALL_WORKFLOWS"
         TRIGGER_SUCCESS=0
         
-        # Try to trigger each workflow directly
-        for workflow in $ALL_WORKFLOWS; do
-            print_info "Triggering workflow: $workflow"
-            if gh workflow run "$workflow" --repo "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"; then
+        # Try to trigger known workflows by name directly first
+        print_info "Triggering known workflows by name..."
+        
+        KNOWN_WORKFLOWS=("tests.yml" "auto_release.yml" "publish.yml")
+        for workflow in "${KNOWN_WORKFLOWS[@]}"; do
+            print_info "Triggering known workflow: $workflow"
+            if gh workflow run "$workflow" --repo "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH" -f "reason=Triggered via publish_to_github.sh script"; then
                 print_success "Successfully triggered workflow: $workflow"
                 TRIGGER_SUCCESS=1
             else
-                print_warning "Failed to trigger workflow: $workflow. Will try alternative methods."
+                print_warning "Failed to trigger workflow: $workflow via name. Will try via direct API call."
+                
+                # Try direct API call with correct input format
+                if gh api --method POST "repos/$REPO_FULL_NAME/actions/workflows/$workflow/dispatches" \
+                   -f "ref=$CURRENT_BRANCH" \
+                   -f 'inputs[reason]=Triggered via publish_to_github.sh script' --silent; then
+                    print_success "Successfully triggered $workflow via direct API call."
+                    TRIGGER_SUCCESS=1
+                else
+                    print_warning "Failed to trigger $workflow via all standard methods."
+                fi
             fi
         done
+        
+        # If needed, try other detected workflows
+        if [ $TRIGGER_SUCCESS -eq 0 ]; then
+            print_info "Attempting to trigger detected workflows..."
+            for workflow in $ALL_WORKFLOWS; do
+                print_info "Triggering workflow: $workflow"
+                if gh workflow run "$workflow" --repo "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH" -f "reason=Triggered via script"; then
+                    print_success "Successfully triggered workflow: $workflow"
+                    TRIGGER_SUCCESS=1
+                else
+                    print_warning "Failed to trigger workflow: $workflow. Will try alternative methods."
+                fi
+            done
+        fi
         
         # If direct triggering failed for all workflows, use the type-based approach as fallback
         if [ $TRIGGER_SUCCESS -eq 0 ]; then
