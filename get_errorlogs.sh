@@ -990,7 +990,11 @@ generate_stats() {
     
     # Determine if there are logs after last commit
     local logs_after_commit=0
-    readarray -t recent_logs < <(find_local_logs_after_last_commit "" 50)
+    # Using a more portable approach instead of readarray
+    recent_logs=()
+    while IFS= read -r line; do
+        recent_logs+=("$line")
+    done < <(find_local_logs_after_last_commit "" 50)
     logs_after_commit=${#recent_logs[@]}
     
     # Display statistics
@@ -1105,7 +1109,11 @@ process_workflow_logs() {
     
     # First check for saved logs
     print_info "Looking for saved logs for workflow: $workflow_name"
-    readarray -t saved_logs < <(find_local_logs_after_last_commit "$workflow_name" 1)
+    # Using a more portable approach instead of readarray
+    saved_logs=()
+    while IFS= read -r line; do
+        saved_logs+=("$line")
+    done < <(find_local_logs_after_last_commit "$workflow_name" 1)
     
     if [ ${#saved_logs[@]} -gt 0 ]; then
         log_file="${saved_logs[0]}"
@@ -1206,7 +1214,11 @@ get_latest_logs() {
     fi
     
     # Get recent logs
-    readarray -t recent_logs < <(find_local_logs_after_last_commit "" 3)
+    # Using a more portable approach instead of readarray
+    recent_logs=()
+    while IFS= read -r line; do
+        recent_logs+=("$line")
+    done < <(find_local_logs_after_last_commit "" 3)
     
     if [ ${#recent_logs[@]} -gt 0 ]; then
         # Process each log file
@@ -1435,7 +1447,11 @@ if [ $# -eq 0 ]; then
         print_warning "Found $recent_failure_count failed workflows. Checking for logs..."
         
         # Try to find saved logs for the latest failed workflow
-        readarray -t recent_logs < <(find_local_logs_after_last_commit "" 3)
+        # Using a more portable approach instead of readarray
+        recent_logs=()
+        while IFS= read -r line; do
+            recent_logs+=("$line")
+        done < <(find_local_logs_after_last_commit "" 3)
         if [ ${#recent_logs[@]} -gt 0 ]; then
             # Process the most recent log file
             get_latest_logs
