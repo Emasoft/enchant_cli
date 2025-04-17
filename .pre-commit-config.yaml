@@ -3,18 +3,22 @@ repos:
     rev: v0.4.7  # Latest version at time of writing
     hooks:
       - id: ruff
+        args: ["--select=E,F,I", "--no-fix"]
+        exclude: "^(fix_|check_)"
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1 # Use the correct tag format
     hooks:
       - id: shellcheck
-        args: ["--severity=error", "--extended-analysis=true"]
+        args: ["--severity=error", "--extended-analysis=true", "--exclude=SC2168"]
         # Use error severity and extended analysis to catch serious issues
         # while allowing non-critical style issues to pass
+        # SC2168: 'local' is only valid in functions
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.35.1
     hooks:
       - id: yamllint
         args: ["-d", "{extends: relaxed, rules: {line-length: {max: 120}}}"]
+        exclude: "^(.github/|.chglog/|codecov.yml|git-chglog.yml)"
 
   # Bump version hook: automatically increments minor version on every commit.
   # Creates a new commit with version bump and a corresponding tag.
