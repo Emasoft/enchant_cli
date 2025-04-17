@@ -556,6 +556,13 @@ IF "%1"=="detect" (
     
     if not defined failed_runs set "failed_runs=0"
     
+    REM Check for workflow file errors which don't show up as failure status
+    FOR /F %%i IN ('gh api repos/%REPO_OWNER%/%REPO_NAME%/actions/runs --jq ".workflow_runs[] | select(.status == \"action_required\" or contains(.conclusion, \"failure\") or contains(.conclusion, \"invalid\")) | .id" 2^>nul ^| find /v /c ""') DO set "workflow_file_errors=%%i"
+    if not "!workflow_file_errors!"=="" if !workflow_file_errors! GTR 0 (
+        echo [93m⚠️ Found !workflow_file_errors! workflows with validation errors or requiring action[0m
+        set /a failed_runs=!failed_runs! + !workflow_file_errors!
+    )
+    
     if !failed_runs! GTR 0 (
         echo.
         echo [91m❌ GITHUB JOBS SUMMARY: FOUND !failed_runs! WORKFLOWS WITH ERRORS[0m
@@ -648,6 +655,13 @@ if !found_logs! GTR 0 (
         )
     )
     
+    REM Check for workflow file errors which don't show up as failure status
+    FOR /F %%i IN ('gh api repos/%REPO_OWNER%/%REPO_NAME%/actions/runs --jq ".workflow_runs[] | select(.status == \"action_required\" or contains(.conclusion, \"failure\") or contains(.conclusion, \"invalid\")) | .id" 2^>nul ^| find /v /c ""') DO set "workflow_file_errors=%%i"
+    if not "!workflow_file_errors!"=="" if !workflow_file_errors! GTR 0 (
+        echo [93m⚠️ Found !workflow_file_errors! workflows with validation errors or requiring action[0m
+        set "has_errors=1"
+    )
+    
     if !has_errors! EQU 1 (
         echo [91m❌ GITHUB JOBS SUMMARY: FOUND LOGS WITH ERRORS[0m
     ) else (
@@ -687,6 +701,13 @@ echo.
 FOR /F %%i IN ('gh run list --repo "%REPO_FULL_NAME%" --limit 100 --json status -q "length"') DO set "all_runs=%%i"
 FOR /F %%i IN ('gh run list --repo "%REPO_FULL_NAME%" --limit 100 --status completed --json status -q "[.[] | select(.status==\"completed\")] | length"') DO set "success_runs=%%i"
 FOR /F %%i IN ('gh run list --repo "%REPO_FULL_NAME%" --limit 100 --status failure --json status -q "[.[] | select(.status==\"failure\")] | length"') DO set "failed_runs=%%i"
+
+REM Check for workflow file errors which don't show up as failure status
+FOR /F %%i IN ('gh api repos/%REPO_OWNER%/%REPO_NAME%/actions/runs --jq ".workflow_runs[] | select(.status == \"action_required\" or contains(.conclusion, \"failure\") or contains(.conclusion, \"invalid\")) | .id" 2^>nul ^| find /v /c ""') DO set "workflow_file_errors=%%i"
+if not "!workflow_file_errors!"=="" if !workflow_file_errors! GTR 0 (
+    echo [93m⚠️ Found !workflow_file_errors! workflows with validation errors or requiring action[0m
+    set /a failed_runs=!failed_runs! + !workflow_file_errors!
+)
 
 if !failed_runs! GTR 0 (
     echo [91m❌ GITHUB JOBS SUMMARY: !success_runs!/!all_runs! WORKFLOWS COMPLETED SUCCESSFULLY, !failed_runs! WITH ERRORS[0m

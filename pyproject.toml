@@ -80,6 +80,7 @@ dev = [
     "mkdocs-material>=9.0.0",
     "mkdocstrings[python]>=0.20.0",
     "markdown-include>=0.8.0",
+    "yamllint>=1.30.0",
 ]
 
 [project.scripts]

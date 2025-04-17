@@ -29,18 +29,21 @@
   - [5.3 Release Workflow](#53-release-workflow)
   - [5.4 Code Quality Standards](#54-code-quality-standards)
 - [6. GitHub Integration](#6-github-integration)
-  - [6.1 GitHub Workflows](#61-github-workflows)
-  - [6.2 GitHub Secret Configuration](#62-github-secret-configuration)
-  - [6.3 Pull Request Process](#63-pull-request-process)
+  - [6.1 GitHub Publishing Protocol](#61-github-publishing-protocol)
+  - [6.2 Automated Repository Setup](#62-automated-repository-setup)
+  - [6.3 GitHub Workflows](#63-github-workflows)
+  - [6.4 Release Process](#64-release-process)
+  - [6.5 Pull Request Process](#65-pull-request-process)
 - [7. Project Structure Templates](#7-project-structure-templates)
   - [7.1 Core File Templates](#71-core-file-templates)
-  - [7.2 Script Templates](#72-script-templates)
-  - [7.3 GitHub Workflow Templates](#73-github-workflow-templates)
 - [8. Troubleshooting](#8-troubleshooting)
   - [8.1 Common Environment Issues](#81-common-environment-issues)
   - [8.2 Test Failures](#82-test-failures)
   - [8.3 Documentation and Badge Management](#83-documentation-and-badge-management)
   - [8.4 Version Control Problems](#84-version-control-problems)
+- [9. Claude Helper Scripts](#9-claude-helper-scripts)
+  - [9.1 Error Log Analysis Scripts](#91-error-log-analysis-scripts)
+  - [9.2 Using Claude Helper Scripts Across Projects](#92-using-claude-helper-scripts-across-projects)
 
 ## 1. Environment Configuration
 
@@ -454,7 +457,7 @@ commit_args = ""
 
 ### 2.4 Dependency Management
 
-Dependencies are defined in `pyproject.toml` with precise version specifications:
+Dependencies are defined in `pyproject.toml`:
 
 ```toml
 [build-system]
@@ -546,7 +549,6 @@ The project uses platform-specific script wrappers to maintain compatibility:
   1. Try WSL if available
   2. Try Git Bash if available 
   3. Fall back to native Windows commands where possible
-- **Platform Detection** (`run_platform.sh`): Auto-detects platform and runs the appropriate script
 
 For each shell script in the project, there's a matching Windows batch file with the same base name:
 - `reinitialize_env.sh` → `reinitialize_env.bat`
@@ -1583,81 +1585,6 @@ select = ["E", "F", "I"]
 ignore = []
 ```
 
-#### .pre-commit-config.yaml
-
-```yaml
-repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-added-large-files
-
-  - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-        name: isort (python)
-
-  - repo: https://github.com/psf/black
-    rev: 23.3.0
-    hooks:
-      - id: black
-
-  - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.262
-    hooks:
-      - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
-
-  - repo: local
-    hooks:
-      - id: bump-version
-        name: Bump version
-        entry: ./hooks/bump_version.sh
-        language: script
-        pass_filenames: false
-        always_run: true
-
-      - id: shellcheck
-        name: ShellCheck
-        entry: shellcheck
-        language: system
-        types: [shell]
-        args: ["--severity=error", "--extended-analysis=true"]
-```
-
-#### .bumpversion.toml
-
-```toml
-[tool.bumpversion]
-current_version = "0.1.0"
-parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
-serialize = ["{major}.{minor}.{patch}"]
-search = "__version__ = \"{current_version}\""
-replace = "__version__ = \"{new_version}\""
-regex = false
-ignore_missing_version = false
-tag = true
-sign_tags = false
-tag_name = "v{new_version}"
-tag_message = "Bump version: {current_version} → {new_version}"
-allow_dirty = true
-commit = true
-message = "Bump version: {current_version} → {new_version}"
-commit_args = ""
-```
-
-### 7.2 Script Templates
-
-All script templates are included in the appropriate sections above.
-
-### 7.3 GitHub Workflow Templates
-
-Example workflow templates are provided in section 6.1.
-
 ## 8. Troubleshooting
 
 ### 8.1 Common Environment Issues
@@ -1944,9 +1871,8 @@ If the PyPI publication verification fails:
      sleep 120 # Wait 2 minutes
      ./publish_to_github.sh --verify-pypi
      ```
-## 9. CLAUDE HELPER SCRIPTS
 
-The project includes a set of specialized helper scripts designed by Claude to facilitate various development and debugging tasks. These scripts are designed to be portable, self-configuring, and adaptable to different project environments.
+## 9. Claude Helper Scripts
 
 ### 9.1 Error Log Analysis Scripts
 
@@ -2042,7 +1968,7 @@ The project includes a set of specialized helper scripts designed by Claude to f
 ./get_errorlogs.sh stats              # Display log statistics and summary
 ```
 
-### 9.2 Using CLAUDE HELPER SCRIPTS Across Projects
+### 9.2 Using Claude Helper Scripts Across Projects
 
 The CLAUDE HELPER SCRIPTS are designed to be completely portable and adaptable across different projects without any configuration required:
 
@@ -2078,4 +2004,3 @@ The CLAUDE HELPER SCRIPTS are designed to be completely portable and adaptable a
    - Immediately usable with default commands (`tests`, `latest`, etc.)
 
 To use these scripts in a different project, simply copy them to the new project's root directory and run them - no configuration required. The scripts will automatically detect all needed information about the repository, available workflows, and project structure.
-EOF < /dev/null
