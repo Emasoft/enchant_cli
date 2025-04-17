@@ -892,7 +892,7 @@ if ! git diff --quiet HEAD 2>/dev/null; then
         # IMPORTANT: Must use uv tool run for bump-my-version per requirements
         if [ -f "$UV_CMD" ]; then
             print_info "Using uv tool run for bump-my-version (recommended method)"
-            "$UV_CMD" tool run bump-my-version bump minor --commit --tag --allow-dirty || {
+            "$UV_CMD" tool run "$UV_CMD" tool run "$UV_CMD" tool run bump-my-version bump minor --commit --tag --allow-dirty || {
                 print_error "Version bump with uv tool failed." 1
                 print_info "See: https://www.andrlik.org/dispatches/til-bump-my-version-uv/"
                 exit 1
@@ -916,7 +916,7 @@ elif ! git rev-parse --verify HEAD &>/dev/null; then
     # Run initial version bump after first commit
     print_info "Running version bump for initial commit..."
     if [ -f "$UV_CMD" ]; then
-        "$UV_CMD" tool run bump-my-version bump minor --commit --tag --allow-dirty || {
+        "$UV_CMD" tool run "$UV_CMD" tool run "$UV_CMD" tool run bump-my-version bump minor --commit --tag --allow-dirty || {
             print_warning "Version bump failed for initial commit. Continuing anyway..."
         }
     else
