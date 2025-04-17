@@ -6,7 +6,7 @@ Fix the integer comparison issue with recent_failure_count
 def fix_script():
     script_path = "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/enchant_cli/get_errorlogs.sh"
     
-    with open(script_path, 'r') as file:
+    with open(script_path, "r") as file:
         content = file.read()
     
     # Fix the display_workflow_summary function to handle null/empty values
@@ -36,7 +36,7 @@ display_workflow_summary() {
         content = content[:start] + display_function.strip() + content[end:]
     
     # Write the updated content back to the file
-    with open(script_path, 'w') as file:
+    with open(script_path, "w") as file:
         file.write(content)
     
     print("Fixed integer comparison issue in display_workflow_summary.")

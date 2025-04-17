@@ -10,6 +10,11 @@ repos:
         args: ["--severity=error", "--extended-analysis=true"]
         # Use error severity and extended analysis to catch serious issues
         # while allowing non-critical style issues to pass
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.35.1
+    hooks:
+      - id: yamllint
+        args: ["-d", "{extends: relaxed, rules: {line-length: {max: 120}}}"]
 
   # Bump version hook: automatically increments minor version on every commit.
   # Creates a new commit with version bump and a corresponding tag.

@@ -3,10 +3,11 @@
 Simple, direct script to fix get_errorlogs.sh
 """
 
+
 def fix_script():
     script_path = "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/enchant_cli/get_errorlogs.sh"
     
-    with open(script_path, 'r') as file:
+    with open(script_path, "r") as file:
         content = file.read()
     
     # Create a clean display_workflow_summary function
@@ -77,10 +78,11 @@ fi
             content = content[:no_summary_start] + "exit 0" + content[no_summary_end+6:]
     
     # Write the updated content back to the file
-    with open(script_path, 'w') as file:
+    with open(script_path, "w") as file:
         file.write(content)
     
     print("Script successfully updated.")
+
 
 if __name__ == "__main__":
     fix_script()

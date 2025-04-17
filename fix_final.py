@@ -6,6 +6,7 @@ Final simple script to add a workflow summary at the end
 
 from pathlib import Path
 
+
 def fix_get_errorlogs():
     # Path to the script
     script_path = Path('/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/enchant_cli/get_errorlogs.sh')
@@ -52,6 +53,7 @@ fi"""
     script_path.write_text(content)
     
     return "Fixed get_errorlogs.sh to show a consistent summary"
+
 
 if __name__ == "__main__":
     result = fix_get_errorlogs()
