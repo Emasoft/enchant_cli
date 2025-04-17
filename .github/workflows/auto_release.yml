@@ -34,15 +34,23 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install uv
-        # Create a virtual environment
+        
+        # Create a virtual environment and install dependencies
         python -m venv .venv
-        # Activate it
-        source .venv/bin/activate
-        # Install required packages (pytest and test dependencies)
+        source .venv/bin/activate || echo "Could not activate venv, continuing with system Python"
+        
+        # Install required packages for testing 
         python -m pip install pytest pytest-cov pytest-html pytest-timeout requests-mock
         
-        # CRITICAL FIX: Verify git-chglog will be installed directly later - DO NOT attempt pip install
+        # Install dependencies required for the release process (but NOT git-chglog)
+        python -m pip install build twine setuptools wheel
+        
+        # Test Python and pip are working
+        python --version
+        python -m pip --version
+        
+        # CRITICAL NOTE: git-chglog is NOT a Python package - it will be installed as a binary later
+        # DO NOT attempt to pip install git-chglog as it will fail
         
     - name: Install GitHub CLI
       run: |
@@ -104,26 +112,56 @@ jobs:
       if: steps.check_release.outputs.created == 'true'
       id: generate_changelog
       run: |
-        # Install git-chglog by direct download (instead of using Go)
+        # IMPORTANT: git-chglog is a Go binary, not a Python package!
         echo "Downloading git-chglog binary directly..."
         CHGLOG_VERSION=0.15.4
         
-        # CRITICAL FIX: Add error handling and verification for each step
-        if ! curl -sSL --retry 3 https://github.com/git-chglog/git-chglog/releases/download/v${CHGLOG_VERSION}/git-chglog_${CHGLOG_VERSION}_linux_amd64.tar.gz -o git-chglog.tar.gz; then
-          echo "Failed to download git-chglog. Trying alternative approach..."
+        # Check if git-chglog is already installed
+        if command -v git-chglog &>/dev/null; then
+          echo "git-chglog is already installed: $(git-chglog --version || echo 'version check failed')"
+          SKIP_EXTRACT=1
+        elif command -v /usr/local/bin/git-chglog &>/dev/null; then
+          echo "git-chglog is already installed at /usr/local/bin: $(/usr/local/bin/git-chglog --version || echo 'version check failed')"
+          SKIP_EXTRACT=1
+        else
+          # Install via direct binary download (preferred approach)
+          echo "Attempting to download git-chglog binary directly..."
           
-          # Alternative download method
-          wget -q https://github.com/git-chglog/git-chglog/releases/download/v${CHGLOG_VERSION}/git-chglog_${CHGLOG_VERSION}_linux_amd64.tar.gz -O git-chglog.tar.gz || {
-            echo "Both curl and wget failed. Installing git-chglog via Go as last resort"
-            if ! command -v go &>/dev/null; then
-              sudo apt-get update && sudo apt-get install -y golang
+          # Try multiple download approaches for maximum robustness
+          for attempt in {1..3}; do
+            echo "Download attempt $attempt of 3..."
+            
+            # Try curl first
+            if curl -sSL --retry 3 --connect-timeout 30 https://github.com/git-chglog/git-chglog/releases/download/v${CHGLOG_VERSION}/git-chglog_${CHGLOG_VERSION}_linux_amd64.tar.gz -o git-chglog.tar.gz; then
+              echo "Successfully downloaded git-chglog using curl"
+              break
             fi
-            go install github.com/git-chglog/git-chglog/cmd/git-chglog@latest
-            export PATH=$PATH:$(go env GOPATH)/bin
-            echo "Installed git-chglog via Go"
-            # Continue with the rest of the script - skip tar extraction
-            SKIP_EXTRACT=1
-          }
+            
+            # Try wget as fallback
+            if wget -q --timeout=30 --tries=3 https://github.com/git-chglog/git-chglog/releases/download/v${CHGLOG_VERSION}/git-chglog_${CHGLOG_VERSION}_linux_amd64.tar.gz -O git-chglog.tar.gz; then
+              echo "Successfully downloaded git-chglog using wget"
+              break
+            fi
+            
+            # Last attempt - go directly to installation via Go
+            if [ $attempt -eq 3 ]; then
+              echo "All download attempts failed. Installing git-chglog via Go as last resort"
+              if ! command -v go &>/dev/null; then
+                echo "Installing Go..."
+                sudo apt-get update && sudo apt-get install -y golang
+              fi
+              echo "Installing git-chglog via Go..."
+              go install github.com/git-chglog/git-chglog/cmd/git-chglog@latest
+              export PATH=$PATH:$(go env GOPATH)/bin
+              echo "Installed git-chglog via Go"
+              # Continue with the rest of the script - skip tar extraction
+              SKIP_EXTRACT=1
+              break
+            fi
+            
+            # Wait before next attempt
+            sleep 5
+          done
         fi
         
         if [ -z "$SKIP_EXTRACT" ]; then
