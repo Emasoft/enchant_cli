@@ -148,10 +148,94 @@ detect_workflows() {
     DOCS_WORKFLOWS=()
     OTHER_WORKFLOWS=()
     
-    # Method 1: Check .github/workflows directory
+    # Try both API-based and file-based approaches to maximize detection success
+    
+    # Method 1: Use GitHub API if available (most accurate)
+    if command -v gh &>/dev/null && [ -n "$REPO_FULL_NAME" ]; then
+        if gh auth status &>/dev/null; then
+            print_info "Using GitHub API to detect workflows..."
+            
+            # Get all workflows using the GitHub API with JQ for filtering
+            local api_result
+            api_result=$(gh api "repos/$REPO_FULL_NAME/actions/workflows" --jq '.workflows[]' 2>/dev/null)
+            
+            if [ -n "$api_result" ]; then
+                # Get test workflows
+                while IFS= read -r workflow_name; do
+                    if [ -n "$workflow_name" ]; then
+                        workflow_name="${workflow_name//\"/}"
+                        TEST_WORKFLOWS+=("$workflow_name")
+                        AVAILABLE_WORKFLOWS+=("$workflow_name")
+                    fi
+                done < <(gh api "repos/$REPO_FULL_NAME/actions/workflows" --jq '.workflows[] | select(.name | test("(?i)test|ci|check") or .path | test("(?i)test|ci|check")) | .name' 2>/dev/null)
+                
+                # Get release workflows
+                while IFS= read -r workflow_name; do
+                    if [ -n "$workflow_name" ]; then
+                        workflow_name="${workflow_name//\"/}"
+                        RELEASE_WORKFLOWS+=("$workflow_name")
+                        # Only add to AVAILABLE_WORKFLOWS if not already there
+                        if ! [[ " ${AVAILABLE_WORKFLOWS[*]} " =~ " ${workflow_name} " ]]; then
+                            AVAILABLE_WORKFLOWS+=("$workflow_name")
+                        fi
+                    fi
+                done < <(gh api "repos/$REPO_FULL_NAME/actions/workflows" --jq '.workflows[] | select(.name | test("(?i)release|publish|deploy|build|package") or .path | test("(?i)release|publish|deploy|build|package")) | .name' 2>/dev/null)
+                
+                # Get lint workflows
+                while IFS= read -r workflow_name; do
+                    if [ -n "$workflow_name" ]; then
+                        workflow_name="${workflow_name//\"/}"
+                        LINT_WORKFLOWS+=("$workflow_name")
+                        # Only add to AVAILABLE_WORKFLOWS if not already there
+                        if ! [[ " ${AVAILABLE_WORKFLOWS[*]} " =~ " ${workflow_name} " ]]; then
+                            AVAILABLE_WORKFLOWS+=("$workflow_name")
+                        fi
+                    fi
+                done < <(gh api "repos/$REPO_FULL_NAME/actions/workflows" --jq '.workflows[] | select(.name | test("(?i)lint|format|style|quality") or .path | test("(?i)lint|format|style|quality")) | .name' 2>/dev/null)
+                
+                # Get doc workflows
+                while IFS= read -r workflow_name; do
+                    if [ -n "$workflow_name" ]; then
+                        workflow_name="${workflow_name//\"/}"
+                        DOCS_WORKFLOWS+=("$workflow_name")
+                        # Only add to AVAILABLE_WORKFLOWS if not already there
+                        if ! [[ " ${AVAILABLE_WORKFLOWS[*]} " =~ " ${workflow_name} " ]]; then
+                            AVAILABLE_WORKFLOWS+=("$workflow_name")
+                        fi
+                    fi
+                done < <(gh api "repos/$REPO_FULL_NAME/actions/workflows" --jq '.workflows[] | select(.name | test("(?i)doc|docs|documentation") or .path | test("(?i)doc|docs|documentation")) | .name' 2>/dev/null)
+                
+                # Get any other workflows not yet categorized
+                while IFS= read -r workflow_name; do
+                    if [ -n "$workflow_name" ]; then
+                        workflow_name="${workflow_name//\"/}"
+                        # Check if this workflow is already categorized
+                        if ! [[ " ${TEST_WORKFLOWS[*]} " =~ " ${workflow_name} " ]] && 
+                           ! [[ " ${RELEASE_WORKFLOWS[*]} " =~ " ${workflow_name} " ]] && 
+                           ! [[ " ${LINT_WORKFLOWS[*]} " =~ " ${workflow_name} " ]] && 
+                           ! [[ " ${DOCS_WORKFLOWS[*]} " =~ " ${workflow_name} " ]]; then
+                            OTHER_WORKFLOWS+=("$workflow_name")
+                            # Only add to AVAILABLE_WORKFLOWS if not already there
+                            if ! [[ " ${AVAILABLE_WORKFLOWS[*]} " =~ " ${workflow_name} " ]]; then
+                                AVAILABLE_WORKFLOWS+=("$workflow_name")
+                            fi
+                        fi
+                    fi
+                done < <(gh api "repos/$REPO_FULL_NAME/actions/workflows" --jq '.workflows[] | .name' 2>/dev/null)
+            fi
+        fi
+    fi
+    
+    # Method 2: Check .github/workflows directory as fallback or additional info
     if [ -d ".github/workflows" ]; then
+        if [ ${#AVAILABLE_WORKFLOWS[@]} -eq 0 ]; then
+            print_info "Using local files to detect workflows..."
+        else
+            print_info "Enhancing workflow detection with local files..."
+        fi
+        
         for file in .github/workflows/*.{yml,yaml}; do
-            if [ -f "$file" ]; then
+            if [ -f "$file" ] && [ "$file" != ".github/workflows/*.yml" ] && [ "$file" != ".github/workflows/*.yaml" ]; then
                 # Extract workflow name from file
                 local workflow_name
                 workflow_name=$(grep -o 'name:.*' "$file" | head -1 | cut -d':' -f2- | sed 's/^[[:space:]]*//')
@@ -161,17 +245,22 @@ detect_workflows() {
                     workflow_name=$(basename "$file" | sed 's/\.[^.]*$//')
                 fi
                 
+                # Skip if already in AVAILABLE_WORKFLOWS
+                if [[ " ${AVAILABLE_WORKFLOWS[*]} " =~ " ${workflow_name} " ]]; then
+                    continue
+                fi
+                
                 # Add to available workflows
                 AVAILABLE_WORKFLOWS+=("$workflow_name")
                 
                 # Categorize by type based on name and content
-                if grep -q -i "test\|pytest\|unittest\|jest\|spec" "$file"; then
+                if grep -q -E "test|pytest|unittest|jest|spec|check" "$file" || [[ "$file" =~ [tT]est ]]; then
                     TEST_WORKFLOWS+=("$workflow_name")
-                elif grep -q -i "release\|deploy\|publish\|build\|package" "$file"; then
+                elif grep -q -E "release|deploy|publish|build|package|version" "$file" || [[ "$file" =~ ([rR]elease|[dD]eploy|[pP]ublish|[bB]uild) ]]; then
                     RELEASE_WORKFLOWS+=("$workflow_name")
-                elif grep -q -i "lint\|format\|style\|prettier\|eslint\|black\|flake8\|ruff" "$file"; then
+                elif grep -q -E "lint|format|style|prettier|eslint|black|flake8|ruff|quality" "$file" || [[ "$file" =~ ([lL]int|[fF]ormat|[sS]tyle) ]]; then
                     LINT_WORKFLOWS+=("$workflow_name")
-                elif grep -q -i "doc\|sphinx\|mkdocs\|javadoc\|doxygen" "$file"; then
+                elif grep -q -E "doc|sphinx|mkdocs|javadoc|doxygen|documentation" "$file" || [[ "$file" =~ [dD]oc ]]; then
                     DOCS_WORKFLOWS+=("$workflow_name")
                 else
                     OTHER_WORKFLOWS+=("$workflow_name")
@@ -180,57 +269,47 @@ detect_workflows() {
         done
     fi
     
-    # Method 2: Use GitHub CLI to get workflows
-    if command -v gh &>/dev/null && [ -n "$REPO_FULL_NAME" ]; then
-        if gh auth status &>/dev/null; then
-            local gh_workflows
-            gh_workflows=$(gh workflow list --repo "$REPO_FULL_NAME" --json name,state,path 2>/dev/null)
-            
-            if [ -n "$gh_workflows" ]; then
-                # Process each workflow
-                echo "$gh_workflows" | while read -r line; do
-                    # Extract workflow name
-                    local workflow_name
-                    workflow_name=$(echo "$line" | awk '{print $1}')
-                    
-                    if [ -n "$workflow_name" ] && ! [[ " ${AVAILABLE_WORKFLOWS[*]} " =~ " ${workflow_name} " ]]; then
-                        AVAILABLE_WORKFLOWS+=("$workflow_name")
-                        
-                        # Try to categorize by name
-                        if [[ "$workflow_name" =~ [tT]est ]]; then
-                            TEST_WORKFLOWS+=("$workflow_name")
-                        elif [[ "$workflow_name" =~ ([rR]elease|[dD]eploy|[pP]ublish|[bB]uild) ]]; then
-                            RELEASE_WORKFLOWS+=("$workflow_name")
-                        elif [[ "$workflow_name" =~ ([lL]int|[fF]ormat|[sS]tyle) ]]; then
-                            LINT_WORKFLOWS+=("$workflow_name")
-                        elif [[ "$workflow_name" =~ [dD]oc ]]; then
-                            DOCS_WORKFLOWS+=("$workflow_name")
-                        else
-                            OTHER_WORKFLOWS+=("$workflow_name")
-                        fi
-                    fi
-                done
-            fi
-        fi
-    fi
-    
-    # Report findings
-    if [ ${#AVAILABLE_WORKFLOWS[@]} -gt 0 ]; then
-        print_success "Detected ${#AVAILABLE_WORKFLOWS[@]} workflows"
-        print_info "Testing workflows: ${#TEST_WORKFLOWS[@]}"
-        print_info "Release workflows: ${#RELEASE_WORKFLOWS[@]}"
-        print_info "Linting workflows: ${#LINT_WORKFLOWS[@]}"
-        print_info "Documentation workflows: ${#DOCS_WORKFLOWS[@]}"
-        print_info "Other workflows: ${#OTHER_WORKFLOWS[@]}"
-    else
-        print_warning "No workflows detected"
+    # If still no workflows found, use defaults
+    if [ ${#AVAILABLE_WORKFLOWS[@]} -eq 0 ]; then
+        print_warning "No workflows detected, using default workflow names"
         # Add default names for common workflow types
         AVAILABLE_WORKFLOWS=("Tests" "Auto Release" "Lint" "Docs")
         TEST_WORKFLOWS=("Tests")
         RELEASE_WORKFLOWS=("Auto Release")
         LINT_WORKFLOWS=("Lint")
         DOCS_WORKFLOWS=("Docs")
-        print_info "Using default workflow names: ${AVAILABLE_WORKFLOWS[*]}"
+    fi
+    
+    # Report findings
+    print_success "Detected ${#AVAILABLE_WORKFLOWS[@]} workflows"
+    if [ ${#TEST_WORKFLOWS[@]} -gt 0 ]; then
+        print_info "Testing workflows: ${#TEST_WORKFLOWS[@]} (${TEST_WORKFLOWS[*]})"
+    else
+        print_info "Testing workflows: 0"
+    fi
+    
+    if [ ${#RELEASE_WORKFLOWS[@]} -gt 0 ]; then
+        print_info "Release workflows: ${#RELEASE_WORKFLOWS[@]} (${RELEASE_WORKFLOWS[*]})"
+    else
+        print_info "Release workflows: 0"
+    fi
+    
+    if [ ${#LINT_WORKFLOWS[@]} -gt 0 ]; then
+        print_info "Linting workflows: ${#LINT_WORKFLOWS[@]} (${LINT_WORKFLOWS[*]})"
+    else
+        print_info "Linting workflows: 0"
+    fi
+    
+    if [ ${#DOCS_WORKFLOWS[@]} -gt 0 ]; then
+        print_info "Documentation workflows: ${#DOCS_WORKFLOWS[@]} (${DOCS_WORKFLOWS[*]})"
+    else
+        print_info "Documentation workflows: 0"
+    fi
+    
+    if [ ${#OTHER_WORKFLOWS[@]} -gt 0 ]; then
+        print_info "Other workflows: ${#OTHER_WORKFLOWS[@]} (${OTHER_WORKFLOWS[*]})"
+    else
+        print_info "Other workflows: 0"
     fi
     
     return 0
@@ -1060,54 +1139,134 @@ generate_stats() {
     return 0
 }
 
+# Function to dynamically detect workflow information
+detect_workflow_by_type() {
+    local workflow_type="$1"  # 'test', 'release', 'lint', 'docs', or empty for all
+    local workflows_found=()
+
+    # First try GitHub API if repository info is available
+    if command -v gh &>/dev/null && [ -n "$REPO_FULL_NAME" ]; then
+        if gh auth status &>/dev/null; then
+            # Use JQ patterns to find workflows matching the requested type
+            local jq_pattern=""
+            case "$workflow_type" in
+                "test"|"tests")
+                    jq_pattern='.workflows[] | select(.name | test("(?i)test|ci|check") or .path | test("(?i)test|ci|check")) | .name'
+                    ;;
+                "build"|"release")
+                    jq_pattern='.workflows[] | select(.name | test("(?i)release|publish|deploy|build|package|version") or .path | test("(?i)release|publish|deploy|build|package|version")) | .name'
+                    ;;
+                "lint")
+                    jq_pattern='.workflows[] | select(.name | test("(?i)lint|format|style|quality") or .path | test("(?i)lint|format|style|quality")) | .name'
+                    ;;
+                "docs")
+                    jq_pattern='.workflows[] | select(.name | test("(?i)doc|docs|documentation") or .path | test("(?i)doc|docs|documentation")) | .name'
+                    ;;
+                *)
+                    # Return all workflows if type is not specified
+                    jq_pattern='.workflows[] | .name'
+                    ;;
+            esac
+            
+            # Execute the query and collect results
+            while IFS= read -r workflow_name; do
+                if [ -n "$workflow_name" ]; then
+                    # Remove quotes if present
+                    workflow_name="${workflow_name//\"/}"
+                    workflows_found+=("$workflow_name")
+                fi
+            done < <(gh api "repos/$REPO_FULL_NAME/actions/workflows" --jq "$jq_pattern" 2>/dev/null)
+        fi
+    fi
+    
+    # If no workflows found via API, try local detection
+    if [ ${#workflows_found[@]} -eq 0 ] && [ -d ".github/workflows" ]; then
+        print_info "Trying local workflow detection..."
+        
+        # Define patterns for each workflow type
+        local file_pattern=""
+        local content_pattern=""
+        
+        case "$workflow_type" in
+            "test"|"tests")
+                file_pattern="*test*.yml"
+                content_pattern="tests|test|pytest|unittest|jest|mocha|check"
+                ;;
+            "build"|"release")
+                file_pattern="*{release,publish,deploy,build}*.yml"
+                content_pattern="release|publish|deploy|build|package|version"
+                ;;
+            "lint")
+                file_pattern="*{lint,format,style,quality}*.yml"
+                content_pattern="lint|format|style|quality"
+                ;;
+            "docs")
+                file_pattern="*doc*.yml"
+                content_pattern="doc|docs|documentation"
+                ;;
+            *)
+                file_pattern="*.yml"
+                ;;
+        esac
+        
+        # Try to find workflows matching patterns
+        for file in .github/workflows/$file_pattern; do
+            if [ -f "$file" ] && [ "$file" != ".github/workflows/$file_pattern" ]; then
+                # If content pattern is specified, check if file contains the pattern
+                if [ -z "$content_pattern" ] || grep -q -E "$content_pattern" "$file" 2>/dev/null; then
+                    # Extract workflow name from file
+                    local name_from_file
+                    name_from_file=$(grep -o 'name:.*' "$file" | head -1 | cut -d':' -f2- | sed 's/^[[:space:]]*//')
+                    
+                    if [ -z "$name_from_file" ]; then
+                        # Use filename if name not found in file
+                        name_from_file=$(basename "$file" | sed 's/\.[^.]*$//')
+                    fi
+                    
+                    workflows_found+=("$name_from_file")
+                fi
+            fi
+        done
+    fi
+    
+    # If still no workflows found, use default names
+    if [ ${#workflows_found[@]} -eq 0 ]; then
+        case "$workflow_type" in
+            "test"|"tests")
+                workflows_found+=("Tests")
+                ;;
+            "build"|"release")
+                workflows_found+=("Auto Release")
+                ;;
+            "lint")
+                workflows_found+=("Lint")
+                ;;
+            "docs")
+                workflows_found+=("Docs")
+                ;;
+            *)
+                workflows_found+=("Tests" "Auto Release" "Lint" "Docs")
+                ;;
+        esac
+        print_warning "No $workflow_type workflows detected. Using default: ${workflows_found[0]}"
+    fi
+    
+    # Return the first matching workflow (or all of them if requested)
+    if [ "$2" = "all" ]; then
+        printf "%s\n" "${workflows_found[@]}"
+    else
+        echo "${workflows_found[0]}"
+    fi
+}
+
 # Function to process test, build, and other workflow logs
 process_workflow_logs() {
     local workflow_type="$1"
     local workflow_name=""
     
-    # Select appropriate workflow based on type
-    case "$workflow_type" in
-        "test"|"tests")
-            if [ ${#TEST_WORKFLOWS[@]} -gt 0 ]; then
-                workflow_name="${TEST_WORKFLOWS[0]}"
-                print_info "Found test workflow: $workflow_name"
-            else
-                workflow_name="Tests"
-                print_warning "No test workflows detected. Using default: $workflow_name"
-            fi
-            ;;
-        "build"|"release")
-            if [ ${#RELEASE_WORKFLOWS[@]} -gt 0 ]; then
-                workflow_name="${RELEASE_WORKFLOWS[0]}"
-                print_info "Found build/release workflow: $workflow_name"
-            else
-                workflow_name="Auto Release"
-                print_warning "No build/release workflows detected. Using default: $workflow_name"
-            fi
-            ;;
-        "lint")
-            if [ ${#LINT_WORKFLOWS[@]} -gt 0 ]; then
-                workflow_name="${LINT_WORKFLOWS[0]}"
-                print_info "Found lint workflow: $workflow_name"
-            else
-                workflow_name="Lint"
-                print_warning "No lint workflows detected. Using default: $workflow_name"
-            fi
-            ;;
-        "docs")
-            if [ ${#DOCS_WORKFLOWS[@]} -gt 0 ]; then
-                workflow_name="${DOCS_WORKFLOWS[0]}"
-                print_info "Found documentation workflow: $workflow_name"
-            else
-                workflow_name="Docs"
-                print_warning "No documentation workflows detected. Using default: $workflow_name"
-            fi
-            ;;
-        *)
-            print_error "Unknown workflow type: $workflow_type"
-            return 1
-            ;;
-    esac
+    # Dynamically detect workflow based on type
+    workflow_name=$(detect_workflow_by_type "$workflow_type")
+    print_info "Detected $workflow_type workflow: $workflow_name"
     
     # First check for saved logs
     print_info "Looking for saved logs for workflow: $workflow_name"

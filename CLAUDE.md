@@ -77,6 +77,7 @@ Direct git commands bypass crucial validation steps and repository management th
   - [6.5 Pull Request Process](#65-pull-request-process)
 - [7. Project Structure Templates](#7-project-structure-templates)
   - [7.1 Core File Templates](#71-core-file-templates)
+  - [7.4 Dynamic Workflow Detection](#74-dynamic-workflow-detection)
 - [8. Troubleshooting](#8-troubleshooting)
   - [8.1 Common Environment Issues](#81-common-environment-issues)
   - [8.2 Test Failures](#82-test-failures)
@@ -2128,3 +2129,58 @@ The CLAUDE HELPER SCRIPTS are designed to be completely portable and adaptable a
    - Immediately usable with default commands (`tests`, `latest`, etc.)
 
 To use these scripts in a different project, simply copy them to the new project's root directory and run them - no configuration required. The scripts will automatically detect all needed information about the repository, available workflows, and project structure.
+### 7.4 Dynamic Workflow Detection
+
+A critical design principle in this project is that scripts **MUST NEVER use hardcoded workflow names**, but instead dynamically detect workflows based on their nature and purpose. This ensures compatibility with any workflow configuration and eliminates maintenance issues when workflow files are renamed or restructured.
+
+#### Key Dynamic Workflow Detection Principles:
+
+1. **Heuristic Workflow Detection**: All scripts must intelligently detect workflows by:
+   - Analyzing workflow file content to determine purpose (test, release, lint, docs, etc.)
+   - Using multiple detection mechanisms (GitHub API, local files, content patterns)
+   - Implementing fallback strategies with sensible defaults
+
+2. **Type-Based Workflow Categories**:
+   - Test workflows: Identified via patterns like "test", "ci", "check" in name or content
+   - Release workflows: Identified via patterns like "release", "deploy", "publish", "build"
+   - Lint workflows: Identified via patterns like "lint", "format", "style", "quality"
+   - Documentation workflows: Identified via patterns like "doc", "documentation", "mkdocs"
+
+3. **Multi-Tier Detection Strategy**:
+   - First tier: Use GitHub API for accurate remote workflow information
+   - Second tier: Check local workflow files as fallback
+   - Third tier: Use sensible defaults only if automatic detection fails
+   - Present results with appropriate warnings when using fallbacks
+
+4. **Workflow Triggering Resilience**:
+   - Use multiple triggering approaches (direct run, API dispatches, ID-based)
+   - Implement robust retry logic with appropriate delays
+   - Provide clear diagnostic messages and manual fallback instructions
+   - Always include a final attempt to trigger any available workflow
+
+#### Implementation Requirements:
+
+1. Workflow detection functions must:
+   - Accept workflow type as argument (e.g., "test", "release")
+   - Return the most relevant workflow for the specified type
+   - Include options to return all workflows of a type when needed
+   - Never assume specific workflow file names exist
+
+2. Workflow interaction code must:
+   - First detect appropriate workflows before interacting with them
+   - Handle errors gracefully with informative messages
+   - Provide fallback mechanisms when primary approaches fail
+   - Supply useful manual instructions when automation fails
+
+3. All reporting must:
+   - Clearly indicate when defaults or fallbacks are being used
+   - Show which workflows were detected and their categorization
+   - Include debugging information about detection method used
+
+4. Essential adapters and interfaces:
+   - `detect_available_workflows()`: Primary workflow detection function
+   - `trigger_workflow()`: Resilient workflow triggering with fallbacks
+   - `detect_workflow_by_type()`: Categorization of workflows by purpose
+
+This approach ensures the scripts remain viable across projects, repository transitions, and workflow changes without requiring manual updates to hardcoded workflow names.
+EOF < /dev/null
