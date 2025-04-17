@@ -7,6 +7,11 @@ on:
     types: [closed]
     branches: [main]
   workflow_dispatch:  # Allow manual triggering
+    inputs:
+      reason:
+        description: 'Reason for manual trigger'
+        required: false
+        default: 'Manual run'
 
 jobs:
   auto_release:

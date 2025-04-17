@@ -4,6 +4,11 @@ on:
   release:
     types: [published] # Trigger only when a release is published on GitHub
   workflow_dispatch:  # Allow manual triggering
+    inputs:
+      reason:
+        description: 'Reason for manual trigger'
+        required: false
+        default: 'Manual run'
 
 jobs:
   check_if_already_published:

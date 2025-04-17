@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:  # Allow manual triggering - ESSENTIAL for publish_to_github.sh automation
+    inputs:
+      reason:
+        description: 'Reason for manual trigger'
+        required: false
+        default: 'Manual run'
 
 jobs:
   check_commit_message:
