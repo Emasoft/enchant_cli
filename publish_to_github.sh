@@ -131,6 +131,33 @@ done
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 source "$SCRIPT_DIR/ensure_env.sh"
 
+# Set Python command based on environment
+if [ -n "$VIRTUAL_ENV" ]; then
+    VENV_DIR="$VIRTUAL_ENV"
+    PYTHON_CMD="$VENV_DIR/bin/python"
+elif [ -d "$SCRIPT_DIR/.venv" ]; then
+    VENV_DIR="$SCRIPT_DIR/.venv"
+    PYTHON_CMD="$VENV_DIR/bin/python"
+else
+    VENV_DIR=""
+    PYTHON_CMD="python3"
+fi
+
+# Check if Python command works
+if ! $PYTHON_CMD --version &> /dev/null; then
+    print_warning "Python command $PYTHON_CMD not found. Falling back to system Python."
+    PYTHON_CMD="python3"
+    if ! $PYTHON_CMD --version &> /dev/null; then
+        PYTHON_CMD="python"
+        if ! $PYTHON_CMD --version &> /dev/null; then
+            print_error "No Python interpreter found. Please install Python 3.x."
+            exit 1
+        fi
+    fi
+fi
+
+print_info "Using Python: $($PYTHON_CMD --version 2>&1)"
+
 # Script configuration
 REPO_NAME="enchant_cli"  # GitHub repository name
 GITHUB_ORG="Emasoft"     # GitHub organization/username
@@ -303,7 +330,121 @@ EOF
 
 print_success "Pre-commit environment ready."
 
-# *** STEP 3: Check git status and handle changes ***
+# *** STEP 3: YAML Validation ***
+print_step "Validating YAML files with yamllint..."
+
+# Skip if requested
+if [ $SKIP_LINTERS -eq 1 ]; then
+    print_info "Skipping YAML validation as requested with --skip-linters flag."
+else
+    # Ensure yamllint is available
+    if ! command -v yamllint &> /dev/null; then
+        print_info "Installing yamllint..."
+        # Ensure PYTHON_CMD is defined
+        if [ -z "$PYTHON_CMD" ]; then
+            PYTHON_CMD="$VENV_DIR/bin/python"
+            if [ ! -f "$PYTHON_CMD" ]; then
+                PYTHON_CMD="python3"
+            fi
+        fi
+        
+        $PYTHON_CMD -m pip install yamllint || { 
+            print_error "Failed to install yamllint. Cannot validate YAML files."; 
+            exit 1; 
+        }
+    fi
+    
+    # Create a relaxed yamllint configuration
+    YAML_CONFIG=$(cat <<EOF
+extends: relaxed
+rules:
+  line-length:
+    max: 120
+    level: warning
+  document-start:
+    level: warning
+  trailing-spaces:
+    level: warning
+  comments:
+    min-spaces-from-content: 1
+    level: warning
+  truthy:
+    allowed-values: ['true', 'false', 'on', 'off', 'yes', 'no']
+    level: warning
+EOF
+)
+
+    # Find all YAML files in the repository
+    YAML_FILES=$(find . -name "*.yml" -o -name "*.yaml" | grep -v ".venv" | sort)
+    
+    if [ -z "$YAML_FILES" ]; then
+        print_info "No YAML files found in repository."
+    else
+        print_info "Found $(echo "$YAML_FILES" | wc -l | xargs) YAML files to validate."
+        
+        # Run yamllint on all YAML files
+        YAML_ERRORS=0
+        YAML_ERROR_OUTPUT=""
+        
+        for file in $YAML_FILES; do
+            print_info "Validating $file..."
+            output=$(yamllint -d "$YAML_CONFIG" "$file" 2>&1)
+            status=$?
+            
+            if [ $status -ne 0 ]; then
+                YAML_ERRORS=$((YAML_ERRORS+1))
+                YAML_ERROR_OUTPUT="${YAML_ERROR_OUTPUT}${file}:\n${output}\n\n"
+            else
+                if [[ "$output" == *"warning"* || "$output" == *"error"* ]]; then
+                    print_warning "Warnings in $file (continuing):"
+                    echo "$output"
+                else
+                    print_success "$file passed validation."
+                fi
+            fi
+        done
+        
+        # Special focus on workflow files
+        WORKFLOW_FILES=$(find .github/workflows -name "*.yml" -o -name "*.yaml" 2>/dev/null | sort)
+        if [ -n "$WORKFLOW_FILES" ]; then
+            print_info "Checking GitHub workflow files specifically..."
+            for wf in $WORKFLOW_FILES; do
+                print_info "Validating workflow file $wf..."
+                # More strict check for workflow files - check for workflow_dispatch too
+                if ! grep -q "workflow_dispatch:" "$wf"; then
+                    print_warning "Workflow file $wf does not contain 'workflow_dispatch:' trigger."
+                    print_warning "This will prevent manual triggering and automatic triggering from publish_to_github.sh."
+                    print_info "Consider adding:"
+                    print_info "  workflow_dispatch:  # Allow manual triggering"
+                    print_info "    inputs:"
+                    print_info "      reason:"
+                    print_info "        description: 'Reason for manual trigger'"
+                    print_info "        required: false"
+                    print_info "        default: 'Manual run'"
+                fi
+                
+                # Check other common issues with workflow files
+                if grep -q "uses: actions/checkout@v[1-3]" "$wf"; then
+                    print_warning "Workflow file $wf uses an older version of actions/checkout."
+                    print_info "Consider updating to: uses: actions/checkout@v4"
+                fi
+            done
+        fi
+        
+        # Exit if YAML errors were found
+        if [ $YAML_ERRORS -gt 0 ]; then
+            print_error "Found $YAML_ERRORS YAML files with validation errors:"
+            echo -e "$YAML_ERROR_OUTPUT"
+            print_error "Please fix these YAML errors before continuing."
+            print_info "You can run with --skip-linters to bypass YAML validation."
+            exit 1
+        else
+            print_success "All YAML files passed validation."
+        fi
+    fi
+fi
+
+# *** STEP 4: Check git status and handle changes ***
 print_step "Checking local repository status..."
 
 # Check if there's a git repo
