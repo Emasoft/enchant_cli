@@ -1,14 +1,14 @@
-name: Tests
+name: CI Tests
 
 on:
-  push:
-  pull_request:
   workflow_dispatch:
     inputs:
       reason:
         description: 'Reason for manual trigger'
         required: false
-        default: 'Manual run'
+        default: 'Manual test run'
+  push:
+  pull_request:
 
 jobs:
   check_commit_message:
