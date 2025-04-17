@@ -1,0 +1,18 @@
+name: Manual Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual trigger'
+        required: false
+        default: 'Manual execution'
+
+jobs:
+  echo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo message
+        run: |
+          echo "This is a simple manual workflow"
+          echo "Reason: ${{ github.event.inputs.reason }}"
