@@ -684,8 +684,10 @@ fi
 print_success "Push to GitHub successful."
 
 # Give GitHub systems time to process workflow file changes
-print_info "Waiting 30 seconds for GitHub to process workflow file changes..."
-sleep 30
+print_info "Waiting 120 seconds for GitHub to process workflow file changes..."
+print_info "This delay is necessary for GitHub to update its internal configurations after workflow file changes."
+print_info "Without this delay, workflow_dispatch events may fail with 'Workflow does not have workflow_dispatch trigger' errors."
+sleep 120
 
 # *** STEP 8: Trigger GitHub Workflows ***
 # CRITICAL: Always trigger workflows even if there were no changes
@@ -919,6 +921,14 @@ trigger_workflow() {
         print_info "3. Click 'Run workflow' button"
         print_info "4. Select branch: $branch"
         print_info "5. Click 'Run workflow'"
+        
+        # Create a link with direct workflow trigger 
+        print_info ""
+        print_info "Or use this direct link to trigger the workflow (copy and paste in browser):"
+        print_info "https://github.com/$repo_fullname/actions/workflows/$workflow_file/dispatches"
+        print_info ""
+        print_info "For browser triggering, you may need to wait 5-10 minutes after pushing workflow file changes,"
+        print_info "as GitHub's internal systems need time to recognize the workflow_dispatch event trigger."
         return 1
     fi
     
@@ -1026,6 +1036,11 @@ if [ $REPO_EXISTS -eq 1 ]; then
         print_warning "No in-progress workflow runs detected. This could indicate a triggering issue."
         print_warning "CRITICAL: Please check the GitHub Actions tab and manually trigger workflows if needed:"
         print_info "https://github.com/$REPO_FULL_NAME/actions"
+        print_info ""
+        print_info "NOTE: After updating workflow files, GitHub may need 5-10 minutes to recognize"
+        print_info "the workflow_dispatch event trigger. If you just updated the YAML files,"
+        print_info "please wait a few minutes and then try to trigger the workflows manually."
+        print_info "This is a known GitHub limitation when adding workflow_dispatch triggers."
     fi
 else
     print_warning "Repository not found on GitHub. Workflows will be triggered once the repository is created."
