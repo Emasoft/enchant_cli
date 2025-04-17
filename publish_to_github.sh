@@ -460,7 +460,7 @@ fi
 REPO_EXISTS=0
 REPO_FULL_NAME="$GITHUB_ORG/$REPO_NAME"
 print_info "Checking for repository: $REPO_FULL_NAME"
-if gh repo view --repo "$REPO_FULL_NAME" --json name &>/dev/null; then
+if gh repo view "$REPO_FULL_NAME" --json name &>/dev/null; then
     print_success "Repository $REPO_FULL_NAME already exists on GitHub."
     REPO_EXISTS=1
     
