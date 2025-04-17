@@ -685,16 +685,39 @@ print_success "Push to GitHub successful."
 
 # *** STEP 8: Trigger GitHub Workflows ***
 # CRITICAL: Always trigger workflows even if there were no changes
-print_info "Ensuring GitHub workflows are ALWAYS triggered..."
+print_header "Ensuring GitHub workflows are ALWAYS triggered"
+print_info "This step is MANDATORY - workflows MUST run even if no changes were committed or pushed!"
 
 # Function to detect the available workflows
 detect_available_workflows() {
     local repo_fullname="$1"
     local workflow_type="$2"  # 'test', 'release', or empty for all
 
+    # First, hardcoded known workflow filenames
+    if [ "$workflow_type" = "test" ]; then
+        if [ -f ".github/workflows/tests.yml" ]; then
+            echo "tests.yml"
+            return 0
+        fi
+    elif [ "$workflow_type" = "release" ]; then
+        if [ -f ".github/workflows/auto_release.yml" ]; then
+            echo "auto_release.yml"
+            return 0
+        elif [ -f ".github/workflows/publish.yml" ]; then
+            echo "publish.yml"
+            return 0
+        fi
+    elif [ -z "$workflow_type" ]; then
+        # List all workflows in the .github/workflows directory
+        if [ -d ".github/workflows" ]; then
+            find ".github/workflows" -name "*.yml" -o -name "*.yaml" | xargs -n1 basename
+            return 0
+        fi
+    fi
+
     # Get all workflows from the GitHub API
     local all_workflows
-    all_workflows=$(gh api "repos/$repo_fullname/actions/workflows" --jq '.workflows[]')
+    all_workflows=$(gh api "repos/$repo_fullname/actions/workflows" --jq '.workflows[]' 2>/dev/null)
 
     if [ -z "$all_workflows" ]; then
         print_warning "No workflows found via API. Trying to check local workflow files..."
@@ -772,7 +795,7 @@ trigger_workflow() {
     local workflow_type="$3"  # 'test' or 'release'
     local max_retries="${4:-3}"
     
-    print_info "Detecting and triggering $workflow_type workflow..."
+    print_step "Detecting and triggering $workflow_type workflow..."
     
     # Get appropriate workflow based on type
     local workflow_file
@@ -790,8 +813,9 @@ trigger_workflow() {
     
     print_info "Note: Workflows must have 'workflow_dispatch:' trigger enabled in their YAML definition"
     
-    # First method: Try direct workflow run
+    # First method: Try direct workflow run with explicit workflow_dispatch
     while [ $retry_count -lt $max_retries ] && [ "$success" != "true" ]; do
+        print_info "Triggering $workflow_type workflow (attempt ${retry_count}/${max_retries})..."
         if gh workflow run "$workflow_file" --repo "$repo_fullname" --ref "$branch"; then
             print_success "$workflow_type workflow triggered successfully via direct run."
             success="true"
@@ -803,75 +827,173 @@ trigger_workflow() {
             elif [ $retry_count -eq $max_retries ]; then
                 print_warning "Direct workflow triggering failed. Trying alternative approach with dispatch_event API..."
                 
-                # Alternative approach using API directly
-                if gh api "repos/$repo_fullname/actions/workflows/$workflow_file/dispatches" -f ref="$branch" --silent; then
+                # Alternative approach using API directly with explicit inputs
+                print_info "Attempting to trigger workflow via API with explicit payload..."
+                if gh api --method POST "repos/$repo_fullname/actions/workflows/$workflow_file/dispatches" -f "ref=$branch" -f "inputs={}" --silent; then
                     print_success "$workflow_type workflow triggered successfully via API."
                     success="true"
                 else
                     # Third approach: Try to find the workflow ID and use that
                     print_warning "API approach failed. Trying one more method with workflow ID..."
                     
-                    # Build a more flexible JQ query for workflow detection based on its name or path
-                    local jq_query=".workflows[] | select(.path | endswith(\"/$workflow_file\")) | .id"
+                    # Get all workflows and extract ID for the specific workflow
                     local workflow_id
-                    workflow_id=$(gh api "repos/$repo_fullname/actions/workflows" --jq "$jq_query")
+                    workflow_id=$(gh api "repos/$repo_fullname/actions/workflows" --jq ".workflows[] | select(.path | endswith(\"/$workflow_file\")) | .id")
                     
                     if [ -n "$workflow_id" ]; then
                         print_info "Found workflow ID: $workflow_id, attempting to trigger using ID..."
-                        if gh api "repos/$repo_fullname/actions/workflows/$workflow_id/dispatches" -f ref="$branch" --silent; then
+                        if gh api --method POST "repos/$repo_fullname/actions/workflows/$workflow_id/dispatches" -f "ref=$branch" -f "inputs={}" --silent; then
                             print_success "$workflow_type workflow triggered successfully via workflow ID."
                             success="true"
                         else
-                            print_error "Failed to trigger $workflow_type workflow after multiple approaches."
-                            print_warning "This is a critical error. Workflows must run on GitHub."
-                            print_info "Please manually trigger the workflow from the GitHub Actions tab at:"
-                            print_info "https://github.com/$repo_fullname/actions/workflows/$workflow_file"
+                            # Try one more approach with curl directly
+                            print_warning "gh API method failed. Trying with curl directly..."
                             
-                            # Try one last desperate attempt: trigger any workflow with workflow_dispatch
-                            print_warning "Trying one last approach - finding any workflow with workflow_dispatch..."
-                            local any_workflow_id
-                            any_workflow_id=$(gh api "repos/$repo_fullname/actions/workflows" --jq '.workflows[] | select(.name | test("(?i).*")) | .id' | head -1)
+                            # Get GitHub token
+                            GH_TOKEN=$(gh auth token)
                             
-                            if [ -n "$any_workflow_id" ]; then
-                                print_info "Found generic workflow ID: $any_workflow_id, attempting to trigger..."
-                                if gh api "repos/$repo_fullname/actions/workflows/$any_workflow_id/dispatches" -f ref="$branch" --silent; then
-                                    print_success "Alternative workflow triggered successfully. This will at least run basic checks."
+                            if [ -n "$GH_TOKEN" ]; then
+                                if curl -s -X POST -H "Authorization: token $GH_TOKEN" \
+                                    -H "Accept: application/vnd.github.v3+json" \
+                                    "https://api.github.com/repos/$repo_fullname/actions/workflows/$workflow_id/dispatches" \
+                                    -d "{\"ref\":\"$branch\",\"inputs\":{}}"; then
+                                    print_success "$workflow_type workflow triggered successfully via curl."
                                     success="true"
+                                else
+                                    print_error "Failed to trigger $workflow_type workflow after multiple approaches."
+                                    print_warning "This is a critical error. Workflows must run on GitHub."
+                                    
+                                    # Try one last desperate attempt: trigger any workflow with workflow_dispatch
+                                    print_warning "Trying one last approach - finding any workflow with workflow_dispatch..."
+                                    local any_workflow_id
+                                    any_workflow_id=$(gh api "repos/$repo_fullname/actions/workflows" --jq '.workflows[0].id')
+                                    
+                                    if [ -n "$any_workflow_id" ]; then
+                                        print_info "Found generic workflow ID: $any_workflow_id, attempting to trigger..."
+                                        if curl -s -X POST -H "Authorization: token $GH_TOKEN" \
+                                            -H "Accept: application/vnd.github.v3+json" \
+                                            "https://api.github.com/repos/$repo_fullname/actions/workflows/$any_workflow_id/dispatches" \
+                                            -d "{\"ref\":\"$branch\",\"inputs\":{}}"; then
+                                            print_success "Alternative workflow triggered successfully. This will at least run basic checks."
+                                            success="true"
+                                        fi
+                                    fi
                                 fi
+                            else
+                                print_error "Could not get GitHub token for curl approach."
                             fi
                         fi
                     else
                         print_error "Could not find workflow ID for $workflow_file."
                         print_warning "This is a critical error. Workflows must run on GitHub."
-                        print_info "Please manually trigger the workflow from the GitHub Actions tab at:"
-                        print_info "https://github.com/$repo_fullname/actions/workflows/$workflow_file"
+                        
+                        # Try with all workflows as last resort
+                        print_warning "Attempting to trigger ALL workflows as last resort..."
+                        local all_workflow_files
+                        all_workflow_files=$(detect_available_workflows "$repo_fullname" "")
+                        
+                        for wf in $all_workflow_files; do
+                            print_info "Trying to trigger workflow: $wf..."
+                            if gh workflow run "$wf" --repo "$repo_fullname" --ref "$branch"; then
+                                print_success "Successfully triggered $wf workflow."
+                                success="true"
+                                break
+                            fi
+                        done
                     fi
                 fi
             fi
         fi
     done
     
-    if [ "$success" = "true" ]; then
-        return 0
-    else
+    # CRITICAL: Provide manual fallback instructions if everything fails
+    if [ "$success" != "true" ]; then
+        print_error "All automated methods to trigger workflows failed."
+        print_warning "CRITICAL: Workflows must be triggered! Please trigger them manually:"
+        print_info "1. Go to: https://github.com/$repo_fullname/actions"
+        print_info "2. Find the '$workflow_file' workflow"
+        print_info "3. Click 'Run workflow' button"
+        print_info "4. Select branch: $branch"
+        print_info "5. Click 'Run workflow'"
         return 1
     fi
+    
+    return 0
 }
 
 # Main workflow triggering logic
 if [ $REPO_EXISTS -eq 1 ]; then
-    # Trigger the test workflow
-    trigger_workflow "$REPO_FULL_NAME" "$CURRENT_BRANCH" "test" 3
-    TEST_TRIGGERED=$?
+    print_step "Triggering ALL GitHub workflows..."
     
-    # Trigger the release workflow
-    trigger_workflow "$REPO_FULL_NAME" "$CURRENT_BRANCH" "release" 3
-    RELEASE_TRIGGERED=$?
+    # Obtain a list of all workflow files in the repository
+    ALL_WORKFLOWS=$(detect_available_workflows "$REPO_FULL_NAME" "")
     
-    # If both failed, show a summary
-    if [ $TEST_TRIGGERED -ne 0 ] && [ $RELEASE_TRIGGERED -ne 0 ]; then
-        print_warning "Failed to trigger any workflows automatically."
-        print_info "Please manually trigger workflows from the GitHub Actions tab at:"
+    if [ -z "$ALL_WORKFLOWS" ]; then
+        print_warning "No workflows detected in the repository. Using fallback methods."
+        
+        # Trigger the test workflow
+        trigger_workflow "$REPO_FULL_NAME" "$CURRENT_BRANCH" "test" 3
+        TEST_TRIGGERED=$?
+        
+        # Trigger the release workflow
+        trigger_workflow "$REPO_FULL_NAME" "$CURRENT_BRANCH" "release" 3
+        RELEASE_TRIGGERED=$?
+        
+        # If both failed, show a summary
+        if [ $TEST_TRIGGERED -ne 0 ] && [ $RELEASE_TRIGGERED -ne 0 ]; then
+            print_warning "Failed to trigger any workflows automatically."
+            print_info "Please manually trigger workflows from the GitHub Actions tab at:"
+            print_info "https://github.com/$REPO_FULL_NAME/actions"
+        fi
+    else
+        print_info "Found the following workflows: $ALL_WORKFLOWS"
+        TRIGGER_SUCCESS=0
+        
+        # Try to trigger each workflow directly
+        for workflow in $ALL_WORKFLOWS; do
+            print_info "Triggering workflow: $workflow"
+            if gh workflow run "$workflow" --repo "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"; then
+                print_success "Successfully triggered workflow: $workflow"
+                TRIGGER_SUCCESS=1
+            else
+                print_warning "Failed to trigger workflow: $workflow. Will try alternative methods."
+            fi
+        done
+        
+        # If direct triggering failed for all workflows, use the type-based approach as fallback
+        if [ $TRIGGER_SUCCESS -eq 0 ]; then
+            print_warning "Direct workflow triggering failed. Trying type-based approach..."
+            
+            # Trigger the test workflow
+            trigger_workflow "$REPO_FULL_NAME" "$CURRENT_BRANCH" "test" 3
+            TEST_TRIGGERED=$?
+            
+            # Trigger the release workflow
+            trigger_workflow "$REPO_FULL_NAME" "$CURRENT_BRANCH" "release" 3
+            RELEASE_TRIGGERED=$?
+            
+            # If both failed, show a summary
+            if [ $TEST_TRIGGERED -ne 0 ] && [ $RELEASE_TRIGGERED -ne 0 ]; then
+                print_warning "Failed to trigger any workflows automatically."
+                print_info "Please manually trigger workflows from the GitHub Actions tab at:"
+                print_info "https://github.com/$REPO_FULL_NAME/actions"
+            fi
+        fi
+    fi
+    
+    # Double-check that workflows were actually triggered
+    print_info "Waiting 5 seconds to verify workflow runs..."
+    sleep 5
+    
+    # Get list of recent workflow runs
+    RECENT_RUNS=$(gh run list --repo "$REPO_FULL_NAME" --limit 5 --json name,status,conclusion,createdAt | grep "in_progress\|queued\|waiting" || echo "")
+    
+    if [ -n "$RECENT_RUNS" ]; then
+        print_success "GitHub workflows have been successfully triggered and are in progress."
+        print_info "Workflow runs detected: $RECENT_RUNS"
+    else
+        print_warning "No in-progress workflow runs detected. This could indicate a triggering issue."
+        print_warning "CRITICAL: Please check the GitHub Actions tab and manually trigger workflows if needed:"
         print_info "https://github.com/$REPO_FULL_NAME/actions"
     fi
 else
