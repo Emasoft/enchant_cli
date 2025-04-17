@@ -407,13 +407,66 @@ repos:
 
 ### 2.3 Version Management
 
-Version management uses bump-my-version with a robust fallback approach:
+Version management uses `bump-my-version` with a proper uv integration following best practices:
 
-- Primary configuration in `.bumpversion.toml`
-- Fallback script for environments without the tool
-- Automatic version bumping on every commit
+- **Installation via uv tool**: Always install using `uv tool install bump-my-version`
+- **Execution via uv tool run**: Always execute using `uv tool run bump-my-version`
+- **Never use pip install**: Avoid using pip to install bump-my-version
+- **Primary configuration**: Use `.bumpversion.toml` for configuration
+- **Allow dirty by default**: Set `allow_dirty = true` for pre-commit compatibility
+- **Pre-commit hook integration**: Configure to run on every commit
+- **Fallback mechanisms**: Include robust fallbacks for edge cases
 
-Example `hooks/bump_version.sh`:
+#### Best Practices for bump-my-version with uv
+
+When using bump-my-version with uv, follow these guidelines to avoid issues:
+
+1. **Installation**: Always install using uv tool:
+   ```bash
+   uv tool install bump-my-version
+   ```
+
+2. **Execution**: Always run through uv tool run:
+   ```bash
+   uv tool run bump-my-version bump minor --commit --tag
+   ```
+
+3. **Pre-commit configuration**: In `.pre-commit-config.yaml`, use:
+   ```yaml
+   - repo: local
+     hooks:
+       - id: bump-version
+         name: Bump version
+         entry: uv tool run bump-my-version bump minor --commit --tag --allow-dirty
+         language: system
+         pass_filenames: false
+         always_run: true
+   ```
+
+4. **Configuration in pyproject.toml**: Include uv sync command in hooks:
+   ```toml
+   [tool.bumpversion]
+   current_version = "0.3.5"
+   parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
+   serialize = ["{major}.{minor}.{patch}"]
+   search = "__version__ = \"{current_version}\""
+   replace = "__version__ = \"{new_version}\""
+   regex = false
+   ignore_missing_version = false
+   tag = true
+   sign_tags = false
+   tag_name = "v{new_version}"
+   tag_message = "Bump version: {current_version} → {new_version}"
+   allow_dirty = true
+   commit = true
+   message = "Bump version: {current_version} → {new_version}"
+   commit_args = ""
+   pre_commit_hook = "uv sync"  # This ensures dependencies stay in sync
+   ```
+
+5. **Avoid using bump-my-version binary directly**: This leads to synchronization issues with uv
+
+#### Example `hooks/bump_version.sh` - Correctly Using uv with bump-my-version:
 
 ```bash
 #!/bin/bash
@@ -423,6 +476,7 @@ set -eo pipefail
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 PROJECT_ROOT=$(dirname "$SCRIPT_DIR")
 INIT_PY="$PROJECT_ROOT/src/enchant_cli/__init__.py"
+UV_CMD="$PROJECT_ROOT/.venv/bin/uv"
 
 # Function to check if the version file exists
 check_version_file() {
@@ -438,41 +492,59 @@ check_version_file
 # Multi-tier approach to bump version
 echo "🔄 Bumping version..."
 
-if command -v uv >/dev/null 2>&1; then
-    # Try uv tool run approach
-    uv tool run bump-my-version bump minor --commit --tag --allow-dirty || echo "WARNING: Version bump with uv failed, trying alternatives..."
-elif [ -f "$PROJECT_ROOT/.venv/bin/bump-my-version" ]; then
-    # Try direct from virtualenv
-    "$PROJECT_ROOT/.venv/bin/bump-my-version" bump minor --commit --tag --allow-dirty || echo "WARNING: Version bump with .venv binary failed, trying alternatives..."
-elif command -v bump-my-version >/dev/null 2>&1; then
-    # Try system bump-my-version
-    bump-my-version bump minor --commit --tag --allow-dirty || echo "WARNING: Version bump with system binary failed, trying pure shell fallback..."
+# Recommended approach: Always use uv tool run (never use direct binary calls)
+if [ -f "$UV_CMD" ]; then
+    # Preferred method: Using uv tool run with proper arguments
+    echo "Using uv tool run for bump-my-version (recommended method)"
+    "$UV_CMD" tool run bump-my-version bump minor --commit --tag --allow-dirty || {
+        echo "WARNING: Version bump with uv tool failed, trying alternatives..."
+    }
 else
-    # Pure shell implementation as final fallback
-    echo "🔄 Using pure shell version bump (fallback)..."
-    
-    # Extract current version using grep and sed
-    CURRENT_VERSION=$(grep -o '__version__[[:space:]]*=[[:space:]]*"[0-9]\+\.[0-9]\+\.[0-9]\+"' "$INIT_PY" | sed -E 's/__version__[[:space:]]*=[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)"/\1/')
-    
-    # Split version
-    IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
-    
-    # Increment minor version
-    NEW_MINOR=$((MINOR + 1))
-    NEW_VERSION="$MAJOR.$NEW_MINOR.0"
-    
-    # Replace version in file
-    sed -i.bak -E "s/__version__[[:space:]]*=[[:space:]]*\"[0-9]+\.[0-9]+\.[0-9]+\"/__version__ = \"$NEW_VERSION\"/" "$INIT_PY"
-    rm "$INIT_PY.bak"
-    
-    # Commit changes
-    git add "$INIT_PY"
-    git commit -m "Bump version: $CURRENT_VERSION → $NEW_VERSION"
-    
-    # Create tag
-    git tag -a "v$NEW_VERSION" -m "Bump version: $CURRENT_VERSION → $NEW_VERSION"
-    
-    echo "✅ Version bumped from $CURRENT_VERSION to $NEW_VERSION"
+    # Fallback approaches (less preferred, only for extreme edge cases)
+    if command -v uv >/dev/null 2>&1; then
+        # Try global uv installation as fallback
+        echo "WARNING: Using global uv installation (non-isolated environment)"
+        uv tool run bump-my-version bump minor --commit --tag --allow-dirty || {
+            echo "WARNING: Version bump failed with global uv - ensure uv is properly installed"
+        }
+    elif [ -f "$PROJECT_ROOT/.venv/bin/bump-my-version" ]; then
+        # Direct virtualenv access (not recommended - may cause sync issues with uv)
+        echo "WARNING: Using direct virtualenv binary (not recommended)"
+        "$PROJECT_ROOT/.venv/bin/bump-my-version" bump minor --commit --tag --allow-dirty || {
+            echo "WARNING: Version bump with direct binary failed"
+        }
+    else
+        # Pure shell implementation as final fallback (for extreme edge cases)
+        echo "🔄 Using pure shell version bump (emergency fallback)..."
+        
+        # Extract current version using grep and sed
+        CURRENT_VERSION=$(grep -o '__version__[[:space:]]*=[[:space:]]*"[0-9]\+\.[0-9]\+\.[0-9]\+"' "$INIT_PY" | sed -E 's/__version__[[:space:]]*=[[:space:]]*"([0-9]+\.[0-9]+\.[0-9]+)"/\1/')
+        
+        # Split version
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+        
+        # Increment minor version
+        NEW_MINOR=$((MINOR + 1))
+        NEW_VERSION="$MAJOR.$NEW_MINOR.0"
+        
+        # Replace version in file
+        sed -i.bak -E "s/__version__[[:space:]]*=[[:space:]]*\"[0-9]+\.[0-9]+\.[0-9]+\"/__version__ = \"$NEW_VERSION\"/" "$INIT_PY"
+        rm "$INIT_PY.bak"
+        
+        # Commit changes
+        git add "$INIT_PY"
+        git commit -m "Bump version: $CURRENT_VERSION → $NEW_VERSION"
+        
+        # Create tag
+        git tag -a "v$NEW_VERSION" -m "Bump version: $CURRENT_VERSION → $NEW_VERSION"
+        
+        echo "✅ Version bumped from $CURRENT_VERSION to $NEW_VERSION"
+    fi
+fi
+
+# Sync dependencies after version bump (important for uv workflow)
+if [ -f "$UV_CMD" ]; then
+    "$UV_CMD" sync || echo "WARNING: uv sync failed after version bump"
 fi
 
 exit 0
@@ -1645,9 +1717,116 @@ select = ["E", "F", "I"]
 ignore = []
 ```
 
-## 8. Troubleshooting
+## 8. CLAUDE HELPER SCRIPTS
 
-### 8.1 Common Environment Issues
+### 8.1 Overview
+
+CLAUDE HELPER SCRIPTS is a collection of portable Python utilities designed to enhance shell script functionality. These scripts are modular, self-configuring, and can be reused across different projects.
+
+#### Key Features
+
+- **Zero Configuration Required**: Auto-detects repository information and adapts to any project
+- **Cross-Platform Compatibility**: Works consistently across macOS, Linux, Windows
+- **Modular Design**: Organized into specialized modules for different purposes
+- **Advanced Error Detection**: Performs sophisticated analysis on workflow logs
+- **GitHub Integration**: Enhances workflow management and automation
+- **Self-Healing**: Fixes common issues in shell scripts automatically
+
+### 8.2 Directory Structure
+
+```
+/helpers/
+├── README.md           # Documentation for helper scripts
+├── __init__.py         # Package initialization
+├── cli.py              # Unified command-line interface
+├── errors/             # Error analysis tools
+│   ├── __init__.py
+│   └── log_analyzer.py # Advanced log analysis
+└── github/             # GitHub workflow tools
+    ├── __init__.py
+    └── workflow_helper.py # Workflow management
+```
+
+### 8.3 Using the Helper Scripts
+
+#### Command-line Interface
+
+The helper scripts provide a unified command-line interface:
+
+```bash
+# Show version information
+python -m helpers.cli version
+
+# Fix all shell script issues
+python -m helpers.cli fix --all
+
+# Analyze the most recent log file
+python -m helpers.cli logs --latest
+
+# Check workflow files for workflow_dispatch events
+python -m helpers.cli workflow --check
+
+# Fix workflow files to add workflow_dispatch events
+python -m helpers.cli workflow --fix
+```
+
+#### Direct Module Usage
+
+You can also use the modules directly in your scripts:
+
+```python
+from helpers.errors import log_analyzer
+from helpers.github import workflow_helper
+
+# Analyze a log file
+report = log_analyzer.analyze_and_report("logs/workflow_123456.log")
+
+# Fix workflow script issues
+workflow_helper.fix_workflow_script("publish_to_github.sh")
+```
+
+#### Shell Script Integration
+
+The helper scripts can be called from shell scripts:
+
+```bash
+# In publish_to_github.sh
+if [ $WAIT_FOR_LOGS -eq 1 ]; then
+    # Use the helper script to analyze workflow logs
+    python -m helpers.cli logs --latest
+fi
+```
+
+### 8.4 Extending Helper Scripts
+
+You can extend the helper scripts for your specific needs:
+
+1. Add new modules under appropriate directories
+2. Register new commands in `cli.py`
+3. Update documentation in `README.md`
+
+For example, to add a new GitHub helper:
+
+```python
+# helpers/github/repo_helper.py
+def create_repository(name, private=True):
+    """Create a new GitHub repository."""
+    # Implementation...
+```
+
+Then register it in `cli.py`:
+
+```python
+def repo_command(args):
+    """Process repository commands."""
+    if args.create:
+        return repo_helper.create_repository(args.name, args.private)
+    # ...
+```
+
+## 9. Troubleshooting
+
+### 9.1 Common Environment Issues
 
 #### External environment references in PATH
 
