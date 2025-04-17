@@ -3,8 +3,8 @@ repos:
     rev: v0.4.7  # Latest version at time of writing
     hooks:
       - id: ruff
-        args: ["--select=E,F,I", "--no-fix"]
-        exclude: "^(fix_|check_)"
+        args: ["--extend-select=E,F,I", "--no-fix"]
+        exclude: "^(fix_|check_|pyproject.toml|dist/|src/|tests/)"
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1 # Use the correct tag format
     hooks:
