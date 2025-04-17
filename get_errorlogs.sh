@@ -265,14 +265,25 @@ display_workflow_summary() {
     echo ""
     echo -e "\033[1;33m🔶 WORKFLOW SUMMARY 🔶\033[0m"
     
+    # Ensure variables are initialized
+    recent_failure_count=${recent_failure_count:-0}
+    recent_success_count=${recent_success_count:-0}
+    all_runs_count=${all_runs_count:-0}
+    
     if [ "$recent_failure_count" -gt 0 ]; then
-        echo -e "\033[1;31m❌ GITHUB WORKFLOWS HAVE FAILURES ($recent_failure_count failed out of $all_runs_count total)\033[0m"
+        echo -e "\033[1;31m❌ GITHUB JOBS SUMMARY: $recent_success_count/$all_runs_count WORKFLOWS COMPLETED SUCCESSFULLY, $recent_failure_count WITH ERRORS\033[0m"
     else
         echo -e "\033[1;32m✅ GITHUB JOBS COMPLETED SUCCESSFULLY\033[0m"
     fi
+}
+    recent_success_count=${recent_success_count:-0}
+    all_runs_count=${all_runs_count:-0}
     
-    echo "Recent success rate: $recent_success_count / $all_runs_count"
-    echo ""
+    if [ "$recent_failure_count" -gt 0 ]; then
+        echo -e "\033[1;31m❌ GITHUB JOBS SUMMARY: $recent_success_count/$all_runs_count WORKFLOWS COMPLETED SUCCESSFULLY, $recent_failure_count WITH ERRORS\033[0m"
+    else
+        echo -e "\033[1;32m✅ GITHUB JOBS COMPLETED SUCCESSFULLY\033[0m"
+    fi
 }
 
 # Function to find the latest workflow run using GitHub CLI

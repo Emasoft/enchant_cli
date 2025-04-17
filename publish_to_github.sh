@@ -691,21 +691,50 @@ if [ $REPO_EXISTS -eq 1 ]; then
     # Adding retry logic for workflow triggering
     MAX_RETRIES=3
     RETRY_COUNT=0
-    SUCCESS=false
+    SUCCESS="false"
     
+    print_info "Note: Workflows must have 'workflow_dispatch:' trigger enabled in their YAML definition"
+    
+    # First method: Try direct workflow run
     while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$SUCCESS" != "true" ]; do
-        if gh workflow run tests.yml -R "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"; then
-            print_success "Tests workflow triggered successfully."
-            SUCCESS=true
+        if gh workflow run tests.yml --repo "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"; then
+            print_success "Tests workflow triggered successfully via direct run."
+            SUCCESS="true"
         else
             RETRY_COUNT=$((RETRY_COUNT+1))
             if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
                 print_warning "Failed to trigger tests workflow. Retrying in 3 seconds... (Attempt $RETRY_COUNT of $MAX_RETRIES)"
                 sleep 3
-            else
-                print_error "Failed to trigger tests workflow after $MAX_RETRIES attempts."
-                print_warning "This is a critical error. Tests must always run on GitHub."
-                print_info "Please manually trigger the workflow from the GitHub Actions tab."
+            elif [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+                print_warning "Direct workflow triggering failed. Trying alternative approach with dispatch_event API..."
+                
+                # Alternative approach using API directly
+                if gh api "repos/$REPO_FULL_NAME/actions/workflows/tests.yml/dispatches" -f ref="$CURRENT_BRANCH" --silent; then
+                    print_success "Tests workflow triggered successfully via API."
+                    SUCCESS="true"
+                else
+                    # Third approach: Try to find the workflow ID and use that
+                    print_warning "API approach failed. Trying one more method with workflow ID..."
+                    WORKFLOW_ID=$(gh api "repos/$REPO_FULL_NAME/actions/workflows" --jq '.workflows[] | select(.name=="Tests" or .path==".github/workflows/tests.yml") | .id')
+                    
+                    if [ -n "$WORKFLOW_ID" ]; then
+                        print_info "Found workflow ID: $WORKFLOW_ID, attempting to trigger using ID..."
+                        if gh api "repos/$REPO_FULL_NAME/actions/workflows/$WORKFLOW_ID/dispatches" -f ref="$CURRENT_BRANCH" --silent; then
+                            print_success "Tests workflow triggered successfully via workflow ID."
+                            SUCCESS="true"
+                        else
+                            print_error "Failed to trigger tests workflow after multiple approaches."
+                            print_warning "This is a critical error. Tests must always run on GitHub."
+                            print_info "Please manually trigger the workflow from the GitHub Actions tab at:"
+                            print_info "https://github.com/$REPO_FULL_NAME/actions/workflows/tests.yml"
+                        fi
+                    else
+                        print_error "Could not find workflow ID for tests.yml."
+                        print_warning "This is a critical error. Tests must always run on GitHub."
+                        print_info "Please manually trigger the workflow from the GitHub Actions tab at:"
+                        print_info "https://github.com/$REPO_FULL_NAME/actions/workflows/tests.yml"
+                    fi
+                fi
             fi
         fi
     done
@@ -713,21 +742,47 @@ if [ $REPO_EXISTS -eq 1 ]; then
     print_info "Triggering auto_release workflow (always runs regardless of changes)..."
     # Reset retry counter for auto_release workflow
     RETRY_COUNT=0
-    SUCCESS=false
+    SUCCESS="false"
     
     while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$SUCCESS" != "true" ]; do
-        if gh workflow run auto_release.yml -R "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"; then
+        if gh workflow run auto_release.yml --repo "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"; then
             print_success "Auto_release workflow triggered successfully."
-            SUCCESS=true
+            SUCCESS="true"
         else
             RETRY_COUNT=$((RETRY_COUNT+1))
             if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
                 print_warning "Failed to trigger auto_release workflow. Retrying in 3 seconds... (Attempt $RETRY_COUNT of $MAX_RETRIES)"
                 sleep 3
-            else
-                print_error "Failed to trigger auto_release workflow after $MAX_RETRIES attempts."
-                print_warning "This is a critical error. Releases must always be validated on GitHub."
-                print_info "Please manually trigger the workflow from the GitHub Actions tab."
+            elif [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+                print_warning "Direct workflow triggering failed. Trying alternative approach with dispatch_event API..."
+                
+                # Alternative approach using API directly
+                if gh api "repos/$REPO_FULL_NAME/actions/workflows/auto_release.yml/dispatches" -f ref="$CURRENT_BRANCH" --silent; then
+                    print_success "Auto_release workflow triggered successfully via API."
+                    SUCCESS="true"
+                else
+                    # Third approach: Try to find the workflow ID and use that
+                    print_warning "API approach failed. Trying one more method with workflow ID..."
+                    WORKFLOW_ID=$(gh api "repos/$REPO_FULL_NAME/actions/workflows" --jq '.workflows[] | select(.name=="Auto Release" or .path==".github/workflows/auto_release.yml") | .id')
+                    
+                    if [ -n "$WORKFLOW_ID" ]; then
+                        print_info "Found workflow ID: $WORKFLOW_ID, attempting to trigger using ID..."
+                        if gh api "repos/$REPO_FULL_NAME/actions/workflows/$WORKFLOW_ID/dispatches" -f ref="$CURRENT_BRANCH" --silent; then
+                            print_success "Auto_release workflow triggered successfully via workflow ID."
+                            SUCCESS="true"
+                        else
+                            print_error "Failed to trigger auto_release workflow after multiple approaches."
+                            print_warning "This is a critical error. Releases must always be validated on GitHub."
+                            print_info "Please manually trigger the workflow from the GitHub Actions tab at:"
+                            print_info "https://github.com/$REPO_FULL_NAME/actions/workflows/auto_release.yml"
+                        fi
+                    else
+                        print_error "Could not find workflow ID for auto_release.yml."
+                        print_warning "This is a critical error. Releases must always be validated on GitHub."
+                        print_info "Please manually trigger the workflow from the GitHub Actions tab at:"
+                        print_info "https://github.com/$REPO_FULL_NAME/actions/workflows/auto_release.yml"
+                    fi
+                fi
             fi
         fi
     done

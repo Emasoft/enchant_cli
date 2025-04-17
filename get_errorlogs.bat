@@ -601,6 +601,13 @@ echo   %0 saved           List all saved log files
 echo   %0 list            List all workflow runs from GitHub
 echo   %0 help            Show complete help with all commands
 echo.
+echo [93m🔶 Recent Fixes for GitHub Integration:[0m
+echo   1. Resolved repository detection issue in publish_to_github.sh
+echo   2. Improved workflow triggering with retry logic and multiple approaches 
+echo   3. Enhanced error handling with better diagnostic messages
+echo   4. Fixed macOS compatibility issues in get_errorlogs.sh
+echo   5. Added advanced workflow ID lookup for more reliable triggering
+echo.
 echo [94mℹ️ ENHANCED AUTOMATIC DETECTION:[0m
 echo   This script features improved detection:
 echo   - Multi-signal workflow categorization for better accuracy
