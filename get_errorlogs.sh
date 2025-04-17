@@ -1445,7 +1445,6 @@ if [ $# -eq 0 ]; then
             
             # Look for failed workflow runs
             if command -v gh &>/dev/null && [ -n "$REPO_FULL_NAME" ]; then
-                local failed_run_id
                 failed_run_id=$(gh run list --repo "$REPO_FULL_NAME" --status failure --limit 1 --json databaseId -q '.[0].databaseId' 2>/dev/null)
                 
                 if [ -n "$failed_run_id" ]; then
