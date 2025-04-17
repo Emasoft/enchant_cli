@@ -1,5 +1,19 @@
 # Project Environment & Development Guide
 
+# CRITICAL: ALWAYS USE publish_to_github.sh --skip-tests FOR GITHUB OPERATIONS
+
+NEVER use direct git commands like `git push` to push changes to GitHub. ALWAYS use the provided script:
+```bash
+# Unix/Linux/macOS - The ONLY correct way to push to GitHub
+./publish_to_github.sh --skip-tests
+
+# Windows - The ONLY correct way to push to GitHub
+publish_to_github.bat --skip-tests
+```
+
+This rule MUST be followed without exception, even when not explicitly stated in a request.
+Direct git commands bypass crucial validation steps and repository management that the script handles.
+
 ## Table of Contents
 - [1. Environment Configuration](#1-environment-configuration)
   - [1.1 Supported Platforms](#11-supported-platforms)
