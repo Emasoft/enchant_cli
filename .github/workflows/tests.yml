@@ -6,8 +6,47 @@ on:
   workflow_dispatch:  # Allow manual triggering
 
 jobs:
+  check_commit_message:
+    name: Check Commit Flags
+    runs-on: ubuntu-latest
+    outputs:
+      skip_tests: ${{ steps.check_skip.outputs.skip_tests }}
+      skip_linters: ${{ steps.check_skip.outputs.skip_linters }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Get at least the last commit
+      
+      - name: Check if tests or linters were skipped locally
+        id: check_skip
+        run: |
+          # Check last commit message for skip-tests indicator
+          if git log -1 --pretty=%B | grep -q "\\[skip-tests\\]"; then
+            echo "Tests were explicitly skipped locally with [skip-tests] marker."
+            # Always run tests on GitHub regardless of marker
+            echo "skip_tests=false" >> $GITHUB_OUTPUT
+          else
+            echo "No skip-tests marker found."
+            echo "skip_tests=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Check last commit message for skip-linters indicator
+          if git log -1 --pretty=%B | grep -q "\\[skip-linters\\]"; then
+            echo "Linters were explicitly skipped locally with [skip-linters] marker."
+            # Always run linters on GitHub regardless of marker
+            echo "skip_linters=false" >> $GITHUB_OUTPUT
+          else
+            echo "No skip-linters marker found."
+            echo "skip_linters=false" >> $GITHUB_OUTPUT
+          fi
+  
   lint:
     name: Linting
+    needs: check_commit_message
+    # Always run linting on GitHub, regardless of [skip-linters] marker
+    # The marker is only to indicate it was skipped locally
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -42,30 +81,6 @@ jobs:
       - name: Run yamllint
         run: |
           yamllint -d "{extends: relaxed, rules: {line-length: {max: 120}}}" .
-  
-  check_commit_message:
-    runs-on: ubuntu-latest
-    outputs:
-      skip_tests: ${{ steps.check_skip.outputs.skip_tests }}
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2  # Get at least the last commit
-      
-      - name: Check if tests were skipped locally
-        id: check_skip
-        run: |
-          # Check last commit message for skip-tests indicator
-          if git log -1 --pretty=%B | grep -q "\\[skip-tests\\]"; then
-            echo "Tests were explicitly skipped in the local commit with [skip-tests] marker."
-            echo "skip_tests=false" >> $GITHUB_OUTPUT
-          else
-            # Always run tests by default
-            echo "No skip-tests marker found, running all tests."
-            echo "skip_tests=false" >> $GITHUB_OUTPUT
-          fi
   
   test:
     needs: check_commit_message

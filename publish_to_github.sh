@@ -36,6 +36,7 @@ DESCRIPTION:
 OPTIONS:
     -h, --help         Show this help message and exit
     --skip-tests       Skip running tests (use with caution, only for urgent fixes)
+    --skip-linters     Skip running linters/code quality checks (use with caution)
     --force            Force push to repository (use with extreme caution)
     --dry-run          Execute all steps except final GitHub push
     --verify-pypi      Check if the package is available on PyPI after publishing
@@ -79,6 +80,7 @@ EOF
 
 # Process command-line options
 SKIP_TESTS=0
+SKIP_LINTERS=0
 FORCE_PUSH=0
 DRY_RUN=0
 VERIFY_PYPI=0
@@ -91,6 +93,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --skip-tests)
             SKIP_TESTS=1
+            shift
+            ;;
+        --skip-linters)
+            SKIP_LINTERS=1
             shift
             ;;
         --force)
@@ -345,11 +351,15 @@ if ! git diff --quiet HEAD 2>/dev/null; then
         git add -A
     fi
 
-    # Generate a commit message based on whether tests were skipped
+    # Generate a commit message based on whether tests or linters were skipped
     COMMIT_MESSAGE="chore: Prepare for release validation"
     if [ $SKIP_TESTS -eq 1 ]; then
         # Add skip-tests marker for GitHub Actions to detect
         COMMIT_MESSAGE="$COMMIT_MESSAGE [skip-tests]"
+    fi
+    if [ $SKIP_LINTERS -eq 1 ]; then
+        # Add skip-linters marker for GitHub Actions to detect
+        COMMIT_MESSAGE="$COMMIT_MESSAGE [skip-linters]"
     fi
     
     print_info "Committing staged changes..."
@@ -408,10 +418,16 @@ if [ ! -x "$RELEASE_SCRIPT" ]; then
 fi
 
 print_info "Executing validation script $RELEASE_SCRIPT (timeout: $TIMEOUT_RELEASE seconds)..."
-# Set a timeout for the validation script and pass the skip-tests flag if needed
-if [ $SKIP_TESTS -eq 1 ]; then
+# Set a timeout for the validation script and pass the appropriate flags
+if [ $SKIP_TESTS -eq 1 ] && [ $SKIP_LINTERS -eq 1 ]; then
+    print_info "Test execution and linting will be skipped as requested."
+    timeout $TIMEOUT_RELEASE "$RELEASE_SCRIPT" --skip-tests --skip-linters
+elif [ $SKIP_TESTS -eq 1 ]; then
     print_info "Test execution will be skipped as requested."
     timeout $TIMEOUT_RELEASE "$RELEASE_SCRIPT" --skip-tests
+elif [ $SKIP_LINTERS -eq 1 ]; then
+    print_info "Linting will be skipped as requested."
+    timeout $TIMEOUT_RELEASE "$RELEASE_SCRIPT" --skip-linters
 else
     timeout $TIMEOUT_RELEASE "$RELEASE_SCRIPT"
 fi
@@ -668,24 +684,56 @@ fi
 print_success "Push to GitHub successful."
 
 # *** STEP 8: Trigger GitHub Workflows ***
-# Ensure workflows are triggered even if there were no changes
-print_info "Ensuring GitHub workflows are triggered..."
+# CRITICAL: Always trigger workflows even if there were no changes
+print_info "Ensuring GitHub workflows are ALWAYS triggered..."
 if [ $REPO_EXISTS -eq 1 ]; then
-    print_info "Triggering tests workflow..."
-    if gh workflow run tests.yml -R "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"; then
-        print_success "Tests workflow triggered successfully."
-    else
-        print_warning "Failed to trigger tests workflow. GitHub Actions will still run on push if changes were detected."
-    fi
-
-    print_info "Triggering auto_release workflow..."
-    if gh workflow run auto_release.yml -R "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"; then
-        print_success "Auto_release workflow triggered successfully."
-    else
-        print_warning "Failed to trigger auto_release workflow. GitHub Actions will still run on push if changes were detected."
-    fi
+    print_info "Triggering tests workflow (always runs regardless of changes)..."
+    # Adding retry logic for workflow triggering
+    MAX_RETRIES=3
+    RETRY_COUNT=0
+    SUCCESS=false
+    
+    while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$SUCCESS" != "true" ]; do
+        if gh workflow run tests.yml -R "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"; then
+            print_success "Tests workflow triggered successfully."
+            SUCCESS=true
+        else
+            RETRY_COUNT=$((RETRY_COUNT+1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                print_warning "Failed to trigger tests workflow. Retrying in 3 seconds... (Attempt $RETRY_COUNT of $MAX_RETRIES)"
+                sleep 3
+            else
+                print_error "Failed to trigger tests workflow after $MAX_RETRIES attempts."
+                print_warning "This is a critical error. Tests must always run on GitHub."
+                print_info "Please manually trigger the workflow from the GitHub Actions tab."
+            fi
+        fi
+    done
+    
+    print_info "Triggering auto_release workflow (always runs regardless of changes)..."
+    # Reset retry counter for auto_release workflow
+    RETRY_COUNT=0
+    SUCCESS=false
+    
+    while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$SUCCESS" != "true" ]; do
+        if gh workflow run auto_release.yml -R "$REPO_FULL_NAME" --ref "$CURRENT_BRANCH"; then
+            print_success "Auto_release workflow triggered successfully."
+            SUCCESS=true
+        else
+            RETRY_COUNT=$((RETRY_COUNT+1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                print_warning "Failed to trigger auto_release workflow. Retrying in 3 seconds... (Attempt $RETRY_COUNT of $MAX_RETRIES)"
+                sleep 3
+            else
+                print_error "Failed to trigger auto_release workflow after $MAX_RETRIES attempts."
+                print_warning "This is a critical error. Releases must always be validated on GitHub."
+                print_info "Please manually trigger the workflow from the GitHub Actions tab."
+            fi
+        fi
+    done
 else
     print_warning "Repository not found on GitHub. Workflows will be triggered once the repository is created."
+    print_info "CRITICAL: Once the repository is created, make sure the tests and auto_release workflows are triggered."
 fi
 
 # *** STEP 9: GitHub Release Information ***

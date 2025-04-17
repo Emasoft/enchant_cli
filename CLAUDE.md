@@ -11,6 +11,33 @@ NEVER use direct git commands like `git push` to push changes to GitHub. ALWAYS 
 publish_to_github.bat --skip-tests
 ```
 
+## Available Flags:
+
+- `--skip-tests`: Skip running tests locally (tests will ALWAYS run on GitHub regardless)
+- `--skip-linters`: Skip running linters/code quality checks locally (linting will ALWAYS run on GitHub regardless)
+- `--force`: Force push to repository (use with extreme caution)
+- `--dry-run`: Execute all steps except final GitHub push
+- `--verify-pypi`: Check if the package is available on PyPI after publishing
+- `--check-version VER`: Check if a specific version is available on PyPI
+
+IMPORTANT NOTES:
+- Even when using --skip-tests or --skip-linters, the GitHub workflows will ALWAYS run tests and linting remotely
+- This ensures code quality even when skipping local validation
+- For local linting, use explicit commands like `pre-commit run --all-files` to fix issues before pushing
+- The [skip-tests] and [skip-linters] tags in commit messages are ONLY markers that these were skipped locally
+
+Examples:
+```bash
+# Skip both tests and linters
+./publish_to_github.sh --skip-tests --skip-linters
+
+# Skip only linters but run tests
+./publish_to_github.sh --skip-linters
+
+# Skip only tests but run linters
+./publish_to_github.sh --skip-tests
+```
+
 This rule MUST be followed without exception, even when not explicitly stated in a request.
 Direct git commands bypass crucial validation steps and repository management that the script handles.
 
@@ -55,9 +82,11 @@ Direct git commands bypass crucial validation steps and repository management th
   - [8.2 Test Failures](#82-test-failures)
   - [8.3 Documentation and Badge Management](#83-documentation-and-badge-management)
   - [8.4 Version Control Problems](#84-version-control-problems)
-- [9. Claude Helper Scripts](#9-claude-helper-scripts)
-  - [9.1 Error Log Analysis Scripts](#91-error-log-analysis-scripts)
-  - [9.2 Using Claude Helper Scripts Across Projects](#92-using-claude-helper-scripts-across-projects)
+- [9. Critical Workflow Commands](#9-critical-workflow-commands)
+  - [9.1 Local Linting and Testing](#91-local-linting-and-testing)
+- [10. Claude Helper Scripts](#10-claude-helper-scripts)
+  - [10.1 Error Log Analysis Scripts](#101-error-log-analysis-scripts)
+  - [10.2 Using Claude Helper Scripts Across Projects](#102-using-claude-helper-scripts-across-projects)
 
 ## 1. Environment Configuration
 
@@ -1128,10 +1157,14 @@ A major version increment should only be used for backward-incompatible API chan
 
 This project strictly follows a standardized GitHub publishing protocol that ensures consistent, validated releases:
 
-1. **IMPORTANT: ALWAYS Use publish_to_github.sh with --skip-tests**
-   - All pushes MUST be performed via the `publish_to_github.sh --skip-tests` command
+1. **IMPORTANT: ALWAYS Use publish_to_github.sh with appropriate flags**
+   - All pushes MUST be performed via the `publish_to_github.sh` command with appropriate flags
    - NEVER use direct git commands like `git push` or `git commit` as they bypass crucial validation
    - The `--skip-tests` flag prevents timeouts during local testing, while still ensuring tests run on GitHub
+   - The `--skip-linters` flag skips local linting checks to save time (linting will ALWAYS still run on GitHub)
+   - Recommended usage: `publish_to_github.sh --skip-tests --skip-linters` for fastest local operation
+   - To fix linting issues locally before pushing, use explicit commands like `pre-commit run --all-files`
+   - GitHub workflows will ALWAYS run tests and linting regardless of these flags to ensure code quality
    - This rule MUST be followed without exception, even when not explicitly stated in a request
 
 2. **The `publish_to_github.sh` Script**
@@ -1161,6 +1194,12 @@ This project strictly follows a standardized GitHub publishing protocol that ens
 # Skip tests (use with caution)
 ./publish_to_github.sh --skip-tests
 
+# Skip linters but run tests
+./publish_to_github.sh --skip-linters
+
+# Skip both tests and linters (recommended for most pushes)
+./publish_to_github.sh --skip-tests --skip-linters
+
 # Force push (use with extreme caution)
 ./publish_to_github.sh --force
 
@@ -1184,6 +1223,12 @@ publish_to_github.bat
 
 :: Skip tests (use with caution)
 publish_to_github.bat --skip-tests
+
+:: Skip linters but run tests
+publish_to_github.bat --skip-linters
+
+:: Skip both tests and linters (recommended for most pushes)
+publish_to_github.bat --skip-tests --skip-linters
 
 :: Force push (use with extreme caution)
 publish_to_github.bat --force
@@ -1886,9 +1931,74 @@ If the PyPI publication verification fails:
      ./publish_to_github.sh --verify-pypi
      ```
 
-## 9. Claude Helper Scripts
+## 9. Critical Workflow Commands
 
-### 9.1 Error Log Analysis Scripts
+### 9.1 Local Linting and Testing
+
+When working with this project, it's important to know the right commands for different scenarios:
+
+#### Local Linting and Issue Fixing
+
+Always use pre-commit directly to find and fix linting issues before pushing:
+
+```bash
+# Run linters on all files (fixes automatically where possible)
+pre-commit run --all-files
+
+# Run linters on specific files
+pre-commit run --files path/to/file1.py path/to/file2.py
+
+# Run a specific hook (e.g., just black)
+pre-commit run black --all-files
+```
+
+Note: Running `publish_to_github.sh` with `--skip-linters` will skip local linting but will NOT skip linting on GitHub. The GitHub CI will always run linting to ensure code quality.
+
+#### Local Testing
+
+Use pytest directly for local development and debugging:
+
+```bash
+# Run all tests
+pytest tests/
+
+# Run specific test file
+pytest tests/test_specific.py
+
+# Run specific test
+pytest tests/test_file.py::test_function_name
+
+# Run with coverage
+pytest --cov=src tests/
+```
+
+#### Pushing Code to GitHub
+
+ALWAYS use the publish script to push code, never direct git commands:
+
+```bash
+# For most routine pushes (quickest option)
+./publish_to_github.sh --skip-tests --skip-linters
+
+# If you want to run tests locally but skip linting
+./publish_to_github.sh --skip-linters
+
+# If you want to run linting locally but skip tests
+./publish_to_github.sh --skip-tests
+
+# To run full validation locally (slowest)
+./publish_to_github.sh
+```
+
+IMPORTANT:
+- GitHub workflows will ALWAYS run tests and linting regardless of the flags used
+- The markers in commit messages are ONLY indicators that they were skipped locally
+- No GitHub check is ever skipped - all quality checks will be enforced remotely
+- For complex linting issues, always fix them locally first with `pre-commit run --all-files`
+
+## 10. Claude Helper Scripts
+
+### 10.1 Error Log Analysis Scripts
 
 - **get_errorlogs.sh/bat**: Advanced GitHub Actions workflow log analysis
   - **Zero-input required:** Run without arguments to get fully automated analysis
@@ -1982,7 +2092,7 @@ If the PyPI publication verification fails:
 ./get_errorlogs.sh stats              # Display log statistics and summary
 ```
 
-### 9.2 Using Claude Helper Scripts Across Projects
+### 10.2 Using Claude Helper Scripts Across Projects
 
 The CLAUDE HELPER SCRIPTS are designed to be completely portable and adaptable across different projects without any configuration required:
 

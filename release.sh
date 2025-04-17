@@ -11,15 +11,20 @@ source "$SCRIPT_DIR/ensure_env.sh"
 
 # Process command-line options
 SKIP_TESTS=0
+SKIP_LINTERS=0
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --skip-tests)
             SKIP_TESTS=1
             shift
             ;;
+        --skip-linters)
+            SKIP_LINTERS=1
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
-            echo "Available options: --skip-tests"
+            echo "Available options: --skip-tests, --skip-linters"
             exit 1
             ;;
     esac
@@ -198,7 +203,10 @@ print_success "All dependencies installed successfully."
 # Step 5: Run code quality checks
 print_step "Checking code quality with pre-commit..."
 
-if [ -f .pre-commit-config.yaml ]; then
+if [ $SKIP_LINTERS -eq 1 ]; then
+    print_warning "Skipping linting checks as requested with --skip-linters flag."
+    print_info "You should run linters manually before releasing to production."
+elif [ -f .pre-commit-config.yaml ]; then
     # Run pre-commit hooks. Assumes environment was prepared by the calling script.
     # If this fails, it's likely a real lint/format error needing manual fix.
     timeout $CMD_TIMEOUT $PYTHON_CMD -m pre_commit run --all-files || {
