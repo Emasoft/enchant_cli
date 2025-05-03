@@ -3,8 +3,8 @@
 CLAUDE HELPER SCRIPTS - Command-line interface
 
 A unified command-line interface to access all helper scripts functionality.
-This tool provides access to GitHub workflow management, log analysis, and
-shell script compatibility fixes.
+This tool provides access to GitHub workflow management, log analysis, 
+shell script compatibility fixes, and process monitoring.
 
 Usage:
     python -m helpers.cli [command] [options]
@@ -14,6 +14,7 @@ Commands:
     workflow    - GitHub workflow management commands
     logs        - Log analysis and error detection commands
     fix         - Fix shell script issues
+    process     - Process monitoring and control commands
     version     - Show version information
 """
 
@@ -32,6 +33,10 @@ from helpers import __version__
 from helpers.errors import log_analyzer
 from helpers.github import workflow_helper, repo_helper
 from helpers.shell import script_fixer
+try:
+    from helpers.shell.process_guardian import ProcessGuardian
+except ImportError:
+    ProcessGuardian = None
 
 
 def version_command(_):
@@ -433,6 +438,201 @@ def repo_command(args):
         return 1
 
 
+def process_command(args):
+    """Process monitoring and control commands."""
+    if ProcessGuardian is None:
+        print("Error: Process Guardian module is not available. Please install psutil with 'pip install psutil'", file=sys.stderr)
+        return 1
+        
+    if args.list:
+        # List monitored processes
+        processes = ProcessGuardian.list_monitored()
+        if processes:
+            print(f"Monitored Processes ({len(processes)}):")
+            for i, proc in enumerate(processes, 1):
+                print(f"{i}. PID: {proc['pid']} - {proc['name']}")
+                print(f"   Command: {proc['cmdline']}")
+                print(f"   Memory: {proc['memory_mb']:.2f} MB")
+                print(f"   CPU: {proc['cpu_percent']:.1f}%")
+                print(f"   Started: {proc['create_time']}")
+                print(f"   Running for: {proc['run_time']}")
+                print()
+        else:
+            print("No monitored processes found")
+        return 0
+        
+    elif args.kill_all:
+        # Kill all monitored processes
+        count = ProcessGuardian.kill_all_monitored()
+        print(f"Killed {count} monitored processes")
+        return 0
+        
+    elif args.start_watchdog:
+        # Start the process guardian watchdog
+        script_dir = Path(__file__).parent.parent.parent
+        watchdog_script = script_dir / "process-guardian-watchdog.py"
+        
+        if not watchdog_script.exists():
+            print(f"Error: Watchdog script not found at {watchdog_script}", file=sys.stderr)
+            return 1
+            
+        if args.daemon:
+            print("Starting Process Guardian Watchdog as daemon...")
+            import subprocess
+            subprocess.Popen([sys.executable, str(watchdog_script), "--daemon"], 
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            
+            # Give it a moment to start
+            time.sleep(1)
+            
+            # Check if it started
+            pid_file = os.path.expanduser("~/.process_guardian/watchdog.pid")
+            if os.path.exists(pid_file):
+                with open(pid_file, 'r') as f:
+                    pid = f.read().strip()
+                print(f"Watchdog started with PID {pid}")
+                return 0
+            else:
+                print("Failed to start watchdog daemon", file=sys.stderr)
+                return 1
+        else:
+            print("Starting Process Guardian Watchdog in foreground (Ctrl+C to stop)...")
+            print(f"Running script: {watchdog_script}")
+            try:
+                from subprocess import run
+                run([sys.executable, str(watchdog_script)])
+                return 0
+            except KeyboardInterrupt:
+                print("\nWatchdog stopped by user")
+                return 0
+            except Exception as e:
+                print(f"Error running watchdog: {e}", file=sys.stderr)
+                return 1
+                
+    elif args.status:
+        # Check watchdog status
+        pid_file = os.path.expanduser("~/.process_guardian/watchdog.pid")
+        if not os.path.exists(pid_file):
+            print("Process Guardian Watchdog is not running")
+            return 1
+            
+        with open(pid_file, 'r') as f:
+            pid = f.read().strip()
+            
+        try:
+            import psutil
+            if psutil.pid_exists(int(pid)):
+                process = psutil.Process(int(pid))
+                print(f"Process Guardian Watchdog is running with PID {pid}")
+                print(f"   Memory: {process.memory_info().rss / (1024 * 1024):.2f} MB")
+                print(f"   CPU: {process.cpu_percent(interval=0.1):.1f}%")
+                print(f"   Started: {time.ctime(process.create_time())}")
+                print(f"   Running for: {time.time() - process.create_time():.0f} seconds")
+                
+                # Check log file
+                log_file = os.path.expanduser("~/.process_guardian/watchdog.log")
+                if os.path.exists(log_file):
+                    size = os.path.getsize(log_file)
+                    print(f"   Log file: {log_file} ({size/1024:.1f} KB)")
+                    
+                    if args.show_log:
+                        print("\nRecent log entries:")
+                        try:
+                            with open(log_file, 'r') as f:
+                                # Get last 10 lines
+                                lines = f.readlines()[-10:]
+                                for line in lines:
+                                    print(f"   {line.strip()}")
+                        except Exception as e:
+                            print(f"Error reading log file: {e}")
+                            
+                return 0
+            else:
+                print(f"Process Guardian Watchdog is not running (stale PID file: {pid})")
+                return 1
+        except Exception as e:
+            print(f"Error checking watchdog status: {e}", file=sys.stderr)
+            return 1
+            
+    elif args.stop_watchdog:
+        # Stop the process guardian watchdog
+        pid_file = os.path.expanduser("~/.process_guardian/watchdog.pid")
+        if not os.path.exists(pid_file):
+            print("Process Guardian Watchdog is not running")
+            return 1
+            
+        with open(pid_file, 'r') as f:
+            pid = f.read().strip()
+            
+        try:
+            import psutil
+            if psutil.pid_exists(int(pid)):
+                process = psutil.Process(int(pid))
+                print(f"Stopping Process Guardian Watchdog (PID {pid})...")
+                process.terminate()
+                
+                # Wait for process to terminate
+                try:
+                    process.wait(timeout=5)
+                    print("Process Guardian Watchdog stopped")
+                    
+                    # Remove PID file
+                    os.remove(pid_file)
+                    return 0
+                except psutil.TimeoutExpired:
+                    print("Process didn't terminate gracefully, sending KILL signal...")
+                    process.kill()
+                    print("Process Guardian Watchdog killed")
+                    
+                    # Remove PID file
+                    os.remove(pid_file)
+                    return 0
+            else:
+                print("Process Guardian Watchdog is not running (removing stale PID file)")
+                os.remove(pid_file)
+                return 1
+        except Exception as e:
+            print(f"Error stopping watchdog: {e}", file=sys.stderr)
+            return 1
+            
+    elif args.monitor:
+        # Run a command with process monitoring
+        if not args.command:
+            print("Error: Command to monitor is required", file=sys.stderr)
+            return 1
+            
+        # Build and execute the command
+        if sys.platform == "win32":
+            cmd = ["guard-process.bat"]
+        else:
+            cmd = ["./guard-process.sh"]
+            
+        if args.timeout:
+            cmd.extend(["--timeout", str(args.timeout)])
+            
+        if args.max_memory:
+            cmd.extend(["--max-memory", str(args.max_memory)])
+            
+        if args.process_name:
+            cmd.extend(["--monitor", args.process_name])
+            
+        cmd.append("--")
+        cmd.extend(args.command)
+        
+        try:
+            from subprocess import run
+            print(f"Running command with Process Guardian: {' '.join(cmd)}")
+            result = run(cmd)
+            return result.returncode
+        except Exception as e:
+            print(f"Error running command: {e}", file=sys.stderr)
+            return 1
+    
+    else:
+        print("Error: Please specify a process subcommand", file=sys.stderr)
+        return 1
+
+
 def fix_command(args):
     """Process fix commands for shell scripts."""
     if args.workflow_script:
@@ -547,6 +747,11 @@ Examples:
   python -m helpers.cli repo --create --name my-repo          # Create a repo
   python -m helpers.cli repo --bump-version minor             # Bump minor version
   python -m helpers.cli repo --install-bumpversion            # Install bump-my-version
+  python -m helpers.cli process --list                        # List monitored processes
+  python -m helpers.cli process --kill-all                    # Kill all monitored processes
+  python -m helpers.cli process --start-watchdog --daemon     # Start watchdog as daemon
+  python -m helpers.cli process --status                      # Check watchdog status
+  python -m helpers.cli process --monitor -- command args     # Run command with monitoring
 """
     )
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
@@ -638,6 +843,24 @@ Examples:
     fix_parser.add_argument("--with-bumpversion", action="store_true", 
                          help="Include bump-my-version setup when using --all")
     
+    # Process command - New section for process_guardian functionality
+    process_parser = subparsers.add_parser("process", help="Process monitoring and control commands")
+    process_group = process_parser.add_mutually_exclusive_group(required=True)
+    process_group.add_argument("--list", action="store_true", help="List monitored processes")
+    process_group.add_argument("--kill-all", action="store_true", help="Kill all monitored processes")
+    process_group.add_argument("--start-watchdog", action="store_true", help="Start the process guardian watchdog")
+    process_group.add_argument("--stop-watchdog", action="store_true", help="Stop the process guardian watchdog")
+    process_group.add_argument("--status", action="store_true", help="Check status of the process guardian watchdog")
+    process_group.add_argument("--monitor", action="store_true", help="Run a command with process monitoring")
+    
+    # Process monitor options
+    process_parser.add_argument("--daemon", action="store_true", help="Run watchdog as daemon")
+    process_parser.add_argument("--show-log", action="store_true", help="Show recent log entries")
+    process_parser.add_argument("--timeout", type=int, help="Timeout in seconds")
+    process_parser.add_argument("--max-memory", type=int, help="Maximum memory usage in MB")
+    process_parser.add_argument("--process-name", help="Process name to monitor")
+    process_parser.add_argument("command", nargs="*", help="Command to run with monitoring")
+    
     # Parse arguments
     args = parser.parse_args()
     
@@ -650,6 +873,8 @@ Examples:
         return workflow_command(args)
     elif args.command == "repo":
         return repo_command(args)
+    elif args.command == "process":
+        return process_command(args)
     elif args.command == "fix":
         return fix_command(args)
     else:

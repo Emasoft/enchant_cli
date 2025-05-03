@@ -1,0 +1,125 @@
+name: uv Dependency Checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - 'requirements*.txt'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - 'requirements*.txt'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual trigger'
+        required: false
+        default: 'Manual dependency check'
+
+jobs:
+  verify-lock:
+    name: Verify Lock File
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          pip install uv
+      
+      - name: Verify lock file is up-to-date
+        run: |
+          uv lock --check
+      
+      - name: Check for outdated dependencies
+        run: |
+          uv pip list --outdated
+  
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    permissions:
+      contents: read
+      pull-requests: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: true
+  
+  install-test:
+    name: Installation Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.9', '3.12']
+      fail-fast: false
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install uv
+        shell: bash
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          pip install uv
+      
+      - name: Create virtual environment
+        run: |
+          uv venv .venv
+      
+      - name: Activate virtual environment (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          source .venv/bin/activate
+          echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+          echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
+      
+      - name: Activate virtual environment (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          .venv\Scripts\Activate.ps1
+          echo "VIRTUAL_ENV=$env:VIRTUAL_ENV" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "$env:VIRTUAL_ENV\Scripts" | Out-File -FilePath $env:GITHUB_PATH -Append
+      
+      - name: Install from lock file
+        run: |
+          uv sync
+      
+      - name: Install package
+        run: |
+          uv pip install -e .
+      
+      - name: Verify installation
+        run: |
+          python -c "import enchant_cli; print(f'Version: {enchant_cli.__version__}')"
+      
+      - name: Run basic tests
+        run: |
+          python -m pytest -xvs tests/test_cli.py

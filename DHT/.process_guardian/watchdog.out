@@ -1,0 +1,1512 @@
+Starting Project-Scoped Process Guardian (PID: 10390)
+- Memory limits not set (platform limitation or error)
+Process Guardian Configuration:
+- Node.js: 512MB per process, max 2 concurrent, 1536MB total
+- Python: 384MB per process, max 3 concurrent, 1152MB total
+- Combined max memory: 2688MB
+- Memory optimization: Enabled (aggressive GC)
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 14.6MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.1MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.1MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.1MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.1MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.1MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.1MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.1MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.1MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.1MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.1MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.1MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.1MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.1MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Estimated memory usage: Node.js: 0.0MB, Python: 18.2MB
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes
+Currently monitoring 0 Node.js and 1 Python processes

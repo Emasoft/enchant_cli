@@ -179,6 +179,11 @@ report.html
 *~
 _setup* # Files starting with _setup
 
+# Backup directories (but keep the README)
+backups/*
+!backups/
+!backups/README.md
+
 # Lock files (keep uv.lock in repo for reproducibility)
 # uv.lock # Keep this commented - we want to track the lock file
 

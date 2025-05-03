@@ -2,13 +2,16 @@
 current_version = "0.3.5"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
 serialize = ["{major}.{minor}.{patch}"]
-commit = true
+search = "__version__ = \"{current_version}\""
+replace = "__version__ = \"{new_version}\""
+regex = false
+ignore_missing_version = false
 tag = true
 sign_tags = false
+tag_name = "v{new_version}"
+tag_message = "Bump version: {current_version} → {new_version}"
 allow_dirty = true
-
-[tool.bumpversion.file_patterns]
-"src/enchant_cli/__init__.py" = [
-    '__version__ = "{current_version}"',
-]
-EOF < /dev/null
+commit = true
+message = "Bump version: {current_version} → {new_version}"
+commit_args = ""
+pre_commit_hooks = ["uv sync", "git add uv.lock"]

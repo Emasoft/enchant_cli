@@ -1,4 +1,473 @@
+# CLAUDE.md
+
+## 1. Project Understanding
+1.1. Analyze the project's purpose and goals thoroughly before writing code
+1.2. Ask clarifying questions if the project requirements are unclear
+1.3. Confirm understanding of the frameworks and API used by the project before implementation
+1.4. Verify the environment and virtual environment configuration before writing any code
+1.5. Prioritize user experience in UI/UX implementations
+
+## 2. Development Environment Setup
+2.1. Use Node.js version 18.x or higher or Python 3.10+ as required by the project
+2.2. Install all development dependencies using the appropriate package manager (`npm install`, `pip install -r requirements.txt`, etc.)
+2.3. Set up environment variables according to `.env.example`
+2.4. For Python projects using uv:
+   2.4.1. Always create a virtual environment in `.venv` folder for Linux/Mac/BSD systems
+   2.4.2. Always create a virtual environment in `.venv_windows` folder for Windows systems
+   2.4.3. If the project must be compatible with both platforms, configure both `.venv` and `.venv_windows`
+   2.4.4. Always install all tools and binaries into these virtual environments folders to ensure project portability
+   2.4.5. Always use uv for every operation in the project environment and to setup the package configuration
+2.5. For Conda-based projects:
+   2.5.1. Use conda commands to create a virtual environment with the exact same name as the project folder
+   2.5.2. Example: `conda create -n project_name python=3.10`
+   2.5.3. Ensure proper Python runtime is specified during environment creation
+   2.5.4. Activate with `conda activate project_name`
+   2.5.5. Never mix pip/uv and conda for installing packages
+   2.5.6. Always run `conda info` and `conda doctor` first to understand the environment
+2.6. If using VS Code, install the recommended extensions in `.vscode/extensions.json`
+2.7. If using GitHub, install the gh CLI within the virtual environment
+2.8. Configure linting and formatting tools within the project's virtual environment as uv tools
+2.9. Ensure all tools are installed with relative paths, and that relative paths are used in the dev scripts to keep the project folder or repo relocatable on any dir or computer or docker container
+
+## 3. File Structure
+3.1. Follow this standard directory structure precisely:
+```
+project_root/
+├── .venv/                # Virtual environment for Linux/Mac/BSD
+├── .venv_windows/        # Virtual environment for Windows
+├── src/                  # Source code
+│   ├── components/       # Reusable UI components
+│   ├── services/         # Business logic and API services
+│   ├── utils/            # Helper functions and utilities
+│   └── main.py           # Application entry point
+├── tests/                # All tests MUST be placed here
+│   ├── unit/             # Unit tests
+│   ├── integration/      # Integration tests
+│   └── e2e/              # End-to-end tests
+├── docs/                 # Documentation
+├── scripts/              # temp scripts
+├── DHT/                  # Development Helpers Toolkit (permanent scripts reusable in other projects)
+├── config/               # Configuration files
+├── data/                 # Data files (sample data, fixtures)
+├── assets/               # Static assets
+├── tasks_checklist.md    # Task tracking
+├── requirements.txt      # Python dependencies
+├── setup.py              # Package setup
+├── .gitignore            # Git ignore file
+└── README.md             # Project overview
+```
+3.2. Always use relative paths from the project root in all code and configuration files
+3.3. Example of correct path usage: `./src/utils/helpers.py` instead of absolute paths
+3.4. Never hardcode absolute paths that would break portability
+3.5. Place all tests exclusively in the `./tests` folder, organized by test type
+3.6. Document any new directories thoroughly
+3.7. Use barrel files (`index.js` or `__init__.py`) for clean exports
+3.8. Keep component-specific resources with their respective components
+
+## 4. Coding Standards
+4.1. Write clean, readable code with clear variable names
+4.2. Follow the project's naming conventions consistently
+4.3. Use camelCase for JavaScript variables and functions, PascalCase for components and classes
+4.4. Use snake_case for Python variables and functions, PascalCase for classes
+4.5. Comment complex logic thoroughly with JSDoc or docstring style comments
+4.6. Keep functions pure and small, ideally under 30 lines
+4.7. Use type hints for all functions and variables (TypeScript or Python type annotations)
+4.8. Handle errors explicitly with try/catch blocks
+4.9. Always use relative paths for imports and file operations
+4.10. Avoid any hardcoded values, use constants and environment variables
+4.11. Follow the DRY (Don't Repeat Yourself) principle
+4.12. Ensure accessibility standards are met for all UI components
+4.13. CRITICAL: NEVER modify the translation model from "deepseek/deepseek-r1:nitro" as the prompts have been meticulously calibrated for this specific model for optimal results
+4.14. CRITICAL: For ANY change to the implementation of core functionality (especially in translation methods), you MUST ask for explicit approval before making the change. This includes changes to the translation pipeline, prompt engineering, or API integrations
+4.15. CRITICAL: Never replace carefully calibrated prompts or API integrations without explicit permission. These have been meticulously optimized over long periods of time
+
+## 5. Task Management
+5.1. All tasks planned and completed must be tracked in `tasks_checklist.md` in the project root, which must include a legend explaining the meaning of all emoji status indicators
+5.2. Each task must have a unique progressive number that is never reused
+5.3. Use the following emoji system to mark task status by placing the emoji INSIDE the checkbox:
+   5.3.1. - [🕐] = TODO - Task planned but not yet started
+   5.3.2. - [📋] = Planning TDD - Designing tests before implementation
+   5.3.3. - [✏️] = Tests writing in progress - Writing test cases
+   5.3.4. - [💻] = Coding in progress - Active development
+   5.3.5. - [🧪] = Running tests - Testing implementation
+   5.3.6. - [🪲] = BUG FIXING - Debugging in progress
+   5.3.7. - [⏸️] = Paused - Temporarily on hold
+   5.3.8. - [🚫] = Blocked by one or more github issues
+   5.3.9. - [🗑️] = Cancelled - Task will not be completed
+   5.3.10. - [❎] = Replaced - Superseded by another task
+   5.3.11. - [✅] = Completed - Task finished successfully
+   5.3.12. - [❌] = Tests for this task failed
+   5.3.13. - [🚷] = Cannot proceed due to dependency. Waiting for completion of other tasks
+5.4. Include creation timestamp and last updated timestamp for each task
+5.5. Example task format:
+```markdown
+- [💻] #42 - Implement user authentication
+  - Created: 2023-04-22 15:30
+  - Updated: 2023-04-23 10:45
+  - Branch: feature/user-auth
+  - Tests Attempts: PASS=9999 FAIL=9999
+  - Blocked by github issues : #123 #189
+  - Replaced by task : none
+  - Waiting for the completion of task: none
+  - Additional Notes: Add JWT-based authentication system
+```
+5.6. Always update the task status when progress is made
+5.7. Request explicit permission from the user before adding new tasks
+5.8. Include references to GitHub issues with direct links when applicable
+5.9. Include the Git branch name where the task is being implemented
+5.10. Maintain chronological order with newest tasks at the bottom
+5.11. Include a legend at the top of the file explaining all emoji statuses:
+```markdown
+# Tasks Checklist
+
+## Status Legend
+- [🕐] = TODO - Task planned but not yet started
+- [📋] = Planning TDD - Designing tests before implementation
+- [✏️] = Tests writing in progress - Writing test cases
+- [💻] = Coding in progress - Active development
+- [🧪] = Running tests - Testing implementation
+- [🪲] = BUG FIXING - Debugging in progress
+- [⏸️] = Paused - Temporarily on hold
+- [🚫] = Blocked by one or more github issues
+- [🗑️] = Cancelled - Task will not be completed
+- [❎] = Replaced - Superseded by another task
+- [✅] = Completed - Task finished successfully
+- [❌] = Tests for this task failed
+- [🚷] = Cannot proceed due to dependency. Waiting for completion of other tasks
+
+```
+
+## 6. Workflow Instructions
+6.1. Start each development session by pulling the latest changes
+6.2. Create a new branch for each feature or fix using the pattern: `type/description` (e.g., `feature/user-authentication`)
+6.3. Before any git operation that could modify the working directory (checkout, rebase, pull, stash, etc.):
+   6.3.1. Create a backup of the entire project folder including untracked files
+   6.3.2. Save the backup as a zip file in the project's backups directory with timestamp: `backups/project_name_YYYY-MM-DD_HHMMSS.zip`
+   6.3.3. Example command: `mkdir -p backups && zip -r backups/project_name_$(date +%Y-%m-%d_%H%M%S).zip .`
+   6.3.4. CRITICAL: Never lose important untracked files due to git operations like branch switching. Always backup and refer to backups/README.md for restoration instructions.
+6.4. Commit changes with clear, descriptive messages following the Conventional Commits standard
+6.5. Write tests before implementing features (TDD approach)
+6.6. Run linting and tests before pushing changes
+6.7. Request code reviews from a headless independent instance of Claude Code
+6.8. Address code review comments promptly
+6.9. Document all API changes in the API documentation file: "./docs/api.md"
+6.10. Update the changelog and "./tasks_checklist.md" for all significant changes
+
+## 7. Testing Instructions
+7.1. Write all tests in the `./tests` directory organized by test type:
+   7.1.1. Unit tests in `./tests/unit/`
+   7.1.2. Integration tests in `./tests/integration/`
+   7.1.3. End-to-end tests in `./tests/e2e/`
+7.2. Create unit tests for all business logic
+7.3. Implement integration tests for API endpoints
+7.4. Create end-to-end tests for critical user flows
+7.5. Use appropriate testing frameworks based on the project (Jest, PyTest, etc.)
+7.6. Maintain at least 98% test coverage
+7.7. Mock external dependencies in tests
+7.8. Test edge cases and error scenarios
+7.9. Run tests locally before pushing code
+7.10. Use TDD (Test-Driven Development) for every new feature added
+7.11. Do not mock the functions if they are required by the tests but are yet not written. Write all missing functions, not the mockup but the complete true working functions, following the TDD methodology.
+
+## 8. Documentation Requirements
+8.1. Document all functions with JSDoc comments or appropriate docstrings
+8.2. Update README.md with any new features or changes
+8.3. Keep API documentation current and complete
+8.4. Document all environment variables and their purposes
+8.5. Include setup instructions for new dependencies
+8.6. Document any database schema changes
+8.7. Create or update user guides for new features
+8.8. Add detailed comments for complex logic or algorithms
+8.9. Document known issues and their workarounds
+8.10. Keep the changelog up to date. If possible use a git hook or a DHT command and a github workfow to automate the writing of the changelog.
+
+## 9. Version Control
+9.1. Use Git for version control
+9.2. Follow the Gitflow workflow
+9.3. Name branches according to the pattern: `type/description` (e.g., `feature/user-authentication`)
+9.4. Write descriptive commit messages following the Conventional Commits standard:
+   ```
+   feat(auth): implement JWT authentication
+   fix(api): resolve issue with pagination
+   docs(readme): update installation instructions
+   ```
+9.5. IMPORTANT: Before any destructive Git operation (checkout, pull, rebase, stash, etc.):
+   ```bash
+   # Create timestamped backup of entire project including untracked files
+   cd ..
+   zip -r project_name_$(date +%Y-%m-%d_%H%M%S).zip project_name
+   cd project_name
+   # Now proceed with Git operation
+   ```
+9.6. Squash commits before merging to main
+9.7. Tag all releases with semantic version numbers
+9.8. Keep the main branch stable and deployable at all times
+9.9. Use Pull Requests for code review
+9.10. Address all code review comments before merging
+9.11. Keep branches up to date with the main branch
+
+## 10. Deployment
+10.1. Use CI/CD pipelines for automated testing and deployment
+10.2. Test builds in a staging environment before production
+10.3. Follow the deployment checklist before each release
+10.4. Monitor application performance after deployment
+10.5. Document the rollback procedure for emergency situations
+10.6. Use feature flags for gradual feature rollout
+10.7. Run database migrations as part of the deployment process
+10.8. Update documentation with each new release
+10.9. Notify stakeholders before major deployments
+10.10. Conduct post-deployment verification
+
+
 # Project Environment & Development Guide
+
+## 11. Codecov Integration
+
+This project uses Codecov for test coverage reporting and monitoring. The following guidelines must be strictly followed:
+
+### 11.1 Coverage Configuration
+
+- Coverage reports are generated using pytest-cov with branch coverage
+- XML reports are used for CI/CD pipelines
+- Local coverage reporting is done via the dhtl coverage command
+- Repository token must be kept secure and never committed to the codebase
+
+### 11.2 Local Coverage Workflow
+
+Always follow this workflow for local coverage reporting:
+
+1. **Generate coverage report:** 
+   ```bash
+   # Use the dedicated dhtl command
+   ./dhtl.sh coverage
+
+   # This internally runs:
+   # pytest --cov=src/enchant_cli --cov-report=xml --cov-branch
+   ```
+
+2. **View coverage report:**
+   ```bash
+   # The command automatically shows a summary in the terminal
+   # HTML reports are also generated in coverage_report/
+   ```
+
+3. **Update coverage badge:**
+   ```bash
+   # Codecov badges are automatically updated on CI
+   # Local badges are not supported
+   ```
+
+### 11.3 CI/CD Coverage Workflow
+
+The GitHub Actions workflow automatically:
+1. Runs tests with coverage on each push to main
+2. Uploads coverage data to Codecov using codecov-cli
+3. Updates repository badge
+4. Generates PR comments with coverage delta
+
+### 11.4 Codecov CLI Setup
+
+The project uses codecov-cli installed within the project's virtual environment for enhanced security:
+
+- **Installation:** codecov-cli is installed automatically in the virtual environment
+- **Authentication:** Repository token is kept secure in GitHub Secrets
+- **Commands:** All interactions are done via the dhtl.sh wrapper
+- **Local token:** For local uploads, the CODECOV_TOKEN environment variable is used
+
+### 11.5 Coverage Thresholds
+
+- Minimum code coverage: 80% for all files
+- Target code coverage: 95%+ for all files
+- Critical modules (translation_service.py): 98%+ coverage
+
+### 11.6 Repository Configuration
+
+- Repository: Emasoft/enchant_cli
+- Repository token: Configured in GitHub Actions secrets
+- Branch coverage: Enabled
+- PR comments: Enabled
+- Coverage status checks: Required for merging
+
+### 11.7 Key Commands
+
+```bash
+# Run tests with coverage
+./dhtl.sh coverage
+
+# Run tests with coverage and upload to Codecov
+./dhtl.sh coverage --upload
+
+# Run tests with coverage on a specific file
+./dhtl.sh coverage --file=src/enchant_cli/utils.py
+
+# Generate HTML report only (no tests)
+./dhtl.sh coverage --report-only
+```
+
+# ⚠️ CRITICAL: ALWAYS USE dhtl.sh (or dhtl.bat) FOR ALL OPERATIONS
+
+NEVER run scripts directly. ALWAYS use the DHT Launcher to execute any operation:
+```bash
+# Unix/Linux/macOS - The ONLY correct way to run scripts and commands
+./dhtl.sh [command] [options]
+
+# Windows - The ONLY correct way to run scripts and commands
+dhtl.bat [command] [options]
+```
+
+The DHT Launcher (dhtl.sh/dhtl.bat) creates a guardian session that:
+- Manages resources and memory usage
+- Launches scripts in monitored process pools
+- Sets appropriate resource limits
+- Prevents memory leaks
+- Ensures clean process termination
+- Provides consistent environment setup
+
+All commands that were previously executed by running scripts directly must now be launched via dhtl. This is MANDATORY to ensure proper resource management and monitoring.
+
+Available commands:
+- `test`: Run tests
+- `lint`: Run linters
+- `build`: Build Python package
+- `publish`: Publish to GitHub
+- `script`: Run helper scripts
+- `guardian`: Manage process guardian
+- `restore`: Restore dependencies
+- And many more (see `./dhtl.sh help`)
+
+This rule MUST be followed without exception, even when not explicitly stated in a request.
+Direct script execution bypasses crucial resource management that the dhtl launcher handles.
+
+# ⚠️ CRITICAL: ALWAYS BACKUP BEFORE DESTRUCTIVE OPERATIONS
+
+**MANDATORY SAFETY RULE:** Before performing any operation that could modify or delete untracked files (rebasing, branch switching, git restore, etc.), you MUST create a complete backup of the entire project directory.
+
+Always create a zip backup with timestamp in your home directory:
+
+```bash
+# On Unix/Linux/macOS
+zip -r ~/project_backup_$(date +"%Y%m%d_%H%M%S").zip /path/to/project
+
+# On Windows
+powershell -command "Compress-Archive -Path . -DestinationPath $HOME/project_backup_$(Get-Date -Format 'yyyyMMdd_HHmmss').zip"
+```
+
+This backup must include ALL untracked and hidden files/folders. Store it in your user home directory with a timestamp suffix.
+
+**NEVER SKIP THIS STEP!** Important untracked files that are not under version control would be permanently lost otherwise. The project contains critical untracked files that must be preserved.
+
+While the `dhtl rebase` command automatically creates this backup, you must manually create backups before performing any other potentially destructive git operations.
+
+See the README.md in the DHT folder for more details about this critical safety rule.
+
+# CRITICAL: KEEP ALL SOURCE FILES UNDER 12KB
+
+All script and source code files must be kept below 12KB in size. This is MANDATORY to avoid context memory issues when examining them with AI tools. Files under 12KB can be loaded entirely in memory and examined without truncation. Files larger than 11-12KB will be difficult for LLMs (like Claude) to keep in their context memory without truncation, making code assistance more challenging.
+
+When adding new functionality:
+- Split large files into smaller, focused modules
+- Use helper functions in separate files
+- Avoid excessive comments that increase file size
+- Consider extracting reusable components
+
+# CRITICAL: EXTERNALIZE DUPLICATE FUNCTIONS TO REDUCE CODE DUPLICATION
+
+When you find duplicate functions across multiple files:
+1. Identify if the functions truly perform the same task and have the same dependencies
+2. Create a dedicated helper script for these shared functions
+3. Source the helper script in the original files that need the functions
+4. Remove the duplicate implementations from the original files
+
+Important considerations:
+- Only externalize when function dependencies are minimal (avoid creating large helper files)
+- If externalizing functions would require copying too many dependencies, it might be better to keep the duplication
+- Ensure helper scripts stay under the 12KB limit
+- Use semantic naming for helper scripts (e.g., `print_helpers.sh` for printing functions)
+- Place helper scripts in a dedicated directory if they become numerous
+
+# Development Helper Toolkit Launcher (DHTL)
+
+This project includes a portable Development Helper Toolkit Launcher (DHTL) designed to simplify development tasks and enforce resource limits. The toolkit provides:
+
+1. **Process Guardian**: Monitors and manages resource usage (memory, CPU) for Node.js and Python processes
+2. **Error Log Analysis**: Sophisticated detection and classification of errors in workflow logs 
+3. **GitHub Integration**: Enhanced workflow management, repository operations, and automation
+4. **Shell Script Fixing**: Automated fixing of common issues in shell scripts
+5. **Environment Management**: Smart project detection and virtual environment setup
+
+## Using the Development Helper Toolkit Launcher
+
+All development tools should be accessed through the centralized launcher:
+
+```bash
+# Unix/Linux/macOS
+./dhtl.sh [command] [options]
+
+# Windows
+dhtl.bat [command] [options]
+```
+
+### General Commands:
+
+- `setup`: Set up the toolkit for the current project
+  ```bash
+  ./dhtl.sh setup
+  ```
+
+- `env`: Show environment information and detect API keys
+  ```bash
+  ./dhtl.sh env
+  ```
+
+- `restore`: Restore cached dependencies
+  ```bash
+  ./dhtl.sh restore
+  ```
+
+- `clean`: Clean cache and temporary files
+  ```bash
+  ./dhtl.sh clean
+  ```
+
+### Development Tools:
+
+- `node`: Run Node.js commands with resource limits
+  ```bash
+  ./dhtl.sh node script.js
+  ```
+
+- `script`: Run development helper scripts
+  ```bash
+  ./dhtl.sh script get_errorlogs
+  ./dhtl.sh script fix_workflow_script
+  ```
+
+- `guardian`: Control the process guardian
+  ```bash
+  ./dhtl.sh guardian status
+  ./dhtl.sh guardian stop
+  ```
+
+### Options:
+
+- `--no-guardian`: Run without process guardian (for lightweight tasks)
+  ```bash
+  ./dhtl.sh --no-guardian script get_errorlogs
+  ```
+
+- `--quiet`: Reduce output verbosity
+  ```bash
+  ./dhtl.sh --quiet node build.js
+  ```
+
+This toolkit can be reused across different projects. Key features:
+
+- **Project Awareness**: Automatically detects the project root by looking for common markers (.git, package.json, etc.)
+- **Environment Management**: Auto-creates and manages virtual environments per platform
+- **Portable Configuration**: Creates a `.dhtconfig` file to remember project-specific settings
+- **Cross-Platform**: Works consistently on macOS, Linux, and Windows
+- **Self-Contained**: Manages its own dependencies with automatic setup
+- **Resource Management**: Monitors and controls memory usage to prevent overloading the system
 
 # CRITICAL: ALWAYS USE publish_to_github.sh --skip-tests FOR GITHUB OPERATIONS
 
@@ -38,56 +507,17 @@ Examples:
 ./publish_to_github.sh --skip-tests
 ```
 
-This rule MUST be followed without exception, even when not explicitly stated in a request.
-Direct git commands bypass crucial validation steps and repository management that the script handles.
+The following rules MUST be followed without exception, even when not explicitly stated in a request.
+- Never give direct git commands. Always use the DHT scripts launcher. Direct git commands bypass crucial validation steps and repository management steps that the dht script handles.
+- If there is no command and script to do a certain operation via dhtl.sh (or dhtl.bat on windows), just add the command to the dhtl launcher and write the correspondent new script inside the DHT folder.
+- Always use the dhtl.sh (or dhtl.bat on windows) to launch the scripts inside the DHT folder. 
+- All scripts must be placed in the DHT folder, except for the dhtl launchers.
+- Always ensure to use the correct uv environment with proper activation.
+- Always assume API keys are already properly defined in the environment - never try to redefine them.
+- If tests fail due to missing API keys, inform the user to set up the keys in their environment and exit.
+- CRITICAL: For ANY change to the implementation of core functionality (especially in translation methods), you MUST ask for explicit approval before making the change. This includes changes to the translation pipeline, prompt engineering, or API integrations.
+- CRITICAL: Never replace carefully calibrated prompts or API integrations without explicit permission. These have been meticulously optimized over long periods of time.
 
-## Table of Contents
-- [1. Environment Configuration](#1-environment-configuration)
-  - [1.1 Supported Platforms](#11-supported-platforms)
-  - [1.2 Environment Isolation](#12-environment-isolation)
-  - [1.3 Environment Structure](#13-environment-structure)
-  - [1.4 Key Environment Variables](#14-key-environment-variables)
-    - [1.4.1 Required API Keys & Tokens](#141-required-api-keys--tokens)
-    - [1.4.2 GitHub Secret Configuration](#142-github-secret-configuration)
-    - [1.4.3 Verification Checklist](#143-verification-checklist)
-- [2. Tool Configuration](#2-tool-configuration)
-  - [2.1 uv Configuration](#21-uv-configuration)
-  - [2.2 Pre-commit Configuration](#22-pre-commit-configuration)
-  - [2.3 Version Management](#23-version-management)
-  - [2.4 Dependency Management](#24-dependency-management)
-- [3. Script Structure](#3-script-structure)
-  - [3.1 Platform-Specific Design](#31-platform-specific-design)
-  - [3.2 Core Script Conventions](#32-core-script-conventions)
-  - [3.3 Command-Line Tool Guidelines](#33-command-line-tool-guidelines)
-- [4. Core Scripts Reference](#4-core-scripts-reference)
-  - [4.1 Environment Setup Scripts](#41-environment-setup-scripts)
-  - [4.2 Project Workflow Scripts](#42-project-workflow-scripts)
-  - [4.3 Testing Scripts](#43-testing-scripts)
-  - [4.4 Utility Scripts](#44-utility-scripts)
-- [5. Development Workflow](#5-development-workflow)
-  - [5.1 Setting Up Development Environment](#51-setting-up-development-environment)
-  - [5.2 Adding New Features](#52-adding-new-features)
-  - [5.3 Release Workflow](#53-release-workflow)
-  - [5.4 Code Quality Standards](#54-code-quality-standards)
-- [6. GitHub Integration](#6-github-integration)
-  - [6.1 GitHub Publishing Protocol](#61-github-publishing-protocol)
-  - [6.2 Automated Repository Setup](#62-automated-repository-setup)
-  - [6.3 GitHub Workflows](#63-github-workflows)
-  - [6.4 Release Process](#64-release-process)
-  - [6.5 Pull Request Process](#65-pull-request-process)
-- [7. Project Structure Templates](#7-project-structure-templates)
-  - [7.1 Core File Templates](#71-core-file-templates)
-  - [7.4 Dynamic Workflow Detection](#74-dynamic-workflow-detection)
-- [8. Troubleshooting](#8-troubleshooting)
-  - [8.1 Common Environment Issues](#81-common-environment-issues)
-  - [8.2 Test Failures](#82-test-failures)
-  - [8.3 Documentation and Badge Management](#83-documentation-and-badge-management)
-  - [8.4 Version Control Problems](#84-version-control-problems)
-- [9. Critical Workflow Commands](#9-critical-workflow-commands)
-  - [9.1 Local Linting and Testing](#91-local-linting-and-testing)
-- [10. Claude Helper Scripts](#10-claude-helper-scripts)
-  - [10.1 Error Log Analysis Scripts](#101-error-log-analysis-scripts)
-  - [10.2 Using Claude Helper Scripts Across Projects](#102-using-claude-helper-scripts-across-projects)
 
 ## 1. Environment Configuration
 
@@ -585,7 +1015,7 @@ name = "enchant-cli"
 version = "0.3.5"  # Managed by bump-my-version
 description = "CLI tool for translating Chinese texts to English using AI"
 authors = [
-    {name = "Your Name", email = "email@example.com"},
+    {name = "Emasoft", email = "email@example.com"},
 ]
 readme = "README.md"
 requires-python = ">=3.9"
@@ -621,8 +1051,8 @@ dev = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/yourusername/enchant-cli"
-"Bug Tracker" = "https://github.com/yourusername/enchant-cli/issues"
+"Homepage" = "https://github.com/yEmasoft/enchant-cli"
+"Bug Tracker" = "https://github.com/Emasoft/enchant-cli/issues"
 
 [project.scripts]
 enchant_cli = "enchant_cli.enchant_cli:main"
@@ -666,55 +1096,6 @@ The project uses platform-specific script wrappers to maintain compatibility:
   2. Try Git Bash if available 
   3. Fall back to native Windows commands where possible
 
-For each shell script in the project, there's a matching Windows batch file with the same base name:
-- `reinitialize_env.sh` → `reinitialize_env.bat`
-- `run_tests.sh` → `run_tests.bat`
-- `publish_to_github.sh` → `publish_to_github.bat`
-- `major_release.sh` → `major_release.bat`
-- `run_commands.sh` → `run_commands.bat`
-- `bump_version.sh` → `bump_version.bat`
-
-All Windows batch files support passing command-line arguments through to their shell script counterparts.
-
-Example Windows wrapper script (`run_tests.bat`):
-
-```batch
-@echo off
-REM Windows wrapper script for run_tests
-
-REM Check if we can use WSL
-WHERE wsl >nul 2>&1
-IF %ERRORLEVEL% EQU 0 (
-    echo Using WSL to run the script...
-    wsl ./run_tests.sh
-    exit /b %ERRORLEVEL%
-)
-
-REM Check if we can use Git Bash
-WHERE bash >nul 2>&1
-IF %ERRORLEVEL% EQU 0 (
-    echo Using Git Bash to run the script...
-    bash ./run_tests.sh
-    exit /b %ERRORLEVEL%
-)
-
-REM Fall back to Windows native commands
-echo Using Windows native commands...
-
-REM Ensure we're in the project virtual environment
-if not exist .venv\Scripts\activate.bat (
-    echo Virtual environment not found. Creating...
-    python -m venv .venv
-)
-
-call .venv\Scripts\activate.bat
-
-REM Run tests with pytest
-pytest tests --cov=src --html=report.html --cov-report=html:coverage_report --cov-report=term --timeout=300
-
-REM Deactivate environment
-call deactivate
-```
 
 ### 3.2 Core Script Conventions
 
@@ -725,7 +1106,7 @@ All scripts follow these conventions:
 3. **Environment Isolation**: Source `ensure_env.sh` at the beginning
 4. **Explicit Tool Paths**: Refer to tools with explicit paths (`./.venv/bin/...`)
 5. **Return Codes**: Check exit codes and handle errors
-6. **Logging**: Use emoji prefixes for visibility (✅, ⚠️, ❌, 🔄)
+6. **Logging**: Use emoji prefixes for visibility 
 7. **Robust Timeouts**: Include appropriate timeouts for long-running operations
 8. **Cross-Platform Path Handling**: 
    - Use `${HOME}` instead of `~` for home directory references
@@ -733,1633 +1114,3 @@ All scripts follow these conventions:
    - For Windows `.bat` files, use `%SCRIPT_DIR%` for paths
    - For Unix `.sh` files, use `$SCRIPT_DIR` for paths
 
-Basic script template:
-
-```bash
-#!/bin/bash
-set -eo pipefail
-
-# Get the directory of this script
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-
-# Source environment setup
-source "$SCRIPT_DIR/ensure_env.sh"
-
-# Script logic here
-echo "🔄 Running script logic..."
-
-# Example of tool execution with explicit path
-"$SCRIPT_DIR/.venv/bin/pytest" tests --cov=src
-
-# Exit with success
-echo "✅ Script completed successfully"
-exit 0
-```
-
-### 3.3 Command-Line Tool Guidelines
-
-When using command-line tools in scripts:
-
-- **Always limit search depth** when using `find` or `grep` commands:
-  - Always use `-maxdepth 6` with `find` to prevent excessive recursion
-  - Always use `--max-depth=6` or similar limiting flags with `grep -r`
-  - Example: `find . -maxdepth 6 -type f -name "*.py"`
-  - Example: `grep -r --max-depth=6 "pattern" .`
-
-- **Use standardized 15-minute timeouts** for all long-running commands:
-  - All scripts use consistent 900-second (15-minute) timeouts
-  - Use `timeout 900` command for process-level timeouts
-  - Use tool-specific timeout parameters set to 900 seconds
-  - Example: `timeout 900 "$SCRIPT_DIR/.venv/bin/pytest" --timeout=900`
-
-- **Handle output verbosity** with conditional flags:
-  - Use `-v` or `--verbose` for detailed output
-  - Provide quiet mode with `-q` or `--quiet`
-  - Example: `"$SCRIPT_DIR/.venv/bin/pytest" ${VERBOSE_FLAG} tests`
-
-## 4. Core Scripts Reference
-
-### 4.1 Environment Setup Scripts
-
-- `./ensure_env.sh`: Core environment isolation script
-  - Deactivates any active conda or Python environments
-  - Cleans PATH from external environments
-  - Creates virtual environment if needed
-  - Activates project's environment
-  - Verifies Python and pip are from project's environment
-  - Used by all other scripts for environment consistency
-
-- `./reinitialize_env.sh` / `reinitialize_env.bat`: Creates a fresh, clean environment
-  - Removes existing .venv if present
-  - Creates a new virtual environment using uv
-  - Installs all dependencies from scratch
-  - Sets up pre-commit hooks
-  - Ensures no external environment references
-
-Example `reinitialize_env.sh`:
-
-```bash
-#!/bin/bash
-set -eo pipefail
-
-# Get script directory
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-
-echo "🔄 Removing existing virtual environment..."
-rm -rf "$SCRIPT_DIR/.venv"
-
-# Check if uv is installed, install if needed
-if ! command -v uv >/dev/null 2>&1; then
-    echo "🔄 Installing uv tool..."
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-fi
-
-echo "🔄 Creating new virtual environment..."
-uv venv "$SCRIPT_DIR/.venv"
-
-echo "🔄 Activating virtual environment..."
-source "$SCRIPT_DIR/.venv/bin/activate"
-
-echo "🔄 Updating dependencies lockfile..."
-"$SCRIPT_DIR/.venv/bin/uv" lock
-
-echo "🔄 Syncing dependencies..."
-"$SCRIPT_DIR/.venv/bin/uv" sync
-
-echo "🔄 Installing project in development mode..."
-"$SCRIPT_DIR/.venv/bin/uv" pip install -e "$SCRIPT_DIR"
-
-echo "🔄 Installing pre-commit hooks..."
-"$SCRIPT_DIR/.venv/bin/pre-commit" install
-
-echo "✅ Environment setup complete. Activated virtual environment: $VIRTUAL_ENV"
-```
-
-### 4.2 Project Workflow Scripts
-
-- `./run_commands.sh`: Main orchestration script for the complete workflow
-  - Ensures lock file is up-to-date with dependencies
-  - Synchronizes environment with uv
-  - Prepares pre-commit environment
-  - Stages and commits changes
-  - Runs validation and push script
-  - Uses only project-isolated environment paths
-
-- `./publish_to_github.sh`: Prepares and pushes to GitHub
-  - Auto-installs uv and other dependencies if missing
-  - Creates virtual environment if needed
-  - Ensures pre-commit hooks are installed
-  - Commits changes with automatic version bumping
-  - Runs validation script before pushing
-  - Verifies required environment variables
-  - Pushes latest commit and tags to GitHub
-
-Example `publish_to_github.sh`:
-
-```bash
-#!/bin/bash
-set -eo pipefail
-
-# Get script directory and source environment setup
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-source "$SCRIPT_DIR/ensure_env.sh"
-
-# Validate environment variables
-if [ -z "$OPENROUTER_API_KEY" ]; then
-    echo "⚠️ Warning: OPENROUTER_API_KEY is not set. Some tests may fail."
-fi
-
-# Run validation script
-RELEASE_SCRIPT="$SCRIPT_DIR/release.sh"
-if [ ! -f "$RELEASE_SCRIPT" ]; then
-    echo "❌ Error: Release script not found at $RELEASE_SCRIPT"
-    exit 1
-fi
-
-echo "🔍 Executing validation script $RELEASE_SCRIPT..."
-# Set a longer timeout for the validation script (5 minutes)
-timeout 300 "$RELEASE_SCRIPT"
-VALIDATION_EXIT_CODE=$?
-
-# Check if timeout occurred
-if [ $VALIDATION_EXIT_CODE -eq 124 ]; then
-    echo "⚠️ Validation script timed out, but tests were likely running well."
-    echo "   We'll consider this a success for publishing purposes."
-    VALIDATION_EXIT_CODE=0
-fi
-
-# Check validation exit code
-if [ $VALIDATION_EXIT_CODE -ne 0 ]; then
-    echo "❌ Validation failed with exit code $VALIDATION_EXIT_CODE"
-    echo "   Fix the issues before publishing."
-    exit $VALIDATION_EXIT_CODE
-fi
-
-# Push to GitHub
-echo "🔄 Pushing to GitHub..."
-git push origin main --tags
-
-echo "✅ Successfully published to GitHub."
-echo ""
-echo "Next steps:"
-echo "1. Go to GitHub repository and create a new release"
-echo "2. Tag: Choose the latest version tag"
-echo "3. Release title: Same as the tag"
-echo "4. Description: Add release notes"
-echo "5. Publish release"
-echo ""
-echo "This will trigger the GitHub workflow to publish to PyPI."
-```
-
-- `./release.sh`: Local validation script before pushing a release tag
-  - Cleans previous builds
-  - Installs dependencies
-  - Runs linters/formatters via pre-commit
-  - Runs tests with coverage checking
-  - Builds package (sdist and wheel)
-  - Verifies test sample inclusion in packages
-
-Example `release.sh`:
-
-```bash
-#!/bin/bash
-set -eo pipefail
-
-# Get script directory and source environment setup
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-source "$SCRIPT_DIR/ensure_env.sh"
-
-# Clean previous builds
-echo "🔄 Cleaning previous builds..."
-rm -rf "$SCRIPT_DIR/dist/" "$SCRIPT_DIR/build/" "$SCRIPT_DIR/src/*.egg-info"
-
-# Run pre-commit hooks to ensure code quality
-echo "🔄 Running pre-commit hooks..."
-"$SCRIPT_DIR/.venv/bin/pre-commit" run --all-files
-
-# Run tests with coverage
-echo "🔄 Running tests with coverage..."
-timeout 300 "$SCRIPT_DIR/.venv/bin/pytest" tests --cov=src --html=report.html --cov-report=html:coverage_report --timeout=300
-
-# Build package
-echo "🔄 Building package..."
-"$SCRIPT_DIR/.venv/bin/uv" build
-
-# Verify test samples are included in package
-echo "🔄 Verifying test samples are included in package..."
-if [ -x "$SCRIPT_DIR/tests/verify_samples.sh" ]; then
-    "$SCRIPT_DIR/tests/verify_samples.sh"
-else
-    echo "⚠️ Warning: verify_samples.sh not found or not executable"
-fi
-
-echo "✅ Release validation completed successfully."
-```
-
-### 4.3 Testing Scripts
-
-- `./run_tests.sh`: Unified test script supporting both full and fast testing modes
-  - Configured for comprehensive test coverage
-  - Generates detailed HTML reports
-  - Creates coverage reports
-  - Uses consistent 15-minute timeouts (900 seconds)
-  - Supports fast mode with `--fast` flag
-  - Environment variables pre-configured
-  - Uses only project-isolated environment paths
-
-Example usage:
-
-```bash
-# Run full test suite (all tests)
-./run_tests.sh
-
-# Run only critical tests for quick validation
-./run_tests.sh --fast
-```
-
-Key features of the test script:
-
-```bash
-#!/bin/bash
-# Excerpt from run_tests.sh showing key features
-
-# Set a consistent timeout for all operations (15 minutes = 900 seconds)
-TIMEOUT=900
-
-# Check if any argument was passed to run in fast mode
-FAST_MODE=0
-if [[ "$1" == "--fast" || "$1" == "-f" ]]; then
-    FAST_MODE=1
-    print_info "Running in fast mode - only critical tests will be executed"
-fi
-
-# Set test arguments with consistent timeouts
-PYTEST_ARGS=(
-    -v
-    --cov=enchant_cli
-    --cov-report=term-missing:skip-covered
-    --cov-report=html:"$SCRIPT_DIR/coverage_report"
-    --cov-fail-under=80
-    --strict-markers
-    --html="$SCRIPT_DIR/report.html"
-    --self-contained-html
-    --durations=10  # Show 10 slowest tests
-    --timeout=900   # Test timeout in seconds (15 minutes)
-)
-
-# Run either full test suite or critical tests based on mode
-if [ $FAST_MODE -eq 1 ]; then
-    print_step "Running critical tests only..."
-    
-    # Define critical tests to run (subset of full test suite)
-    CRITICAL_TESTS=(
-        "tests/test_cli.py::test_cli_version"
-        "tests/test_cli.py::test_cli_help"
-        # Plus a few more essential tests
-    )
-    
-    timeout $TIMEOUT $PYTHON_CMD -m pytest "${CRITICAL_TESTS[@]}" "${PYTEST_ARGS[@]}"
-else
-    print_step "Running full test suite..."
-    
-    # Run all tests
-    timeout $TIMEOUT $PYTHON_CMD -m pytest "$SCRIPT_DIR/tests/" "${PYTEST_ARGS[@]}"
-fi
-```
-
-The unified script approach provides several advantages:
-- Consistent environment setup and timeout handling
-- Standardized reporting formats
-- Simplified maintenance
-- Flexible testing options with the same core code
-
-### 4.4 Utility Scripts
-
-- `./bump_version.sh`: Manual version bumping
-  - Wrapper around bump-my-version
-  - Takes version part as argument (major, minor, patch)
-  - Used for manual version control when needed
-  - Uses only project-isolated environment paths
-
-Example `bump_version.sh`:
-
-```bash
-#!/bin/bash
-set -eo pipefail
-
-# Get script directory and source environment setup
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-source "$SCRIPT_DIR/ensure_env.sh"
-
-VERSION_PART=${1:-minor}
-if [[ ! "$VERSION_PART" =~ ^(major|minor|patch)$ ]]; then
-    echo "❌ Error: Invalid version part. Use one of: major, minor, patch"
-    exit 1
-fi
-
-# Try to use uv with bump-my-version
-if command -v uv >/dev/null 2>&1; then
-    echo "🔄 Bumping $VERSION_PART version with uv..."
-    uv tool run bump-my-version bump $VERSION_PART --commit --tag
-elif [ -f "$SCRIPT_DIR/.venv/bin/bump-my-version" ]; then
-    echo "🔄 Bumping $VERSION_PART version with local bump-my-version..."
-    "$SCRIPT_DIR/.venv/bin/bump-my-version" bump $VERSION_PART --commit --tag
-else
-    echo "❌ Error: bump-my-version not found"
-    exit 1
-fi
-
-echo "✅ Version bumped successfully."
-```
-
-- `./cleanup.sh`: Removes clutter and build artifacts
-  - Removes build artifacts and caches
-  - Removes Python __pycache__ directories
-  - Provides next steps for environment synchronization
-
-Example `cleanup.sh`:
-
-```bash
-#!/bin/bash
-set -eo pipefail
-
-# Get script directory
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-
-echo "🔄 Cleaning up build artifacts and caches..."
-
-# Remove build artifacts
-rm -rf "$SCRIPT_DIR/dist/"
-rm -rf "$SCRIPT_DIR/build/"
-rm -rf "$SCRIPT_DIR/src/*.egg-info"
-
-# Remove Python cache files
-find "$SCRIPT_DIR" -type d -name "__pycache__" -exec rm -rf {} +
-find "$SCRIPT_DIR" -type f -name "*.pyc" -delete
-find "$SCRIPT_DIR" -type f -name "*.pyo" -delete
-find "$SCRIPT_DIR" -type f -name "*.pyd" -delete
-
-# Remove test cache
-rm -rf "$SCRIPT_DIR/.pytest_cache"
-rm -f "$SCRIPT_DIR/.coverage"
-
-echo "✅ Cleanup completed successfully."
-echo ""
-echo "To synchronize your environment with the latest dependencies:"
-echo "  source \"$SCRIPT_DIR/.venv/bin/activate\""
-echo "  \"$SCRIPT_DIR/.venv/bin/uv\" sync"
-```
-
-## 5. Development Workflow
-
-### 5.1 Setting Up Development Environment
-
-```bash
-# Clone the repository 
-git clone https://github.com/username/project.git
-cd project
-
-# Create clean isolated environment
-./reinitialize_env.sh  # or reinitialize_env.bat on Windows
-
-# Activate the environment
-source .venv/bin/activate  # or .venv\Scripts\activate.bat on Windows
-
-# Run tests to verify setup
-./run_tests.sh  # or run_tests.bat on Windows
-```
-
-### 5.2 Adding New Features
-
-#### Unix/Linux/macOS
-```bash
-# Ensure you start with a clean environment
-./reinitialize_env.sh
-
-# Make your code changes...
-
-# Run tests
-./run_tests.sh
-
-# Commit changes (version will be automatically bumped)
-git add .
-git commit -m "feat: Description of your feature"
-
-# Push to GitHub
-./publish_to_github.sh
-```
-
-#### Windows (CMD or PowerShell)
-```cmd
-:: Ensure you start with a clean environment
-reinitialize_env.bat
-
-:: Make your code changes...
-
-:: Run tests
-run_tests.bat
-
-:: Commit changes (version will be automatically bumped)
-git add .
-git commit -m "feat: Description of your feature"
-
-:: Push to GitHub
-publish_to_github.bat
-```
-
-You can pass any command-line arguments to the batch files, which will be forwarded to the underlying shell scripts:
-```cmd
-:: Skip tests during publishing (example)
-publish_to_github.bat --skip-tests
-
-:: Run tests in fast mode
-run_tests.bat --fast
-```
-
-### 5.3 Release Workflow
-
-#### Minor Releases (Automatic Versioning)
-
-This project uses a pre-commit hook (`bump-my-version`) to automatically increment the **minor** version and create a tag on **every commit**. This guarantees a unique version number for each release (e.g., `0.3.278`).
-
-1. **Ensure Clean State:** Make sure your main branch is up-to-date and your working directory is clean (`git status`).
-2. **Activate Environment:** Activate your virtual environment: `source .venv/bin/activate`.
-3. **Make Changes:** Make the final code changes for your release.
-4. **Commit Changes:** Commit your changes.
-   ```bash
-   git add .
-   git commit -m "feat: Add new feature for release" # Or fix:, chore:, etc.
-   ```
-   - The `pre-commit` hook will automatically run.
-   - `bump-my-version` will increment the minor version in `src/enchant_cli/__init__.py`.
-   - A **new commit** containing only the version bump will be created.
-   - A **tag** (e.g., `v0.2.0`) corresponding to the new version will be created automatically.
-5. **Run Pre-Release Validation:** Execute the local validation script.
-   ```bash
-   ./publish_to_github.sh
-   ```
-6. **Create GitHub Release:** Go to the repository's "Releases" page on GitHub and "Draft a new release". Choose the tag you just pushed. Publishing the release triggers the `publish.yml` workflow.
-
-#### Major Releases (Breaking Changes)
-
-For major version increments (breaking changes), use:
-
-```bash
-# Run Major Release Script:
-./major_release.sh
-```
-
-A major version increment should only be used for backward-incompatible API changes.
-
-### 5.4 Code Quality Standards
-
-- ShellCheck is configured to run on all shell scripts with:
-  - `--severity=error` to focus on critical issues
-  - `--extended-analysis=true` for more thorough checking
-- Python code is formatted with:
-  - Black for code formatting
-  - Ruff for linting
-  - isort for import sorting
-- These settings are enforced by:
-  - Pre-commit hooks for local development
-  - GitHub workflow for CI/CD pipeline
-
-## 6. GitHub Integration
-
-### 6.1 GitHub Publishing Protocol
-
-This project strictly follows a standardized GitHub publishing protocol that ensures consistent, validated releases:
-
-1. **IMPORTANT: ALWAYS Use publish_to_github.sh with appropriate flags**
-   - All pushes MUST be performed via the `publish_to_github.sh` command with appropriate flags
-   - NEVER use direct git commands like `git push` or `git commit` as they bypass crucial validation
-   - The `--skip-tests` flag prevents timeouts during local testing, while still ensuring tests run on GitHub
-   - The `--skip-linters` flag skips local linting checks to save time (linting will ALWAYS still run on GitHub)
-   - Recommended usage: `publish_to_github.sh --skip-tests --skip-linters` for fastest local operation
-   - To fix linting issues locally before pushing, use explicit commands like `pre-commit run --all-files`
-   - GitHub workflows will ALWAYS run tests and linting regardless of these flags to ensure code quality
-   - This rule MUST be followed without exception, even when not explicitly stated in a request
-
-2. **The `publish_to_github.sh` Script**
-   - Comprehensive tool that handles the entire GitHub workflow
-   - Performs environment validation, testing, repository setup, and publishing
-   - Enforces quality standards before any code reaches GitHub
-   - Configurable via command-line options (see help with `./publish_to_github.sh --help`)
-
-3. **Key Script Features**
-   - **Validation**: Runs tests, linters, and ensures all quality checks pass
-   - **Repository Management**: Creates repositories if needed, configures remotes
-   - **Secret Configuration**: Automatically configures GitHub secrets from local environment
-   - **Error Recovery**: Detects and resolves common issues automatically
-   - **Release Management**: Provides guidance for creating GitHub releases
-   - **PyPI Verification**: Validates successful package publication to PyPI with version checks
-
-4. **Usage Examples**
-
-##### Unix/Linux/macOS
-```bash
-# Display help information
-./publish_to_github.sh --help
-
-# Standard execution (commit changes, run tests, push to GitHub)
-./publish_to_github.sh
-
-# Skip tests (use with caution)
-./publish_to_github.sh --skip-tests
-
-# Skip linters but run tests
-./publish_to_github.sh --skip-linters
-
-# Skip both tests and linters (recommended for most pushes)
-./publish_to_github.sh --skip-tests --skip-linters
-
-# Force push (use with extreme caution)
-./publish_to_github.sh --force
-
-# Dry run (execute all steps except final push)
-./publish_to_github.sh --dry-run
-
-# Verify package was published to PyPI after a GitHub release
-./publish_to_github.sh --verify-pypi
-
-# Check if a specific version is available on PyPI
-./publish_to_github.sh --check-version 0.1.0
-```
-
-##### Windows
-```cmd
-:: Display help information
-publish_to_github.bat --help
-
-:: Standard execution (commit changes, run tests, push to GitHub)
-publish_to_github.bat
-
-:: Skip tests (use with caution)
-publish_to_github.bat --skip-tests
-
-:: Skip linters but run tests
-publish_to_github.bat --skip-linters
-
-:: Skip both tests and linters (recommended for most pushes)
-publish_to_github.bat --skip-tests --skip-linters
-
-:: Force push (use with extreme caution)
-publish_to_github.bat --force
-
-:: Dry run (execute all steps except final push)
-publish_to_github.bat --dry-run
-
-:: Verify package was published to PyPI after a GitHub release
-publish_to_github.bat --verify-pypi
-
-:: Check if a specific version is available on PyPI
-publish_to_github.bat --check-version 0.1.0
-```
-
-5. **First-Time Setup Requirements**
-   - GitHub CLI (gh) must be installed:
-     ```bash
-     # macOS
-     brew install gh
-     
-     # Linux
-     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-     sudo apt update
-     sudo apt install gh
-     ```
-   
-   - GitHub CLI must be authenticated:
-     ```bash
-     gh auth login
-     ```
-
-### 6.2 Automated Repository Setup
-
-The `publish_to_github.sh` script automatically configures the GitHub repository:
-
-1. **Repository Creation**
-   - Checks if the repository exists; creates it if needed
-   - Connects local repository to the GitHub remote
-
-2. **Secret Configuration**
-   - Automatically configures required GitHub secrets from local environment
-   - Required secrets:
-     - `OPENROUTER_API_KEY`: For translation API access in tests and application
-     - `CODECOV_API_TOKEN`: For uploading test coverage reports
-     - `PYPI_API_TOKEN`: For publishing packages to PyPI
-
-3. **Branch Setup**
-   - Creates default branch if needed
-   - Sets upstream tracking properly
-   - Handles edge cases like detached HEAD states
-
-4. **Error Diagnostics**
-   - Provides detailed error messages for common issues
-   - Suggests solutions for connectivity problems, permission issues, etc.
-   - Offers options to recover from failure states
-
-### 6.3 GitHub Workflows
-
-The project uses a coordinated system of GitHub Actions workflows that work in tandem with the local scripts to ensure consistent testing, releasing, and publishing. This design prevents redundant operations while ensuring nothing is missed.
-
-#### Workflow Coordination
-
-1. **Local Scripts & GitHub Actions Synchronization**
-   - If tests are skipped locally with `--skip-tests`, the GitHub Actions will detect this and run them
-   - If a release is created locally, the GitHub workflows will skip creating a duplicate release
-   - If a package is already published to PyPI, workflows will detect and skip republishing
-   - Releases are automatically created with changelogs when code is pushed to main or PRs are merged
-
-2. **How It Works**
-   - Local commits with `--skip-tests` are marked with a `[skip-tests]` tag in commit messages
-   - GitHub workflows check if packages already exist on PyPI before publishing
-   - The auto_release workflow creates releases for new versions that don't have releases yet
-   - Tests always run on GitHub regardless of local skipping to ensure code quality
-
-#### Key Workflows
-
-##### auto_release.yml
-
-This workflow automatically creates GitHub releases with changelogs and ensures tests are run:
-
-```yaml
-name: Auto Release
-
-on:
-  push:
-    branches: [main]
-  pull_request:
-    types: [closed]
-    branches: [main]
-
-jobs:
-  # Check if a release is needed and create it with an auto-generated changelog
-  auto_release:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
-    # ...creates a release if one doesn't exist for the current version
-    
-  # Run tests on multiple Python versions, especially if skipped locally
-  verify_tests:
-    needs: auto_release
-    if: needs.auto_release.outputs.release_created == 'true' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main')
-    # ...runs tests with a 15-minute timeout
-
-  # Check if package needs to be published to PyPI
-  verify_pypi:
-    needs: [auto_release, verify_tests]
-    if: needs.auto_release.outputs.release_created == 'true'
-    # ...checks if package exists on PyPI and publishes if needed
-```
-
-##### tests.yml
-
-This workflow runs tests for all pushes and pull requests, acting as a safety net:
-
-```yaml
-name: Tests
-
-on: [push, pull_request]
-
-jobs:
-  # Run shellcheck on all shell scripts
-  shellcheck:
-    name: Shellcheck
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@master
-        with:
-          severity: error
-          additional_args: "--extended-analysis=true"
-          scandir: '.'
-  
-  # Check if tests were skipped locally
-  check_commit_message:
-    runs-on: ubuntu-latest
-    outputs:
-      skip_tests: ${{ steps.check_skip.outputs.skip_tests }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-      - name: Check if tests were skipped locally
-        id: check_skip
-        run: |
-          # Check last commit message for skip-tests indicator
-          if git log -1 --pretty=%B | grep -q "\\[skip-tests\\]"; then
-            echo "Tests were explicitly skipped in the local commit"
-            echo "skip_tests=false" >> $GITHUB_OUTPUT
-          else
-            echo "No skip-tests marker found, running all tests"
-            echo "skip_tests=false" >> $GITHUB_OUTPUT
-          fi
-  
-  # Run tests on multiple Python versions with 15-minute timeout
-  test:
-    needs: check_commit_message
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
-      fail-fast: false
-    
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python }}
-      
-      - name: Install dependencies with uv
-        run: |
-          python -m pip install --upgrade pip uv
-          uv venv .venv
-          uv sync
-          uv pip install --system -e .
-      
-      - name: Run tests with pytest
-        env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          TEST_ENV: "true"
-          PYTHONUTF8: 1
-        run: |
-          python -m pytest tests/ -v \
-            --cov=enchant_cli \
-            --cov-report=xml \
-            --cov-report=term-missing:skip-covered \
-            --cov-fail-under=80 \
-            --timeout=900  # 15 minutes timeout per test
-        timeout-minutes: 15  # Overall job timeout
-```
-
-#### publish.yml
-
-This workflow handles PyPI package publishing when releases are created, with duplication prevention:
-
-```yaml
-name: Publish Python Package
-
-on:
-  release:
-    types: [published] # Trigger only when a release is published on GitHub
-
-jobs:
-  # Verify if package already exists on PyPI
-  check_if_already_published:
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.get_version.outputs.version }}
-      already_published: ${{ steps.check_pypi.outputs.exists }}
-    
-    steps:
-      - name: Get Package Version from Tag
-        id: get_version
-        # Extracts version from tag like 'v0.1.0' -> '0.1.0'
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-      
-      - name: Check if already on PyPI
-        id: check_pypi
-        run: |
-          VERSION="${{ steps.get_version.outputs.version }}"
-          # Try to download package metadata from PyPI
-          if python -m pip index versions enchant-cli | grep -q "$VERSION"; then
-            echo "Package version $VERSION already exists on PyPI."
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "Package version $VERSION not found on PyPI."
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-  # Only deploy if not already published
-  deploy:
-    needs: check_if_already_published
-    if: needs.check_if_already_published.outputs.already_published == 'false'
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write  # For PyPI trusted publishing
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      
-      - name: Install uv
-        run: |
-          python -m pip install --upgrade pip uv
-          uv venv .venv
-          uv sync
-      
-      - name: Build package
-        run: |
-          .venv/bin/uv build --no-sources
-      
-      - name: Verify package contents
-        run: |
-          # Verify wheel contents
-          echo "Verifying wheel contents..."
-          unzip -l dist/*.whl | grep 'tests/samples/test_sample.txt'
-          
-          # Verify sdist contents
-          echo "Verifying sdist contents..."
-          tar -ztvf dist/*.tar.gz | grep 'tests/samples/test_sample.txt'
-      
-      - name: Publish to PyPI using uv
-        run: .venv/bin/uv publish --no-build
-      
-      - name: Wait for PyPI index update
-        run: sleep 60
-      
-      - name: Verify package installation from PyPI
-        run: |
-          VERSION="${{ needs.check_if_already_published.outputs.version }}"
-          
-          # Install package and verify version
-          .venv/bin/uv pip install --no-cache-dir enchant-cli==$VERSION
-          
-          # Verify CLI functionality
-          .venv/bin/enchant_cli --version || {
-            echo "Command entry point verification failed. Trying module..."
-            .venv/bin/python -m enchant_cli --version
-          }
-```
-
-### 6.4 Release Process
-
-The release process is fully automated and follows these steps:
-
-1. **Prepare Changes**
-   - Make code changes and ensure all tests pass locally (or use `--skip-tests` to defer testing to GitHub)
-   - Commit changes locally
-
-2. **Run `publish_to_github.sh`**
-   - This validates, packages, and pushes your changes to GitHub
-   - Automatic version bumping occurs through pre-commit hooks
-   - Script marks commits with `[skip-tests]` if tests were skipped locally
-
-3. **Automated Release (new automated workflow)**
-   - The `auto_release.yml` workflow detects the new version
-   - If a release doesn't already exist, one is created automatically
-   - A changelog is generated automatically from commit history
-   - Tests run on multiple Python versions with 15-minute timeouts
-   - The package is checked on PyPI and published if needed
-
-4. **Manual Release Option**
-   - You can still manually create a GitHub Release if preferred
-   - The script provides guidance for manual release creation:
-     ```bash
-     gh release create v0.3.5 -t "Release v0.3.5" \
-       -n "## What's Changed
-     - Improvements and bug fixes
-     
-     **Full Changelog**: https://github.com/Emasoft/enchant_cli/commits/v0.3.5"
-     ```
-   - Manual releases also trigger the `publish.yml` workflow
-
-5. **Coordination Between Local and GitHub**
-   - If tests were skipped locally (`--skip-tests`), they run on GitHub
-   - If a release already exists, no duplicate release is created
-   - If a package is already on PyPI, no republishing occurs
-   - All tests use standard 15-minute timeouts for consistency
-   - Coverage is automatically uploaded to Codecov
-
-### 6.5 Pull Request Process
-
-For external contributors, the PR process is:
-
-1. Fork the repository
-2. Create a new branch for your feature (`git checkout -b feature/your-feature`)
-3. Make your changes and add tests
-4. Run tests locally (`./run_tests.sh`)
-5. Push your branch to your fork
-6. Create a Pull Request against the main repository
-7. Wait for CI tests to pass
-8. Address review comments if requested
-9. Once approved, the maintainer will merge using `publish_to_github.sh`
-
-## 7. Project Structure Templates
-
-### 7.1 Core File Templates
-
-#### pyproject.toml
-
-```toml
-[build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "your-project-name"
-version = "0.1.0"  # Managed by bump-my-version
-description = "Project description"
-authors = [
-    {name = "Your Name", email = "email@example.com"},
-]
-readme = "README.md"
-requires-python = ">=3.9"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
-dependencies = [
-    "requests>=2.28.2",
-    # Add your dependencies here
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.3.1",
-    "pytest-cov>=4.1.0",
-    "pytest-xdist>=3.3.1",
-    "pytest-timeout>=2.1.0",
-    "pytest-html>=3.2.0",
-    "black>=23.3.0",
-    "ruff>=0.0.262",
-    "isort>=5.12.0",
-    "pre-commit>=3.3.1",
-    "bump-my-version>=0.0.3",
-]
-
-[project.urls]
-"Homepage" = "https://github.com/yourusername/your-project-name"
-"Bug Tracker" = "https://github.com/yourusername/your-project-name/issues"
-
-[project.scripts]
-your_cli_name = "your_project.module:main"
-
-[tool.setuptools]
-package-dir = {"" = "src"}
-
-[tool.black]
-line-length = 100
-target-version = ["py39", "py310", "py311", "py312"]
-include = '\.pyi?$'
-
-[tool.isort]
-profile = "black"
-line_length = 100
-
-[tool.ruff]
-line-length = 100
-target-version = "py39"
-select = ["E", "F", "I"]
-ignore = []
-```
-
-## 8. CLAUDE HELPER SCRIPTS
-
-### 8.1 Overview
-
-CLAUDE HELPER SCRIPTS is a collection of portable Python utilities designed to enhance shell script functionality. These scripts are modular, self-configuring, and can be reused across different projects.
-
-#### Key Features
-
-- **Zero Configuration Required**: Auto-detects repository information and adapts to any project
-- **Cross-Platform Compatibility**: Works consistently across macOS, Linux, Windows
-- **Modular Design**: Organized into specialized modules for different purposes
-- **Advanced Error Detection**: Performs sophisticated analysis on workflow logs
-- **GitHub Integration**: Enhances workflow management and automation
-- **Self-Healing**: Fixes common issues in shell scripts automatically
-
-### 8.2 Directory Structure
-
-```
-/helpers/
-├── README.md           # Documentation for helper scripts
-├── __init__.py         # Package initialization
-├── cli.py              # Unified command-line interface
-├── errors/             # Error analysis tools
-│   ├── __init__.py
-│   └── log_analyzer.py # Advanced log analysis
-└── github/             # GitHub workflow tools
-    ├── __init__.py
-    └── workflow_helper.py # Workflow management
-```
-
-### 8.3 Using the Helper Scripts
-
-#### Command-line Interface
-
-The helper scripts provide a unified command-line interface:
-
-```bash
-# Show version information
-python -m helpers.cli version
-
-# Fix all shell script issues
-python -m helpers.cli fix --all
-
-# Analyze the most recent log file
-python -m helpers.cli logs --latest
-
-# Check workflow files for workflow_dispatch events
-python -m helpers.cli workflow --check
-
-# Fix workflow files to add workflow_dispatch events
-python -m helpers.cli workflow --fix
-```
-
-#### Direct Module Usage
-
-You can also use the modules directly in your scripts:
-
-```python
-from helpers.errors import log_analyzer
-from helpers.github import workflow_helper
-
-# Analyze a log file
-report = log_analyzer.analyze_and_report("logs/workflow_123456.log")
-
-# Fix workflow script issues
-workflow_helper.fix_workflow_script("publish_to_github.sh")
-```
-
-#### Shell Script Integration
-
-The helper scripts can be called from shell scripts:
-
-```bash
-# In publish_to_github.sh
-if [ $WAIT_FOR_LOGS -eq 1 ]; then
-    # Use the helper script to analyze workflow logs
-    python -m helpers.cli logs --latest
-fi
-```
-
-### 8.4 Extending Helper Scripts
-
-You can extend the helper scripts for your specific needs:
-
-1. Add new modules under appropriate directories
-2. Register new commands in `cli.py`
-3. Update documentation in `README.md`
-
-For example, to add a new GitHub helper:
-
-```python
-# helpers/github/repo_helper.py
-def create_repository(name, private=True):
-    """Create a new GitHub repository."""
-    # Implementation...
-```
-
-Then register it in `cli.py`:
-
-```python
-def repo_command(args):
-    """Process repository commands."""
-    if args.create:
-        return repo_helper.create_repository(args.name, args.private)
-    # ...
-```
-
-## 9. Troubleshooting
-
-### 9.1 Common Environment Issues
-
-#### External environment references in PATH
-
-**Unix/Linux/macOS**:
-```bash
-# Run environment reset script
-./reinitialize_env.sh
-```
-
-**Windows**:
-```cmd
-# Run environment reset script
-reinitialize_env.bat
-```
-
-#### Missing API keys or environment variables
-
-**Unix/Linux/macOS**:
-```bash
-# Check if variables are set
-echo $OPENROUTER_API_KEY
-
-# Set temporarily for current session
-export OPENROUTER_API_KEY="your-key-here"
-
-# Or add to your shell profile for persistence
-echo 'export OPENROUTER_API_KEY="your-key-here"' >> "${HOME}/.bashrc"  # or "${HOME}/.zshrc"
-```
-
-**Windows**:
-```cmd
-# Check if variables are set
-echo %OPENROUTER_API_KEY%
-
-# Set temporarily for current session
-set OPENROUTER_API_KEY=your-key-here
-
-# For persistence, use System Properties > Environment Variables
-# Or use PowerShell to set user environment variables:
-[Environment]::SetEnvironmentVariable("OPENROUTER_API_KEY", "your-key-here", "User")
-```
-
-#### Tool not found or incorrect version
-
-**Unix/Linux/macOS**:
-```bash
-# Check if the tool exists in the project's virtual environment
-ls -la .venv/bin/tool-name
-
-# Reinstall tools with explicit version
-.venv/bin/uv pip install tool-name==version
-
-# Update environment
-.venv/bin/uv sync
-```
-
-**Windows**:
-```cmd
-# Check if the tool exists in the project's virtual environment
-dir .venv\Scripts\tool-name*
-
-# Reinstall tools with explicit version
-.venv\Scripts\uv pip install tool-name==version
-
-# Update environment
-.venv\Scripts\uv sync
-```
-
-### 8.2 Test Failures
-
-#### Tests timing out
-
-**Unix/Linux/macOS**:
-```bash
-# Run with increased timeout
-PYTEST_TIMEOUT=600 ./run_tests.sh
-
-# Or run specific test file with increased timeout
-.venv/bin/pytest tests/test_specific.py --timeout=600
-```
-
-**Windows**:
-```cmd
-# Run with increased timeout
-set PYTEST_TIMEOUT=600
-run_tests.bat
-
-# Or run specific test file with increased timeout
-.venv\Scripts\pytest tests/test_specific.py --timeout=600
-```
-
-#### Coverage below threshold
-
-**Unix/Linux/macOS**:
-```bash
-# Identify uncovered code
-.venv/bin/pytest --cov=src --cov-report=term-missing
-
-# Add tests for uncovered code paths
-```
-
-**Windows**:
-```cmd
-# Identify uncovered code
-.venv\Scripts\pytest --cov=src --cov-report=term-missing
-
-# Add tests for uncovered code paths
-```
-
-### 8.3 Documentation and Badge Management
-
-#### README.md Badge Management
-
-To ensure all badges in README.md are correctly configured:
-
-1. **Codecov Badge**
-   ```markdown
-   [![codecov](https://codecov.io/gh/Emasoft/enchant_cli/graph/badge.svg?token=yWLqYmTdrM)](https://codecov.io/gh/Emasoft/enchant_cli)
-   ```
-
-2. **PyPI Badges**
-   ```markdown
-   [![PyPI Version](https://img.shields.io/pypi/v/enchant-cli)](https://pypi.org/project/enchant-cli)
-   [![Python Versions](https://img.shields.io/pypi/pyversions/enchant-cli)](https://pypi.org/project/enchant-cli)
-   [![License](https://img.shields.io/pypi/l/enchant-cli)](https://github.com/Emasoft/enchant-cli/blob/main/LICENSE)
-   ```
-
-3. **GitHub Workflow Badge**
-   ```markdown
-   [![Tests Status](https://github.com/Emasoft/enchant-cli/actions/workflows/tests.yml/badge.svg)](https://github.com/Emasoft/enchant-cli/actions/workflows/tests.yml)
-   ```
-
-#### Skipping Tests Workflow
-
-To skip local tests while ensuring they run on GitHub:
-
-1. Use the `--skip-tests` flag with `publish_to_github.sh`:
-   ```bash
-   ./publish_to_github.sh --skip-tests
-   ```
-
-2. This will:
-   - Add a `[skip-tests]` marker to the commit message
-   - Push changes to GitHub without running tests locally
-   - Trigger the GitHub workflows that will run tests automatically
-   - Create a release with auto-generated changelog if version changed
-
-3. Verify workflow execution:
-   - Check GitHub Actions tab to see workflow progress
-   - The tests will run with standard 15-minute timeouts
-   - Test results and coverage will be uploaded to Codecov
-
-#### PyPI Documentation Verification
-
-To ensure PyPI documentation is correctly published:
-
-1. After a successful release, check the PyPI page:
-   ```bash
-   # Run with the --verify-pypi flag
-   ./publish_to_github.sh --verify-pypi
-   
-   # Or to check a specific version
-   ./publish_to_github.sh --check-version 0.1.0
-   ```
-
-2. Verify the PyPI page manually:
-   - Visit https://pypi.org/project/enchant-cli/
-   - Check that README content is rendered correctly
-   - Ensure badges are displaying properly
-   - Verify installation instructions work as expected
-
-3. If documentation issues are found:
-   - Fix formatting in README.md
-   - Update long_description_content_type in pyproject.toml if needed
-   - Republish with a new version
-
-### 8.4 Version Control Problems
-
-#### CRITICAL: Always use publish_to_github.sh --skip-tests
-
-**Problem**: Incorrectly using direct git commands can cause workflow failures and inconsistent releases.
-
-**Solution**:
-- ALWAYS use the project's official script with the --skip-tests flag:
-```bash
-# The only correct way to push to GitHub
-./publish_to_github.sh --skip-tests
-```
-
-**Why this is important**:
-- Ensures proper environment validation
-- Configures GitHub repository secrets 
-- Handles version bumping correctly
-- Properly triggers GitHub workflows
-- Avoids test timeouts
-- Provides standardized commit messages
-- Prevents inconsistent states in the repository
-
-**Warning**: Never use direct git commands like `git push`, `git commit`, or other variations when working with this project.
-
-#### Pre-commit hooks not running
-
-**Unix/Linux/macOS**:
-```bash
-# Install pre-commit hooks manually
-.venv/bin/pre-commit install
-
-# Run hooks manually
-.venv/bin/pre-commit run --all-files
-```
-
-**Windows**:
-```cmd
-# Install pre-commit hooks manually
-.venv\Scripts\pre-commit install
-
-# Run hooks manually
-.venv\Scripts\pre-commit run --all-files
-```
-
-#### Version not incrementing on commit
-
-**Unix/Linux/macOS**:
-```bash
-# Check if hook is properly installed
-ls -la .git/hooks/pre-commit
-
-# Run version bump manually
-./hooks/bump_version.sh
-
-# Check version file
-cat src/enchant_cli/__init__.py
-```
-
-**Windows**:
-```cmd
-# Check if hook is properly installed
-dir .git\hooks\pre-commit
-
-# Run version bump manually via batch file
-bump_version.bat
-
-# Check version file
-type src\enchant_cli\__init__.py
-```
-
-#### Package Publication Verification Issue
-
-If the PyPI publication verification fails:
-
-1. Check if the package was properly published:
-   - Visit `https://pypi.org/project/enchant-cli/` to verify the latest version
-   - Look for the GitHub Action in the Actions tab for any error messages
-   - Use the verification tools provided in the script:
-     ```bash
-     # Verify the most recent version
-     ./publish_to_github.sh --verify-pypi
-     
-     # Check a specific version
-     ./publish_to_github.sh --check-version 0.1.0
-     ```
-
-2. Verification failure with "Command entry point not found":
-   - Check the `pyproject.toml` file to ensure the entry points are correctly configured
-   - Verify that the package wheel was built correctly using `pip debug`
-   - Try installing with `pip install -e .` locally to test the entry point setup
-   - Test CLI access through the Python module: `python -m enchant_cli --version`
-
-3. Version mismatch errors:
-   - Ensure the version in `__init__.py` matches the Git tag version
-   - Check if the pre-commit hook for version bumping is correctly installed
-   - Make sure the package is built from a clean commit with the latest version
-   - Verify package metadata with `pip show enchant-cli`
-
-4. PyPI publication delay issues:
-   - PyPI index updates can take up to several minutes (especially for new packages)
-   - The verification tool includes a 20-second wait by default
-   - For new packages or slow index updates, wait longer before verifying:
-     ```bash
-     # Wait manually then verify
-     sleep 120 # Wait 2 minutes
-     ./publish_to_github.sh --verify-pypi
-     ```
-
-## 9. Critical Workflow Commands
-
-### 9.1 Local Linting and Testing
-
-When working with this project, it's important to know the right commands for different scenarios:
-
-#### Local Linting and Issue Fixing
-
-Always use pre-commit directly to find and fix linting issues before pushing:
-
-```bash
-# Run linters on all files (fixes automatically where possible)
-pre-commit run --all-files
-
-# Run linters on specific files
-pre-commit run --files path/to/file1.py path/to/file2.py
-
-# Run a specific hook (e.g., just black)
-pre-commit run black --all-files
-```
-
-Note: Running `publish_to_github.sh` with `--skip-linters` will skip local linting but will NOT skip linting on GitHub. The GitHub CI will always run linting to ensure code quality.
-
-#### Local Testing
-
-Use pytest directly for local development and debugging:
-
-```bash
-# Run all tests
-pytest tests/
-
-# Run specific test file
-pytest tests/test_specific.py
-
-# Run specific test
-pytest tests/test_file.py::test_function_name
-
-# Run with coverage
-pytest --cov=src tests/
-```
-
-#### Pushing Code to GitHub
-
-ALWAYS use the publish script to push code, never direct git commands:
-
-```bash
-# For most routine pushes (quickest option)
-./publish_to_github.sh --skip-tests --skip-linters
-
-# If you want to run tests locally but skip linting
-./publish_to_github.sh --skip-linters
-
-# If you want to run linting locally but skip tests
-./publish_to_github.sh --skip-tests
-
-# To run full validation locally (slowest)
-./publish_to_github.sh
-```
-
-IMPORTANT:
-- GitHub workflows will ALWAYS run tests and linting regardless of the flags used
-- The markers in commit messages are ONLY indicators that they were skipped locally
-- No GitHub check is ever skipped - all quality checks will be enforced remotely
-- For complex linting issues, always fix them locally first with `pre-commit run --all-files`
-
-## 10. Claude Helper Scripts
-
-### 10.1 Error Log Analysis Scripts
-
-- **get_errorlogs.sh/bat**: Advanced GitHub Actions workflow log analysis
-  - **Zero-input required:** Run without arguments to get fully automated analysis
-  - **Auto-prioritizes failures:** Automatically identifies and shows failed workflows first
-  - **Comprehensive detection:** Dynamically identifies repository information, workflow types, project structure
-  - **Advanced workflow categorization:** Uses multi-signal detection to accurately classify workflows
-  - **Smart error classification:** Provides intelligent categorization with root cause analysis
-  - **Full visibility by default:** Shows complete error logs with option to truncate via `--truncate`
-  - **Cross-repository portability:** Works in any project directory without configuration
-  - **All-in-one analysis:** Provides workflow statistics, recent activity, and next step recommendations
-  - **Improved shell compatibility:** Works with older Bash versions by avoiding advanced features
-  - **Enhanced GitHub API integration:** Retrieves detailed workflow information when possible
-  - **Better CodeCov integration:** Improved coverage reporting and badge generation
-
-#### Key Features
-
-1. **Intelligent Auto-Detection Capabilities**:
-   - Detects repository owner and name from git config, project files, package metadata
-   - Identifies and categorizes workflows by type (tests, releases, lint, docs)
-   - Extracts project structure information for smart defaults when possible
-   - Falls back gracefully with sensible defaults if detection fails
-   - Works across different project types (Python, Node.js, Rust, etc.)
-
-2. **Advanced Error Analysis & Root Cause Detection**:
-   - Classifies errors by severity (critical, severe, warning)
-   - Intelligently extracts stack traces and context around errors
-   - Performs automated root cause analysis with suggested fixes
-   - Identifies common failure patterns (memory issues, network errors, etc.)
-   - Creates concise classified error summaries with statistics
-   - Shows full error details by default, with truncation optional via --truncate
-
-3. **Improved User Experience**:
-   - Full error output by default (not truncated) for detailed error review
-   - Optional truncation with `--truncate` flag when needed for cleaner display
-   - Organization of logs by workflow type for easier navigation
-   - Color-coded output with severity indicators for better readability
-
-4. **Disk Management**:
-   - Automatic log rotation based on age and count
-   - Cleanup of old logs to prevent disk space issues
-   - Smart detection of logs related to recent commits
-
-#### Zero-Configuration Usage
-
-```bash
-# Run without any arguments for smart automatic analysis
-./get_errorlogs.sh
-
-# The script will automatically:
-# 1. Detect repository and workflow information
-# 2. Identify and prioritize any failed workflows
-# 3. Display error logs with intelligent classification
-# 4. Show workflow statistics and activity summary
-# 5. Provide recommendations for next steps
-```
-
-#### Additional Commands (Optional)
-
-```bash
-# Get help and see all available commands
-./get_errorlogs.sh help
-
-# Explicitly detect repository and workflow information
-./get_errorlogs.sh detect
-
-# List workflows detected in the repository, categorized by type
-./get_errorlogs.sh workflows
-
-# Get logs for specific workflow types (when you need targeted analysis)
-./get_errorlogs.sh tests      # Test workflows
-./get_errorlogs.sh build      # Build/release workflows
-./get_errorlogs.sh lint       # Linting/quality workflows
-./get_errorlogs.sh docs       # Documentation workflows
-
-# Control output verbosity when needed
-./get_errorlogs.sh --truncate tests     # Truncated output for readability
-
-# Advanced log management
-./get_errorlogs.sh latest     # Get the 3 most recent logs after the last commit
-./get_errorlogs.sh saved      # List all saved log files
-./get_errorlogs.sh logs 123456789  # Get logs for a specific workflow run ID
-
-# Search and analyze
-./get_errorlogs.sh search "error message"  # Search all logs (case insensitive)
-./get_errorlogs.sh search "Exception" true  # Search case-sensitive
-./get_errorlogs.sh classify logs/workflow_12345.log  # Analyze specific log file
-
-# Log maintenance
-./get_errorlogs.sh cleanup 15         # Clean up logs older than 15 days
-./get_errorlogs.sh cleanup --dry-run  # Show what would be cleaned up
-./get_errorlogs.sh stats              # Display log statistics and summary
-```
-
-### 10.2 Using Claude Helper Scripts Across Projects
-
-The CLAUDE HELPER SCRIPTS are designed to be completely portable and adaptable across different projects without any configuration required:
-
-1. **Zero-Configuration Design**:
-   - Automatically detects repository information from multiple sources
-   - Intelligently identifies project structure and relevant workflow patterns
-   - Adapts to different technology stacks (Python, Node.js, Rust, etc.)
-   - Uses multi-tier detection with graceful fallbacks for maximum reliability
-
-2. **Multi-Source Information Gathering**:
-   - Extracts data from git configuration (remote URLs, branches)
-   - Reads package metadata files (pyproject.toml, package.json, Cargo.toml)
-   - Parses GitHub workflow files to identify workflow types
-   - Uses project directory structure to infer project type
-   - Falls back to environment variables or reasonable defaults when needed
-
-3. **Self-Healing Functionality**:
-   - Handles missing or incomplete data gracefully
-   - Provides reasonable defaults when detection fails
-   - Works in partial GitHub environments (detached checkouts, etc.)
-   - Includes comprehensive backup methods for critical operations
-
-4. **Cross-Platform & Cross-Project Design**:
-   - Bash scripts for Unix-like systems (macOS, Linux, BSD)
-   - Batch file wrappers for Windows compatibility with WSL integration
-   - Dynamic tool detection and graceful fallbacks for missing dependencies
-   - Automatic adaptation to different project environments and structures
-
-5. **Installation & Usage**:
-   - Simply copy the scripts to any project directory
-   - Run without any configuration or setup required
-   - Invoke `./get_errorlogs.sh detect` to see what the script detected
-   - Immediately usable with default commands (`tests`, `latest`, etc.)
-
-To use these scripts in a different project, simply copy them to the new project's root directory and run them - no configuration required. The scripts will automatically detect all needed information about the repository, available workflows, and project structure.
-### 7.4 Dynamic Workflow Detection
-
-A critical design principle in this project is that scripts **MUST NEVER use hardcoded workflow names**, but instead dynamically detect workflows based on their nature and purpose. This ensures compatibility with any workflow configuration and eliminates maintenance issues when workflow files are renamed or restructured.
-
-#### Key Dynamic Workflow Detection Principles:
-
-1. **Heuristic Workflow Detection**: All scripts must intelligently detect workflows by:
-   - Analyzing workflow file content to determine purpose (test, release, lint, docs, etc.)
-   - Using multiple detection mechanisms (GitHub API, local files, content patterns)
-   - Implementing fallback strategies with sensible defaults
-
-2. **Type-Based Workflow Categories**:
-   - Test workflows: Identified via patterns like "test", "ci", "check" in name or content
-   - Release workflows: Identified via patterns like "release", "deploy", "publish", "build"
-   - Lint workflows: Identified via patterns like "lint", "format", "style", "quality"
-   - Documentation workflows: Identified via patterns like "doc", "documentation", "mkdocs"
-
-3. **Multi-Tier Detection Strategy**:
-   - First tier: Use GitHub API for accurate remote workflow information
-   - Second tier: Check local workflow files as fallback
-   - Third tier: Use sensible defaults only if automatic detection fails
-   - Present results with appropriate warnings when using fallbacks
-
-4. **Workflow Triggering Resilience**:
-   - Use multiple triggering approaches (direct run, API dispatches, ID-based)
-   - Implement robust retry logic with appropriate delays
-   - Provide clear diagnostic messages and manual fallback instructions
-   - Always include a final attempt to trigger any available workflow
-
-#### Implementation Requirements:
-
-1. Workflow detection functions must:
-   - Accept workflow type as argument (e.g., "test", "release")
-   - Return the most relevant workflow for the specified type
-   - Include options to return all workflows of a type when needed
-   - Never assume specific workflow file names exist
-
-2. Workflow interaction code must:
-   - First detect appropriate workflows before interacting with them
-   - Handle errors gracefully with informative messages
-   - Provide fallback mechanisms when primary approaches fail
-   - Supply useful manual instructions when automation fails
-
-3. All reporting must:
-   - Clearly indicate when defaults or fallbacks are being used
-   - Show which workflows were detected and their categorization
-   - Include debugging information about detection method used
-
-4. Essential adapters and interfaces:
-   - `detect_available_workflows()`: Primary workflow detection function
-   - `trigger_workflow()`: Resilient workflow triggering with fallbacks
-   - `detect_workflow_by_type()`: Categorization of workflows by purpose
-
-This approach ensures the scripts remain viable across projects, repository transitions, and workflow changes without requiring manual updates to hardcoded workflow names.
-EOF < /dev/null
