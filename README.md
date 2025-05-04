@@ -67,9 +67,10 @@ source .venv/bin/activate     # On macOS/Linux/BSD
 .venv\Scripts\Activate.ps1    # On Windows PowerShell
 source .venv/Scripts/activate # On Git Bash for Windows
 
-# 4. Run tests to verify setup
-./run_tests.sh                # On macOS/Linux/BSD
-# or 
+# 4. Run tests to verify setup (using the dhtl alias created when activating the venv)
+dhtl test                     # Works on any platform when venv is activated
+# or directly with scripts
+./run_tests.sh                # On macOS/Linux/BSD 
 run_tests.bat                 # On Windows
 ```
 
@@ -94,6 +95,7 @@ export PYPI_API_TOKEN="your-pypi-token"    # For PyPI uploads
 - **Automatic Versioning**: Minor version incremented on every commit
 - **Environment Verification**: Checks for external references at runtime
 - **Automatic Dependency Management**: Managed through uv lock/sync
+- **Command Alias**: Automatically adds `dhtl` alias when venv is activated (so you can use `dhtl test` instead of typing `./dhtl.sh test`)
 
 ### Environment Troubleshooting
 
@@ -118,12 +120,21 @@ This completely removes the existing environment and creates a fresh one with no
 2.  **Activate the virtual environment:** `source .venv/bin/activate` (or equivalent)
 3.  Set the required `OPENROUTER_API_KEY` environment variable: `export OPENROUTER_API_KEY="your-api-key-here"` (needed for some tests, though many are mocked).
 
-**Run tests using the script:**
+**Run tests using the dhtl alias (available when venv is activated):**
 ```bash
 # Run full test suite (recommended for thorough testing)
-./run_tests.sh
+dhtl test
 
 # Run only critical tests for quick validation
+dhtl test --fast
+```
+
+**Or using the script directly:**
+```bash
+# Run full test suite
+./run_tests.sh
+
+# Run only critical tests
 ./run_tests.sh --fast
 ```
 
@@ -221,9 +232,9 @@ For cross-platform compatibility, use the platform-detection wrapper scripts (e.
 
 ### Publishing to GitHub: Critical Protocol
 
-**IMPORTANT**: All code pushes to GitHub MUST use the `publish_to_github.sh` script. Direct git pushes are prohibited as they bypass essential validation.
+**IMPORTANT**: All code pushes to GitHub MUST use the `dhtl publish` command (or `./dhtl.sh publish` if venv is not activated). Direct git pushes are prohibited as they bypass essential validation.
 
-The `publish_to_github.sh` script:
+The publishing script:
 - Runs comprehensive validation (tests, linting, build verification)
 - Creates repository if needed and configures GitHub remote
 - Sets up required GitHub secrets automatically
@@ -231,11 +242,13 @@ The `publish_to_github.sh` script:
 - Provides release creation guidance
 
 ```bash
-# Display help with all options
-./publish_to_github.sh --help
+# Display help with all options (when venv is activated)
+dhtl publish --help
+# or without venv activation
+./dhtl.sh publish --help
 
 # Standard execution (recommended approach)
-./publish_to_github.sh
+dhtl publish
 ```
 
 ### Automated Versioning
