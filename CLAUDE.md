@@ -517,6 +517,7 @@ The following rules MUST be followed without exception, even when not explicitly
 - If tests fail due to missing API keys, inform the user to set up the keys in their environment and exit.
 - CRITICAL: For ANY change to the implementation of core functionality (especially in translation methods), you MUST ask for explicit approval before making the change. This includes changes to the translation pipeline, prompt engineering, or API integrations.
 - CRITICAL: Never replace carefully calibrated prompts or API integrations without explicit permission. These have been meticulously optimized over long periods of time.
+- CRITICAL: Always check if a functionality is already implemented before implementing it. This includes checking both the codebase and the virtual environment setup.
 
 
 ## 1. Environment Configuration

@@ -519,6 +519,16 @@
   - Waiting for the completion of task: none
   - Additional Notes: Will create a system for extending DHT with custom scripts
 
+- [🕐] #63 - Update documentation to use 'dhtl' instead of './dhtl.sh' or './dhtl.bat'
+  - Created: 2024-05-04 21:20
+  - Updated: 2024-05-04 21:20
+  - Branch: main
+  - Tests Attempts: PASS=0 FAIL=0
+  - Blocked by github issues: none
+  - Replaced by task: none
+  - Waiting for the completion of task: none
+  - Additional Notes: Update all documentation to reference the existing 'dhtl' alias instead of './dhtl.sh' or './dhtl.bat'
+
 ## DHTL Refactoring Project
 
 - [🕐] #50 - Research and setup tree-sitter with Bash grammar
