@@ -126,26 +126,6 @@ def clean(text: str) -> str:
         raise TypeError("Input must be a string")
     return text.lstrip(' ').rstrip(' ')
 
-def clean_filename(filename: str) -> str:
-    """
-    Remove special characters from filenames while preserving essential characters
-    """
-    filename = unicodedata.normalize('NFKD', filename)
-    filename = re.sub(r'[^\w\s\-_.]', '', filename)
-    filename = re.sub(r'\s+', ' ', filename).strip()
-    return filename[:100]
-
-def replace_repeated_chars(text: str, chars) -> str:
-    """
-    Replace any sequence of repeated occurrences of each character in `chars`
-    with a single occurrence. For example, "！！！！" becomes "！".
-    """
-    for char in chars:
-        # Escape the character to handle any regex special meaning.
-        pattern = re.escape(char) + r'{2,}'
-        text = re.sub(pattern, char, text)
-    return text
-
 def sanitize_filename(filename: str) -> str:
     """
     Sanitize filenames by:
@@ -165,6 +145,17 @@ def sanitize_filename(filename: str) -> str:
     # Trim excess whitespace and limit length
     filename = re.sub(r'\s+', ' ', filename).strip()
     return filename[:100]
+
+def replace_repeated_chars(text: str, chars) -> str:
+    """
+    Replace any sequence of repeated occurrences of each character in `chars`
+    with a single occurrence. For example, "！！！！" becomes "！".
+    """
+    for char in chars:
+        # Escape the character to handle any regex special meaning.
+        pattern = re.escape(char) + r'{2,}'
+        text = re.sub(pattern, char, text)
+    return text
 
 def limit_repeated_chars(text, force_chinese=False, force_english=False):
     """
@@ -451,7 +442,7 @@ def normalize_spaces(text):
     
     for line in lines:
         # Strip leading/trailing whitespace from the line
-        stripped_line = clean(line)
+        stripped_line = line.strip()
         
         if stripped_line:  # If the line is not empty (contains actual content)
             # Replace multiple spaces with a single space

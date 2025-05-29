@@ -660,7 +660,7 @@ class ChineseAITranslator:
         
         for line in lines:
             # Strip leading/trailing whitespace from the line
-            stripped_line = clean(line)
+            stripped_line = line.strip()
             
             if stripped_line:  # If the line is not empty (contains actual content)
                 # Replace multiple spaces with a single space
