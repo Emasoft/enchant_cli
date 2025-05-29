@@ -75,6 +75,8 @@ except ImportError:
 import errno
 import yaml
 import datetime as dt
+import unicodedata
+import filelock
 
 # Initialize the translator
 translator = ChineseAITranslator(logger=logging.getLogger(__name__))
@@ -124,8 +126,14 @@ def clean(text: str) -> str:
         raise TypeError("Input must be a string")
     return text.lstrip(' ').rstrip(' ')
 
-
-
+def clean_filename(filename: str) -> str:
+    """
+    Remove special characters from filenames while preserving essential characters
+    """
+    filename = unicodedata.normalize('NFKD', filename)
+    filename = re.sub(r'[^\w\s\-_.]', '', filename)
+    filename = re.sub(r'\s+', ' ', filename).strip()
+    return filename[:100]
 
 def replace_repeated_chars(text: str, chars) -> str:
     """
@@ -540,13 +548,15 @@ def foreign_book_title_splitter(filename):
             original_title, original_author = base_filename.split(' by ')
         else:
             original_title = base_filename
+        translated_part = ''
+        original_part = base_filename
     # Extract translated title and author
-    if ' by ' in translated_part:
+    if translated_part and ' by ' in translated_part:
         translated_title, translated_author = translated_part.split(' by ')
     else:
         translated_title = translated_part
     # Extract original title and author
-    if ' by ' in original_part:
+    if original_part and ' by ' in original_part:
         original_title, original_author = original_part.split(' by ')
     else:
         original_title = original_part
@@ -604,9 +614,9 @@ def import_book_from_txt(file_path, encoding='utf-8', chapter_pattern=r'Chapter 
 
     
     # SPLIT THE BOOK IN CHUNKS
-    if split_mode in "SPLIT_POINTS":
+    if split_mode == "SPLIT_POINTS":
         splitted_chapters = split_chinese_text_using_split_points(book_content, max_chars)
-    elif split_mode in "PARAGRAPHS":
+    elif split_mode == "PARAGRAPHS":
         splitted_chapters = split_chinese_text_in_parts(book_content, max_chars)
     else:
         # default use split_mode = 'PARAGRAPHS'
@@ -1010,7 +1020,7 @@ def save_translated_book(book_id, resume: bool = False, create_epub: bool = Fals
         raise ValueError("Book not found")
     # Create book folder
     try:
-        folder_name = re.sub(r'[^\w\-_. ]', '', book.translated_title)[:100]
+        folder_name = clean_filename(f"{book.translated_title} by {book.translated_author}")
         book_dir = Path(folder_name)
         book_dir.mkdir(exist_ok=True)
     except OSError as e:
@@ -1022,7 +1032,7 @@ def save_translated_book(book_id, resume: bool = False, create_epub: bool = Fals
     existing_chapter_nums: set[int] = set()
     if resume:
         pattern = f"{book.translated_title} by {book.translated_author} - Chapter *.txt"
-        for p in book_dir.glob(pattern):
+        for p in sorted(book_dir.glob(pattern), key=lambda x: x.name):
             match = re.search(r"Chapter (\d+)\.txt$", p.name)
             if match:
                 existing_chapter_nums.add(int(match.group(1)))
@@ -1126,62 +1136,74 @@ def process_batch(args):
         tolog.error("Batch processing requires an existing directory path.")
         sys.exit(1)
 
-    # Load or create batch progress
-    progress_file = Path("translation_batch_progress.yml")
-    history_file = Path("translations_chronology.yml")
-    
-    if progress_file.exists():
-        progress = load_safe_yaml(progress_file) or {}
-    else:
-        progress = {
-            'created': dt.datetime.now().isoformat(),
-            'input_folder': str(input_path.resolve()),
-            'files': []
-        }
+    # Add file locking to prevent concurrent access
+    lock_path = Path("translation_batch.lock")
+    with filelock.FileLock(str(lock_path)):
+        # Load or create batch progress
+        progress_file = Path("translation_batch_progress.yml")
+        history_file = Path("translations_chronology.yml")
+        
+        if progress_file.exists():
+            progress = load_safe_yaml(progress_file) or {}
+        else:
+            progress = {
+                'created': dt.datetime.now().isoformat(),
+                'input_folder': str(input_path.resolve()),
+                'files': []
+            }
 
-    # Populate file list if not resuming
-    if not progress.get('files'):
-        for file in input_path.glob('*.txt'):
-            progress['files'].append({
-                'path': str(file.resolve()),
-                'status': 'planned',
-                'end_time': None
-            })
+        # Populate file list if not resuming
+        if not progress.get('files'):
+            files_sorted = sorted(input_path.glob('*.txt'), key=lambda x: x.name)
+            for file in files_sorted:
+                progress['files'].append({
+                    'path': str(file.resolve()),
+                    'status': 'planned',
+                    'end_time': None,
+                    'retry_count': 0
+                })
 
-    # Process files
-    for item in progress['files']:
-        if item['status'] == 'completed':
-            continue
-            
-        item['status'] = 'processing'
-        item['start_time'] = dt.datetime.now().isoformat()
-        with progress_file.open('w') as f:
-            yaml.safe_dump(progress, f)
+        MAX_RETRIES = 3
 
-        try:
-            tolog.info(f"Processing: {Path(item['path']).name}")
-            book_id = import_book_from_txt(item['path'], 
-                                 encoding=args.encoding,
-                                 max_chars=args.max_chars, 
-                                 split_mode=args.split_mode)
-            save_translated_book(book_id, resume=args.resume, create_epub=args.epub)
-            item['status'] = 'completed'
-        except Exception as e:
-            tolog.error(f"Failed to translate {item['path']}: {str(e)}")
-            item['status'] = 'failed/skipped'
-            item['error'] = str(e)
-        finally:
-            item['end_time'] = dt.datetime.now().isoformat()
+        # Process files
+        for item in progress['files']:
+            if item['status'] == 'completed':
+                continue
+            if item.get('retry_count', 0) >= MAX_RETRIES:
+                tolog.warning(f"Skipping {item['path']} after {MAX_RETRIES} failed attempts.")
+                item['status'] = 'failed/skipped'
+                continue
+                
+            item['status'] = 'processing'
+            item['start_time'] = dt.datetime.now().isoformat()
             with progress_file.open('w') as f:
                 yaml.safe_dump(progress, f)
-            
-            # Move completed batch to history
-            if all(file['status'] in ('completed', 'failed/skipped') 
-                  for file in progress['files']):
-                with history_file.open('a', encoding="utf-8") as f:
-                    f.write("---\n")
-                    yaml.safe_dump(progress, f, allow_unicode=True)
-                progress_file.unlink()
+
+            try:
+                tolog.info(f"Processing: {Path(item['path']).name}")
+                book_id = import_book_from_txt(item['path'], 
+                                     encoding=args.encoding,
+                                     max_chars=args.max_chars, 
+                                     split_mode=args.split_mode)
+                save_translated_book(book_id, resume=args.resume, create_epub=args.epub)
+                item['status'] = 'completed'
+            except Exception as e:
+                tolog.error(f"Failed to translate {item['path']}: {str(e)}")
+                item['status'] = 'failed/skipped'
+                item['error'] = str(e)
+                item['retry_count'] = item.get('retry_count', 0) + 1
+            finally:
+                item['end_time'] = dt.datetime.now().isoformat()
+                with progress_file.open('w') as f:
+                    yaml.safe_dump(progress, f)
+                
+                # Move completed batch to history
+                if all(file['status'] in ('completed', 'failed/skipped') 
+                      for file in progress['files']):
+                    with history_file.open('a', encoding="utf-8") as f:
+                        f.write("---\n")
+                        yaml.safe_dump(progress, f, allow_unicode=True)
+                    progress_file.unlink()
 
 def main():
     global tolog
