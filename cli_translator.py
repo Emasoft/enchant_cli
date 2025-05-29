@@ -349,7 +349,7 @@ def remove_html_markup(html_str: str) -> str:
       3. Remove HTML comments, <script>, and <style> blocks (including their content).
       4. Replace block-level tags (like <p>, <br>, <div>, etc.) with whitespace markers.
       5. Remove any remaining HTML tags (only valid tags are removed, protecting math/code).
-      6. Unescape HTML entities outside of code placeholders.
+      6. Unescape HTML entities outside code placeholders.
       7. Restore the inline code placeholders.
       8. Restore the block-level code placeholders.
       
@@ -1109,6 +1109,16 @@ def save_translated_book(book_id, resume: bool = False, create_epub: bool = Fals
 #               MAIN FUNCTION               #
 ###############################################
 
+def load_safe_yaml(path: Path):
+    """Atomically load YAML with temp file handling"""
+    try:
+        temp_path = path.with_suffix(".lock")
+        with temp_path.open("w") as temp_file:
+            temp_file.write(path.read_text())
+        return yaml.safe_load(temp_path.read_text())
+    finally:
+        temp_path.unlink(missing_ok=True)
+
 def process_batch(args):
     """Process batch of novel files"""
     input_path = Path(args.filepath)
@@ -1121,8 +1131,7 @@ def process_batch(args):
     history_file = Path("translations_chronology.yml")
     
     if progress_file.exists():
-        with progress_file.open('r') as f:
-            progress = yaml.safe_load(f) or {}
+        progress = load_safe_yaml(progress_file) or {}
     else:
         progress = {
             'created': dt.datetime.now().isoformat(),
@@ -1169,9 +1178,9 @@ def process_batch(args):
             # Move completed batch to history
             if all(file['status'] in ('completed', 'failed/skipped') 
                   for file in progress['files']):
-                with history_file.open('a') as f:
+                with history_file.open('a', encoding="utf-8") as f:
                     f.write("---\n")
-                    yaml.safe_dump(progress, f)
+                    yaml.safe_dump(progress, f, allow_unicode=True)
                 progress_file.unlink()
 
 def main():

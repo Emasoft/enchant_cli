@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2024-2025 Emasoft
 # Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
+# You may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 # 
 #     http://www.apache.org/licenses/LICENSE-2.0
@@ -41,8 +41,8 @@ def retry_with_tenacity(method):
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         @retry(
-            stop=stop_after_attempt(77),
-            wait=wait_exponential(multiplier=1, min=1, max=300),
+            stop=stop_after_attempt(7),  # Reduced from 77 to 7 attempts
+            wait=wait_exponential(multiplier=1, min=3, max=60),  # Cap max wait at 60s
             retry=retry_if_exception_type((
                 requests.exceptions.RequestException,
                 requests.exceptions.HTTPError,
@@ -318,6 +318,7 @@ def limit_repeated_chars(text, force_chinese=False, force_english=False):
 
     # Replace all repeated sequences in the text using the limiter function.
     return _repeated_chars.sub(limiter, text)
+
 
 
 
