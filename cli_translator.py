@@ -72,6 +72,10 @@ try:
 except ImportError:
     epub = None  # Will notify user if EPUB creation is requested without library
 
+import errno
+import yaml
+import datetime as dt
+
 # Initialize the translator
 translator = ChineseAITranslator(logger=logging.getLogger(__name__))
 
@@ -1004,12 +1008,22 @@ def save_translated_book(book_id, resume: bool = False, create_epub: bool = Fals
     book = Book.get_by_id(book_id)
     if not book:
         raise ValueError("Book not found")
+    # Create book folder
+    try:
+        folder_name = re.sub(r'[^\w\-_. ]', '', book.translated_title)[:100]
+        book_dir = Path(folder_name)
+        book_dir.mkdir(exist_ok=True)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            tolog.error(f"Error creating directory: {e}")
+            book_dir = Path.cwd()
+    
     # Prepare autoresume data
     existing_chapter_nums: set[int] = set()
     if resume:
-        base_glob = f"{book.translated_title} by {book.translated_author} - Chapter *.txt"
-        for _p in Path.cwd().glob(base_glob):
-            match = re.search(r"Chapter (\d+)\.txt$", _p.name)
+        pattern = f"{book.translated_title} by {book.translated_author} - Chapter *.txt"
+        for p in book_dir.glob(pattern):
+            match = re.search(r"Chapter (\d+)\.txt$", p.name)
             if match:
                 existing_chapter_nums.add(int(match.group(1)))
         if existing_chapter_nums:
@@ -1025,7 +1039,7 @@ def save_translated_book(book_id, resume: bool = False, create_epub: bool = Fals
         variation = VARIATION_DB.get(chapter.original_variation_id)
         if variation:
             if resume and chapter.chapter_number in existing_chapter_nums:
-                p_existing = Path(Path.cwd(), f"{book.translated_title} by {book.translated_author} - Chapter {chapter.chapter_number}.txt")
+                p_existing = book_dir / f"{book.translated_title} by {book.translated_author} - Chapter {chapter.chapter_number}.txt"
                 try:
                     translated_text = p_existing.read_text(encoding="utf-8")
                     tolog.info(f"Skipping translation for chapter {chapter.chapter_number}; using existing translation.")
@@ -1039,8 +1053,8 @@ def save_translated_book(book_id, resume: bool = False, create_epub: bool = Fals
                 tolog.info(f"TRANSLATING CHAPTER {str(chapter.chapter_number)} of {str(len(sorted_chapters))}")
                 is_last_chunk = (chapter.chapter_number == len(sorted_chapters))
                 translated_text = translator.translate(original_text, is_last_chunk)
-                output_filename_chapter = f"{book.translated_title} by {book.translated_author} - Chapter {chapter.chapter_number}.txt"
-                p = Path(Path.cwd(), output_filename_chapter)
+                output_filename_chapter = book_dir / f"{book.translated_title} by {book.translated_author} - Chapter {chapter.chapter_number}.txt"
+                p = output_filename_chapter
                 p.write_text(translated_text)
             except Exception as e:
                 tolog.error(f"ERROR: Translation failed for chapter {str(chapter.chapter_number)} : {str(e)}")
@@ -1052,7 +1066,7 @@ def save_translated_book(book_id, resume: bool = False, create_epub: bool = Fals
     full_translated_text = "\n".join(translated_contents)
     full_translated_text = remove_excess_empty_lines(full_translated_text)
     # Save to a file named with the book_id
-    output_filename = f"translated_{book.translated_title} by {book.translated_author}.txt"
+    output_filename = book_dir / f"translated_{book.translated_title} by {book.translated_author}.txt"
     with open(output_filename, "w", encoding="utf-8") as f:
         f.write(full_translated_text)
     tolog.info(f"Translated book saved to {output_filename}")
@@ -1062,7 +1076,7 @@ def save_translated_book(book_id, resume: bool = False, create_epub: bool = Fals
             print("[bold red]Missing dependency 'ebooklib'. Please upload its source distribution so I can proceed.[/bold red]")
         else:
             try:
-                epub_filename = output_filename.replace(".txt", ".epub")
+                epub_filename = str(output_filename).replace(".txt", ".epub")
                 _chapters_html = []
                 book_epub = epub.EpubBook()
                 book_epub.set_identifier(str(book.book_id))
@@ -1095,6 +1109,71 @@ def save_translated_book(book_id, resume: bool = False, create_epub: bool = Fals
 #               MAIN FUNCTION               #
 ###############################################
 
+def process_batch(args):
+    """Process batch of novel files"""
+    input_path = Path(args.filepath)
+    if not input_path.exists() or not input_path.is_dir():
+        tolog.error("Batch processing requires an existing directory path.")
+        sys.exit(1)
+
+    # Load or create batch progress
+    progress_file = Path("translation_batch_progress.yml")
+    history_file = Path("translations_chronology.yml")
+    
+    if progress_file.exists():
+        with progress_file.open('r') as f:
+            progress = yaml.safe_load(f) or {}
+    else:
+        progress = {
+            'created': dt.datetime.now().isoformat(),
+            'input_folder': str(input_path.resolve()),
+            'files': []
+        }
+
+    # Populate file list if not resuming
+    if not progress.get('files'):
+        for file in input_path.glob('*.txt'):
+            progress['files'].append({
+                'path': str(file.resolve()),
+                'status': 'planned',
+                'end_time': None
+            })
+
+    # Process files
+    for item in progress['files']:
+        if item['status'] == 'completed':
+            continue
+            
+        item['status'] = 'processing'
+        item['start_time'] = dt.datetime.now().isoformat()
+        with progress_file.open('w') as f:
+            yaml.safe_dump(progress, f)
+
+        try:
+            tolog.info(f"Processing: {Path(item['path']).name}")
+            book_id = import_book_from_txt(item['path'], 
+                                 encoding=args.encoding,
+                                 max_chars=args.max_chars, 
+                                 split_mode=args.split_mode)
+            save_translated_book(book_id, resume=args.resume, create_epub=args.epub)
+            item['status'] = 'completed'
+        except Exception as e:
+            tolog.error(f"Failed to translate {item['path']}: {str(e)}")
+            item['status'] = 'failed/skipped'
+            item['error'] = str(e)
+        finally:
+            item['end_time'] = dt.datetime.now().isoformat()
+            with progress_file.open('w') as f:
+                yaml.safe_dump(progress, f)
+            
+            # Move completed batch to history
+            if all(file['status'] in ('completed', 'failed/skipped') 
+                  for file in progress['files']):
+                with history_file.open('a') as f:
+                    f.write("---\n")
+                    yaml.safe_dump(progress, f)
+                progress_file.unlink()
+
 def main():
     global tolog
     # Set up logging
@@ -1116,7 +1195,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Import a book from a text file, split it into chapters, and add to the database."
     )
-    parser.add_argument("filepath", type=str, help="Path to the input text file")
+    parser.add_argument("filepath", type=str, help="Path to the input text file or directory for batch")
     parser.add_argument("--encoding", type=str, default="utf-8", help="File encoding (default: utf-8)")
     parser.add_argument("--max_chars", type=int, default=MAXCHARS, help="Maximum characters per chapter")
     parser.add_argument("--resume", action="store_true", help="Resume translation from last translated chapter")
@@ -1128,8 +1207,18 @@ def main():
         default="PARAGRAPHS", 
         help="Mode to split text (default: PARAGRAPHS)"
     )
+    parser.add_argument("--batch", action="store_true", help="Process a batch of novels in a directory")
+    parser.add_argument("--remote", action='store_true', help="Use remote translation server")
     
     args = parser.parse_args()
+    
+    # Initialize translator with remote option
+    global translator
+    translator = ChineseAITranslator(logger=tolog, use_remote=args.remote)
+    
+    if args.batch:
+        process_batch(args)
+        return
     
     file_path = args.filepath
     encoding = args.encoding
@@ -1160,4 +1249,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

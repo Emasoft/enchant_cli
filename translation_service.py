@@ -29,8 +29,8 @@ import time
 
 # Constant parameters: 
 DEFAULT_CHUNK_SIZE = 12000  # max chars for each chunk of chinese text to send to the server
-CONNECTION_TIMEOUT = 100    # max seconds to wait for connecting with the server
-RESPONSE_TIMEOUT = 3000     # max seconds to wait for the server response (can be very long for local models)
+CONNECTION_TIMEOUT = 30    # max seconds to wait for connecting with the server (reduced from 100)
+RESPONSE_TIMEOUT = 300     # max seconds to wait for the server response (reduced from 3000)
 
 # Define a custom exception for translation failures
 class TranslationException(Exception):
@@ -159,23 +159,23 @@ USER_PROMPT_2NDPASS_QWEN = """;; Examine the following text containing a mix of 
 
 
 # change this to False or True to select the server
-TRANSLATION_SERVER_IS_LOCAL = True # TODO: make this setting be configurable by a launch parameter, like --local-api  or  --remote-api, etc.
+# TRANSLATION_SERVER_IS_LOCAL = True # TODO: make this setting be configurable by a launch parameter, like --local-api  or  --remote-api, etc.
 
 # DO NOT CHANGE THIS PART!!!
-if TRANSLATION_SERVER_IS_LOCAL:
-    # CONFIG SELECTION FOR LOCAL TRANSLATION (FREE)
-    SELECTED_API_URL = API_URL_LMSTUDIO
-    SELECTED_MODEL_NAME = MODEL_NAME_QWEN
-    SELECTED_SYSTEM_PROMPT = SYSTEM_PROMPT_QWEN
-    SELECTED_USER_PROMPT_1STPASS = USER_PROMPT_1STPASS_QWEN
-    SELECTED_USER_PROMPT_2NDPASS = USER_PROMPT_2NDPASS_QWEN
-else:
-    # CONFIG SELECTION FOR REMOTE TRANSLATION (PAID)
-    SELECTED_API_URL = API_URL_OPENROUTER
-    SELECTED_MODEL_NAME = MODEL_NAME_DEEPSEEK
-    SELECTED_SYSTEM_PROMPT = SYSTEM_PROMPT_DEEPSEEK
-    SELECTED_USER_PROMPT_1STPASS = USER_PROMPT_1STPASS_DEEPSEEK
-    SELECTED_USER_PROMPT_2NDPASS = USER_PROMPT_2NDPASS_DEEPSEEK
+# if TRANSLATION_SERVER_IS_LOCAL:
+#     # CONFIG SELECTION FOR LOCAL TRANSLATION (FREE)
+#     SELECTED_API_URL = API_URL_LMSTUDIO
+#     SELECTED_MODEL_NAME = MODEL_NAME_QWEN
+#     SELECTED_SYSTEM_PROMPT = SYSTEM_PROMPT_QWEN
+#     SELECTED_USER_PROMPT_1STPASS = USER_PROMPT_1STPASS_QWEN
+#     SELECTED_USER_PROMPT_2NDPASS = USER_PROMPT_2NDPASS_QWEN
+# else:
+#     # CONFIG SELECTION FOR REMOTE TRANSLATION (PAID)
+#     SELECTED_API_URL = API_URL_OPENROUTER
+#     SELECTED_MODEL_NAME = MODEL_NAME_DEEPSEEK
+#     SELECTED_SYSTEM_PROMPT = SYSTEM_PROMPT_DEEPSEEK
+#     SELECTED_USER_PROMPT_1STPASS = USER_PROMPT_1STPASS_DEEPSEEK
+#     SELECTED_USER_PROMPT_2NDPASS = USER_PROMPT_2NDPASS_DEEPSEEK
 
 ## END OF LLM API SETTINGS CONSTANTS
 
@@ -452,7 +452,7 @@ def remove_html_markup(html_str: str) -> str:
       3. Remove HTML comments, <script>, and <style> blocks (including their content).
       4. Replace block-level tags (like <p>, <br>, <div>, etc.) with whitespace markers.
       5. Remove any remaining HTML tags (only valid tags are removed, protecting math/code).
-      6. Unescape HTML entities outside of code placeholders.
+      6. Unescape HTML entities outside code placeholders.
       7. Restore the inline code placeholders.
       8. Restore the block-level code placeholders.
       
@@ -606,13 +606,24 @@ tenacity.Retrying.__call__ = no_retry_call
 
 
 class ChineseAITranslator:
-    def __init__(self, logger: Optional[logging.Logger] = None):
+    def __init__(self, logger: Optional[logging.Logger] = None, use_remote: bool = False):
         self.logger = logger or logging.getLogger(__name__)
         self.api_key = os.environ.get('OPENROUTER_API_KEY')
         if not self.api_key:
             self.log("OPENROUTER_API_KEY not set in environment variables", "error")
-        self.api_url = SELECTED_API_URL
-        self.MODEL_NAME = SELECTED_MODEL_NAME
+        self.is_remote = use_remote
+        if self.is_remote:
+            self.api_url = API_URL_OPENROUTER
+            self.MODEL_NAME = MODEL_NAME_DEEPSEEK
+            self.SYSTEM_PROMPT = SYSTEM_PROMPT_DEEPSEEK
+            self.USER_PROMPT_1STPASS = USER_PROMPT_1STPASS_DEEPSEEK
+            self.USER_PROMPT_2NDPASS = USER_PROMPT_2NDPASS_DEEPSEEK
+        else:
+            self.api_url = API_URL_LMSTUDIO
+            self.MODEL_NAME = MODEL_NAME_QWEN
+            self.SYSTEM_PROMPT = SYSTEM_PROMPT_QWEN
+            self.USER_PROMPT_1STPASS = USER_PROMPT_1STPASS_QWEN
+            self.USER_PROMPT_2NDPASS = USER_PROMPT_2NDPASS_QWEN
         
     def log(self, message: str, level: str = "info") -> None:
         log_method = getattr(self.logger, level)
@@ -738,7 +749,7 @@ class ChineseAITranslator:
         # Remove empty lines in excess
         chunk = self.remove_excess_empty_lines(chunk)
         
-        prompt1 = f"""{SELECTED_USER_PROMPT_1STPASS}
+        prompt1 = f"""{self.USER_PROMPT_1STPASS}
 
 {chunk}
 
@@ -751,7 +762,7 @@ class ChineseAITranslator:
         
 
         
-        prompt2 = f"""{SELECTED_USER_PROMPT_2NDPASS}
+        prompt2 = f"""{self.USER_PROMPT_2NDPASS}
 [*INPUT TEXT TO CORRECT*]
 
 {first_translation}
@@ -786,7 +797,7 @@ class ChineseAITranslator:
             "messages": [
                 {
                     "role": "system",
-                    "content": f"{SELECTED_SYSTEM_PROMPT}",
+                    "content": f"{self.SYSTEM_PROMPT}",
                 },
                 {
                     "role": "user",
@@ -810,6 +821,8 @@ class ChineseAITranslator:
             self.log(f"Request sent to {self.api_url}")
             response.raise_for_status()
             self.log(f"Server returned RESPONSE: \n{response.json()}")
+            if self.is_remote:
+                self.compute_costs(response)
             #compute_costs(response)
             result: Dict[str, Any] = response.json()
             if 'choices' in result and len(result['choices']) > 0:
@@ -828,13 +841,16 @@ class ChineseAITranslator:
                 raise ValueError("Unexpected response structure from Open Router API.")
         except requests.exceptions.HTTPError as http_err:
             self.log(f"HTTP error occurred: {http_err}", "error")
-            raise
+            raise TranslationException(f"HTTP error: {http_err}") from http_err
         except requests.exceptions.RequestException as req_err:
             self.log(f"Request exception: {req_err}", "error")
-            raise
+            raise TranslationException(f"Request failed: {req_err}") from req_err
         except json.JSONDecodeError as json_err:
             self.log(f"JSON decode error: {json_err}", "error")
-            raise
+            raise TranslationException(f"JSON error: {json_err}") from json_err
+        except Exception as e:
+            self.log(f"Unexpected error: {e}", "error")
+            raise TranslationException(f"Unexpected error: {e}") from e
 
 
 
