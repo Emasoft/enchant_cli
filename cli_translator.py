@@ -4,7 +4,7 @@
 # Copyright (c) 2025 Emasoft
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
+# You may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
@@ -141,12 +141,30 @@ def replace_repeated_chars(text: str, chars) -> str:
     with a single occurrence. For example, "！！！！" becomes "！".
     """
     for char in chars:
-        if char not in PRESERVE_UNLIMITED:
-            # Escape the character to handle any regex special meaning.
-            pattern = re.escape(char) + r'{2,}'
-            text = re.sub(pattern, char, text)
+        # Escape the character to handle any regex special meaning.
+        pattern = re.escape(char) + r'{2,}'
+        text = re.sub(pattern, char, text)
     return text
+
+def sanitize_filename(filename: str) -> str:
+    """
+    Sanitize filenames by:
+    1. Removing illegal characters
+    2. Replacing sequences of repeated unsafe characters
+    3. Limiting length to 100 characters
+    """
+    # Remove problematic characters
+    filename = re.sub(r'[\\/*?:"<>|]', "", filename)
     
+    # Replace repeated characters that could cause filesystem issues
+    unsafe_chars = {'-', '_', '.', ' '}
+    for char in unsafe_chars:
+        pattern = re.escape(char) + r'{2,}'
+        filename = re.sub(pattern, char, filename)
+    
+    # Trim excess whitespace and limit length
+    filename = re.sub(r'\s+', ' ', filename).strip()
+    return filename[:100]
 
 def limit_repeated_chars(text, force_chinese=False, force_english=False):
     """
@@ -1020,7 +1038,7 @@ def save_translated_book(book_id, resume: bool = False, create_epub: bool = Fals
         raise ValueError("Book not found")
     # Create book folder
     try:
-        folder_name = clean_filename(f"{book.translated_title} by {book.translated_author}")
+        folder_name = sanitize_filename(f"{book.translated_title} by {book.translated_author}")
         book_dir = Path(folder_name)
         book_dir.mkdir(exist_ok=True)
     except OSError as e:

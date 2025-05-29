@@ -226,10 +226,9 @@ def replace_repeated_chars(text: str, chars) -> str:
     with a single occurrence. For example, "！！！！" becomes "！".
     """
     for char in chars:
-        if char not in PRESERVE_UNLIMITED:
-            # Escape the character to handle any regex special meaning.
-            pattern = re.escape(char) + r'{2,}'
-            text = re.sub(pattern, char, text)
+        # Escape the character to handle any regex special meaning.
+        pattern = re.escape(char) + r'{2,}'
+        text = re.sub(pattern, char, text)
     return text
     
 def clean(text: str) -> str:
