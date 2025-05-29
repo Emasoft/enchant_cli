@@ -49,7 +49,12 @@ def safe_print(*args, **kwargs):
         clean_text = re.sub(r'\[/?[^]]+\]', '', text)
         builtins.print(clean_text)
 
-import colorama as cr
+try:
+    import colorama as cr
+except ImportError:
+    cr = None
+    # tolog is not yet defined here, so we will log warning later in main if needed
+
 from rich.console import RenderableType
 from rich.table import Table
 from rich.text import Text
@@ -1245,6 +1250,10 @@ def main():
     )
     tolog = logging.getLogger(__name__)
     
+    # Warn if colorama is missing
+    if cr is None:
+        tolog.warning("colorama package not installed. Colored text may not work properly.")
+    
     # Set up signal handling for graceful termination
     def signal_handler(sig, frame):
         tolog.info("Interrupt received. Exiting gracefully.")
@@ -1255,7 +1264,36 @@ def main():
     # Parse command-line arguments
     import argparse
     parser = argparse.ArgumentParser(
-        description="Import a book from a text file, split it into chapters, and add to the database."
+        description="CLI tool for translating Chinese novels to English",
+        epilog="""\n
+USAGE EXAMPLES:
+Single novel translation (new/replace):
+  $ ./cli_translator.py novel.txt
+Single novel translation (resume):
+  $ ./cli_translator.py novel.txt --resume
+Batch translation (new):
+  $ ./cli_translator.py novels_dir --batch
+Batch translation (resume):
+  $ ./cli_translator.py novels_dir --batch --resume
+
+BEHAVIOR:
+- Without --batch: Translates a SINGLE novel file
+  • With --resume: Resumes translation from last translated chapter
+    in the novel's folder (if any)
+  • Without --resume: Starts new translation (OVERWRITES existing output)
+  
+- With --batch: Processes ALL .txt files in a DIRECTORY
+  • With --resume: Loads translation_batch_progress.yml to resume 
+    from interrupted batch
+  • Without --resume: STARTS NEW BATCH - ignores existing progress files
+    (WILL OVERWRITE existing translations)
+  • Batch status is saved in translation_batch_progress.yml
+  • Completed batches are archived in translations_chronology.yml
+
+WARNING: --resume without --batch only affects SINGLE novel translation.
+Combined flags (--batch --resume) are required for resuming batch processing.
+Existing translations are always overwritten when --resume is not used.
+"""
     )
     parser.add_argument("filepath", type=str, help="Path to the input text file or directory for batch")
     parser.add_argument("--encoding", type=str, default="utf-8", help="File encoding (default: utf-8)")
