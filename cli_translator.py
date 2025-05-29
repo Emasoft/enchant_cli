@@ -20,18 +20,41 @@
 
 from __future__ import annotations
 
+import builtins
+import sys
+import re
+
 APP_NAME = "cli-translator"
 APP_VERSION = "0.1.0"  # Semantic version (major.minor.patch)
 MIN_PYTHON_VERSION_REQUIRED = "3.8"
 
-from rich import print
+# Fallback to standard print if rich isn't available
+try:
+    from rich import print
+except ImportError:
+    # Use standard print if rich isn't available
+    print = builtins.print
+    # Set flag to indicate rich is not available
+    rich_available = False
+else:
+    rich_available = True
+
+def safe_print(*args, **kwargs):
+    """Print with rich if available, else strip markup tags"""
+    if rich_available:
+        print(*args, **kwargs)
+    else:
+        # Strip rich markup tags for plain text output
+        text = " ".join(str(arg) for arg in args)
+        clean_text = re.sub(r'\[/?[^]]+\]', '', text)
+        builtins.print(clean_text)
+
 import colorama as cr
 from rich.console import RenderableType
 from rich.table import Table
 from rich.text import Text
 
 import os
-import sys
 import re
 import logging
 import asyncio
@@ -1092,7 +1115,7 @@ def save_translated_book(book_id, resume: bool = False, create_epub: bool = Fals
     if create_epub:
         if epub is None:
             tolog.error("EPUB creation requested but 'ebooklib' is not installed.")
-            print("[bold red]Missing dependency 'ebooklib'. Please upload its source distribution so I can proceed.[/bold red]")
+            safe_print("[bold red]Missing dependency 'ebooklib'. Please upload its source distribution so I can proceed.[/bold red]")
         else:
             try:
                 epub_filename = str(output_filename).replace(".txt", ".epub")
@@ -1119,10 +1142,10 @@ def save_translated_book(book_id, resume: bool = False, create_epub: bool = Fals
                 book_epub.add_item(epub.EpubNav())
                 epub.write_epub(epub_filename, book_epub, {})
                 tolog.info(f"EPUB saved to {epub_filename}")
-                print(f"[bold green]EPUB saved to {epub_filename}[/bold green]")
+                safe_print(f"[bold green]EPUB saved to {epub_filename}[/bold green]")
             except Exception as e:
                 tolog.exception("Error while creating EPUB.")
-                print(f"[bold red]Error while creating EPUB: {e}[/bold red]")
+                safe_print(f"[bold red]Error while creating EPUB: {e}[/bold red]")
 
 ###############################################
 #               MAIN FUNCTION               #
@@ -1271,20 +1294,20 @@ def main():
         # Call the import_book_from_txt function to process the text file
         new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode)
         tolog.info(f"Book imported successfully. Book ID: {new_book_id}")
-        print(f"[bold green]Book imported successfully. Book ID: {new_book_id}[/bold green]")
+        safe_print(f"[bold green]Book imported successfully. Book ID: {new_book_id}[/bold green]")
     except Exception as e:
         tolog.exception("An error occurred during book import.")
-        print(f"[bold red]Error during book import: {e}[/bold red]")
+        safe_print(f"[bold red]Error during book import: {e}[/bold red]")
         sys.exit(1)
     
     # Save the translated book after import
     try:
         save_translated_book(new_book_id, resume=args.resume, create_epub=args.epub)
         tolog.info("Translated book saved successfully.")
-        print("[bold green]Translated book saved successfully.[/bold green]")
+        safe_print("[bold green]Translated book saved successfully.[/bold green]")
     except Exception as e:
         tolog.exception("Error saving translated book.")
-        print(f"[bold red]Error saving translated book: {e}[/bold red]")
+        safe_print(f"[bold red]Error saving translated book: {e}[/bold red]")
         sys.exit(1)
 
 if __name__ == "__main__":
