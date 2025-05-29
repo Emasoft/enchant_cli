@@ -1265,34 +1265,36 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(
         description="CLI tool for translating Chinese novels to English",
-        epilog="""\n
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""\
 USAGE EXAMPLES:
-Single novel translation (new/replace):
-  $ ./cli_translator.py novel.txt
-Single novel translation (resume):
-  $ ./cli_translator.py novel.txt --resume
-Batch translation (new):
-  $ ./cli_translator.py novels_dir --batch
-Batch translation (resume):
-  $ ./cli_translator.py novels_dir --batch --resume
+  Single novel translation (new/replace):
+    $ ./cli_translator.py novel.txt
+
+  Single novel translation (resume):
+    $ ./cli_translator.py novel.txt --resume
+
+  Batch translation (new):
+    $ ./cli_translator.py novels_dir --batch
+
+  Batch translation (resume):
+    $ ./cli_translator.py novels_dir --batch --resume
 
 BEHAVIOR:
-- Without --batch: Translates a SINGLE novel file
-  • With --resume: Resumes translation from last translated chapter
-    in the novel's folder (if any)
-  • Without --resume: Starts new translation (OVERWRITES existing output)
-  
-- With --batch: Processes ALL .txt files in a DIRECTORY
-  • With --resume: Loads translation_batch_progress.yml to resume 
-    from interrupted batch
-  • Without --resume: STARTS NEW BATCH - ignores existing progress files
-    (WILL OVERWRITE existing translations)
-  • Batch status is saved in translation_batch_progress.yml
-  • Completed batches are archived in translations_chronology.yml
+  Without --batch: Translates SINGLE novel files
+    • With --resume: Resumes translation from last chapter in novel's folder
+    • Without --resume: Starts new translation (OVERWRITES existing output)
 
-WARNING: --resume without --batch only affects SINGLE novel translation.
-Combined flags (--batch --resume) are required for resuming batch processing.
-Existing translations are always overwritten when --resume is not used.
+  With --batch: Processes ALL .txt files in a DIRECTORY
+    • With --resume: Loads progress from translation_batch_progress.yml
+    • Without --resume: Starts new batch (OVERWRITES existing translations)
+    • Progress saved in translation_batch_progress.yml
+    • Completed batches archived in translations_chronology.yml
+
+WARNINGS:
+  1. --resume without --batch only affects single novel translation
+  2. Combined flags (--batch --resume) required for batch resuming
+  3. Existing translations always overwritten without --resume
 """
     )
     parser.add_argument("filepath", type=str, help="Path to the input text file or directory for batch")
