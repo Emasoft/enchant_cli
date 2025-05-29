@@ -55,7 +55,6 @@ from rich.table import Table
 from rich.text import Text
 
 import os
-import re
 import logging
 import asyncio
 import queue
