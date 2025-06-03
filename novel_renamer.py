@@ -15,6 +15,7 @@ from typing import Optional, Dict, Tuple
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from requests.exceptions import HTTPError, ConnectionError, Timeout
 from common_utils import sanitize_filename
+from common_file_utils import decode_file_preview
 
 # Constants
 MIN_FILE_SIZE_KB = 100
@@ -49,53 +50,16 @@ If you cannot determine a value, use "Unknown" as the value.
 # sanitize_filename is now imported from common_utils
 
 def decode_file_content(file_path: Path, kb_to_read: int = DEFAULT_KB_TO_READ) -> Optional[str]:
-    """Decode file content with automatic encoding detection."""
-    try:
-        # Check file size
-        file_size_kb = file_path.stat().st_size / 1024
-        if file_size_kb < MIN_FILE_SIZE_KB:
-            logging.warning(f"File '{file_path}' is smaller than {MIN_FILE_SIZE_KB} KB. Skipping.")
-            return None
-
-        # Read file for encoding detection
-        with open(file_path, 'rb') as f:
-            raw_data = f.read(kb_to_read * 1024)
-        
-        # Detect encoding
-        detected = chardet.detect(raw_data)
-        encoding = detected['encoding']
-        confidence = detected['confidence']
-        
-        if not encoding or confidence < 0.7:
-            # Try common Chinese encodings
-            for enc in ['gb18030', 'gbk', 'utf-8']:
-                try:
-                    return raw_data.decode(enc)
-                except UnicodeDecodeError:
-                    continue
-            logging.error(f"Failed to decode '{file_path}' with any common encoding")
-            return None
-        
-        # Decode with detected encoding
-        try:
-            content = raw_data.decode(encoding)
-        except UnicodeDecodeError:
-            # Fallback to GB18030
-            try:
-                content = raw_data.decode('gb18030')
-            except UnicodeDecodeError:
-                logging.error(f"Failed to decode '{file_path}' even with GB18030")
-                return None
-        
-        # Truncate if too long
-        if len(content) > CONTENT_NUMBER_OF_CHARACTERS_HARD_LIMIT:
-            content = content[:CONTENT_NUMBER_OF_CHARACTERS_HARD_LIMIT]
-        
-        return content
-        
-    except Exception as e:
-        logging.error(f"Error reading file '{file_path}': {e}")
-        return None
+    """
+    Wrapper for backward compatibility - uses common_file_utils.decode_file_preview
+    """
+    return decode_file_preview(
+        file_path,
+        kb_to_read=kb_to_read,
+        min_file_size_kb=MIN_FILE_SIZE_KB,
+        max_chars=CONTENT_NUMBER_OF_CHARACTERS_HARD_LIMIT,
+        logger=logging.getLogger(__name__)
+    )
 
 @retry(
     stop=stop_after_attempt(3),

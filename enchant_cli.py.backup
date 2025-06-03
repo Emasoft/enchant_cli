@@ -506,14 +506,40 @@ def is_markdown(input_text):
     
     
 def decode_input_file_content(input_file: Path) -> str:
-    """
-    Wrapper for backward compatibility - uses common_file_utils.decode_full_file
-    """
-    return decode_full_file(input_file, logger=tolog)
+    encoding = detect_file_encoding(input_file)
+    tolog.debug(f"\nDetected encoding: {encoding}")
+    
+    try:
+        with codecs.open(input_file, 'r', encoding=encoding) as f:
+            content = f.read()
+    except Exception as e:
+        tolog.debug(f"\nAn error occurred processing file '{str(input_file)}': {e}")
+        tolog.debug("Defaulting to GB18030 encoding.")
+        encoding = 'GB18030'
+        try:
+            with codecs.open(input_file, 'r', encoding=encoding) as f:
+                content = f.read()
+        except Exception as e:
+            tolog.debug(f"\nAn error occurred processing file '{str(input_file)}': {e}")
+            tolog.debug("Attempt to decode using the detected encoding, replacing errors with the error character.")
+            with open(input_file, 'rb') as file:
+                content_bytes = file.read()
+                # Attempt to decode using the detected encoding, replacing errors with the error character
+                content = content_bytes.decode(encoding, errors='replace')
+            
+    return content
     
     
-# detect_file_encoding is now imported from common_file_utils
-# (returns tuple of (encoding, confidence) - for backward compatibility, we just return encoding)
+# try to detect the encoding of chinese text files 
+def detect_file_encoding(file_path: Path) -> str:
+    detector = UniversalDetector()
+    with file_path.open('rb') as f:
+        for line in f:
+            detector.feed(line)
+            if detector.done:
+                break
+        detector.close()
+        return detector.result['encoding']
         
         
         

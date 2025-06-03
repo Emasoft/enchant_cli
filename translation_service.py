@@ -25,6 +25,12 @@ import string
 import functools
 import html
 import time
+from common_text_utils import (
+    clean, replace_repeated_chars, limit_repeated_chars,
+    remove_html_markup, extract_code_blocks, extract_inline_code,
+    remove_html_comments, remove_script_and_style, replace_block_tags,
+    remove_remaining_tags, unescape_non_code_with_placeholders
+)
 
 
 # Constant parameters: 

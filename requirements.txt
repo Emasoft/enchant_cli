@@ -7,3 +7,4 @@ PyYAML
 filelock
 multiexit
 waiting
+ebooklib
