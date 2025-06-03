@@ -1179,8 +1179,32 @@ def process_novel_unified(file_path: Path, args) -> bool:
     original_path = file_path
     current_path = file_path
     
+    # Create a progress file for this specific novel to track phases
+    progress_file = file_path.parent / f".{file_path.stem}_progress.yml"
+    
+    # Load existing progress if resuming
+    if args.resume and progress_file.exists():
+        progress = load_safe_yaml(progress_file) or {}
+    else:
+        progress = {
+            'original_file': str(file_path),
+            'phases': {
+                'renaming': {'status': 'pending', 'result': None},
+                'translation': {'status': 'pending', 'result': None},
+                'epub': {'status': 'pending', 'result': None}
+            }
+        }
+    
+    # Update current path from progress if available
+    if progress['phases']['renaming']['status'] == 'completed' and progress['phases']['renaming']['result']:
+        current_path = Path(progress['phases']['renaming']['result'])
+        if current_path.exists():
+            tolog.info(f"Resuming with renamed file: {current_path.name}")
+        else:
+            current_path = file_path
+    
     # Phase 1: Renaming
-    if not args.skip_renaming:
+    if not args.skip_renaming and progress['phases']['renaming']['status'] != 'completed':
         tolog.info(f"Phase 1: Renaming file {file_path.name}")
         
         # Get API key
@@ -1200,16 +1224,28 @@ def process_novel_unified(file_path: Path, args) -> bool:
             
             if success and new_path:
                 current_path = new_path
+                progress['phases']['renaming']['status'] = 'completed'
+                progress['phases']['renaming']['result'] = str(new_path)
                 tolog.info(f"File renamed to: {new_path.name}")
             else:
                 tolog.warning(f"Renaming failed for {file_path.name}, continuing with original name")
+                progress['phases']['renaming']['status'] = 'failed'
+                
+            # Save progress
+            with progress_file.open('w') as f:
+                yaml.safe_dump(progress, f)
+                
         except Exception as e:
             tolog.error(f"Error during renaming: {e}")
+            progress['phases']['renaming']['status'] = 'failed'
+            progress['phases']['renaming']['error'] = str(e)
+            with progress_file.open('w') as f:
+                yaml.safe_dump(progress, f)
             if not args.resume:
                 return False
     
     # Phase 2: Translation
-    if not args.skip_translating:
+    if not args.skip_translating and progress['phases']['translation']['status'] != 'completed':
         tolog.info(f"Phase 2: Translating {current_path.name}")
         
         try:
@@ -1223,15 +1259,25 @@ def process_novel_unified(file_path: Path, args) -> bool:
             
             # Save translated chapters
             save_translated_book(new_book_id, resume=args.resume, create_epub=False)
+            
+            progress['phases']['translation']['status'] = 'completed'
+            progress['phases']['translation']['result'] = new_book_id
+            with progress_file.open('w') as f:
+                yaml.safe_dump(progress, f)
+                
             tolog.info(f"Translation completed for book ID: {new_book_id}")
             
         except Exception as e:
             tolog.error(f"Error during translation: {e}")
+            progress['phases']['translation']['status'] = 'failed'
+            progress['phases']['translation']['error'] = str(e)
+            with progress_file.open('w') as f:
+                yaml.safe_dump(progress, f)
             if not args.resume:
                 return False
     
     # Phase 3: EPUB Generation
-    if not args.skip_epub:
+    if not args.skip_epub and progress['phases']['epub']['status'] != 'completed':
         tolog.info(f"Phase 3: Generating EPUB for {current_path.name}")
         
         try:
@@ -1266,20 +1312,47 @@ def process_novel_unified(file_path: Path, args) -> bool:
                 )
                 
                 if success:
+                    progress['phases']['epub']['status'] = 'completed'
+                    progress['phases']['epub']['result'] = str(epub_path)
+                    with progress_file.open('w') as f:
+                        yaml.safe_dump(progress, f)
+                    
                     tolog.info(f"EPUB created successfully: {epub_path}")
                     if issues:
                         tolog.warning(f"EPUB created with {len(issues)} issues")
                 else:
+                    progress['phases']['epub']['status'] = 'failed'
+                    progress['phases']['epub']['error'] = f"{len(issues)} issues"
+                    with progress_file.open('w') as f:
+                        yaml.safe_dump(progress, f)
+                        
                     tolog.error(f"EPUB creation failed with {len(issues)} issues")
                     if not args.resume:
                         return False
             else:
                 tolog.warning(f"No translated chapters found for EPUB generation at {book_dir}")
+                progress['phases']['epub']['status'] = 'skipped'
+                progress['phases']['epub']['error'] = 'No chapters found'
+                with progress_file.open('w') as f:
+                    yaml.safe_dump(progress, f)
                 
         except Exception as e:
             tolog.error(f"Error during EPUB generation: {e}")
+            progress['phases']['epub']['status'] = 'failed'
+            progress['phases']['epub']['error'] = str(e)
+            with progress_file.open('w') as f:
+                yaml.safe_dump(progress, f)
             if not args.resume:
                 return False
+    
+    # Clean up progress file if all phases completed successfully
+    all_completed = all(
+        phase['status'] in ('completed', 'skipped') 
+        for phase in progress['phases'].values()
+    )
+    if all_completed and progress_file.exists():
+        progress_file.unlink()
+        tolog.info("All phases completed, removed progress file")
     
     return True
 

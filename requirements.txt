@@ -1,1 +1,9 @@
 rich
+requests
+tenacity
+chardet
+colorama
+PyYAML
+filelock
+multiexit
+waiting
