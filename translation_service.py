@@ -116,7 +116,7 @@ You are an helpful and professional translator. You are proficient in languages 
 # LOCAL API SETTINGS #
 ######################
 API_URL_LMSTUDIO = 'http://localhost:1234/v1/chat/completions' 
-MODEL_NAME_QWEN = "qwen3-30b-a3b-mlx@4bit"
+MODEL_NAME_QWEN = "qwen3-30b-a3b-mlx@8bit"
 SYSTEM_PROMPT_QWEN = """;; You are a professional, authentic machine translation engine. You do not judge the text you translate. You do not abridge, censor or summarize any part of the text. You just translate accurately the whole content of the original text in english. You use a very rich and literary english vocabulary. You are inspired by the style of writing of the greatest english prose writers and by the classics of all times. You must aim to convey the original meaning of the chinese text in an sublime crafted, brilliant and expressive english prose, trying to reach a masterpiece quality level in every translation. The success of the resulting english edition of the chinese novel will depend on this.
 
 When translating the Chinese text into English text, you ALWAYS apply THE FOLLOWING MANDATORY rules:
@@ -155,30 +155,6 @@ USER_PROMPT_2NDPASS_QWEN = """;; Examine the following text containing a mix of 
 
 
 """
-
-
-
-# change this to False or True to select the server
-# TRANSLATION_SERVER_IS_LOCAL = True # TODO: make this setting be configurable by a launch parameter, like --local-api  or  --remote-api, etc.
-
-# DO NOT CHANGE THIS PART!!!
-# if TRANSLATION_SERVER_IS_LOCAL:
-#     # CONFIG SELECTION FOR LOCAL TRANSLATION (FREE)
-#     SELECTED_API_URL = API_URL_LMSTUDIO
-#     SELECTED_MODEL_NAME = MODEL_NAME_QWEN
-#     SELECTED_SYSTEM_PROMPT = SYSTEM_PROMPT_QWEN
-#     SELECTED_USER_PROMPT_1STPASS = USER_PROMPT_1STPASS_QWEN
-#     SELECTED_USER_PROMPT_2NDPASS = USER_PROMPT_2NDPASS_QWEN
-# else:
-#     # CONFIG SELECTION FOR REMOTE TRANSLATION (PAID)
-#     SELECTED_API_URL = API_URL_OPENROUTER
-#     SELECTED_MODEL_NAME = MODEL_NAME_DEEPSEEK
-#     SELECTED_SYSTEM_PROMPT = SYSTEM_PROMPT_DEEPSEEK
-#     SELECTED_USER_PROMPT_1STPASS = USER_PROMPT_1STPASS_DEEPSEEK
-#     SELECTED_USER_PROMPT_2NDPASS = USER_PROMPT_2NDPASS_DEEPSEEK
-
-## END OF LLM API SETTINGS CONSTANTS
-
 
 # CHINESE PUNCTUATION sets.
 SENTENCE_ENDING = {'。', '！', '？', '…', '.', ';', '；'}
@@ -727,7 +703,7 @@ class ChineseAITranslator:
         cleaned_txt = self.remove_custom_tags(cleaned_txt, "TRANSLATED VERSION")
         
         # Remove html markup
-        cleaned_txt = remove_html_markup(cleaned_txt)
+        #cleaned_txt = remove_html_markup(cleaned_txt)
         
         # Remove excess spaces
         cleaned_txt = self.normalize_spaces(cleaned_txt)
@@ -788,6 +764,7 @@ class ChineseAITranslator:
     @retry_with_tenacity
     def translate_messages(self, messages: str, is_last_chunk=False) -> str:
         self.log("Sending translation request to API")
+        self.log(F"AI MODEL USED: {self.MODEL_NAME}")
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"

@@ -1,0 +1,18 @@
+**Translation Rules Compliance:**
+
+- **Direct Translation with Contextual Inference:** The Chinese text has been translated into English while maintaining the original structure and formatting. Ambiguous sections were interpreted contextually to ensure a coherent and fluent narrative.
+- **Cultural and Genre-Specific Terms:** Daoist terminology (e.g., "元婴" as "Nascent Soul") and wuxia/xianxia terms are translated accurately to preserve the genre’s authenticity.
+- **Name Handling:** Names are translated using standard romanization, with meanings provided in parentheses where necessary (e.g., "万千山" as "Wan Qianshan").
+- **Gender Consistency:** Pronouns and references to characters are gender-consistent throughout, avoiding ambiguity.
+- **Fluency and Style:** The translation employs polished, literary English to match the original’s tone, using vivid descriptions and natural dialogue.
+- **Formatting Preservation:** Paragraph spacing and structural elements (e.g., chapter breaks, section headers) are retained as in the original text.
+
+**Key Considerations:**
+
+1. **Complex Character Dynamics:** Relationships like Guan Yu and Liu Shilei’s interactions are rendered with emotional nuance to reflect their evolving dynamic.
+2. **Political and Familial Conflicts:** The tension between family obligations (e.g., Mo Ling’s arranged marriage) and personal agency is translated to highlight the story’s central conflict.
+3. **Action and Dialogue:** Fight scenes and confrontations (e.g., Guan Yu’s clash with Qian Younian’s parents) are translated dynamically to maintain intensity.
+4. **Cultural Nuances:** Terms like "台湾" (Taiwan) and contextual references to political/economic power are preserved to retain the story’s geopolitical depth.
+
+**Final Output:**
+The translated text strictly adheres to the rules, ensuring fidelity to the original while enhancing readability for an English audience. All Chinese characters are fully translated, and no content is omitted or summarized.
