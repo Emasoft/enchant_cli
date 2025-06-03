@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Optional, Dict, Tuple
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from requests.exceptions import HTTPError, ConnectionError, Timeout
+from common_utils import sanitize_filename
 
 # Constants
 MIN_FILE_SIZE_KB = 100
@@ -45,13 +46,7 @@ Respond in JSON format with these exact keys:
 If you cannot determine a value, use "Unknown" as the value.
 """
 
-def sanitize_filename(filename: str) -> str:
-    """Sanitize filename by removing/replacing invalid characters."""
-    invalid_chars = '<>:"/\\|?*'
-    for char in invalid_chars:
-        filename = filename.replace(char, '_')
-    filename = filename.strip('. ')
-    return filename[:255]  # Max filename length
+# sanitize_filename is now imported from common_utils
 
 def decode_file_content(file_path: Path, kb_to_read: int = DEFAULT_KB_TO_READ) -> Optional[str]:
     """Decode file content with automatic encoding detection."""
@@ -197,31 +192,4 @@ def process_novel_file(file_path: Path, api_key: str, model: str = "gpt-4o-mini"
         new_path = rename_novel_file(file_path, metadata)
         return (new_path is not None, new_path, metadata)
 
-def extract_novel_info_from_filename(filename: str) -> Dict[str, str]:
-    """
-    Extract novel information from standardized filename format.
-    Format: "English Title by English Author (Romanized Author) - Original Title by Original Author.txt"
-    """
-    info = {
-        'title_english': '',
-        'author_english': '',
-        'author_romanized': '',
-        'title_original': '',
-        'author_original': ''
-    }
-    
-    # Remove extension
-    base_filename = Path(filename).stem
-    
-    # Match the pattern
-    pattern = r'^(.+?) by (.+?) \((.+?)\) - (.+?) by (.+?)$'
-    match = re.match(pattern, base_filename)
-    
-    if match:
-        info['title_english'] = match.group(1)
-        info['author_english'] = match.group(2)
-        info['author_romanized'] = match.group(3)
-        info['title_original'] = match.group(4)
-        info['author_original'] = match.group(5)
-    
-    return info
+# extract_novel_info_from_filename functionality is now in common_utils.extract_book_info_from_path

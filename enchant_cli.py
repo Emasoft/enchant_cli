@@ -55,9 +55,16 @@ except ImportError:
     cr = None
     # tolog is not yet defined here, so we will log warning later in main if needed
 
-from rich.console import RenderableType
-from rich.table import Table
-from rich.text import Text
+# Only import rich components if rich is available
+if rich_available:
+    from rich.console import RenderableType
+    from rich.table import Table
+    from rich.text import Text
+else:
+    # Define dummy classes for when rich is not available
+    RenderableType = None
+    Table = None
+    Text = None
 
 import os
 import logging
@@ -80,13 +87,20 @@ from concurrent.futures import ThreadPoolExecutor
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from translation_service import ChineseAITranslator
-from novel_renamer import process_novel_file, extract_novel_info_from_filename
+from novel_renamer import process_novel_file
 from epub_builder import build_epub_from_directory
+from common_utils import sanitize_filename, extract_book_info_from_path
 
-import rich
-import rich.repr
 import enum
-import multiexit
+
+if rich_available:
+    import rich
+    import rich.repr
+
+try:
+    import multiexit
+except ImportError:
+    multiexit = None
 
 import codecs
 from chardet.universaldetector import UniversalDetector
@@ -107,10 +121,9 @@ import datetime as dt
 import unicodedata
 import filelock
 
-# Initialize the translator
-translator = ChineseAITranslator(logger=logging.getLogger(__name__))
-
-global tolog
+# Global variables - will be initialized in main()
+translator = None
+tolog = None
 
 MAXCHARS = 12000 # TODO: make this value configurable by the user 
 
@@ -155,25 +168,7 @@ def clean(text: str) -> str:
         raise TypeError("Input must be a string")
     return text.lstrip(' ').rstrip(' ')
 
-def sanitize_filename(filename: str) -> str:
-    """
-    Sanitize filenames by:
-    1. Removing illegal characters
-    2. Replacing sequences of repeated unsafe characters
-    3. Limiting length to 100 characters
-    """
-    # Remove problematic characters
-    filename = re.sub(r'[\\/*?:"<>|]', "", filename)
-    
-    # Replace repeated characters that could cause filesystem issues
-    unsafe_chars = {'-', '_', '.', ' '}
-    for char in unsafe_chars:
-        pattern = re.escape(char) + r'{2,}'
-        filename = re.sub(pattern, char, filename)
-    
-    # Trim excess whitespace and limit length
-    filename = re.sub(r'\s+', ' ', filename).strip()
-    return filename[:100]
+# sanitize_filename is now imported from common_utils
 
 def replace_repeated_chars(text: str, chars) -> str:
     """
@@ -625,6 +620,121 @@ def split_chinese_text_using_split_points(book_content, max_chars=MAXCHARS):
     splitted_chapters = [book_content[i:j] for i, j in zip([0]+split_points_list, split_points_list+[None])]
     
     return splitted_chapters
+
+
+###############################################
+#        DATABASE SIMULATION CLASSES          #
+###############################################
+
+# Database classes already defined earlier - skip duplicate definitions
+
+# Duplicate class Field:
+    def __init__(self, name):
+        self.name = name
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        return instance.__dict__.get(self.name)
+    def __set__(self, instance, value):
+        instance.__dict__[self.name] = value
+    def __eq__(self, other):
+        # When used in a class-level comparison (e.g., Book.source_file == filename),
+        # return a lambda that checks whether the instance's attribute equals 'other'.
+        return lambda instance: getattr(instance, self.name, None) == other
+
+class Book:
+    # Using Field descriptor for source_file to support query comparisons
+    source_file = Field('source_file')
+    
+    def __init__(self, book_id, title, original_title, translated_title, transliterated_title,
+                 author, original_author, translated_author, transliterated_author, source_file, total_characters):
+        self.book_id = book_id
+        self.title = title
+        self.original_title = original_title
+        self.translated_title = translated_title
+        self.transliterated_title = transliterated_title
+        self.author = author
+        self.original_author = original_author
+        self.translated_author = translated_author
+        self.transliterated_author = transliterated_author
+        self.source_file = source_file
+        self.total_characters = total_characters
+        self.chapters = []  # List to hold Chapter instances
+
+    @classmethod
+    def create(cls, **kwargs):
+        book = cls(
+            book_id=kwargs.get("book_id"),
+            title=kwargs.get("title"),
+            original_title=kwargs.get("original_title"),
+            translated_title=kwargs.get("translated_title"),
+            transliterated_title=kwargs.get("transliterated_title"),
+            author=kwargs.get("author"),
+            original_author=kwargs.get("original_author"),
+            translated_author=kwargs.get("translated_author"),
+            transliterated_author=kwargs.get("transliterated_author"),
+            source_file=kwargs.get("source_file"),
+            total_characters=kwargs.get("total_characters")
+        )
+        BOOK_DB[book.book_id] = book
+        return book
+
+    @classmethod
+    def get_or_none(cls, condition):
+        for book in BOOK_DB.values():
+            if condition(book):
+                return book
+        return None
+
+    @classmethod
+    def get_by_id(cls, book_id):
+        return BOOK_DB.get(book_id)
+
+class Chapter:
+    def __init__(self, chapter_id, book_id, chapter_number, original_variation_id):
+        self.chapter_id = chapter_id
+        self.book_id = book_id
+        self.chapter_number = chapter_number
+        self.original_variation_id = original_variation_id
+
+    @classmethod
+    def create(cls, chapter_id, book_id, chapter_number, original_variation_id):
+        chapter = cls(chapter_id, book_id, chapter_number, original_variation_id)
+        CHAPTER_DB[chapter_id] = chapter
+        # Also add the chapter to the corresponding Book's chapters list
+        book = Book.get_by_id(book_id)
+        if book:
+            book.chapters.append(chapter)
+        return chapter
+
+class Variation:
+    def __init__(self, variation_id, book_id, chapter_id, chapter_number, language, category, text_content):
+        self.variation_id = variation_id
+        self.book_id = book_id
+        self.chapter_id = chapter_id
+        self.chapter_number = chapter_number
+        self.language = language
+        self.category = category
+        self.text_content = text_content
+
+    @classmethod
+    def create(cls, **kwargs):
+        variation = cls(
+            variation_id=kwargs.get("variation_id"),
+            book_id=kwargs.get("book_id"),
+            chapter_id=kwargs.get("chapter_id"),
+            chapter_number=kwargs.get("chapter_number"),
+            language=kwargs.get("language"),
+            category=kwargs.get("category"),
+            text_content=kwargs.get("text_content")
+        )
+        VARIATION_DB[variation.variation_id] = variation
+        return variation
+
+def manual_commit():
+    # Simulate a database commit. In this simple implementation, changes are already in memory.
+    # tolog.debug("Manual commit executed.")
+    pass
 
 
 # NOTE: If a chapter/chunk go over the characters limit of max_char, 
@@ -1282,7 +1392,7 @@ def process_novel_unified(file_path: Path, args) -> bool:
         
         try:
             # Extract book info from filename
-            book_info = extract_novel_info_from_filename(current_path.name)
+            book_info = extract_book_info_from_path(current_path)
             
             # Find the output directory for this book
             book_title = book_info['title_english'] or current_path.stem
