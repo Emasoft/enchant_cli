@@ -61,15 +61,11 @@ from rich.text import Text
 
 import os
 import logging
-import asyncio
-import queue
 import signal
 import threading
 import time
-import http
 
 from functools import partial
-from queue import Queue, Empty
 from pathlib import Path 
 from datetime import datetime
 from threading import Event
@@ -84,7 +80,6 @@ from translation_service import ChineseAITranslator
 import rich
 import rich.repr
 import enum
-import multiexit
 
 import codecs
 from chardet.universaldetector import UniversalDetector
@@ -95,9 +90,10 @@ from typing import (
 )
 import html
 try:
-    from ebooklib import epub  # for EPUB generation
+    from make_epub import create_epub_from_chapters, ValidationError as EpubValidationError
+    epub_available = True
 except ImportError:
-    epub = None  # Will notify user if EPUB creation is requested without library
+    epub_available = False  # Will notify user if EPUB creation is requested without make_epub
 
 import errno
 import yaml
@@ -105,12 +101,18 @@ import datetime as dt
 import unicodedata
 import filelock
 
-# Initialize the translator
-translator = ChineseAITranslator(logger=logging.getLogger(__name__))
+# Import new modules for enhanced functionality
+from icloud_sync import ICloudSync, ensure_synced, prepare_for_write
+from config_manager import ConfigManager, get_config
+from model_pricing import ModelPricingManager, get_pricing_manager
 
-global tolog
+# Global variables - will be initialized in main()
+translator = None
+tolog = None
+icloud_sync = None
+pricing_manager = None
 
-MAXCHARS = 12000 # TODO: make this value configurable by the user 
+MAXCHARS = 12000  # Default value, will be updated from config in main() 
 
 
 # CHINESE PUNCTUATION sets.
@@ -520,6 +522,9 @@ def is_markdown(input_text):
     
     
 def decode_input_file_content(input_file: Path) -> str:
+    # Ensure file is synced from iCloud if needed
+    input_file = ensure_synced(input_file)
+    
     encoding = detect_file_encoding(input_file)
     tolog.debug(f"\nDetected encoding: {encoding}")
     
@@ -546,6 +551,9 @@ def decode_input_file_content(input_file: Path) -> str:
     
 # try to detect the encoding of chinese text files 
 def detect_file_encoding(file_path: Path) -> str:
+    # Ensure file is synced from iCloud if needed
+    file_path = ensure_synced(file_path)
+    
     detector = UniversalDetector()
     with file_path.open('rb') as f:
         for line in f:
@@ -628,7 +636,7 @@ def split_chinese_text_using_split_points(book_content, max_chars=MAXCHARS):
 # NOTE: If a chapter/chunk go over the characters limit of max_char, 
 # then the chapter is split anyway without waiting for
 # the chapter title pattern.
-def import_book_from_txt(file_path, encoding='utf-8', chapter_pattern=r'Chapter \d+', max_chars=MAXCHARS, split_mode='PARAGRAPHS'):
+def import_book_from_txt(file_path, encoding='utf-8', chapter_pattern=r'Chapter \d+', max_chars=MAXCHARS, split_mode='PARAGRAPHS', split_method='paragraph'):
     tolog.debug(" -> import_book_from_text()")
 
     filename = Path(file_path).name
@@ -653,10 +661,10 @@ def import_book_from_txt(file_path, encoding='utf-8', chapter_pattern=r'Chapter 
     if split_mode == "SPLIT_POINTS":
         splitted_chapters = split_chinese_text_using_split_points(book_content, max_chars)
     elif split_mode == "PARAGRAPHS":
-        splitted_chapters = split_chinese_text_in_parts(book_content, max_chars)
+        splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
     else:
         # default use split_mode = 'PARAGRAPHS'
-        splitted_chapters = split_chinese_text_in_parts(book_content, max_chars)
+        splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
         
     # Create new book entry in database
     new_book_id = str(uuid.uuid4())
@@ -882,12 +890,52 @@ def split_on_punctuation_contextual(text: str) -> list:
     
     return paragraphs
 
+
+def split_text_by_actual_paragraphs(text: str) -> list:
+    """
+    Splits text into paragraphs based on actual paragraph breaks (double newlines).
+    This preserves the natural paragraph structure of the text.
+    """
+    if not isinstance(text, str):
+        raise TypeError("Input text must be a string")
+    
+    # Preprocess text
+    text = clean_adverts(text)
+    text = clean(text)
+    
+    # Normalize newlines
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    
+    # Split on double newlines (actual paragraph breaks)
+    # Also handle other Unicode paragraph separators
+    text = text.replace("\u2029", "\n\n")  # Paragraph Separator
+    text = text.replace("\u2028", "\n")    # Line Separator
+    
+    # Split on double newlines
+    raw_paragraphs = re.split(r'\n\s*\n', text)
+    
+    paragraphs = []
+    for para in raw_paragraphs:
+        para = para.strip()
+        if para:
+            # Clean up extra spaces
+            para = re.sub(' +', ' ', para)
+            # Add back the double newline for consistency
+            paragraphs.append(para + "\n\n")
+    
+    return paragraphs
     
     
     
 ## Function to split a chinese novel in parts of max n characters keeping the paragraphs intact
-def split_chinese_text_in_parts(text: str, max_chars=MAXCHARS) -> list:
-    paragraphs = split_on_punctuation_contextual(text)
+def split_chinese_text_in_parts(text: str, max_chars=MAXCHARS, split_method='paragraph') -> list:
+    # Choose splitting method based on parameter
+    if split_method == 'punctuation':
+        # Use legacy punctuation-based splitting
+        paragraphs = split_on_punctuation_contextual(text)
+    else:
+        # Use the new function that splits on actual paragraph breaks
+        paragraphs = split_text_by_actual_paragraphs(text)
     chapters = list()
     chapters_counter = 1
     current_char_count = 0
@@ -1113,40 +1161,74 @@ def save_translated_book(book_id, resume: bool = False, create_epub: bool = Fals
     full_translated_text = remove_excess_empty_lines(full_translated_text)
     # Save to a file named with the book_id
     output_filename = book_dir / f"translated_{book.translated_title} by {book.translated_author}.txt"
+    # Prepare path for writing (ensures parent directory is synced)
+    output_filename = prepare_for_write(output_filename)
     with open(output_filename, "w", encoding="utf-8") as f:
         f.write(full_translated_text)
     tolog.info(f"Translated book saved to {output_filename}")
+    
+    # Save cost log for remote translations
+    if translator and translator.is_remote and translator.request_count > 0:
+        cost_log_filename = output_filename.with_suffix('').name + "_AI_COSTS.log"
+        cost_log_path = book_dir / cost_log_filename
+        cost_log_path = prepare_for_write(cost_log_path)
+        
+        with open(cost_log_path, "w", encoding="utf-8") as f:
+            f.write("AI Translation Cost Log\n")
+            f.write("======================\n\n")
+            f.write(f"Novel: {book.translated_title} by {book.translated_author}\n")
+            f.write(f"Translation Date: {dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write("API Service: OpenRouter (Remote)\n")
+            f.write(f"Model: {translator.MODEL_NAME}\n")
+            f.write(f"\n{translator.format_cost_summary()}\n")
+            
+            # Add per-request breakdown if needed
+            f.write("\n\nDetailed Breakdown:\n")
+            f.write("-------------------\n")
+            f.write(f"Total Chapters Translated: {len(sorted_chapters)}\n")
+            if translator.request_count > 0:
+                f.write(f"Average Cost per Chapter: ${translator.total_cost / len(sorted_chapters):.6f}\n")
+                f.write(f"Average Tokens per Chapter: {translator.total_tokens // len(sorted_chapters):,}\n")
+            
+            # Save raw data for potential future analysis
+            f.write("\n\nRaw Data:\n")
+            f.write("---------\n")
+            f.write(f"total_cost: {translator.total_cost}\n")
+            f.write(f"total_tokens: {translator.total_tokens}\n")
+            f.write(f"total_prompt_tokens: {translator.total_prompt_tokens}\n")
+            f.write(f"total_completion_tokens: {translator.total_completion_tokens}\n")
+            f.write(f"request_count: {translator.request_count}\n")
+            
+        tolog.info(f"Cost log saved to {cost_log_path}")
     if create_epub:
-        if epub is None:
-            tolog.error("EPUB creation requested but 'ebooklib' is not installed.")
-            safe_print("[bold red]Missing dependency 'ebooklib'. Please upload its source distribution so I can proceed.[/bold red]")
+        if not epub_available:
+            tolog.error("EPUB creation requested but 'make_epub' module is not available.")
+            safe_print("[bold red]Missing make_epub module. Please ensure make_epub.py is in the same directory.[/bold red]")
         else:
             try:
-                epub_filename = str(output_filename).replace(".txt", ".epub")
-                _chapters_html = []
-                book_epub = epub.EpubBook()
-                book_epub.set_identifier(str(book.book_id))
-                book_epub.set_title(book.translated_title or book.title)
-                book_epub.set_language("zh")  # adjust if needed
-                if book.translated_author:
-                    book_epub.add_author(book.translated_author)
-                # Build chapters
+                epub_filename = Path(str(output_filename).replace(".txt", ".epub"))
+                
+                # Prepare chapters list for make_epub
+                chapters_for_epub = []
                 for ch_num, ch_text in enumerate(translated_contents, start=1):
-                    chap = epub.EpubHtml(title=f"Chapter {ch_num}", file_name=f"chap_{ch_num}.xhtml", lang="zh")
-                    # Preserve line breaks to ensure no text is lost
-                    escaped = html.escape(ch_text)
-                    chap.content = f"<h1>Chapter {ch_num}</h1><p>" + escaped.replace('\n','<br/>') + "</p>"
-                    book_epub.add_item(chap)
-                    _chapters_html.append(chap)
-                # Define Table of Contents and spine
-                book_epub.toc = tuple(_chapters_html)
-                book_epub.spine = ["nav"] + _chapters_html
-                # Add default navigation files
-                book_epub.add_item(epub.EpubNcx())
-                book_epub.add_item(epub.EpubNav())
-                epub.write_epub(epub_filename, book_epub, {})
+                    chapter_title = f"Chapter {ch_num}"
+                    chapters_for_epub.append((chapter_title, ch_text))
+                
+                # Create EPUB using make_epub module
+                create_epub_from_chapters(
+                    chapters=chapters_for_epub,
+                    output_path=epub_filename,
+                    title=book.translated_title or book.title,
+                    author=book.translated_author or book.author,
+                    cover_path=None,  # Could add cover support later
+                    detect_headings=False  # We already have chapter structure
+                )
+                
                 tolog.info(f"EPUB saved to {epub_filename}")
                 safe_print(f"[bold green]EPUB saved to {epub_filename}[/bold green]")
+            except EpubValidationError as e:
+                tolog.error(f"EPUB validation error: {e}")
+                safe_print(f"[bold red]EPUB validation error: {e}[/bold red]")
             except Exception as e:
                 tolog.exception("Error while creating EPUB.")
                 safe_print(f"[bold red]Error while creating EPUB: {e}[/bold red]")
@@ -1220,7 +1302,8 @@ def process_batch(args):
                 book_id = import_book_from_txt(item['path'], 
                                      encoding=args.encoding,
                                      max_chars=args.max_chars, 
-                                     split_mode=args.split_mode)
+                                     split_mode=args.split_mode,
+                                     split_method=args.split_method)
                 save_translated_book(book_id, resume=args.resume, create_epub=args.epub)
                 item['status'] = 'completed'
             except Exception as e:
@@ -1240,15 +1323,96 @@ def process_batch(args):
                         f.write("---\n")
                         yaml.safe_dump(progress, f, allow_unicode=True)
                     progress_file.unlink()
+    
+    # Save batch cost summary for remote translations
+    global translator
+    if translator and translator.is_remote and translator.request_count > 0:
+        batch_cost_log_path = input_path / "BATCH_AI_COSTS.log"
+        batch_cost_log_path = prepare_for_write(batch_cost_log_path)
+        
+        completed_count = sum(1 for file in progress['files'] if file['status'] == 'completed')
+        failed_count = sum(1 for file in progress['files'] if file['status'] == 'failed/skipped')
+        
+        with open(batch_cost_log_path, "w", encoding="utf-8") as f:
+            f.write("Batch Translation Cost Summary\n")
+            f.write("==============================\n\n")
+            f.write(f"Batch Directory: {input_path}\n")
+            f.write(f"Translation Date: {dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write("API Service: OpenRouter (Remote)\n")
+            f.write(f"Model: {translator.MODEL_NAME}\n")
+            f.write("\nFiles Processed:\n")
+            f.write("----------------\n")
+            f.write(f"Total Files: {len(progress['files'])}\n")
+            f.write(f"Completed: {completed_count}\n")
+            f.write(f"Failed/Skipped: {failed_count}\n")
+            f.write(f"\n{translator.format_cost_summary()}\n")
+            
+            # List individual files and their status
+            f.write("\n\nFile Details:\n")
+            f.write("-------------\n")
+            for file in progress['files']:
+                filename = Path(file['path']).name
+                status = file['status']
+                f.write(f"- {filename}: {status}\n")
+                if 'error' in file:
+                    f.write(f"  Error: {file['error']}\n")
+            
+            # Save raw data
+            f.write("\n\nRaw Cost Data:\n")
+            f.write("-------------\n")
+            f.write(f"total_cost: {translator.total_cost}\n")
+            f.write(f"total_tokens: {translator.total_tokens}\n")
+            f.write(f"total_prompt_tokens: {translator.total_prompt_tokens}\n")
+            f.write(f"total_completion_tokens: {translator.total_completion_tokens}\n")
+            f.write(f"request_count: {translator.request_count}\n")
+            if completed_count > 0:
+                f.write(f"average_cost_per_novel: ${translator.total_cost / completed_count:.6f}\n")
+                f.write(f"average_tokens_per_novel: {translator.total_tokens // completed_count:,}\n")
+        
+        tolog.info(f"Batch cost summary saved to {batch_cost_log_path}")
 
 def main():
     global tolog
-    # Set up logging
+    
+    # Pre-parse to get config file path
+    import argparse
+    pre_parser = argparse.ArgumentParser(add_help=False)
+    pre_parser.add_argument("--config", type=str, default="enchant_config.yml")
+    pre_args, _ = pre_parser.parse_known_args()
+    
+    # Load configuration
+    try:
+        config_manager = ConfigManager(config_path=Path(pre_args.config))
+        config = config_manager.config
+    except ValueError as e:
+        print(f"Configuration error: {e}")
+        print("Please fix the configuration file or delete it to regenerate defaults.")
+        sys.exit(1)
+    
+    # Set up logging based on config
+    log_level = getattr(logging, config['logging']['level'], logging.INFO)
+    log_format = config['logging']['format']
+    
     logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s - %(levelname)s - %(message)s"
+        level=log_level,
+        format=log_format
     )
     tolog = logging.getLogger(__name__)
+    
+    # Set up file logging if enabled
+    if config['logging']['file_enabled']:
+        file_handler = logging.FileHandler(config['logging']['file_path'])
+        file_handler.setLevel(log_level)
+        file_handler.setFormatter(logging.Formatter(log_format))
+        tolog.addHandler(file_handler)
+    
+    # Initialize global services
+    global icloud_sync, pricing_manager, MAXCHARS
+    icloud_sync = ICloudSync(enabled=config['icloud']['enabled'])
+    pricing_manager = get_pricing_manager()
+    
+    # Update MAXCHARS from config
+    MAXCHARS = config['text_processing']['max_chars_per_chunk']
     
     # Warn if colorama is missing
     if cr is None:
@@ -1262,61 +1426,220 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
     
     # Parse command-line arguments
-    import argparse
     parser = argparse.ArgumentParser(
-        description="CLI tool for translating Chinese novels to English",
+        description="CLI tool for translating Chinese novels to English using AI translation services",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""\
+====================================================================================
+CONFIGURATION FILE:
+====================================================================================
+
+ENCHANT uses a YAML configuration file (enchant_config.yml) for default settings.
+On first run, a default configuration file will be created with extensive comments.
+
+Key configuration sections:
+  • translation: API endpoints, models, temperature, retries
+  • text_processing: Split methods, encodings, chunk sizes  
+  • novel_renaming: OpenAI settings for metadata extraction
+  • epub: EPUB generation settings and validation
+  • batch: Threading, file patterns, progress tracking
+  • icloud: Auto-sync for iOS/macOS iCloud Drive
+  • pricing: Cost tracking and model pricing
+  • logging: Log levels, file output
+
+Command-line arguments always override configuration file settings.
+
+====================================================================================
 USAGE EXAMPLES:
+====================================================================================
+
   Single novel translation (new/replace):
-    $ ./cli_translator.py novel.txt
+    $ python cli_translator.py novel.txt
+    $ python cli_translator.py "My Novel.txt" --encoding gb2312
 
-  Single novel translation (resume):
-    $ ./cli_translator.py novel.txt --resume
+  Single novel translation with resume:
+    $ python cli_translator.py novel.txt --resume
 
-  Batch translation (new):
-    $ ./cli_translator.py novels_dir --batch
+  Batch translation of directory:
+    $ python cli_translator.py novels_dir --batch
+    $ python cli_translator.py novels_dir --batch --resume
 
-  Batch translation (resume):
-    $ ./cli_translator.py novels_dir --batch --resume
+  Remote translation (using OpenRouter):
+    $ python cli_translator.py novel.txt --remote
+    $ export OPENROUTER_API_KEY="your_key_here"
 
-BEHAVIOR:
-  Without --batch: Translates SINGLE novel files
-    • With --resume: Resumes translation from last chapter in novel's folder
-    • Without --resume: Starts new translation (OVERWRITES existing output)
+  Generate EPUB after translation:
+    $ python cli_translator.py novel.txt --epub
 
-  With --batch: Processes ALL .txt files in a DIRECTORY
-    • With --resume: Loads progress from translation_batch_progress.yml
-    • Without --resume: Starts new batch (OVERWRITES existing translations)
-    • Progress saved in translation_batch_progress.yml
-    • Completed batches archived in translations_chronology.yml
+  Custom splitting methods:
+    $ python cli_translator.py novel.txt --split-method punctuation  # Legacy method
+    $ python cli_translator.py novel.txt --split-method paragraph    # Default method
 
+====================================================================================
+SPLITTING METHODS EXPLAINED:
+====================================================================================
+
+  --split-method paragraph (DEFAULT):
+    • Splits text at natural paragraph breaks (double newlines)
+    • Preserves the original paragraph structure
+    • Keeps all sentences within a paragraph together
+    • Best for maintaining narrative flow and context
+    • Example: A paragraph with 5 sentences stays as one unit
+
+  --split-method punctuation (LEGACY):
+    • Splits based on Chinese punctuation patterns
+    • May break paragraphs at sentence endings (。！？)
+    • Creates breaks when quotes/brackets follow punctuation
+    • Can result in more fragmented text
+    • Example: "Hello," he said. → May become separate paragraphs
+
+====================================================================================
+DETAILED OPTIONS:
+====================================================================================
+
+  TRANSLATION MODES:
+    --remote              Use OpenRouter API instead of local LM Studio
+                         Requires: OPENROUTER_API_KEY environment variable
+                         Models: DeepSeek for remote, Qwen for local
+    
+    --resume             Resume interrupted translation from last chapter
+                         Single: Checks for existing chapter files
+                         Batch: Uses translation_batch_progress.yml
+
+  OUTPUT OPTIONS:
+    --epub               Generate EPUB file after translation completes
+                         Creates: sanitized_title.epub with TOC
+                         Includes: All translated chapters in order
+
+  TEXT PROCESSING:
+    --encoding ENCODING  Input file encoding (default: utf-8)
+                         Common: utf-8, gb2312, gb18030, big5
+                         Auto-detected if not specified
+
+    --max_chars NUMBER   Maximum characters per translation chunk
+                         Default: 12000 characters
+                         Affects: Memory usage and API limits
+
+    --split_mode MODE    How to split large texts into chunks
+                         PARAGRAPHS: Split by paragraph boundaries
+                         SPLIT_POINTS: Use explicit markers in text
+
+  BATCH PROCESSING:
+    --batch              Process all .txt files in directory
+                         Creates: translation_batch_progress.yml
+                         Archives: translations_chronology.yml
+                         Continues on individual file failures
+
+====================================================================================
+BEHAVIOR NOTES:
+====================================================================================
+
+  Translation Process:
+    1. Reads and detects encoding of input file
+    2. Splits text into manageable chunks (respecting paragraph boundaries)
+    3. Translates each chunk with AI service (local or remote)
+    4. Saves individual chapter files during translation
+    5. Combines chapters into final translated book
+    6. Optionally generates EPUB file
+
+  File Naming:
+    • Input: "Book Title by Author - 原标题 by 原作者.txt"
+    • Chapters: "Book Title by Author - Chapter N.txt"
+    • Output: "translated_Book Title by Author.txt"
+    • EPUB: "Book_Title_by_Author.epub"
+
+  Resume Behavior:
+    • Detects existing chapter files in book's directory
+    • Skips already translated chapters
+    • Continues from next untranslated chapter
+    • Preserves all previous translations
+
+====================================================================================
 WARNINGS:
-  1. --resume without --batch only affects single novel translation
-  2. Combined flags (--batch --resume) required for batch resuming
-  3. Existing translations always overwritten without --resume
+====================================================================================
+
+  1. Without --resume, existing translations are OVERWRITTEN
+  2. Batch mode requires --batch flag explicitly
+  3. Remote translation requires API credits (OpenRouter)
+  4. Large files may take significant time to translate
+  5. Character limit affects translation chunk size, not quality
+
+====================================================================================
 """
     )
-    parser.add_argument("filepath", type=str, help="Path to the input text file or directory for batch")
-    parser.add_argument("--encoding", type=str, default="utf-8", help="File encoding (default: utf-8)")
-    parser.add_argument("--max_chars", type=int, default=MAXCHARS, help="Maximum characters per chapter")
-    parser.add_argument("--resume", action="store_true", help="Resume translation from last translated chapter")
-    parser.add_argument("--epub", action="store_true", help="Also save the translated book as an EPUB 3 file")
-    parser.add_argument(
-        "--split_mode", 
-        type=str, 
-        choices=["PARAGRAPHS", "SPLIT_POINTS"], 
-        default="PARAGRAPHS", 
-        help="Mode to split text (default: PARAGRAPHS)"
-    )
-    parser.add_argument("--batch", action="store_true", help="Process a batch of novels in a directory")
-    parser.add_argument("--remote", action='store_true', help="Use remote translation server")
+    parser.add_argument("filepath", type=str, 
+                        help="Path to Chinese novel text file (single mode) or directory containing novels (batch mode)")
+    
+    parser.add_argument("--config", type=str, default="enchant_config.yml",
+                        help="Path to configuration file (default: enchant_config.yml)")
+    
+    parser.add_argument("--encoding", type=str, default=config['text_processing']['default_encoding'], 
+                        help=f"Character encoding of input files. Common: utf-8, gb2312, gb18030, big5 (default: {config['text_processing']['default_encoding']})")
+    
+    parser.add_argument("--max_chars", type=int, default=config['text_processing']['max_chars_per_chunk'], 
+                        help=f"Maximum characters per translation chunk. Affects API usage and memory (default: {config['text_processing']['max_chars_per_chunk']})")
+    
+    parser.add_argument("--resume", action="store_true", 
+                        help="Resume interrupted translation. Single: continues from last chapter. Batch: uses progress file")
+    
+    parser.add_argument("--epub", action="store_true", 
+                        help="Generate EPUB file after translation completes. Creates formatted e-book with table of contents")
+    
+    parser.add_argument("--split_mode", type=str, 
+                        choices=["PARAGRAPHS", "SPLIT_POINTS"], 
+                        default=config['text_processing']['split_mode'], 
+                        help=f"Text splitting mode. PARAGRAPHS: auto-split by paragraphs. SPLIT_POINTS: use markers in text (default: {config['text_processing']['split_mode']})")
+    
+    parser.add_argument("--batch", action="store_true", 
+                        help="Batch mode: process all .txt files in the specified directory. Tracks progress automatically")
+    
+    parser.add_argument("--remote", action='store_true', 
+                        help="Use remote OpenRouter API instead of local LM Studio. Requires OPENROUTER_API_KEY environment variable")
+    
+    parser.add_argument("--split-method", dest='split_method', 
+                        choices=['punctuation', 'paragraph'], 
+                        default=config['text_processing']['split_method'],
+                        help=f"Paragraph detection method. 'paragraph': split on double newlines (recommended). 'punctuation': split on Chinese punctuation patterns (legacy) (default: {config['text_processing']['split_method']})")
     
     args = parser.parse_args()
     
-    # Initialize translator with remote option
+    # Update config with command-line arguments
+    config = config_manager.update_with_args(args)
+    
+    # Determine if using remote based on config and args
+    use_remote = config['translation']['service'] == 'remote'
+    
+    # Initialize translator with configuration
     global translator
-    translator = ChineseAITranslator(logger=tolog, use_remote=args.remote)
+    if use_remote:
+        # Get API key from config or environment
+        api_key = config_manager.get_api_key('openrouter')
+        if not api_key:
+            tolog.error("OpenRouter API key required. Set OPENROUTER_API_KEY or configure in enchant_config.yml")
+            sys.exit(1)
+        
+        translator = ChineseAITranslator(
+            logger=tolog,
+            use_remote=True,
+            api_key=api_key,
+            endpoint=config['translation']['remote']['endpoint'],
+            model=config['translation']['remote']['model'],
+            temperature=config['translation']['temperature'],
+            max_tokens=config['translation']['max_tokens'],
+            timeout=config['translation']['remote']['timeout'],
+            pricing_manager=pricing_manager
+        )
+    else:
+        translator = ChineseAITranslator(
+            logger=tolog,
+            use_remote=False,
+            endpoint=config['translation']['local']['endpoint'],
+            model=config['translation']['local']['model'],
+            temperature=config['translation']['temperature'],
+            max_tokens=config['translation']['max_tokens'],
+            timeout=config['translation']['local']['timeout'],
+            pricing_manager=pricing_manager
+        )
     
     if args.batch:
         process_batch(args)
@@ -1326,12 +1649,13 @@ WARNINGS:
     encoding = args.encoding
     max_chars = args.max_chars
     split_mode = args.split_mode
+    split_method = args.split_method
     
     tolog.info(f"Starting book import for file: {file_path}")
     
     try:
         # Call the import_book_from_txt function to process the text file
-        new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode)
+        new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
         tolog.info(f"Book imported successfully. Book ID: {new_book_id}")
         safe_print(f"[bold green]Book imported successfully. Book ID: {new_book_id}[/bold green]")
     except Exception as e:
@@ -1344,6 +1668,22 @@ WARNINGS:
         save_translated_book(new_book_id, resume=args.resume, create_epub=args.epub)
         tolog.info("Translated book saved successfully.")
         safe_print("[bold green]Translated book saved successfully.[/bold green]")
+        
+        # Print cost summary
+        if use_remote:
+            # For remote API, use translator's built-in cost tracking
+            cost_summary = translator.format_cost_summary()
+            tolog.info("Cost Summary:\n" + cost_summary)
+            safe_print("\n[bold cyan]" + cost_summary + "[/bold cyan]")
+        elif config['pricing']['enabled'] and pricing_manager:
+            # For local API, use pricing manager for statistics
+            cost_summary = pricing_manager.format_cost_summary()
+            tolog.info("Cost Summary:\n" + cost_summary)
+            safe_print("\n[bold cyan]" + cost_summary + "[/bold cyan]")
+            
+            # Save cost report if configured
+            if config.get('pricing', {}).get('save_report', False):
+                pricing_manager.save_session_report()
     except Exception as e:
         tolog.exception("Error saving translated book.")
         safe_print(f"[bold red]Error saving translated book: {e}[/bold red]")

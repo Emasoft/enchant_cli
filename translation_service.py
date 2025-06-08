@@ -15,9 +15,10 @@ import logging
 import requests
 import json
 import re
+import threading
 from typing import Optional, Dict, Any
 from functools import wraps
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, wait_none, before_sleep_log
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type, before_sleep_log
 import codecs
 from chardet.universaldetector import UniversalDetector
 import unicodedata
@@ -202,266 +203,7 @@ PRESERVE_UNLIMITED = {
 _repeated_chars = re.compile(r'(.)\1+')
 
 
-def replace_repeated_chars(text: str, chars) -> str:
-    """
-    Replace any sequence of repeated occurrences of each character in `chars`
-    with a single occurrence. For example, "！！！！" becomes "！".
-    """
-    for char in chars:
-        # Escape the character to handle any regex special meaning.
-        pattern = re.escape(char) + r'{2,}'
-        text = re.sub(pattern, char, text)
-    return text
-    
-def clean(text: str) -> str:
-    """
-    Clean the input text:
-      - Ensures it is a string.
-      - Strips leading and trailing **space characters only**.
-      - Preserves all control characters (e.g., tabs, newlines, carriage returns).
-    """
-    if not isinstance(text, str):
-        raise TypeError("Input must be a string")
-    return text.lstrip(' ').rstrip(' ')
-    
-
-def limit_repeated_chars(text, force_chinese=False, force_english=False):
-    """
-    Normalize repeated character sequences in the input text.
-
-    This function processes the text by applying the following rules:
-
-    ╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
-    ║ List of Characters                           │ Max Repetitions     │ Example Input           │ Example Output          ║
-    ╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
-    ║ PRESERVE_UNLIMITED (default)                 │ ∞                   │ "#####", "....."        │ "#####", "....."        ║
-    ║ (whitespace, control, symbols, etc.)         │                     │                         │                         ║
-    ╠════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
-    ║ ALL_PUNCTUATION (non-exempt)                 │ 1                   │ "！！！！！！"            │ "！"                     ║
-    ╠═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
-    ║ Other characters (e.g. letters)              │ 3                   │ "aaaaa"                 │ "aaa"                    ║
-    ╠═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
-    ║ Numbers (all numeric characters in all lang) │ ∞                   │ "ⅣⅣⅣⅣ", "111111"      │ "ⅣⅣⅣⅣ", "111111"       ║
-    ╠═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
-    ║ Chinese punctuation (if force_chinese=True)  │ 1                  │ "！！！！"                │ "！"                      ║
-    ╠═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╣
-    ║ English punctuation (if force_english=True)  │ 1                  │ "!!!!!"                  │ "!"                      ║
-    ╚═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
-
-    Detailed Rules:
-      1. For characters in PRESERVE_UNLIMITED, the repetition is preserved exactly (even if repeated more than 3 times),
-         unless overridden by a force option.
-      2. For characters in ALL_PUNCTUATION (that are not overridden by a force option), any repeated sequence is collapsed to a single occurrence.
-      3. For all other characters (e.g. letters), if a sequence is longer than 3, it is replaced by exactly 3 consecutive occurrences;
-         sequences of 3 or fewer remain unchanged.
-      4. For numeric characters (as determined by isnumeric()), repetitions are always preserved (i.e. unlimited).
-      5. Alternating sequences of different characters (e.g. "ABABAB") are not modified.
-
-    Optional Parameters:
-      force_chinese (bool): If True, forces all Chinese punctuation characters (defined in CHINESE_PUNCTUATION)
-                                 to be repeated only once.
-      force_english (bool): If True, forces all English punctuation characters (defined in ENGLISH_PUNCTUATION)
-                                 to be repeated only once, even if they are normally exempt.
-
-    Parameters:
-        text (str): The input text to normalize.
-
-    Returns:
-        str: The normalized text with excessive character repetitions collapsed as specified.
-    """
-    def limiter(match):
-        # Extract the entire sequence of repeated characters.
-        seq = match.group(0)
-        char = seq[0]
-
-        # For all numeric characters (covers Arabic, Chinese, Roman, Japanese, etc.), allow unlimited repetitions.
-        if char.isnumeric():
-            return seq
-
-        # Forced rules override any other considerations:
-        if force_chinese and char in CHINESE_PUNCTUATION:
-            return char  # Collapse to one occurrence.
-        if force_english and char in ENGLISH_PUNCTUATION:
-            return char  # Collapse to one occurrence.
-
-        # For characters allowed unlimited repetition by default, preserve the original sequence.
-        if char in PRESERVE_UNLIMITED:
-            return seq
-
-        # For characters in ALL_PUNCTUATION (non-exempt), collapse any sequence to one occurrence.
-        elif char in ALL_PUNCTUATION:
-            return char
-
-        # For all other characters, collapse to 3 occurrences if the sequence is too long.
-        # If the sequence length is 3 or fewer, leave it unchanged.
-        else:
-            return seq if len(seq) <= 3 else char * 3
-
-    # Replace all repeated sequences in the text using the limiter function.
-    return _repeated_chars.sub(limiter, text)
-
-
-
-
-def extract_code_blocks(html_str: str):
-    """
-    Extract <pre> and <code> blocks from the HTML and replace them with placeholders.
-    Returns the modified HTML and a list of block code contents.
-    """
-    block_codes = []
-    def repl(match):
-        code_content = match.group(2)
-        placeholder = f"@@CODEBLOCK{len(block_codes)}@@"
-        block_codes.append(code_content)
-        return placeholder
-    modified_html = re.sub(
-        r'<\s*(pre|code)[^>]*>(.*?)<\s*/\s*\1\s*>',
-        repl,
-        html_str,
-        flags=re.DOTALL | re.IGNORECASE
-    )
-    return modified_html, block_codes
-
-def extract_inline_code(text: str):
-    """
-    Extract inline code spans delimited by single backticks and replace them with placeholders.
-    Returns the modified text and a list of inline code contents.
-    """
-    inline_codes = []
-    def repl(match):
-        code_content = match.group(1)
-        placeholder = f"@@INLINECODE{len(inline_codes)}@@"
-        inline_codes.append(code_content)
-        return placeholder
-    # This regex matches text between single backticks.
-    modified_text = re.sub(r'`([^`]+)`', repl, text)
-    return modified_text, inline_codes
-
-def remove_html_comments(html_str: str) -> str:
-    """
-    Remove HTML comments.
-    """
-    return re.sub(r'<!--.*?-->', '', html_str, flags=re.DOTALL)
-
-def remove_script_and_style(html_str: str) -> str:
-    """
-    Remove <script> and <style> tags along with their entire content.
-    """
-    html_str = re.sub(
-        r'<\s*script[^>]*>.*?<\s*/\s*script\s*>',
-        '',
-        html_str,
-        flags=re.DOTALL | re.IGNORECASE
-    )
-    html_str = re.sub(
-        r'<\s*style[^>]*>.*?<\s*/\s*style\s*>',
-        '',
-        html_str,
-        flags=re.DOTALL | re.IGNORECASE
-    )
-    return html_str
-
-def replace_block_tags(html_str: str) -> str:
-    """
-    Replace block-level HTML tags with whitespace markers so that
-    the intended formatting (newlines, tabs) is preserved.
-    """
-    # First, remove comments, scripts, and style blocks.
-    html_str = remove_html_comments(html_str)
-    html_str = remove_script_and_style(html_str)
-    
-    # Remove <pre> tags (their content is already extracted).
-    html_str = re.sub(r'<\s*/?\s*pre[^>]*>', '', html_str, flags=re.IGNORECASE)
-    
-    replacements = [
-        # Paragraphs: simulate a paragraph break.
-        (r'<\s*/\s*p\s*>', '\n'),
-        (r'<\s*p[^>]*>', '\n'),
-        # Line breaks: convert to newline.
-        (r'<\s*br\s*/?\s*>', '\n'),
-        # Divisions: add newline after closing div.
-        (r'<\s*/\s*div\s*>', '\n'),
-        # List items: prefix with a bullet and add newline.
-        (r'<\s*li[^>]*>', '  - '),
-        (r'<\s*/\s*li\s*>', '\n'),
-        # Table rows: newline after each row.
-        (r'<\s*/\s*tr\s*>', '\n'),
-        # Table cells: add a tab after each cell.
-        (r'<\s*/\s*td\s*>', '\t'),
-        (r'<\s*/\s*th\s*>', '\t'),
-        # Blockquotes: add newlines.
-        (r'<\s*blockquote[^>]*>', '\n'),
-        (r'<\s*/\s*blockquote\s*>', '\n'),
-        # Headers (h1-h6): newlines before and after.
-        (r'<\s*h[1-6][^>]*>', '\n'),
-        (r'<\s*/\s*h[1-6]\s*>', '\n'),
-    ]
-    for pattern, repl in replacements:
-        html_str = re.sub(pattern, repl, html_str, flags=re.IGNORECASE)
-    return html_str
-
-def remove_remaining_tags(html_str: str) -> str:
-    """
-    Remove any remaining HTML tags (including orphaned or widowed ones)
-    while leaving inner text intact.
-    
-    This function only matches valid HTML tags that start with an optional slash
-    followed by an alphabetical character. It will not match stray "<" or ">"
-    used in code snippets or math expressions.
-    """
-    pattern = r'<\s*(\/)?\s*([a-zA-Z][a-zA-Z0-9]*)(?:\s+[^<>]*?)?\s*(\/?)\s*>'
-    return re.sub(pattern, '', html_str)
-
-def unescape_non_code_with_placeholders(text: str) -> str:
-    """
-    Unescape HTML entities in text that is not inside a code block.
-    Code block placeholders (both block and inline) are preserved.
-    """
-    pattern = r'(@@CODEBLOCK\d+@@|@@INLINECODE\d+@@)'
-    parts = re.split(pattern, text)
-    for i, part in enumerate(parts):
-        if re.fullmatch(pattern, part):
-            continue  # Leave code placeholders intact.
-        else:
-            parts[i] = html.unescape(part)
-    return ''.join(parts)
-
-def remove_html_markup(html_str: str) -> str:
-    """
-    Clean the HTML text by performing the following steps:
-      1. Extract block-level code (<pre> and <code>) and replace them with placeholders.
-      2. Extract inline code spans (delimited by single backticks) and replace them with placeholders.
-      3. Remove HTML comments, <script>, and <style> blocks (including their content).
-      4. Replace block-level tags (like <p>, <br>, <div>, etc.) with whitespace markers.
-      5. Remove any remaining HTML tags (only valid tags are removed, protecting math/code).
-      6. Unescape HTML entities outside code placeholders.
-      7. Restore the inline code placeholders.
-      8. Restore the block-level code placeholders.
-      
-    This process preserves spacing (including repeated spaces, tabs, newlines),
-    leaves literal characters (including < or >) intact in code or math expressions,
-    and unescapes HTML entities in regular text.
-    """
-    # Step 1: Extract block-level code.
-    html_modified, block_codes = extract_code_blocks(html_str)
-    # Step 2: Extract inline code spans.
-    html_modified, inline_codes = extract_inline_code(html_modified)
-    # Steps 3-5: Remove unwanted content and tags.
-    html_modified = remove_html_comments(html_modified)
-    html_modified = remove_script_and_style(html_modified)
-    html_modified = replace_block_tags(html_modified)
-    html_modified = remove_remaining_tags(html_modified)
-    # Step 6: Unescape HTML entities outside code placeholders.
-    html_modified = unescape_non_code_with_placeholders(html_modified)
-    # Step 7: Restore inline code placeholders.
-    for i, code in enumerate(inline_codes):
-        placeholder = f"@@INLINECODE{i}@@"
-        html_modified = html_modified.replace(placeholder, f"`{code}`")
-    # Step 8: Restore block-level code placeholders.
-    for i, code in enumerate(block_codes):
-        placeholder = f"@@CODEBLOCK{i}@@"
-        html_modified = html_modified.replace(placeholder, code)
-    return html_modified
+# These functions are already imported from common_text_utils at the top of the file
 
 
 
@@ -521,52 +263,6 @@ def is_latin_charset(text: str, threshold: float = 0.1) -> bool:
     non_latin_count = total_count - latin_count
     ratio = non_latin_count / latin_count
     return ratio < threshold
-
-
-def compute_costs(completion_response):
-
-    # Get the completion response data
-    completion_data: Dict[str, Any] = completion_response.json()
-    
-    # Extract the generation ID from the response
-    generation_id = completion_data["id"]
-    
-    OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY')
-    
-    # Headers for the request
-    headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}"}
-
-    # Wait a moment for the generation stats to be available
-    print("\nWaiting for generation stats to be available...")
-    time.sleep(2)  # Wait for 2 seconds
-
-    # Make a request to get the generation stats        
-    querystring = {"id": f"{generation_id}"}
-    generation_response = requests.get("https://openrouter.ai/api/v1/generation", headers=headers, params=querystring)
-    print(f"GENERATION RESPONSE: {str(generation_response.json())}")
-
-    generation_stats: Dict[str, Any] = generation_response.json()
-    
-    # Make a request to get the credits stats
-    credits_response = requests.get("https://openrouter.ai/api/v1/credits", headers=headers)
-    print(f"CREDITS RESPONSE: {str(credits_response.json())}")
-
-    credits_data: Dict[str, Any] = credits_response.json()
-     
-    # Print all the information
-    print("\n\n=== Token Usage ===")
-    print(f"Prompt tokens: {completion_data['usage']['prompt_tokens']}")
-    print(f"Completion tokens: {completion_data['usage']['completion_tokens']}")
-    print(f"Total tokens: {completion_data['usage']['total_tokens']}")
-    
-    print("\n=== Generation Stats ===")
-    print(f"Cost in USD: ${str(generation_stats['data']['total_cost'])}")
-    
-    print("\n=== Credits Information ===")
-    print(f"Total credits: ${credits_data['data']['total_credits']}")
-    print(f"Total usage: ${credits_data['data']['total_usage']}")
-    print(f"Remaining credits: ${credits_data['data']['total_credits'] - credits_data['data']['total_usage']}")
-    print("\n\n")
     
 
 
@@ -588,24 +284,42 @@ tenacity.Retrying.__call__ = no_retry_call
 
 
 class ChineseAITranslator:
-    def __init__(self, logger: Optional[logging.Logger] = None, use_remote: bool = False):
+    def __init__(self, logger: Optional[logging.Logger] = None, use_remote: bool = False,
+                 api_key: Optional[str] = None, endpoint: Optional[str] = None,
+                 model: Optional[str] = None, temperature: float = 0.05,
+                 max_tokens: Optional[int] = None, timeout: Optional[int] = None,
+                 pricing_manager: Optional[Any] = None):
         self.logger = logger or logging.getLogger(__name__)
-        self.api_key = os.environ.get('OPENROUTER_API_KEY')
-        if not self.api_key:
-            self.log("OPENROUTER_API_KEY not set in environment variables", "error")
+        self.api_key = api_key or os.environ.get('OPENROUTER_API_KEY')
         self.is_remote = use_remote
+        self.temperature = temperature
+        self.max_tokens = max_tokens
+        self.pricing_manager = pricing_manager
+        
+        # Initialize cumulative cost tracking for remote API
+        self._cost_lock = threading.Lock()
+        self.total_cost = 0.0
+        self.total_tokens = 0
+        self.total_prompt_tokens = 0
+        self.total_completion_tokens = 0
+        self.request_count = 0
+        
         if self.is_remote:
-            self.api_url = API_URL_OPENROUTER
-            self.MODEL_NAME = MODEL_NAME_DEEPSEEK
+            if not self.api_key:
+                self.log("OPENROUTER_API_KEY not set in environment variables", "error")
+            self.api_url = endpoint or API_URL_OPENROUTER
+            self.MODEL_NAME = model or MODEL_NAME_DEEPSEEK
             self.SYSTEM_PROMPT = SYSTEM_PROMPT_DEEPSEEK
             self.USER_PROMPT_1STPASS = USER_PROMPT_1STPASS_DEEPSEEK
             self.USER_PROMPT_2NDPASS = USER_PROMPT_2NDPASS_DEEPSEEK
+            self.timeout = timeout or RESPONSE_TIMEOUT
         else:
-            self.api_url = API_URL_LMSTUDIO
-            self.MODEL_NAME = MODEL_NAME_QWEN
+            self.api_url = endpoint or API_URL_LMSTUDIO
+            self.MODEL_NAME = model or MODEL_NAME_QWEN
             self.SYSTEM_PROMPT = SYSTEM_PROMPT_QWEN
             self.USER_PROMPT_1STPASS = USER_PROMPT_1STPASS_QWEN
             self.USER_PROMPT_2NDPASS = USER_PROMPT_2NDPASS_QWEN
+            self.timeout = timeout or RESPONSE_TIMEOUT
         
     def log(self, message: str, level: str = "info") -> None:
         log_method = getattr(self.logger, level)
@@ -631,28 +345,25 @@ class ChineseAITranslator:
         return pattern.sub("", text)
         
     def remove_excess_empty_lines(self, txt: str) -> str:
-        # Match 5 or more newline characters
-        return re.sub(r'\n{5,}', '\n\n\n', txt)
+        """Match 5 or more newline characters and replace with 4."""
+        return re.sub(r'\n{5,}', '\n\n\n\n', txt)
     
         
     def normalize_spaces(self, text: str) -> str:
-        # Split the text into lines
+        """Normalize spaces in text while preserving paragraph structure."""
         lines = text.split('\n')
         normalized_lines = []
         
         for line in lines:
-            # Strip leading/trailing whitespace from the line
             stripped_line = line.strip()
-            
-            if stripped_line:  # If the line is not empty (contains actual content)
+            if stripped_line:
                 # Replace multiple spaces with a single space
                 normalized_line = ' '.join(stripped_line.split())
                 normalized_lines.append(normalized_line)
             else:
-                # For empty lines, add only a newline (no spaces)
+                # Preserve empty lines
                 normalized_lines.append('')
         
-        # Join lines back with newlines
         return '\n'.join(normalized_lines)
     
         
@@ -722,6 +433,7 @@ class ChineseAITranslator:
         
         
         return cleaned_txt
+        
 
     
     def translate_chunk(self, chunk: str, double_translation=False, is_last_chunk=False) -> str:
@@ -787,27 +499,72 @@ class ChineseAITranslator:
                     "content": messages,
                 }
             ],
-            "temperature": 0.05,
-            "max_tokens": None,
+            "temperature": self.temperature,
+            "max_tokens": self.max_tokens,
             "stream": False,
 #            "top_p": 0,
 #            "frequency_penalty": 0,
 #            "presence_penalty": 0,
 #            "repetition_penalty": 1.1,
 #            "top_k": 0,
-    
         }
+        
+        # Add usage tracking for OpenRouter remote API
+        if self.is_remote:
+            data["usage"] = {"include": True}
     
         try:
             ##response = requests.get("http://10.255.255.1", timeout=(5, 10))    # Uncomment to test Tenacity auto retry
-            response = requests.post(self.api_url, headers=headers, json=data, timeout=(CONNECTION_TIMEOUT, RESPONSE_TIMEOUT))
+            response = requests.post(self.api_url, headers=headers, json=data, timeout=(CONNECTION_TIMEOUT, self.timeout))
             self.log(f"Request sent to {self.api_url}")
             response.raise_for_status()
             self.log(f"Server returned RESPONSE: \n{response.json()}")
-            if self.is_remote:
-                self.compute_costs(response)
-            #compute_costs(response)
+            
+            # Track costs
             result: Dict[str, Any] = response.json()
+            if 'usage' in result:
+                usage = result['usage']
+                
+                if self.is_remote:
+                    # Use OpenRouter's built-in cost tracking
+                    with self._cost_lock:
+                        cost = usage.get('cost', 0.0)
+                        if isinstance(cost, (int, float)) and cost > 0:
+                            self.total_cost += cost
+                            self.request_count += 1
+                            self.total_tokens += usage.get('total_tokens', 0)
+                            self.total_prompt_tokens += usage.get('prompt_tokens', 0)
+                            self.total_completion_tokens += usage.get('completion_tokens', 0)
+                            
+                            self.log("\n=== Token Usage ===")
+                            self.log(f"Prompt tokens: {usage.get('prompt_tokens', 0)}")
+                            self.log(f"Completion tokens: {usage.get('completion_tokens', 0)}")
+                            self.log(f"Total tokens: {usage.get('total_tokens', 0)}")
+                            self.log(f"Cost for this request: ${cost:.6f}")
+                            self.log(f"Cumulative cost: ${self.total_cost:.6f}")
+                            self.log(f"Total requests so far: {self.request_count}")
+                        else:
+                            # Still track token usage even without cost
+                            self.request_count += 1
+                            self.total_tokens += usage.get('total_tokens', 0)
+                            self.total_prompt_tokens += usage.get('prompt_tokens', 0)
+                            self.total_completion_tokens += usage.get('completion_tokens', 0)
+                            self.log("Warning: Cost information not available in response", "warning")
+                elif self.pricing_manager:
+                    # For local API, use pricing manager for statistics only
+                    try:
+                        prompt_tokens = usage.get('prompt_tokens', 0)
+                        completion_tokens = usage.get('completion_tokens', 0)
+                        if prompt_tokens > 0 or completion_tokens > 0:
+                            cost, breakdown = self.pricing_manager.calculate_cost(
+                                model=self.MODEL_NAME,
+                                prompt_tokens=prompt_tokens,
+                                completion_tokens=completion_tokens
+                            )
+                            if cost > 0:
+                                self.log(f"Estimated cost (if using paid API): ${cost:.6f}")
+                    except Exception as e:
+                        self.log(f"Could not calculate pricing: {e}", "debug")
             if 'choices' in result and len(result['choices']) > 0:
                 content = str(result['choices'][0]['message']['content'])
                 content = self.remove_thinking_block(content)
@@ -886,11 +643,64 @@ class ChineseAITranslator:
             self.log(f"Unexpected error during file translation: {ex}", "error")
             return None
         return english_text
+    
+    def get_cost_summary(self) -> Dict[str, Any]:
+        """Get cumulative cost summary for remote API usage."""
+        with self._cost_lock:
+            if self.is_remote:
+                return {
+                    'total_cost': self.total_cost,
+                    'total_tokens': self.total_tokens,
+                    'total_prompt_tokens': self.total_prompt_tokens,
+                    'total_completion_tokens': self.total_completion_tokens,
+                    'request_count': self.request_count,
+                    'average_cost_per_request': self.total_cost / self.request_count if self.request_count > 0 else 0,
+                    'model': self.MODEL_NAME,
+                    'api_type': 'remote'
+                }
+            else:
+                return {
+                    'total_cost': 0.0,
+                    'message': 'Local API - no costs incurred',
+                    'model': self.MODEL_NAME,
+                    'api_type': 'local'
+                }
+    
+    def format_cost_summary(self) -> str:
+        """Format cost summary for display."""
+        summary = self.get_cost_summary()
+        
+        if self.is_remote:
+            lines = [
+                "\n=== Translation Cost Summary ===",
+                f"Model: {summary['model']}",
+                f"API Type: {summary['api_type']}",
+                f"Total Cost: ${summary['total_cost']:.6f}",
+                f"Total Requests: {summary['request_count']}",
+                f"Total Tokens: {summary['total_tokens']:,}",
+                f"  - Prompt Tokens: {summary['total_prompt_tokens']:,}",
+                f"  - Completion Tokens: {summary['total_completion_tokens']:,}",
+            ]
+            if summary['request_count'] > 0:
+                lines.append(f"Average Cost per Request: ${summary['average_cost_per_request']:.6f}")
+                lines.append(f"Average Tokens per Request: {summary['total_tokens'] // summary['request_count']:,}")
+            return "\n".join(lines)
+        else:
+            return f"\n=== Translation Cost Summary ===\nModel: {summary['model']}\nAPI Type: {summary['api_type']}\nLocal API - no costs incurred"
+    
+    def reset_cost_tracking(self):
+        """Reset cost tracking counters."""
+        with self._cost_lock:
+            self.total_cost = 0.0
+            self.total_tokens = 0
+            self.total_prompt_tokens = 0
+            self.total_completion_tokens = 0
+            self.request_count = 0
 
 
 # Example usage:
 if __name__ == "__main__":
-    translator = ChineseAITranslator()
+    translator = ChineseAITranslator(use_remote=False)
     english_text = translator.translate_file(
         input_file="dummy_chinese.txt", 
         output_file="output.txt"

@@ -1,0 +1,2 @@
+Generated TXT report (via XSLT): /Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/mypy_report_output/index.txt
+Found 172 errors in 7 files (checked 1 source file)

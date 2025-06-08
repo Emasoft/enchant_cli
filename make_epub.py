@@ -535,6 +535,121 @@ def extend_epub(epub: Path, new: List[Tuple[str,str]]) -> None:
         shutil.move(tmp_epub, epub)
 
 
+# ───────────────────────── Module API ─────────────────────────
+
+def create_epub_from_chapters(
+    chapters: List[Tuple[str, str]], 
+    output_path: Path,
+    title: str,
+    author: str,
+    cover_path: Optional[Path] = None,
+    detect_headings: bool = True
+) -> None:
+    """
+    Create an EPUB from a list of chapters.
+    
+    Args:
+        chapters: List of (chapter_title, chapter_content) tuples
+        output_path: Path where the EPUB should be saved
+        title: Book title
+        author: Book author
+        cover_path: Optional path to cover image
+        detect_headings: Whether to detect and process chapter headings
+    
+    Raises:
+        ValidationError: If there are issues with inputs
+        OSError: If there are file system errors
+    """
+    # Ensure output directory exists
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Validate cover if provided
+    if cover_path and cover_path.exists():
+        if cover_path.suffix.lower() not in {'.jpg', '.jpeg', '.png'}:
+            raise ValidationError("Cover must be .jpg/.jpeg/.png")
+    
+    # Process chapters - convert text to HTML
+    processed_chapters = []
+    for chap_title, chap_content in chapters:
+        # Convert plain text to HTML paragraphs
+        html_content = paragraphize(chap_content)
+        processed_chapters.append((chap_title, html_content))
+    
+    # Create the EPUB
+    write_new_epub(processed_chapters, output_path, title, author, cover_path)
+
+
+def create_epub_from_directory(
+    input_dir: Path,
+    output_path: Path,
+    title: Optional[str] = None,
+    author: Optional[str] = None,
+    cover_path: Optional[Path] = None,
+    detect_headings: bool = True,
+    validate_only: bool = False,
+    strict: bool = True
+) -> List[str]:
+    """
+    Create an EPUB from a directory of chapter files.
+    
+    Args:
+        input_dir: Directory containing chapter .txt files
+        output_path: Path where the EPUB should be saved
+        title: Book title (auto-detected if None)
+        author: Book author (auto-detected if None)
+        cover_path: Optional path to cover image
+        detect_headings: Whether to detect and process chapter headings
+        validate_only: Only validate, don't create EPUB
+        strict: Abort on validation issues
+    
+    Returns:
+        List of validation issue messages (empty if no issues)
+    
+    Raises:
+        ValidationError: If there are issues with inputs and strict=True
+        OSError: If there are file system errors
+    """
+    # Ensure directory is readable
+    if not input_dir.exists() or not input_dir.is_dir():
+        raise ValidationError(f"Directory '{input_dir}' not found or not a directory.")
+    
+    # Collect chunks
+    chunks = collect_chunks(input_dir)
+    if not chunks:
+        raise ValidationError("No valid .txt chunks found.")
+    
+    # Read and combine all chunks
+    full_text = "\n".join(chunks[i].read_text(ENCODING) for i in sorted(chunks))
+    
+    # Split into chapters and detect issues
+    chap_blocks, seq = split_text(full_text, detect_headings)
+    chapters = [(t, paragraphize(b)) for t, b in chap_blocks]
+    
+    # Check for issues
+    issues = detect_issues(seq) if seq else []
+    
+    if validate_only:
+        return issues
+    
+    if issues and strict:
+        raise ValidationError(f"Found {len(issues)} validation issues in chapter sequence")
+    
+    # Auto-detect title and author if not provided
+    if not title or not author:
+        first = chunks[min(chunks)]
+        if m := FILENAME_RE.match(first.name):
+            title = title or m.group("title")
+            author = author or m.group("author")
+        else:
+            title = title or "Untitled"
+            author = author or "Unknown"
+    
+    # Create the EPUB
+    write_new_epub(chapters, output_path, title, author, cover_path)
+    
+    return issues
+
+
 # ───────────────────────── CLI entry point ───────────────────────── #
 
 def parse_add(val: str) -> Tuple[int,bool]:

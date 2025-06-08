@@ -1,3 +1,4 @@
+# Core dependencies
 rich
 requests
 tenacity
@@ -8,3 +9,7 @@ filelock
 multiexit
 waiting
 ebooklib
+
+# Optional: Testing (install with pip install -r tests/requirements-test.txt)
+# pytest>=7.0.0
+# pytest-cov>=4.0.0

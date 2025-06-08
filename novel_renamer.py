@@ -10,6 +10,7 @@ import json
 import logging
 import requests
 import chardet
+import yaml
 from pathlib import Path
 from typing import Optional, Dict, Tuple
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
@@ -46,6 +47,46 @@ Respond in JSON format with these exact keys:
 
 If you cannot determine a value, use "Unknown" as the value.
 """
+
+# Configuration
+def load_renamer_config(config_path: Optional[Path] = None) -> Dict:
+    """
+    Load configuration for novel renamer from YAML file.
+    
+    Args:
+        config_path: Path to config file (default: renamenovels.conf.yml)
+    
+    Returns:
+        Configuration dictionary
+    """
+    default_config = {
+        'model': 'gpt-4o-mini',
+        'temperature': 0.0,
+        'kb_to_read': DEFAULT_KB_TO_READ,
+        'max_workers': None,  # Will use CPU count if None
+        'api_key': None
+    }
+    
+    if config_path is None:
+        config_path = Path('renamenovels.conf.yml')
+    
+    if not config_path.exists():
+        logging.info(f"Config file not found at {config_path}, using defaults")
+        return default_config
+    
+    try:
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+            if config is None:
+                return default_config
+            # Merge with defaults
+            for key, value in default_config.items():
+                if key not in config:
+                    config[key] = value
+            return config
+    except Exception as e:
+        logging.error(f"Error loading config file: {e}")
+        return default_config
 
 # sanitize_filename is now imported from common_utils
 
@@ -157,3 +198,98 @@ def process_novel_file(file_path: Path, api_key: str, model: str = "gpt-4o-mini"
         return (new_path is not None, new_path, metadata)
 
 # extract_novel_info_from_filename functionality is now in common_utils.extract_book_info_from_path
+
+def process_batch_novels(directory: Path, api_key: str, model: str = "gpt-4o-mini",
+                        temperature: float = 0.0, kb_to_read: int = DEFAULT_KB_TO_READ,
+                        recursive: bool = False, dry_run: bool = False,
+                        max_workers: Optional[int] = None) -> Dict[str, Dict]:
+    """
+    Process multiple novel files in a directory for batch renaming.
+    
+    Args:
+        directory: Directory containing novel files
+        api_key: OpenAI API key
+        model: Model to use for metadata extraction
+        temperature: Model temperature
+        kb_to_read: KB to read from each file
+        recursive: Whether to search subdirectories
+        dry_run: If True, only return metadata without renaming
+        max_workers: Max threads for parallel processing (default: CPU count)
+    
+    Returns:
+        Dictionary mapping file paths to results:
+        {
+            "path/to/file.txt": {
+                "success": bool,
+                "new_path": Optional[Path],
+                "metadata": Optional[Dict],
+                "error": Optional[str]
+            }
+        }
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    import multiprocessing
+    
+    if max_workers is None:
+        max_workers = multiprocessing.cpu_count()
+    
+    # Find all text files
+    if recursive:
+        txt_files = list(directory.rglob('*.txt'))
+    else:
+        txt_files = list(directory.glob('*.txt'))
+    
+    # Filter out small files
+    eligible_files = []
+    for file_path in txt_files:
+        if file_path.is_file() and not file_path.name.startswith('.'):
+            try:
+                if file_path.stat().st_size >= MIN_FILE_SIZE_KB * 1024:
+                    eligible_files.append(file_path)
+            except OSError:
+                logging.warning(f"Could not access file: {file_path}")
+    
+    if not eligible_files:
+        logging.warning("No eligible text files found to process.")
+        return {}
+    
+    logging.info(f"Processing {len(eligible_files)} files with {max_workers} workers")
+    
+    results = {}
+    
+    def process_file_wrapper(file_path):
+        """Wrapper to catch exceptions and return structured result"""
+        try:
+            success, new_path, metadata = process_novel_file(
+                file_path, api_key, model, temperature, kb_to_read, dry_run
+            )
+            return file_path, {
+                "success": success,
+                "new_path": new_path,
+                "metadata": metadata,
+                "error": None
+            }
+        except Exception as e:
+            logging.error(f"Error processing {file_path}: {e}")
+            return file_path, {
+                "success": False,
+                "new_path": None,
+                "metadata": None,
+                "error": str(e)
+            }
+    
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_file = {
+            executor.submit(process_file_wrapper, file_path): file_path
+            for file_path in eligible_files
+        }
+        
+        for future in as_completed(future_to_file):
+            file_path, result = future.result()
+            results[str(file_path)] = result
+    
+    # Log summary
+    successful = sum(1 for r in results.values() if r["success"])
+    logging.info(f"Batch processing complete: {successful}/{len(eligible_files)} files renamed successfully")
+    
+    return results
