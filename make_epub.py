@@ -56,12 +56,18 @@ WORD_NUMS = (
     "twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand"
 )
 
+# Chinese number characters
+CHINESE_DIGITS = "零一二三四五六七八九十百千万"
+CHINESE_NUMS_PATTERN = f"[{CHINESE_DIGITS}]+"
+
+# Updated regex to include Chinese chapter patterns
 HEADING_RE = re.compile(
-    rf"^[^\w]*\s*chapter\s+"
+    rf"^[^\w]*\s*(?:chapter\s+"
     rf"(?:(?P<num_d>\d+)|(?P<num_r>[ivxlcdm]+)|"
-    rf"(?P<num_w>(?:{WORD_NUMS})(?:[-\s](?:{WORD_NUMS}))*))"
+    rf"(?P<num_w>(?:{WORD_NUMS})(?:[-\s](?:{WORD_NUMS}))*))|"
+    rf"第(?P<num_c>{CHINESE_NUMS_PATTERN}|[0-9０-９]+)章)"
     rf"\b(?P<rest>.*)$",
-    re.IGNORECASE,
+    re.IGNORECASE | re.UNICODE,
 )
 
 _SINGLE = {
@@ -132,11 +138,76 @@ def words_to_int(text: str) -> int:
             raise ValueError
     return total + curr
 
+def chinese_to_int(text: str) -> int:
+    """Convert Chinese numerals to integer."""
+    # Handle Arabic numerals (including full-width)
+    if re.match(r'^[0-9０-９]+$', text):
+        # Convert full-width digits to ASCII
+        normalized = text.translate(str.maketrans('０１２３４５６７８９', '0123456789'))
+        return int(normalized)
+    
+    # Chinese number mappings
+    chinese_digits = {
+        '零': 0, '一': 1, '二': 2, '两': 2, '三': 3, '四': 4,
+        '五': 5, '六': 6, '七': 7, '八': 8, '九': 9
+    }
+    chinese_units = {
+        '十': 10, '百': 100, '千': 1000, '万': 10000
+    }
+    
+    # Handle special cases
+    if text == '十':
+        return 10
+    
+    result = 0
+    current = 0
+    prev_unit = 1
+    
+    i = 0
+    while i < len(text):
+        char = text[i]
+        
+        if char in chinese_digits:
+            current = chinese_digits[char]
+        elif char in chinese_units:
+            unit = chinese_units[char]
+            
+            if current == 0:
+                # Handle cases like '十' (10), '百' (100)
+                if unit >= 10:
+                    current = 1
+            
+            if unit == 10000:  # 万
+                result = (result + current) * unit
+                current = 0
+            else:
+                if current == 0:
+                    current = 1
+                result += current * unit
+                current = 0
+            
+            prev_unit = unit
+        elif char == '〇':  # Alternative zero
+            current = 0
+        
+        i += 1
+    
+    # Add any remaining value
+    result += current
+    
+    return result
+
 def parse_num(raw: str) -> Optional[int]:
     if raw.isdigit():
         return int(raw)
     if re.fullmatch(r"[ivxlcdm]+", raw, re.IGNORECASE):
         return roman_to_int(raw)
+    # Check if it's Chinese number
+    if re.match(rf'^({CHINESE_NUMS_PATTERN}|[0-9０-９]+)$', raw):
+        try:
+            return chinese_to_int(raw)
+        except (ValueError, KeyError):
+            return None
     try:
         return words_to_int(raw)
     except ValueError:
@@ -230,7 +301,9 @@ def split_text(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str]],
     for line in text.splitlines():
         m = HEADING_RE.match(line.strip())
         if m:
-            num = parse_num(m.group("num_d") or m.group("num_r") or m.group("num_w"))
+            # Extract number from whichever group matched
+            num_str = m.group("num_d") or m.group("num_r") or m.group("num_w") or m.group("num_c")
+            num = parse_num(num_str) if num_str else None
             if num is None:
                 buf.append(line)
                 blank_only = False
