@@ -143,16 +143,57 @@ def get_epub_config_from_book_info(
         'strict_mode': False
     }
     
-    # Add any EPUB-specific settings
+    # Apply EPUB settings from configuration
     if epub_settings:
-        config.update(epub_settings)
+        # Basic settings
+        config['generate_toc'] = epub_settings.get('generate_toc', True)
+        config['validate'] = epub_settings.get('validate_chapters', True) 
+        config['strict_mode'] = epub_settings.get('strict_mode', False)
+        config['language'] = epub_settings.get('language', 'en')
+        
+        # Custom CSS if provided
+        if epub_settings.get('custom_css'):
+            config['custom_css'] = epub_settings['custom_css']
+        
+        # Chapter patterns if provided
+        if epub_settings.get('chapter_patterns'):
+            config['chapter_patterns'] = epub_settings['chapter_patterns']
     
-    # Add metadata if available
+    # Build metadata
     metadata = {}
+    
+    # Original title and author
     if book_info.get('title_chinese'):
         metadata['original_title'] = book_info['title_chinese']
     if book_info.get('author_chinese'):
         metadata['original_author'] = book_info['author_chinese']
+    
+    # Apply metadata settings from config
+    if epub_settings and epub_settings.get('metadata'):
+        meta_config = epub_settings['metadata']
+        
+        # Publisher, series, etc.
+        if meta_config.get('publisher'):
+            metadata['publisher'] = meta_config['publisher']
+        if meta_config.get('series'):
+            metadata['series'] = meta_config['series']
+        if meta_config.get('series_index'):
+            metadata['series_index'] = meta_config['series_index']
+        
+        # Generate description from template
+        if meta_config.get('description_template'):
+            template = meta_config['description_template']
+            description = template.format(
+                title=config['title'],
+                author=config['author'],
+                original_title=book_info.get('title_chinese', ''),
+                original_author=book_info.get('author_chinese', '')
+            )
+            metadata['description'] = description
+        
+        # Tags
+        if meta_config.get('tags'):
+            metadata['tags'] = meta_config['tags']
     
     if metadata:
         config['metadata'] = metadata

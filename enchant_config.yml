@@ -325,6 +325,81 @@ pricing:
     - "https://cdn.jsdelivr.net/gh/BerriAI/litellm@main/model_prices_and_context_window.json"
     - "https://raw.fastgit.org/BerriAI/litellm/main/model_prices_and_context_window.json"
 
+# EPUB Generation Settings
+# -----------------------
+epub:
+  # Generate table of contents from chapter headings (default: true)
+  generate_toc: true
+  
+  # Validate chapter sequence (default: true)
+  validate_chapters: true
+  
+  # Strict mode - abort on validation errors (default: false)
+  strict_mode: false
+  
+  # Language code for the book (default: en)
+  # Use 'zh' for Chinese, 'en' for English, etc.
+  language: en
+  
+  # Default CSS styling for EPUB
+  # You can customize fonts, margins, etc.
+  custom_css: |
+    body {
+      font-family: serif;
+      line-height: 1.4;
+      margin: 5%;
+    }
+    h1 {
+      text-align: center;
+      margin: 2em 0 1em;
+    }
+    p {
+      text-indent: 1.5em;
+      margin: 0 0 1em;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+  
+  # Chapter detection patterns
+  # Add custom patterns to detect chapter headings
+  chapter_patterns:
+    # English patterns are built-in
+    # Add custom patterns here if needed
+    # - "Section \\d+"
+    # - "Part [IVX]+"
+  
+  # Metadata settings
+  metadata:
+    # Include original title and author in metadata (default: true)
+    include_original: true
+    
+    # Publisher information (optional)
+    publisher: null
+    
+    # Book series information (optional)
+    series: null
+    series_index: null
+    
+    # Book description template
+    # Available variables: {title}, {author}, {original_title}, {original_author}
+    description_template: "English translation of {original_title} by {original_author}"
+    
+    # Additional tags/genres (optional)
+    tags: []
+  
+  # Image handling
+  images:
+    # Maximum image width in pixels (default: 800)
+    max_width: 800
+    
+    # JPEG quality for image compression (1-100, default: 85)
+    jpeg_quality: 85
+    
+    # Convert PNG to JPEG for smaller file size (default: false)
+    convert_png_to_jpg: false
+
 # Logging Settings
 # ---------------
 logging:

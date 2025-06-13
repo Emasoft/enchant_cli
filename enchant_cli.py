@@ -273,15 +273,23 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                         epub_name = sanitize_filename(book_title) + ".epub"
                         epub_path = current_path.parent / epub_name
                         
-                        # Create EPUB configuration
-                        epub_config = {
-                            'title': book_title,
-                            'author': book_author,
-                            'generate_toc': True,  # Parse Chapter headers from text
-                            'validate': True,
-                            'strict_mode': False,
-                            'cover_path': None
+                        # Get EPUB settings from configuration
+                        config = get_config()
+                        epub_settings = config.get('epub', {})
+                        
+                        # Build book info for configuration
+                        book_info_for_config = {
+                            'title_english': book_title,
+                            'author_english': book_author,
+                            'title_chinese': book_info.get('title_chinese', ''),
+                            'author_chinese': book_info.get('author_chinese', '')
                         }
+                        
+                        # Create EPUB configuration from book info and settings
+                        epub_config = get_epub_config_from_book_info(
+                            book_info=book_info_for_config,
+                            epub_settings=epub_settings
+                        )
                         
                         # Create EPUB using the common utility
                         success, issues = create_epub_with_config(
