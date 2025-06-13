@@ -127,7 +127,11 @@ icloud_sync = None
 _module_config = None
 pricing_manager = None
 
-MAXCHARS = 11999  # Default value, will be updated from config in main() 
+MAXCHARS = 11999  # Default value, will be updated from config in main()
+
+# Chunk retry constants
+DEFAULT_MAX_CHUNK_RETRIES = 10
+MAX_RETRY_WAIT_SECONDS = 60 
 
 
 # CHINESE PUNCTUATION sets.
@@ -844,27 +848,48 @@ def manual_commit() -> None:
     # tolog.debug("Manual commit executed.")
     pass
 
+
+def format_chunk_error_message(chunk_number: int, max_retries: int, last_error: str, 
+                              book_title: str, book_author: str, output_path: str) -> str:
+    """
+    Format a comprehensive error message for chunk translation failures.
+    
+    Args:
+        chunk_number: The chunk number that failed
+        max_retries: Number of retry attempts made
+        last_error: The last error message
+        book_title: Title of the book being translated
+        book_author: Author of the book
+        output_path: Path where the chunk would have been saved
+        
+    Returns:
+        Formatted error message with troubleshooting information
+    """
+    return (
+        f"\n\nFATAL ERROR: Failed to translate chunk {chunk_number:06d} after {max_retries} attempts.\n"
+        f"Last error: {last_error}\n"
+        f"Book: {book_title} by {book_author}\n"
+        f"Chunk file would have been: {output_path}\n\n"
+        f"Possible causes:\n"
+        f"- Translation API is unreachable or returning errors\n"
+        f"- Network connectivity issues\n"
+        f"- Insufficient disk space to save translated chunks\n"
+        f"- File permissions preventing file write\n"
+        f"- API quota exceeded or authentication issues\n\n"
+        f"Please check the logs above for more details and resolve the issue before retrying.\n"
+        f"To resume translation from this point, use the --resume flag.\n"
+    )
+
+
 def save_translated_book(book_id: str, resume: bool = False, create_epub: bool = False) -> None:
     """
     Simulate translation of the book and save the translated text to a file.
     For each chunk, use the translator to translate the original text.
     """
     # Get max chunk retry attempts from config or use default
-    # Try to use global config first (set by translate_novel), otherwise use default
-    max_chunk_retries = 10  # Default value
-    try:
-        # Check if there's a global config available
-        global_config = globals().get('_module_config')
-        if global_config:
-            max_chunk_retries = global_config.get('translation', {}).get('max_chunk_retries', 10)
-        else:
-            # Try to load config if not available globally
-            from config_manager import ConfigManager
-            config_manager = ConfigManager(config_path=Path("enchant_config.yml"))
-            max_chunk_retries = config_manager.config.get('translation', {}).get('max_chunk_retries', 10)
-    except Exception as e:
-        if tolog is not None:
-            tolog.warning(f"Failed to load chunk retry config, using default of {max_chunk_retries}: {e}")
+    max_chunk_retries = DEFAULT_MAX_CHUNK_RETRIES
+    if _module_config:
+        max_chunk_retries = _module_config.get('translation', {}).get('max_chunk_retries', DEFAULT_MAX_CHUNK_RETRIES)
     
     book = Book.get_by_id(book_id)
     if not book:
@@ -946,26 +971,20 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
                     
                     if chunk_attempt < max_chunk_retries:
                         # Calculate wait time with exponential backoff
-                        wait_time = min(2 ** chunk_attempt, 60)  # Max 60 seconds between retries
+                        wait_time = min(2 ** chunk_attempt, MAX_RETRY_WAIT_SECONDS)
                         tolog.info(f"Waiting {wait_time} seconds before retry...")
                         time.sleep(wait_time)
             
             # Check if translation succeeded after all attempts
             if not chunk_translated:
                 # All attempts failed - exit with error
-                error_message = (
-                    f"\n\nFATAL ERROR: Failed to translate chunk {chapter.chapter_number:06d} after {max_chunk_retries} attempts.\n"
-                    f"Last error: {str(last_error)}\n"
-                    f"Book: {book.translated_title} by {book.translated_author}\n"
-                    f"Chunk file would have been: {output_filename_chapter}\n\n"
-                    f"Possible causes:\n"
-                    f"- Translation API is unreachable or returning errors\n"
-                    f"- Network connectivity issues\n"
-                    f"- Insufficient disk space to save translated chunks\n"
-                    f"- File permissions preventing file write\n"
-                    f"- API quota exceeded or authentication issues\n\n"
-                    f"Please check the logs above for more details and resolve the issue before retrying.\n"
-                    f"To resume translation from this point, use the --resume flag.\n"
+                error_message = format_chunk_error_message(
+                    chunk_number=chapter.chapter_number,
+                    max_retries=max_chunk_retries,
+                    last_error=str(last_error),
+                    book_title=book.translated_title,
+                    book_author=book.translated_author,
+                    output_path=str(output_filename_chapter)
                 )
                 tolog.error(error_message)
                 print(error_message)
@@ -998,31 +1017,31 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
         cost_log_path = prepare_for_write(cost_log_path)
         
         try:
-                with open(cost_log_path, "w", encoding="utf-8") as f:
-                    f.write("AI Translation Cost Log\n")
-                    f.write("======================\n\n")
-                    f.write(f"Novel: {book.translated_title} by {book.translated_author}\n")
-                    f.write(f"Translation Date: {dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-                    f.write("API Service: OpenRouter (Remote)\n")
-                    f.write(f"Model: {translator.MODEL_NAME}\n")
-                    f.write(f"\n{translator.format_cost_summary()}\n")
-            
-                    # Add per-request breakdown if needed
-                    f.write("\n\nDetailed Breakdown:\n")
-                    f.write("-------------------\n")
-                    f.write(f"Total Chunks Translated: {len(sorted_chapters)}\n")
-                    if translator.request_count > 0 and len(sorted_chapters) > 0:
-                        f.write(f"Average Cost per Chapter: ${translator.total_cost / len(sorted_chapters):.6f}\n")
-                        f.write(f"Average Tokens per Chapter: {translator.total_tokens // len(sorted_chapters):,}\n")
-            
-                    # Save raw data for potential future analysis
-                    f.write("\n\nRaw Data:\n")
-                    f.write("---------\n")
-                    f.write(f"total_cost: {translator.total_cost}\n")
-                    f.write(f"total_tokens: {translator.total_tokens}\n")
-                    f.write(f"total_prompt_tokens: {translator.total_prompt_tokens}\n")
-                    f.write(f"total_completion_tokens: {translator.total_completion_tokens}\n")
-                    f.write(f"request_count: {translator.request_count}\n")
+            with open(cost_log_path, "w", encoding="utf-8") as f:
+                f.write("AI Translation Cost Log\n")
+                f.write("======================\n\n")
+                f.write(f"Novel: {book.translated_title} by {book.translated_author}\n")
+                f.write(f"Translation Date: {dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write("API Service: OpenRouter (Remote)\n")
+                f.write(f"Model: {translator.MODEL_NAME}\n")
+                f.write(f"\n{translator.format_cost_summary()}\n")
+        
+                # Add per-request breakdown if needed
+                f.write("\n\nDetailed Breakdown:\n")
+                f.write("-------------------\n")
+                f.write(f"Total Chunks Translated: {len(sorted_chapters)}\n")
+                if translator.request_count > 0 and len(sorted_chapters) > 0:
+                    f.write(f"Average Cost per Chapter: ${translator.total_cost / len(sorted_chapters):.6f}\n")
+                    f.write(f"Average Tokens per Chapter: {translator.total_tokens // len(sorted_chapters):,}\n")
+        
+                # Save raw data for potential future analysis
+                f.write("\n\nRaw Data:\n")
+                f.write("---------\n")
+                f.write(f"total_cost: {translator.total_cost}\n")
+                f.write(f"total_tokens: {translator.total_tokens}\n")
+                f.write(f"total_prompt_tokens: {translator.total_prompt_tokens}\n")
+                f.write(f"total_completion_tokens: {translator.total_completion_tokens}\n")
+                f.write(f"request_count: {translator.request_count}\n")
             
         except (IOError, OSError, PermissionError) as e:
             if tolog is not None:
