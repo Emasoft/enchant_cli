@@ -54,8 +54,6 @@ except ImportError:
     # tolog is not yet defined here, so we will log warning later in main if needed
 
 import os
-import logging
-import signal
 import filelock
 import argparse
 
@@ -79,7 +77,7 @@ except ImportError:
     translation_available = False
 
 try:
-    from make_epub import create_epub_from_chapters, create_epub_from_txt_file
+    from epub_utils import create_epub_with_config, get_epub_config_from_book_info
     epub_available = True
 except ImportError:
     epub_available = False
@@ -275,18 +273,22 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                         epub_name = sanitize_filename(book_title) + ".epub"
                         epub_path = current_path.parent / epub_name
                         
-                        # Create EPUB from the complete translated text file
-                        # The make_epub module will parse the text to find Chapter headers
-                        # and build the TOC based on actual chapter structure
-                        success, issues = create_epub_from_txt_file(
+                        # Create EPUB configuration
+                        epub_config = {
+                            'title': book_title,
+                            'author': book_author,
+                            'generate_toc': True,  # Parse Chapter headers from text
+                            'validate': True,
+                            'strict_mode': False,
+                            'cover_path': None
+                        }
+                        
+                        # Create EPUB using the common utility
+                        success, issues = create_epub_with_config(
                             txt_file_path=translated_file,
                             output_path=epub_path,
-                            title=book_title,
-                            author=book_author,
-                            cover_path=None,
-                            generate_toc=True,  # Parse Chapter headers from text
-                            validate=True,
-                            strict_mode=False
+                            config=epub_config,
+                            logger=tolog
                         )
                         
                         if success:

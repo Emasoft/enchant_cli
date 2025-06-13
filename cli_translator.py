@@ -94,11 +94,7 @@ from typing import (
     Set,
 )
 import html
-try:
-    from make_epub import create_epub_from_chapters, create_epub_from_txt_file, ValidationError as EpubValidationError
-    epub_available = True
-except ImportError:
-    epub_available = False  # Will notify user if EPUB creation is requested without make_epub
+# EPUB imports removed - EPUB generation is handled by enchant_cli.py orchestrator
 
 import errno
 import yaml
@@ -551,8 +547,7 @@ def split_on_punctuation_contextual(text: str) -> list:
     SENTENCE_ENDING = {'。', '！', '？', '…', '.', ';', '；'}
     CLOSING_QUOTES = {'」', '”', '】', '》'}
     NON_BREAKING = {'，', '、'}
-    # For normalization, combine all punctuation characters
-    ALL_PUNCTUATION = SENTENCE_ENDING | CLOSING_QUOTES | NON_BREAKING
+    # Use the imported ALL_PUNCTUATION from common_text_utils instead of redefining
 
     # Define a comprehensive set of paragraph delimiters.
     PARAGRAPH_DELIMITERS = {
@@ -885,6 +880,9 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
     """
     Simulate translation of the book and save the translated text to a file.
     For each chunk, use the translator to translate the original text.
+    
+    Note: The create_epub parameter is kept for backward compatibility but is ignored.
+    EPUB generation is handled by enchant_cli.py orchestrator.
     """
     # Get max chunk retry attempts from config or use default
     max_chunk_retries = DEFAULT_MAX_CHUNK_RETRIES
@@ -1048,57 +1046,8 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
                 tolog.error(f"Error saving cost log to {cost_log_path}: {e}")
             raise
         tolog.info(f"Cost log saved to {cost_log_path}")
-    if create_epub:
-        if not epub_available:
-            if tolog is not None:
-                tolog.error("EPUB creation requested but 'make_epub' module is not available.")
-            safe_print("[bold red]Missing make_epub module. Please ensure make_epub.py is in the same directory.[/bold red]")
-        else:
-            try:
-                # The complete translated text file has already been saved at output_filename
-                # Now create EPUB from that complete file
-                epub_filename = Path(str(output_filename).replace(".txt", ".epub"))
-                
-                # Use the new function that takes the complete text file
-                success, issues = create_epub_from_txt_file(
-                    txt_file_path=output_filename,
-                    output_path=epub_filename,
-                    title=book.translated_title or book.title,
-                    author=book.translated_author or book.author,
-                    cover_path=None,  # Could add cover support later
-                    generate_toc=True,  # Let make_epub detect chapters from the text
-                    validate=True,  # Validate chapter sequence
-                    strict_mode=False  # Don't abort on validation issues
-                )
-                
-                if success:
-                    if tolog is not None:
-                        tolog.info(f"EPUB saved to {epub_filename}")
-                    safe_print(f"[bold green]EPUB saved to {epub_filename}[/bold green]")
-                    
-                    if issues:
-                        if tolog is not None:
-                            tolog.warning(f"EPUB created with {len(issues)} validation warnings")
-                        safe_print(f"[bold yellow]EPUB created with {len(issues)} validation warnings[/bold yellow]")
-                        for issue in issues[:5]:  # Show first 5 issues
-                            safe_print(f"  - {issue}")
-                        if len(issues) > 5:
-                            safe_print(f"  ... and {len(issues) - 5} more")
-                else:
-                    if tolog is not None:
-                        tolog.error(f"EPUB creation failed with {len(issues)} errors")
-                    safe_print("[bold red]EPUB creation failed[/bold red]")
-                    for issue in issues[:5]:  # Show first 5 issues
-                        safe_print(f"  - {issue}")
-                        
-            except EpubValidationError as e:
-                if tolog is not None:
-                    tolog.error(f"EPUB validation error: {e}")
-                safe_print(f"[bold red]EPUB validation error: {e}[/bold red]")
-            except Exception as e:
-                if tolog is not None:
-                    tolog.exception("Error while creating EPUB.")
-                safe_print(f"[bold red]Error while creating EPUB: {e}[/bold red]")
+    # EPUB generation removed - this is handled by enchant_cli.py orchestrator
+    # The create_epub parameter is kept for backward compatibility but ignored
 
 ###############################################
 #               MAIN FUNCTION               #
@@ -1279,7 +1228,8 @@ def translate_novel(file_path: str, encoding: str = 'utf-8', max_chars: int = 12
         split_mode: Text splitting mode (PARAGRAPHS or SPLIT_POINTS)
         split_method: Paragraph detection method (paragraph or punctuation)
         resume: Resume interrupted translation
-        create_epub: Generate EPUB file after translation
+        create_epub: (Deprecated) Kept for backward compatibility, ignored. 
+                     EPUB generation is handled by enchant_cli.py orchestrator
         remote: Use remote API instead of local
         
     Returns:
