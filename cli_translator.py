@@ -124,6 +124,7 @@ from common_text_utils import (
 translator = None
 tolog = None
 icloud_sync = None
+_module_config = None
 pricing_manager = None
 
 MAXCHARS = 11999  # Default value, will be updated from config in main() 
@@ -848,17 +849,22 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
     Simulate translation of the book and save the translated text to a file.
     For each chunk, use the translator to translate the original text.
     """
-    # Load configuration for chunk retry settings
+    # Get max chunk retry attempts from config or use default
+    # Try to use global config first (set by translate_novel), otherwise use default
+    max_chunk_retries = 10  # Default value
     try:
-        from config_manager import ConfigManager
-        from pathlib import Path as PathForConfig
-        config_manager = ConfigManager(config_path=PathForConfig("enchant_config.yml"))
-        config = config_manager.config
+        # Check if there's a global config available
+        global_config = globals().get('_module_config')
+        if global_config:
+            max_chunk_retries = global_config.get('translation', {}).get('max_chunk_retries', 10)
+        else:
+            # Try to load config if not available globally
+            from config_manager import ConfigManager
+            config_manager = ConfigManager(config_path=Path("enchant_config.yml"))
+            max_chunk_retries = config_manager.config.get('translation', {}).get('max_chunk_retries', 10)
     except Exception as e:
-        # If config loading fails, use default values
-        config = {'translation': {'max_chunk_retries': 10}}
         if tolog is not None:
-            tolog.warning(f"Failed to load config, using defaults: {e}")
+            tolog.warning(f"Failed to load chunk retry config, using default of {max_chunk_retries}: {e}")
     
     book = Book.get_by_id(book_id)
     if not book:
@@ -905,14 +911,14 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
                     continue
             original_text = variation.text_content
             
-            # Get max chunk retry attempts from config
-            max_chunk_retries = config.get('translation', {}).get('max_chunk_retries', 10)
+            # Use the max_chunk_retries loaded above
             chunk_translated = False
             last_error = None
+            output_filename_chapter = book_dir / f"{book.translated_title} by {book.translated_author} - Chunk_{chapter.chapter_number:06d}.txt"
             
             for chunk_attempt in range(1, max_chunk_retries + 1):
                 try:
-                    tolog.info(f"TRANSLATING CHUNK {str(chapter.chapter_number):06d} of {str(len(sorted_chapters))} (Attempt {chunk_attempt}/{max_chunk_retries})")
+                    tolog.info(f"TRANSLATING CHUNK {chapter.chapter_number:06d} of {len(sorted_chapters)} (Attempt {chunk_attempt}/{max_chunk_retries})")
                     is_last_chunk = (chapter.chapter_number == len(sorted_chapters))
                     translated_text = translator.translate(original_text, is_last_chunk)
                     
@@ -921,7 +927,6 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
                         raise ValueError("Translation returned empty or whitespace-only text")
                     
                     # Save chunk to file
-                    output_filename_chapter = book_dir / f"{book.translated_title} by {book.translated_author} - Chunk_{chapter.chapter_number:06d}.txt"
                     p = output_filename_chapter
                     try:
                         p.write_text(translated_text)
@@ -937,13 +942,12 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
                     
                 except Exception as e:
                     last_error = e
-                    tolog.error(f"ERROR: Translation failed for chunk {str(chapter.chapter_number):06d} on attempt {chunk_attempt}/{max_chunk_retries}: {str(e)}")
+                    tolog.error(f"ERROR: Translation failed for chunk {chapter.chapter_number:06d} on attempt {chunk_attempt}/{max_chunk_retries}: {str(e)}")
                     
                     if chunk_attempt < max_chunk_retries:
                         # Calculate wait time with exponential backoff
                         wait_time = min(2 ** chunk_attempt, 60)  # Max 60 seconds between retries
                         tolog.info(f"Waiting {wait_time} seconds before retry...")
-                        import time
                         time.sleep(wait_time)
             
             # Check if translation succeeded after all attempts
@@ -965,11 +969,11 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
                 )
                 tolog.error(error_message)
                 print(error_message)
-                import sys
                 sys.exit(1)
-            
-            tolog.info(f"\nChunk {chapter.chapter_number:06d}:\n{translated_text}\n\n")
-            translated_contents.append(f"\n{translated_text}\n")
+            else:
+                # Translation succeeded - log and append to contents
+                tolog.info(f"\nChunk {chapter.chapter_number:06d}:\n{translated_text}\n\n")
+                translated_contents.append(f"\n{translated_text}\n")
     # Combine all translated chunks into one full text
     full_translated_text = "\n".join(translated_contents)
     full_translated_text = remove_excess_empty_lines(full_translated_text)
@@ -1262,12 +1266,14 @@ def translate_novel(file_path: str, encoding: str = 'utf-8', max_chars: int = 12
     Returns:
         bool: True if translation completed successfully, False otherwise
     """
-    global tolog, translator
+    global tolog, translator, _module_config
     
     # Load configuration
     try:
         config_manager = ConfigManager(config_path=Path("enchant_config.yml"))
         config = config_manager.config
+        # Store config globally for use by other functions
+        _module_config = config
     except ValueError as e:
         tolog.error(f"Configuration error: {e}")
         return False
