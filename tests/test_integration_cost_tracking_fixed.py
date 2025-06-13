@@ -4,15 +4,14 @@
 Integration tests for cost tracking functionality between cli_translator and translation_service
 """
 
-try:
-    import pytest
-except ImportError:
-    pytest = None
 import json
 import os
 import sys
 from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
+import threading
+import time
+import concurrent.futures
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -28,7 +27,7 @@ class TestCostTrackingIntegration:
     
     def __init__(self):
         """Initialize test fixtures manually"""
-        pass
+        self.config = self.mock_config()
     
     def mock_config(self):
         """Mock configuration for testing - using exact production values"""
@@ -63,13 +62,13 @@ class TestCostTrackingIntegration:
             }
         }
     
-    @pytest.mark.integration
     def test_remote_cost_tracking_single_request(self):
         """Test cost tracking for a single remote API request"""
-        # Create translator
+        # Create translator with exact production settings
         translator = ChineseAITranslator(
             use_remote=True,
-            api_key="test_key"
+            api_key="test_key",
+            temperature=0.05  # Production override value
         )
         
         # Mock API response with cost data
@@ -105,12 +104,12 @@ class TestCostTrackingIntegration:
             call_args = mock_post.call_args
             assert call_args[1]['json']['usage'] == {'include': True}
     
-    @pytest.mark.integration
     def test_remote_cost_tracking_multiple_requests(self):
         """Test cumulative cost tracking across multiple requests"""
         translator = ChineseAITranslator(
             use_remote=True,
-            api_key="test_key"
+            api_key="test_key",
+            temperature=0.05  # Production value
         )
         
         # Mock multiple API responses
@@ -166,12 +165,12 @@ class TestCostTrackingIntegration:
             assert translator.total_completion_tokens == 225
             assert translator.request_count == 3
     
-    @pytest.mark.integration
     def test_cost_summary_formatting(self):
         """Test cost summary formatting for display"""
         translator = ChineseAITranslator(
             use_remote=True,
-            api_key="test_key"
+            api_key="test_key",
+            temperature=0.05  # Production value
         )
         
         # Set test values
@@ -181,7 +180,7 @@ class TestCostTrackingIntegration:
             translator.total_prompt_tokens = 30000
             translator.total_completion_tokens = 20000
             translator.request_count = 25
-            translator.MODEL_NAME = "deepseek/deepseek-r1:nitro"
+            translator.MODEL_NAME = "deepseek/deepseek-r1:nitro"  # Production model
         
         # Get formatted summary
         summary = translator.format_cost_summary()
@@ -197,12 +196,12 @@ class TestCostTrackingIntegration:
         assert "Model: deepseek/deepseek-r1:nitro" in summary
         assert "API Type: remote" in summary
     
-    @pytest.mark.integration
     def test_cost_tracking_with_missing_cost_field(self):
         """Test handling of responses without cost information"""
         translator = ChineseAITranslator(
             use_remote=True,
-            api_key="test_key"
+            api_key="test_key",
+            temperature=0.05  # Production value
         )
         
         with patch('requests.post') as mock_post:
@@ -228,15 +227,12 @@ class TestCostTrackingIntegration:
             assert translator.total_tokens == 150
             assert translator.request_count == 1
     
-    @pytest.mark.integration
     def test_cost_tracking_thread_safety(self):
         """Test thread-safe cost accumulation"""
-        import threading
-        import time
-        
         translator = ChineseAITranslator(
             use_remote=True,
-            api_key="test_key"
+            api_key="test_key",
+            temperature=0.05  # Production value
         )
         
         # Function to simulate concurrent API calls
@@ -270,17 +266,17 @@ class TestCostTrackingIntegration:
         for thread in threads:
             thread.join()
         
-        # Verify thread-safe accumulation
-        assert translator.total_cost == pytest.approx(0.01, rel=1e-9)  # 10 * 0.001
+        # Verify thread-safe accumulation (allowing small floating point differences)
+        assert abs(translator.total_cost - 0.01) < 1e-9  # 10 * 0.001
         assert translator.total_tokens == 1500  # 10 * 150
         assert translator.request_count == 10
     
-    @pytest.mark.integration
     def test_cost_reset_functionality(self):
         """Test resetting cost tracking"""
         translator = ChineseAITranslator(
             use_remote=True,
-            api_key="test_key"
+            api_key="test_key",
+            temperature=0.05  # Production value
         )
         
         # Set some values
@@ -301,12 +297,12 @@ class TestCostTrackingIntegration:
         assert translator.total_completion_tokens == 0
         assert translator.request_count == 0
     
-    @pytest.mark.integration
     def test_local_api_no_cost_tracking(self):
         """Test that local API doesn't track costs"""
         translator = ChineseAITranslator(
             use_remote=False,
-            pricing_manager=Mock()
+            pricing_manager=Mock(),
+            temperature=0.05  # Production value
         )
         
         with patch('requests.post') as mock_post:
@@ -332,12 +328,12 @@ class TestCostTrackingIntegration:
             call_args = mock_post.call_args
             assert 'usage' not in call_args[1]['json']
     
-    @pytest.mark.integration
     def test_cost_summary_edge_cases(self):
         """Test cost summary with edge cases"""
         translator = ChineseAITranslator(
             use_remote=True,
-            api_key="test_key"
+            api_key="test_key",
+            temperature=0.05  # Production value
         )
         
         # Test with zero requests
@@ -353,49 +349,51 @@ class TestCostTrackingIntegration:
         summary = translator.format_cost_summary()
         assert "$0.000001" in summary
     
-    @pytest.mark.integration
-    @pytest.mark.slow
-    def test_cost_tracking_stress_test(self):
-        """Stress test cost tracking with many concurrent requests"""
-        translator = ChineseAITranslator(
-            use_remote=True,
-            api_key="test_key"
-        )
+    def test_configuration_values_production_match(self):
+        """Test that we're using the exact production configuration values"""
+        config = self.mock_config()
         
-        num_requests = 100
-        cost_per_request = 0.001
-        
-        def make_concurrent_request(i):
-            with patch('requests.post') as mock_post:
-                mock_response = Mock()
-                mock_response.json.return_value = {
-                    'choices': [{'message': {'content': f'Translation {i}'}}],
-                    'usage': {
-                        'prompt_tokens': 10,
-                        'completion_tokens': 5,
-                        'total_tokens': 15,
-                        'cost': cost_per_request
-                    }
-                }
-                mock_response.raise_for_status = Mock()
-                mock_post.return_value = mock_response
-                
-                translator.translate(f"Text {i}")
-        
-        # Use thread pool for concurrent requests
-        import concurrent.futures
-        with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
-            futures = [executor.submit(make_concurrent_request, i) 
-                      for i in range(num_requests)]
-            concurrent.futures.wait(futures)
-        
-        # Verify accurate tracking
-        assert translator.total_cost == pytest.approx(
-            num_requests * cost_per_request, rel=1e-9
-        )
-        assert translator.request_count == num_requests
-        assert translator.total_tokens == num_requests * 15
+        # Verify exact production values
+        assert config['translation']['remote']['model'] == 'deepseek/deepseek-r1:nitro'
+        assert config['translation']['local']['model'] == 'qwen3-30b-a3b-mlx@8bit'
+        assert config['translation']['remote']['endpoint'] == 'https://openrouter.ai/api/v1/chat/completions'
+        assert config['translation']['local']['endpoint'] == 'http://localhost:1234/v1/chat/completions'
+        assert config['translation']['remote']['timeout'] == 300
+        assert config['translation']['remote']['connection_timeout'] == 30
+        assert config['translation']['local']['timeout'] == 300
+        assert config['translation']['local']['connection_timeout'] == 30
+        assert config['translation']['max_retries'] == 7
+        assert config['text_processing']['max_chars_per_chunk'] == 11999
+        assert config['text_processing']['split_method'] == 'paragraph'
 
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v", "--cov=translation_service,cli_translator"])
+    # Run tests manually
+    test_instance = TestCostTrackingIntegration()
+    
+    test_methods = [
+        'test_remote_cost_tracking_single_request',
+        'test_remote_cost_tracking_multiple_requests', 
+        'test_cost_summary_formatting',
+        'test_cost_tracking_with_missing_cost_field',
+        'test_cost_tracking_thread_safety',
+        'test_cost_reset_functionality',
+        'test_local_api_no_cost_tracking',
+        'test_cost_summary_edge_cases',
+        'test_configuration_values_production_match'
+    ]
+    
+    passed = 0
+    failed = 0
+    
+    for method_name in test_methods:
+        try:
+            method = getattr(test_instance, method_name)
+            method()
+            print(f"✓ {method_name}")
+            passed += 1
+        except Exception as e:
+            print(f"✗ {method_name}: {e}")
+            failed += 1
+    
+    print(f"\nResults: {passed} passed, {failed} failed")

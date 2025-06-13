@@ -1,0 +1,48 @@
+2025-06-11 02:05:43,984 - cli_translator - INFO - Starting book import for file: /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp6dfehzoh.txt
+2025-06-11 02:05:43,986 - cli_translator - INFO - Book imported successfully. Book ID: ac5c9668-d90a-4026-8d10-48be36ec9a3d
+2025-06-11 02:05:43,987 - cli_translator - INFO - TRANSLATING CHAPTER 1 of 1
+2025-06-11 02:05:43,987 - cli_translator - INFO - 
+Chapter 1:
+Chapter 1: The Path of Cultivation
+
+Li Ming was an ordinary high school student living in a small, unremarkable town. Every morning, he would wake up on time and rush to school for classes.
+
+But Li Ming had a secret, one that even he found hard to believe—he could cultivate martial arts.
+
+In this modern society, martial arts were considered legends and fictional elements from movies. However, Li Ming discovered by accident that ancient cultivation methods were actually real.
+
+It was a stormy night when Li Ming found an ancient book in the library.
+
+Chapter 2: The Mysterious Technique
+
+When Li Ming opened the ancient book, a strange energy emanated from its pages.
+
+The book recorded a cultivation technique called "Heavenly Constellation Art," which supposedly could grant extraordinary power to those who mastered it.
+
+Initially, Li Ming was skeptical, but when he began practicing according to the book's methods, he actually felt a warm current flowing through his body.
+
+"This... this is real!" Li Ming's heart raced with excitement.
+
+From that moment on, he began his journey of cultivation.
+
+Chapter 3: Breaking Through the First Realm
+
+After a month of diligent practice, Li Ming finally felt the signs of a breakthrough.
+
+That night, while he was cultivating, he suddenly felt the energy in his body surging like a tide. After intense pain, he was delighted to discover that his strength had improved qualitatively.
+
+"I did it! I really broke through the first realm!" Li Ming said excitedly.
+
+But he also understood that this was just the beginning of his cultivation journey, with more challenges awaiting him ahead.
+
+From then on, Li Ming's life completely changed. He was no longer an ordinary high school student but had embarked on the path to becoming a true powerhouse.
+
+
+2025-06-11 02:05:43,987 - cli_translator - INFO - Translated book saved to by n.d./translated_ by  n.d. .txt
+2025-06-11 02:05:43,987 - cli_translator - INFO - Translated book saved successfully.
+2025-06-11 02:05:43,987 - cli_translator - INFO - Cost Summary:
+=== Cost Summary ===
+Total Cost: $0.000000
+Total Requests: 0
+Total Tokens: 0
+

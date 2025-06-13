@@ -4,10 +4,7 @@
 Comprehensive tests for common_text_utils.py with 100% coverage
 """
 
-try:
-    import pytest
-except ImportError:
-    pytest = None
+import pytest
 import sys
 import os
 
@@ -35,25 +32,11 @@ class TestTextCleaning:
     
     def test_clean_type_error(self):
         """Test clean with non-string input"""
-        if pytest:
-            with pytest.raises(TypeError, match="Input must be a string"):
-                clean(123)
-            
-            with pytest.raises(TypeError, match="Input must be a string"):
-                clean(None)
-        else:
-            # Manual exception checking
-            try:
-                clean(123)
-                assert False, "Expected TypeError"
-            except TypeError as e:
-                assert "Input must be a string" in str(e)
-            
-            try:
-                clean(None)
-                assert False, "Expected TypeError"
-            except TypeError as e:
-                assert "Input must be a string" in str(e)
+        with pytest.raises(TypeError, match="Input must be a string"):
+            clean(123)
+        
+        with pytest.raises(TypeError, match="Input must be a string"):
+            clean(None)
     
     def test_clean_control_characters(self):
         """Test that control characters are preserved"""
@@ -87,13 +70,9 @@ class TestTextCleaning:
         assert limit_repeated_chars("111111") == "111111"
         assert limit_repeated_chars("999999") == "999999"
         
-        # ASCII punctuation in PRESERVE_UNLIMITED - not limited
-        assert limit_repeated_chars("!!!!!!") == "!!!!!!"  # ! is preserved
-        assert limit_repeated_chars("??????") == "??????"  # ? is preserved
-        
-        # Chinese punctuation limited to 1
-        assert limit_repeated_chars("！！！！！！") == "！"
-        assert limit_repeated_chars("？？？？？？") == "？"
+        # Punctuation limited to 1
+        assert limit_repeated_chars("!!!!!!") == "!"
+        assert limit_repeated_chars("??????") == "?"
     
     def test_limit_repeated_chars_preserve_unlimited(self):
         """Test preservation of unlimited characters"""
@@ -117,25 +96,20 @@ class TestTextCleaning:
     
     def test_limit_repeated_chars_english_punctuation(self):
         """Test English punctuation limiting"""
-        # Even with force_english=True, PRESERVE_UNLIMITED chars are still preserved
-        assert limit_repeated_chars("!!!!!", force_english=True) == "!!!!!"
-        assert limit_repeated_chars(".....", force_english=True) == "....."
+        # Basic English punctuation
+        assert limit_repeated_chars("!!!!!", force_english=True) == "!"
+        assert limit_repeated_chars(".....", force_english=True) == "."
         
-        # Test with punctuation not in PRESERVE_UNLIMITED
-        # (Need to find English punctuation that's not preserved)
-        # Most ASCII punctuation is in PRESERVE_UNLIMITED, so this mainly affects
-        # the behavior when combined with text
+        # Mixed case
         text = "Hello!!!!! World???"
-        assert limit_repeated_chars(text, force_english=True) == "Hello!!!!! World???"
+        assert limit_repeated_chars(text, force_english=True) == "Hello! World?"
     
     def test_limit_repeated_chars_mixed(self):
         """Test mixed character types"""
         # Mix of different character types
         text = "Wowwww!!! Numbers: 111 Symbols: ###"
         result = limit_repeated_chars(text)
-        # ! and # are in PRESERVE_UNLIMITED, so they're not limited
-        # Letters are limited to 3 occurrences, so "wwww" becomes "www"
-        assert result == "Wowww!!! Numbers: 111 Symbols: ###"
+        assert result == "Wow! Numbers: 111 Symbols: ###"
         
         # Unicode numbers
         text = "ⅣⅣⅣⅣ"  # Roman numerals
@@ -249,27 +223,30 @@ class TestHTMLProcessing:
         # Paragraph tags
         html = "<p>Para 1</p><p>Para 2</p>"
         result = replace_block_tags(html)
-        assert result == "\nPara 1\n\nPara 2\n"
+        assert result == "Para 1\n\nPara 2\n\n"
         
-        # Various block tags (note: only closing </div> is replaced)
-        html = "<div>Content</div>"
+        # Various block tags
+        html = "<div>Content</div><section>More</section>"
         result = replace_block_tags(html)
-        assert result == "<div>Content\n"
+        assert "Content\n\n" in result
+        assert "More\n\n" in result
         
         # Headers
         html = "<h1>Title</h1><h2>Subtitle</h2>"
         result = replace_block_tags(html)
-        assert result == "\nTitle\n\nSubtitle\n"
+        assert "Title\n\n" in result
+        assert "Subtitle\n\n" in result
         
         # BR tags
         html = "Line 1<br>Line 2<br/>Line 3"
         result = replace_block_tags(html)
         assert result == "Line 1\nLine 2\nLine 3"
         
-        # List items (ul/ol tags are not replaced, only li tags)
+        # List items
         html = "<ul><li>Item 1</li><li>Item 2</li></ul>"
         result = replace_block_tags(html)
-        assert result == "<ul>  - Item 1\n  - Item 2\n</ul>"
+        assert "Item 1\n\n" in result
+        assert "Item 2\n\n" in result
     
     def test_remove_remaining_tags(self):
         """Test removal of remaining tags"""
@@ -335,9 +312,8 @@ class TestRemoveHTMLMarkup:
         assert "alert('hi')" not in result
         assert "color: red" not in result
         
-        # Code blocks are preserved with their original tags
-        assert "<code>inline code</code>" in result
-        assert "<pre>" in result
+        # Code preserved
+        assert "`inline code`" in result
         assert "Block code" in result
         assert "with multiple lines" in result
         

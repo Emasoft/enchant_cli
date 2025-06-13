@@ -38,6 +38,7 @@ from common_text_utils import (
 DEFAULT_CHUNK_SIZE = 12000  # max chars for each chunk of chinese text to send to the server
 CONNECTION_TIMEOUT = 30    # max seconds to wait for connecting with the server (reduced from 100)
 RESPONSE_TIMEOUT = 300     # max seconds to wait for the server response (reduced from 3000)
+DEFAULT_MAX_TOKENS = 4000  # Default max tokens for API responses
 
 # Define a custom exception for translation failures
 class TranslationException(Exception):
@@ -47,9 +48,15 @@ class TranslationException(Exception):
 def retry_with_tenacity(method):
     @wraps(method)
     def wrapper(self, *args, **kwargs):
+        # Get retry settings from instance or use defaults
+        max_retries = getattr(self, 'max_retries', 7)
+        retry_wait_base = getattr(self, 'retry_wait_base', 1.0)
+        retry_wait_min = getattr(self, 'retry_wait_min', 3.0)
+        retry_wait_max = getattr(self, 'retry_wait_max', 60.0)
+        
         @retry(
-            stop=stop_after_attempt(7),  # Reduced from 77 to 7 attempts
-            wait=wait_exponential(multiplier=1, min=3, max=60),  # Cap max wait at 60s
+            stop=stop_after_attempt(max_retries),
+            wait=wait_exponential(multiplier=retry_wait_base, min=retry_wait_min, max=retry_wait_max),
             retry=retry_if_exception_type((
                 requests.exceptions.RequestException,
                 requests.exceptions.HTTPError,
@@ -216,6 +223,9 @@ def is_latin_char(char: str) -> bool:
     Returns True if the non-ASCII character belongs to the Latin script
     based on its Unicode name.
     """
+    # Check if it's a digit first
+    if char.isdigit():
+        return True
     try:
         return "LATIN" in unicodedata.name(char)
     except ValueError:
@@ -239,6 +249,10 @@ def is_latin_charset(text: str, threshold: float = 0.1) -> bool:
                       Default is 0.01 (i.e., 1%).
     :return: True if the text is primarily Latin, False otherwise.
     """
+    # Special case: empty string or only whitespace
+    if not text or text.isspace():
+        return True  # Consider empty/whitespace as Latin
+    
     total_count = 0
     latin_count = 0
 
@@ -256,6 +270,10 @@ def is_latin_charset(text: str, threshold: float = 0.1) -> bool:
         if is_latin_char(char):
             latin_count += 1
 
+    # If no non-whitespace characters, consider as Latin
+    if total_count == 0:
+        return True
+    
     # If no Latin characters were found, consider the text as not Latin.
     if latin_count == 0:
         return False
@@ -288,13 +306,31 @@ class ChineseAITranslator:
                  api_key: Optional[str] = None, endpoint: Optional[str] = None,
                  model: Optional[str] = None, temperature: float = 0.05,
                  max_tokens: Optional[int] = None, timeout: Optional[int] = None,
-                 pricing_manager: Optional[Any] = None):
+                 pricing_manager: Optional[Any] = None, config: Optional[Dict[str, Any]] = None,
+                 max_retries: Optional[int] = None, retry_wait_base: Optional[float] = None,
+                 retry_wait_min: Optional[float] = None, retry_wait_max: Optional[float] = None,
+                 connection_timeout: Optional[int] = None, double_pass: Optional[bool] = None,
+                 system_prompt: Optional[str] = None, user_prompt_1st_pass: Optional[str] = None,
+                 user_prompt_2nd_pass: Optional[str] = None):
         self.logger = logger or logging.getLogger(__name__)
         self.api_key = api_key or os.environ.get('OPENROUTER_API_KEY')
         self.is_remote = use_remote
         self.temperature = temperature
-        self.max_tokens = max_tokens
+        self.max_tokens = max_tokens or DEFAULT_MAX_TOKENS
         self.pricing_manager = pricing_manager
+        self.config = config or {}
+        
+        # Retry settings
+        self.max_retries = max_retries or 7
+        self.retry_wait_base = retry_wait_base or 1.0
+        self.retry_wait_min = retry_wait_min or 3.0
+        self.retry_wait_max = retry_wait_max or 60.0
+        
+        # Connection settings
+        self.connection_timeout = connection_timeout or CONNECTION_TIMEOUT
+        
+        # Double pass setting
+        self.double_pass = double_pass
         
         # Initialize cumulative cost tracking for remote API
         self._cost_lock = threading.Lock()
@@ -306,24 +342,36 @@ class ChineseAITranslator:
         
         if self.is_remote:
             if not self.api_key:
-                self.log("OPENROUTER_API_KEY not set in environment variables", "error")
+                error_msg = "OPENROUTER_API_KEY not set in environment variables"
+                self.log(error_msg, "error")
+                raise ValueError(error_msg)
             self.api_url = endpoint or API_URL_OPENROUTER
             self.MODEL_NAME = model or MODEL_NAME_DEEPSEEK
-            self.SYSTEM_PROMPT = SYSTEM_PROMPT_DEEPSEEK
-            self.USER_PROMPT_1STPASS = USER_PROMPT_1STPASS_DEEPSEEK
-            self.USER_PROMPT_2NDPASS = USER_PROMPT_2NDPASS_DEEPSEEK
+            self.SYSTEM_PROMPT = system_prompt if system_prompt is not None else SYSTEM_PROMPT_DEEPSEEK
+            self.USER_PROMPT_1STPASS = user_prompt_1st_pass if user_prompt_1st_pass is not None else USER_PROMPT_1STPASS_DEEPSEEK
+            self.USER_PROMPT_2NDPASS = user_prompt_2nd_pass if user_prompt_2nd_pass is not None else USER_PROMPT_2NDPASS_DEEPSEEK
             self.timeout = timeout or RESPONSE_TIMEOUT
+            # Set default double_pass if not specified
+            if self.double_pass is None:
+                self.double_pass = True
         else:
             self.api_url = endpoint or API_URL_LMSTUDIO
             self.MODEL_NAME = model or MODEL_NAME_QWEN
-            self.SYSTEM_PROMPT = SYSTEM_PROMPT_QWEN
-            self.USER_PROMPT_1STPASS = USER_PROMPT_1STPASS_QWEN
-            self.USER_PROMPT_2NDPASS = USER_PROMPT_2NDPASS_QWEN
+            self.SYSTEM_PROMPT = system_prompt if system_prompt is not None else SYSTEM_PROMPT_QWEN
+            self.USER_PROMPT_1STPASS = user_prompt_1st_pass if user_prompt_1st_pass is not None else USER_PROMPT_1STPASS_QWEN
+            self.USER_PROMPT_2NDPASS = user_prompt_2nd_pass if user_prompt_2nd_pass is not None else USER_PROMPT_2NDPASS_QWEN
             self.timeout = timeout or RESPONSE_TIMEOUT
+            # Set default double_pass if not specified
+            if self.double_pass is None:
+                self.double_pass = False
         
     def log(self, message: str, level: str = "info") -> None:
-        log_method = getattr(self.logger, level)
-        log_method(message)
+        try:
+            log_method = getattr(self.logger, level)
+            log_method(message)
+        except AttributeError:
+            # Fallback to info if invalid level provided
+            self.logger.info(f"[{level.upper()}] {message}")
 
     def remove_thinking_block(self, content:str) -> str:
         # Remove Think Tag from Text with Regular Expressions
@@ -331,7 +379,7 @@ class ChineseAITranslator:
         content = re.sub(r"<thinking>.*?</thinking>\n?", "", content, flags=re.DOTALL)
         return content
 
-    def remove_custom_tags(self, text, keyword, ignore_case=True):
+    def remove_custom_tags(self, text: str, keyword: str, ignore_case: bool = True) -> str:
         # Escape keyword in case it contains regex special characters
         escaped_keyword = re.escape(keyword)
         # Build a regex pattern for all variants with different delimiters
@@ -436,7 +484,11 @@ class ChineseAITranslator:
         
 
     
-    def translate_chunk(self, chunk: str, double_translation=False, is_last_chunk=False) -> str:
+    def translate_chunk(self, chunk: str, double_translation: Optional[bool] = None, is_last_chunk: bool = False) -> str:
+        # Use instance's double_pass setting if not explicitly overridden
+        if double_translation is None:
+            double_translation = self.double_pass
+            
         self.log("Translating chunk")
         self.log("Double Translation : " + str(double_translation))
         
@@ -480,7 +532,7 @@ class ChineseAITranslator:
 
     
     @retry_with_tenacity
-    def translate_messages(self, messages: str, is_last_chunk=False) -> str:
+    def translate_messages(self, messages: str, is_last_chunk: bool = False) -> str:
         self.log("Sending translation request to API")
         self.log(F"AI MODEL USED: {self.MODEL_NAME}")
         headers = {
@@ -515,7 +567,7 @@ class ChineseAITranslator:
     
         try:
             ##response = requests.get("http://10.255.255.1", timeout=(5, 10))    # Uncomment to test Tenacity auto retry
-            response = requests.post(self.api_url, headers=headers, json=data, timeout=(CONNECTION_TIMEOUT, self.timeout))
+            response = requests.post(self.api_url, headers=headers, json=data, timeout=(self.connection_timeout, self.timeout))
             self.log(f"Request sent to {self.api_url}")
             response.raise_for_status()
             self.log(f"Server returned RESPONSE: \n{response.json()}")
@@ -623,6 +675,10 @@ class ChineseAITranslator:
             with open(input_file, 'r', encoding='utf-8') as file:
                 chinese_text = file.read()
             
+            if not chinese_text.strip():
+                self.log("Input file is empty or contains only whitespace", "warning")
+                return ""
+            
             english_text = self.translate_chunk(chinese_text, is_last_chunk=is_last_chunk)
             
             with open(output_file, 'w', encoding='utf-8') as f:
@@ -634,11 +690,15 @@ class ChineseAITranslator:
             return None
 
 
-    def translate(self, input_string: str, is_last_chunk=False) -> str:
+    def translate(self, input_string: str, is_last_chunk: bool = False) -> str:
         #self.log(f"Translating text: {input_string}")
+        if not input_string.strip():
+            self.log("Input string is empty or contains only whitespace", "warning")
+            return ""
+        
         try:
             chinese_text = input_string
-            english_text = self.translate_chunk(chinese_text, double_translation=False, is_last_chunk=is_last_chunk)
+            english_text = self.translate_chunk(chinese_text, double_translation=None, is_last_chunk=is_last_chunk)
         except Exception as ex:
             self.log(f"Unexpected error during file translation: {ex}", "error")
             return None
@@ -688,7 +748,7 @@ class ChineseAITranslator:
         else:
             return f"\n=== Translation Cost Summary ===\nModel: {summary['model']}\nAPI Type: {summary['api_type']}\nLocal API - no costs incurred"
     
-    def reset_cost_tracking(self):
+    def reset_cost_tracking(self) -> None:
         """Reset cost tracking counters."""
         with self._cost_lock:
             self.total_cost = 0.0
@@ -706,11 +766,7 @@ if __name__ == "__main__":
         output_file="output.txt"
     )
     if english_text:
-        try:
-            with open("output.txt", 'w', encoding='utf-8') as file:
-                file.write(english_text)
-        except IOError as e:
-            print(f"File error: {e}")
+        print("Translation completed successfully.")
 
 
 

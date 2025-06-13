@@ -94,7 +94,8 @@ from common_text_utils import (
     clean, replace_repeated_chars, limit_repeated_chars,
     remove_html_markup, extract_code_blocks, extract_inline_code,
     remove_html_comments, remove_script_and_style, replace_block_tags,
-    remove_remaining_tags, unescape_non_code_with_placeholders
+    remove_remaining_tags, unescape_non_code_with_placeholders,
+    clean_adverts
 )
 from common_file_utils import decode_full_file, detect_file_encoding
 
@@ -168,9 +169,14 @@ _repeated_chars = re.compile(r'(.)\1+')
 
 # sanitize_filename is now imported from common_utils
 
-# replace_repeated_chars is now imported from common_text_utils
+# All text processing functions are now imported from common_text_utils
+# - clean, replace_repeated_chars, limit_repeated_chars
+# - remove_html_markup, extract_code_blocks, extract_inline_code
+# - remove_html_comments, remove_script_and_style, replace_block_tags  
+# - remove_remaining_tags, unescape_non_code_with_placeholders
+# - clean_adverts
 
-def limit_repeated_chars(text, force_chinese=False, force_english=False):
+class TranslationTaskStatus(enum.Enum):
     """
     Normalize repeated character sequences in the input text.
 
@@ -506,40 +512,14 @@ def is_markdown(input_text):
     
     
 def decode_input_file_content(input_file: Path) -> str:
-    encoding = detect_file_encoding(input_file)
-    tolog.debug(f"\nDetected encoding: {encoding}")
-    
-    try:
-        with codecs.open(input_file, 'r', encoding=encoding) as f:
-            content = f.read()
-    except Exception as e:
-        tolog.debug(f"\nAn error occurred processing file '{str(input_file)}': {e}")
-        tolog.debug("Defaulting to GB18030 encoding.")
-        encoding = 'GB18030'
-        try:
-            with codecs.open(input_file, 'r', encoding=encoding) as f:
-                content = f.read()
-        except Exception as e:
-            tolog.debug(f"\nAn error occurred processing file '{str(input_file)}': {e}")
-            tolog.debug("Attempt to decode using the detected encoding, replacing errors with the error character.")
-            with open(input_file, 'rb') as file:
-                content_bytes = file.read()
-                # Attempt to decode using the detected encoding, replacing errors with the error character
-                content = content_bytes.decode(encoding, errors='replace')
-            
-    return content
+    """
+    Wrapper for backward compatibility - uses common_file_utils.decode_full_file
+    """
+    return decode_full_file(input_file, logger=tolog)
     
     
-# try to detect the encoding of chinese text files 
-def detect_file_encoding(file_path: Path) -> str:
-    detector = UniversalDetector()
-    with file_path.open('rb') as f:
-        for line in f:
-            detector.feed(line)
-            if detector.done:
-                break
-        detector.close()
-        return detector.result['encoding']
+# detect_file_encoding is now imported from common_file_utils
+# (returns tuple of (encoding, confidence) - for backward compatibility, we just return encoding)
         
         
         
@@ -702,35 +682,7 @@ def import_book_from_txt(file_path, encoding='utf-8', chapter_pattern=r'Chapter 
     return new_book_id
 
 
-def clean_adverts(text_content: str) -> str:
-    # string to remove from content
-    spam1regex = [  r"吉米小说网\s*[（(]www\.(34gc|jimixs)\.(net|com)[）)]\s*txt电子书下载",
-                    r"吉米小说网\s*[（(]Www\.(34gc|jimixs)\.(net|com)[）)]\s*免费TXT小说下载",
-                    r"吉米小说网\s*[（(]www\.jimixs\.com[）)]\s*免费电子书下载",
-                    r"本电子书由果茶小说网\s*[（(]www\.34gc\.(net|com)[）)]\s*网友上传分享，网址\:http\:\/\/www\.34gc\.net",
-                    r"(本电子书由){0,1}[吉米小说网果茶]{4,6}\s*[（(]www\.(34gc|jimixs)\.(net|com)[）)]\s*[tx电子书下载网友上传分免费小说在线阅读说下载享]{4,10}",
-                    r"[,;\.]{0,1}\s*网址\:www\.(34gc|jimixs)\.(net|com)",
-                    r"吉米小说网\s*[（(]www\.(34gc|jimixs)\.(net|com)[）)]",
-                    r"本电子书由果茶小说网",
-                    r"吉米小说网\s*[（(]www\.(34gc|jimixs)\.(net|com)[）)]",
-                    r"(http\:\/\/){0,1}www\.(34g|jimixs)\.(net|com)",
-                ]
-
-    subst = " "
-
-    for regex_pattern in spam1regex:
-        # You can manually specify the number of replacements by changing the 4th argument
-        text_content = re.sub(regex_pattern, subst, text_content, 0, re.MULTILINE | re.IGNORECASE | re.UNICODE)
-
-
-    open_parh = '('
-    open_parh_chinese = '（'
-    closed_parh = ')'
-    closed_parh_chinese = '）'
-
-    text_content = quick_replace(text_content, open_parh_chinese, open_parh)
-    text_content = quick_replace(text_content, closed_parh_chinese, closed_parh)
-    return text_content
+# clean_adverts function moved to common_text_utils.py to avoid duplication
 
 
 def quick_replace(text_content: str, original: str, substitution: str, case_insensitive=True) -> str:

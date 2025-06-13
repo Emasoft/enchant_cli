@@ -4,10 +4,7 @@
 Comprehensive tests for translation_service.py with 100% coverage
 """
 
-try:
-    import pytest
-except ImportError:
-    pytest = None
+import pytest
 import json
 import logging
 import threading

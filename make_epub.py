@@ -108,6 +108,8 @@ def log_issue(msg: str, obj: Optional[dict] = None) -> None:
 def roman_to_int(s: str) -> int:
     total = prev = 0
     for ch in reversed(s.lower()):
+        if ch not in _ROMAN:
+            raise ValueError(f"Invalid Roman numeral character: {ch}")
         val = _ROMAN[ch]
         total = total - val if val < prev else total + val
         prev = val
@@ -148,6 +150,9 @@ def detect_issues(seq: List[int]) -> List[str]:
     Updated algorithm provided by user: reports missing, repeats, swaps,
     out-of-place, duplicates.
     """
+    if not seq:
+        return []
+    
     issues = []
     start, end = seq[0], seq[-1]
     prev_expected = start
@@ -158,7 +163,11 @@ def detect_issues(seq: List[int]) -> List[str]:
         # 1) Repeats: only on second+ occurrence
         if v in seen:
             # find nearest non-identical predecessor
-            pred = next(x for x in reversed(seq[:idx]) if x != v)
+            try:
+                pred = next(x for x in reversed(seq[:idx]) if x != v)
+            except StopIteration:
+                # No non-identical predecessor found (all previous values are the same)
+                pred = seq[0] if idx > 0 else v
             # count run length from here
             run_len = 1
             j = idx
@@ -577,6 +586,77 @@ def create_epub_from_chapters(
     
     # Create the EPUB
     write_new_epub(processed_chapters, output_path, title, author, cover_path)
+
+
+def create_epub_from_txt_file(
+    txt_file_path: Path,
+    output_path: Path,
+    title: str,
+    author: str,
+    cover_path: Optional[Path] = None,
+    generate_toc: bool = True,
+    validate: bool = True,
+    strict_mode: bool = False
+) -> Tuple[bool, List[str]]:
+    """
+    Create an EPUB from a complete translated text file.
+    This is the main entry point for enchant_cli.py integration.
+    
+    Args:
+        txt_file_path: Path to the complete translated text file
+        output_path: Path where the EPUB should be saved
+        title: Book title
+        author: Book author  
+        cover_path: Optional path to cover image
+        generate_toc: Whether to detect chapter headings and build TOC
+        validate: Whether to validate chapter sequence
+        strict_mode: Whether to abort on validation issues
+        
+    Returns:
+        Tuple of (success: bool, issues: List[str])
+        
+    Raises:
+        ValidationError: If there are issues with inputs
+        OSError: If there are file system errors
+    """
+    # Read the complete text file
+    if not txt_file_path.exists():
+        raise ValidationError(f"Input file not found: {txt_file_path}")
+        
+    try:
+        full_text = txt_file_path.read_text(encoding='utf-8')
+    except Exception as e:
+        raise ValidationError(f"Error reading input file: {e}")
+    
+    # Split text into chapters and detect headings
+    chap_blocks, chapter_sequence = split_text(full_text, detect_headings=generate_toc)
+    chapters = [(title, paragraphize(content)) for title, content in chap_blocks]
+    
+    # Validate chapter sequence if requested
+    issues = []
+    if validate and generate_toc:
+        issues = detect_issues(chapter_sequence)
+        for issue in issues:
+            log_issue(issue, {"file": str(txt_file_path), "issue": issue})
+            
+        if issues and strict_mode:
+            return False, issues
+    
+    # Ensure output directory exists
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Validate cover if provided
+    if cover_path and cover_path.exists():
+        if cover_path.suffix.lower() not in {'.jpg', '.jpeg', '.png'}:
+            raise ValidationError("Cover must be .jpg/.jpeg/.png")
+    
+    # Create the EPUB
+    try:
+        write_new_epub(chapters, output_path, title, author, cover_path)
+        return True, issues
+    except Exception as e:
+        issues.append(f"Error creating EPUB: {e}")
+        return False, issues
 
 
 def create_epub_from_directory(

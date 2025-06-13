@@ -189,18 +189,38 @@ def remove_script_and_style(html_str: str) -> str:
 
 def replace_block_tags(html_str: str) -> str:
     """Replace block-level tags with appropriate whitespace markers."""
-    # Tags that should be replaced with double newline
-    block_tags = ['p', 'div', 'section', 'article', 'header', 'footer', 'main', 'aside',
-                  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote',
-                  'pre', 'table', 'tr', 'td', 'th', 'form', 'fieldset', 'legend']
+    # First, remove comments, scripts, and style blocks.
+    html_str = remove_html_comments(html_str)
+    html_str = remove_script_and_style(html_str)
     
-    for tag in block_tags:
-        html_str = re.sub(f'</{tag}>', '\n\n', html_str, flags=re.IGNORECASE)
-        html_str = re.sub(f'<{tag}\\b[^>]*>', '', html_str, flags=re.IGNORECASE)
+    # Remove <pre> tags (their content is already extracted).
+    html_str = re.sub(r'<\s*/?\s*pre[^>]*>', '', html_str, flags=re.IGNORECASE)
     
-    # <br> tags should be single newline
-    html_str = re.sub(r'<br\s*/?>', '\n', html_str, flags=re.IGNORECASE)
-    
+    replacements = [
+        # Paragraphs: simulate a paragraph break.
+        (r'<\s*/\s*p\s*>', '\n'),
+        (r'<\s*p[^>]*>', '\n'),
+        # Line breaks: convert to newline.
+        (r'<\s*br\s*/?\s*>', '\n'),
+        # Divisions: add newline after closing div.
+        (r'<\s*/\s*div\s*>', '\n'),
+        # List items: prefix with a bullet and add newline.
+        (r'<\s*li[^>]*>', '  - '),
+        (r'<\s*/\s*li\s*>', '\n'),
+        # Table rows: newline after each row.
+        (r'<\s*/\s*tr\s*>', '\n'),
+        # Table cells: add a tab after each cell.
+        (r'<\s*/\s*td\s*>', '\t'),
+        (r'<\s*/\s*th\s*>', '\t'),
+        # Blockquotes: add newlines.
+        (r'<\s*blockquote[^>]*>', '\n'),
+        (r'<\s*/\s*blockquote\s*>', '\n'),
+        # Headers (h1-h6): newlines before and after.
+        (r'<\s*h[1-6][^>]*>', '\n'),
+        (r'<\s*/\s*h[1-6]\s*>', '\n'),
+    ]
+    for pattern, repl in replacements:
+        html_str = re.sub(pattern, repl, html_str, flags=re.IGNORECASE)
     return html_str
 
 
@@ -212,10 +232,10 @@ def remove_remaining_tags(html_str: str) -> str:
 
 def unescape_non_code_with_placeholders(text: str) -> str:
     """Unescape HTML entities except in code placeholders."""
-    pattern = r'__(?:CODE_BLOCK|INLINE_CODE)_\d+__'
+    pattern = r'(__(?:CODE_BLOCK|INLINE_CODE)_\d+__)'
     parts = re.split(pattern, text)
     for i, part in enumerate(parts):
-        if re.fullmatch(pattern, part):
+        if re.fullmatch(r'__(?:CODE_BLOCK|INLINE_CODE)_\d+__', part):
             continue  # Leave code placeholders intact
         else:
             parts[i] = html.unescape(part)
@@ -244,11 +264,8 @@ def remove_html_markup(html_str: str) -> str:
     # Step 2: Extract inline code spans
     html_modified, inline_codes = extract_inline_code(html_modified)
     
-    # Step 3: Remove unwanted content
-    html_modified = remove_html_comments(html_modified)
-    html_modified = remove_script_and_style(html_modified)
-    
-    # Step 4: Replace block tags with whitespace
+    # Steps 3-4: Remove unwanted content and replace block tags
+    # Note: replace_block_tags already calls remove_html_comments and remove_script_and_style
     html_modified = replace_block_tags(html_modified)
     
     # Step 5: Remove remaining tags
@@ -266,3 +283,39 @@ def remove_html_markup(html_str: str) -> str:
         html_modified = html_modified.replace(f"__CODE_BLOCK_{i}__", code)
     
     return html_modified
+
+
+def clean_adverts(text_content: str) -> str:
+    """
+    Clean advertisement text from Chinese novel content.
+    
+    This function removes various spam/advertisement patterns commonly found
+    in Chinese novel text files, particularly from jimixs and 34gc websites.
+    """
+    # Regex patterns to remove spam/advertisements
+    spam_patterns = [
+        r"吉米小说网\s*[（(]www\.(34gc|jimixs)\.(net|com)[）)]\s*txt电子书下载",
+        r"吉米小说网\s*[（(]Www\.(34gc|jimixs)\.(net|com)[）)]\s*免费TXT小说下载",
+        r"吉米小说网\s*[（(]www\.jimixs\.com[）)]\s*免费电子书下载",
+        r"本电子书由果茶小说网\s*[（(]www\.34gc\.(net|com)[）)]\s*网友上传分享，网址\:http\:\/\/www\.34gc\.net",
+        r"(本电子书由){0,1}[吉米小说网果茶]{4,6}\s*[（(]www\.(34gc|jimixs)\.(net|com)[）)]\s*[tx电子书下载网友上传分免费小说在线阅读说下载享]{4,10}",
+        r"[,;\.]{0,1}\s*网址\:www\.(34gc|jimixs)\.(net|com)",
+        r"吉米小说网\s*[（(]www\.(34gc|jimixs)\.(net|com)[）)]",
+        r"本电子书由果茶小说网",
+        r"(http\:\/\/){0,1}www\.(34g|jimixs)\.(net|com)",
+    ]
+
+    # Replace spam patterns with single space
+    for pattern in spam_patterns:
+        text_content = re.sub(
+            pattern, 
+            " ", 
+            text_content, 
+            count=0, 
+            flags=re.MULTILINE | re.IGNORECASE | re.UNICODE
+        )
+
+    # Normalize parentheses (convert Chinese to English)
+    text_content = text_content.replace('（', '(').replace('）', ')')
+    
+    return text_content

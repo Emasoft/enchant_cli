@@ -24,6 +24,7 @@ from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
 import threading
 import waiting  # Ensure this library is installed: pip install waiting
+from common_file_utils import decode_full_file
 
 # ==========================
 # ICloudSync Class Definition
@@ -302,6 +303,7 @@ def find_text_files(folder_path: Path, recursive: bool) -> list:
 
 # Function to decode file content to UTF-8
 def decode_file_content(file_path: Path, kb_to_read: int, icloud_sync: ICloudSync) -> Optional[str]:
+    """Decode file content using common_file_utils with size limit."""
     try:
         synced_path = icloud_sync.check_and_wait_for_sync(file_path)
     except ICloudSyncError as e:
@@ -309,31 +311,26 @@ def decode_file_content(file_path: Path, kb_to_read: int, icloud_sync: ICloudSyn
         return None
 
     try:
-        with open(synced_path, 'rb') as f:
-            raw_data = f.read(kb_to_read * 1024)
-    except PermissionError as e:
-        logger.error(f"Permission denied for file '{synced_path}': {e}")
-        return None
-    except FileNotFoundError as e:
-        logger.error(f"File not found '{synced_path}': {e}")
-        return None
+        # Use the common file utils with size limit
+        content = decode_full_file(
+            synced_path,
+            encoding_detector='auto',
+            confidence_threshold=0.7,
+            fallback_encodings=['gb18030', 'utf-8', 'gb2312'],
+            logger=logger
+        )
+        
+        if content and kb_to_read:
+            # Limit to requested size (approximate character limit)
+            char_limit = kb_to_read * 1024  # Rough character estimate
+            if len(content) > char_limit:
+                content = content[:char_limit]
+        
+        return content
+        
     except Exception as e:
-        logger.error(f"Unexpected error reading file '{synced_path}': {e}")
+        logger.error(f"Failed to decode file '{synced_path}': {e}")
         return None
-
-    detected_encoding = chardet.detect(raw_data)['encoding']
-    if detected_encoding is None or detected_encoding.lower() not in SUPPORTED_ENCODINGS:
-        logger.warning(f"Encoding not detected or unsupported for file '{synced_path}'. Attempting fallback to 'gb18030'.")
-        detected_encoding = 'gb18030'  # Fallback to GB18030 if encoding is not detected or is unreliable
-    try:
-        return raw_data.decode(detected_encoding, errors='replace')
-    except (LookupError, UnicodeDecodeError) as e:
-        logger.error(f"Error decoding file '{synced_path}': {e}")
-        try:
-            return raw_data.decode('utf-8', errors='replace')
-        except Exception as e:
-            logger.error(f"Failed to decode file '{synced_path}' with fallback 'utf-8': {e}")
-            return None
 
 # Helper function to sanitize filenames
 def sanitize_filename(name: str) -> str:
@@ -392,7 +389,142 @@ def extract_json(response_content: str) -> Optional[dict]:
 cumulative_cost = 0.0
 cumulative_cost_lock = threading.Lock()
 
-# Helper function to process a single file
+def process_novel_file(file_path: Path, api_key: str, model: str = 'gpt-4o-mini', 
+                      temperature: float = 0.0, dry_run: bool = False) -> tuple[bool, Path, dict]:
+    """
+    Process a single novel file to extract metadata and rename it.
+    
+    Args:
+        file_path: Path to the novel file
+        api_key: OpenAI API key
+        model: OpenAI model to use (default: gpt-4o-mini)
+        temperature: Model temperature (default: 0.0)
+        dry_run: If True, don't actually rename the file (default: False)
+        
+    Returns:
+        tuple: (success: bool, new_path: Path, metadata: dict)
+    """
+    try:
+        # Load pricing info
+        try:
+            pricing_info = load_model_pricing()
+        except Exception as e:
+            logger.warning(f"Could not load pricing info: {e}")
+            pricing_info = {}
+        
+        # Initialize iCloud sync
+        icloud_sync = ICloudSync(icloud_enabled=ICLOUD)
+        
+        # Use default kb_to_read
+        kb_to_read = DEFAULT_KB_TO_READ
+        
+        # Decode file content
+        content = decode_file_content(file_path, kb_to_read, icloud_sync)
+        if content is None:
+            logger.error(f"Failed to decode file content for {file_path}")
+            return False, file_path, {}
+        
+        # Create prompt
+        prompt = (
+            "Given the following content from a novel, perform the following tasks:\n"
+            "- Detect the language(s) of the text.\n"
+            "- Find the title of the novel and the author's name.\n"
+            "- Return the title of the novel and author in the original language, followed by their English translations and the romanization of the author's name.\n"
+            "Content:\n" + content[:CONTENT_NUMBER_OF_CHARACTERS_HARD_LIMIT] +
+            "\nReturn the response in JSON format as follows:\n"
+            "{\n"
+            "    \"detected_language\": \"<detected_language>\",\n"
+            "    \"novel_title_original\": \"<novel_title_original>\",\n"
+            "    \"author_name_original\": \"<author_name_original>\",\n"
+            "    \"novel_title_english\": \"<novel_title_english>\",\n"
+            "    \"author_name_english\": \"<author_name_english>\",\n"
+            "    \"author_name_romanized\": \"<author_name_romanized>\"\n"
+            "}\n"
+        )
+        
+        messages = [{"role": "user", "content": prompt}]
+        response = make_openai_request(api_key, model, temperature, messages)
+        
+        # Extract response content
+        choices = response.get('choices')
+        if not choices or not isinstance(choices, list):
+            logger.error(f"No choices found in OpenAI response: {response}")
+            return False, file_path, {}
+
+        message = choices[0].get('message')
+        if not message or 'content' not in message:
+            logger.error(f"Message content missing in OpenAI response: {response}")
+            return False, file_path, {}
+
+        response_content = message['content']
+        response_data = extract_json(response_content)
+
+        if response_data is None:
+            logger.error(f"Failed to extract JSON data from OpenAI response for file {file_path}.")
+            return False, file_path, {}
+
+        # Validate required keys
+        required_keys = [
+            'detected_language',
+            'novel_title_original',
+            'author_name_original',
+            'novel_title_english',
+            'author_name_english',
+            'author_name_romanized'
+        ]
+        if not all(key in response_data for key in required_keys):
+            logger.error(f"Missing keys in response data for file {file_path}: {response_data}")
+            return False, file_path, {}
+        
+        # Calculate cost
+        usage = response.get('usage', {})
+        prompt_tokens = usage.get('prompt_tokens', 0)
+        completion_tokens = usage.get('completion_tokens', 0)
+        total_tokens = usage.get('total_tokens', 0)
+
+        model_pricing = pricing_info.get(model, {})
+        if model_pricing:
+            input_cost_per_token = model_pricing.get('input_cost_per_token', 0.0)
+            output_cost_per_token = model_pricing.get('output_cost_per_token', 0.0)
+            cost = (prompt_tokens * input_cost_per_token) + (completion_tokens * output_cost_per_token)
+            logger.info(f"File '{file_path}' used {total_tokens} tokens. Cost: ${cost:.6f}")
+        
+        # Determine new file path
+        title_eng = sanitize_filename(response_data.get('novel_title_english', 'Unknown Title'))
+        author_eng = sanitize_filename(response_data.get('author_name_english', 'Unknown Author'))
+        author_roman = sanitize_filename(response_data.get('author_name_romanized', 'Unknown'))
+        title_orig = sanitize_filename(response_data.get('novel_title_original', 'Unknown'))
+        author_orig = sanitize_filename(response_data.get('author_name_original', 'Unknown'))
+
+        new_name = f"{title_eng} by {author_eng} ({author_roman}) - {title_orig} by {author_orig}.txt"
+        new_path = file_path.with_name(new_name)
+
+        # Ensure uniqueness if there are naming collisions
+        counter = 1
+        while new_path.exists():
+            new_name = f"{title_eng} by {author_eng} ({author_roman}) - {title_orig} by {author_orig} ({counter}).txt"
+            new_path = file_path.with_name(new_name)
+            counter += 1
+        
+        # Rename file if not dry run
+        if not dry_run:
+            logger.info(f"Renaming '{file_path}' to '{new_path}'")
+            try:
+                file_path.rename(new_path)
+            except OSError as e:
+                logger.error(f"Failed to rename '{file_path}' to '{new_path}': {e}")
+                return False, file_path, response_data
+        else:
+            logger.info(f"Dry run: Would rename '{file_path}' to '{new_path}'")
+        
+        return True, new_path, response_data
+        
+    except Exception as e:
+        logger.error(f"Error processing novel file {file_path}: {e}")
+        return False, file_path, {}
+
+
+# Helper function to process a single file (used by batch processing)
 def process_single_file(file_path: Path, kb_to_read: int, api_key: str, model: str, temperature: float, pricing_info: dict, icloud_sync: ICloudSync):
     global cumulative_cost
     content = decode_file_content(file_path, kb_to_read, icloud_sync)

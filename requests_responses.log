@@ -1,0 +1,3 @@
+2025-06-11 02:05:43,927 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-11 02:05:43,933 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-11 02:05:43,933 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp6dfehzoh.txt: Missing commands: downloadFolder, downloadFile

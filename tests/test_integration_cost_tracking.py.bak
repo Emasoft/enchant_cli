@@ -4,10 +4,7 @@
 Integration tests for cost tracking functionality between cli_translator and translation_service
 """
 
-try:
-    import pytest
-except ImportError:
-    pytest = None
+import pytest
 import json
 import os
 import sys
@@ -26,37 +23,19 @@ with patch('cli_translator.ConfigManager'):
 class TestCostTrackingIntegration:
     """Integration tests for OpenRouter cost tracking"""
     
-    def __init__(self):
-        """Initialize test fixtures manually"""
-        pass
-    
+    @pytest.fixture
     def mock_config(self):
-        """Mock configuration for testing - using exact production values"""
+        """Mock configuration for testing"""
         return {
             'translation': {
                 'service': 'remote',
-                'temperature': 0.3,  # Config default, overridden by translator to 0.05
-                'max_tokens': 4000,
-                'max_retries': 7,
-                'retry_wait_base': 1.0,
-                'retry_wait_max': 60.0,
+                'temperature': 0.05,
+                'max_tokens': None,
                 'remote': {
                     'endpoint': 'https://openrouter.ai/api/v1/chat/completions',
                     'model': 'deepseek/deepseek-r1:nitro',
-                    'timeout': 300,
-                    'connection_timeout': 30
-                },
-                'local': {
-                    'endpoint': 'http://localhost:1234/v1/chat/completions',
-                    'model': 'qwen3-30b-a3b-mlx@8bit',
-                    'timeout': 300,
-                    'connection_timeout': 30
+                    'timeout': 300
                 }
-            },
-            'text_processing': {
-                'max_chars_per_chunk': 11999,
-                'split_method': 'paragraph',
-                'default_encoding': 'utf-8'
             },
             'pricing': {
                 'enabled': True
