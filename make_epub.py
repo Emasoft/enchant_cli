@@ -357,37 +357,106 @@ def paragraphize(txt: str) -> str:
 # ───────────── XHTML / EPUB fragment builders ───────────── #
 
 def build_chap_xhtml(title: str, body_html: str) -> str:
-    return f"""<?xml version='1.0' encoding='utf-8'?>
-<!DOCTYPE html>
-<html xmlns='http://www.w3.org/1999/xhtml'>
-<head>
-  <title>{html.escape(title)}</title>
-  <link href='../Styles/style.css' rel='stylesheet' type='text/css'/>
-</head>
-<body>
-  <h1>{html.escape(title)}</h1>
-  {body_html}
-</body>
-</html>""".strip()
+    """Build chapter XHTML using ElementTree for proper XML handling"""
+    # Register XHTML namespace
+    ET.register_namespace('', 'http://www.w3.org/1999/xhtml')
+    
+    # Create root element
+    html = ET.Element('{http://www.w3.org/1999/xhtml}html')
+    
+    # Head section
+    head = ET.SubElement(html, '{http://www.w3.org/1999/xhtml}head')
+    title_elem = ET.SubElement(head, '{http://www.w3.org/1999/xhtml}title')
+    title_elem.text = title
+    
+    link = ET.SubElement(head, '{http://www.w3.org/1999/xhtml}link')
+    link.set('href', '../Styles/style.css')
+    link.set('rel', 'stylesheet')
+    link.set('type', 'text/css')
+    
+    # Body section
+    body = ET.SubElement(html, '{http://www.w3.org/1999/xhtml}body')
+    h1 = ET.SubElement(body, '{http://www.w3.org/1999/xhtml}h1')
+    h1.text = title
+    
+    # Parse body HTML and append
+    # We need to wrap in a div to parse the HTML fragments
+    try:
+        wrapped = f'<div xmlns="http://www.w3.org/1999/xhtml">{body_html}</div>'
+        body_content = ET.fromstring(wrapped)
+        # Move all children from wrapper to body
+        for child in body_content:
+            body.append(child)
+    except ET.ParseError:
+        # Fallback: create a single paragraph with the content
+        p = ET.SubElement(body, '{http://www.w3.org/1999/xhtml}p')
+        p.text = body_html
+    
+    # Generate string with XML declaration and DOCTYPE
+    tree = ET.ElementTree(html)
+    from io import StringIO
+    output = StringIO()
+    tree.write(output, encoding='unicode', method='xml')
+    
+    # Add XML declaration and DOCTYPE manually
+    result = '<?xml version="1.0" encoding="utf-8"?>\n'
+    result += '<!DOCTYPE html>\n'
+    result += output.getvalue()
+    
+    return result
 
 def build_cover_xhtml(img_rel: str) -> str:
-    return f"""<?xml version='1.0' encoding='utf-8'?>
-<!DOCTYPE html>
-<html xmlns='http://www.w3.org/1999/xhtml'>
-<head>
-  <title>Cover</title>
-  <style>html,body{{margin:0;padding:0}}img{{max-width:100%;height:auto;display:block;margin:0 auto}}</style>
-</head>
-<body>
-  <img src='../{html.escape(img_rel)}' alt='Cover'/>
-</body>
-</html>""".strip()
+    """Build cover XHTML using ElementTree"""
+    # Register XHTML namespace
+    ET.register_namespace('', 'http://www.w3.org/1999/xhtml')
+    
+    # Create root element
+    html = ET.Element('{http://www.w3.org/1999/xhtml}html')
+    
+    # Head section
+    head = ET.SubElement(html, '{http://www.w3.org/1999/xhtml}head')
+    title_elem = ET.SubElement(head, '{http://www.w3.org/1999/xhtml}title')
+    title_elem.text = 'Cover'
+    
+    style = ET.SubElement(head, '{http://www.w3.org/1999/xhtml}style')
+    style.text = 'html,body{margin:0;padding:0}img{max-width:100%;height:auto;display:block;margin:0 auto}'
+    
+    # Body section
+    body = ET.SubElement(html, '{http://www.w3.org/1999/xhtml}body')
+    img = ET.SubElement(body, '{http://www.w3.org/1999/xhtml}img')
+    img.set('src', f'../{img_rel}')
+    img.set('alt', 'Cover')
+    
+    # Generate string
+    tree = ET.ElementTree(html)
+    from io import StringIO
+    output = StringIO()
+    tree.write(output, encoding='unicode', method='xml')
+    
+    # Add XML declaration and DOCTYPE
+    result = '<?xml version="1.0" encoding="utf-8"?>\n'
+    result += '<!DOCTYPE html>\n'
+    result += output.getvalue()
+    
+    return result
 
 def build_container_xml() -> str:
-    return ("<?xml version='1.0' encoding='utf-8'?><container version='1.0' "
-            "xmlns='urn:oasis:names:tc:opendocument:xmlns:container'><rootfiles>"
-            "<rootfile full-path='OEBPS/content.opf' media-type='application/oebps-package+xml'/>"
-            "</rootfiles></container>")
+    """Build container.xml using ElementTree"""
+    # Register namespace
+    container_ns = 'urn:oasis:names:tc:opendocument:xmlns:container'
+    ET.register_namespace('', container_ns)
+    
+    # Create container element
+    container = ET.Element(f'{{{container_ns}}}container', version='1.0')
+    
+    # Add rootfiles
+    rootfiles = ET.SubElement(container, f'{{{container_ns}}}rootfiles')
+    rootfile = ET.SubElement(rootfiles, f'{{{container_ns}}}rootfile')
+    rootfile.set('full-path', 'OEBPS/content.opf')
+    rootfile.set('media-type', 'application/oebps-package+xml')
+    
+    # Generate string
+    return ET.tostring(container, encoding='unicode', method='xml', xml_declaration=True)
 
 def build_style_css() -> str:
     return ("body{font-family:serif;line-height:1.4;margin:5%}"
