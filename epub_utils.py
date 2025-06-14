@@ -72,11 +72,14 @@ def create_epub_with_config(
     generate_toc = config.get('generate_toc', True)
     validate = config.get('validate', True)
     strict_mode = config.get('strict_mode', False)
+    language = config.get('language', 'en')
+    custom_css = config.get('custom_css', None)
+    metadata = config.get('metadata', None)
     
     # Log configuration
     if logger:
         logger.info(f"Creating EPUB for: {title} by {author}")
-        logger.debug(f"EPUB configuration: generate_toc={generate_toc}, validate={validate}, strict_mode={strict_mode}")
+        logger.debug(f"EPUB configuration: generate_toc={generate_toc}, validate={validate}, strict_mode={strict_mode}, language={language}")
     
     try:
         # Call the make_epub function
@@ -88,7 +91,10 @@ def create_epub_with_config(
             cover_path=cover_path,
             generate_toc=generate_toc,
             validate=validate,
-            strict_mode=strict_mode
+            strict_mode=strict_mode,
+            language=language,
+            custom_css=custom_css,
+            metadata=metadata
         )
         
         # Log results

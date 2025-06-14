@@ -39,7 +39,7 @@ import zipfile
 from datetime import datetime, timezone
 from difflib import SequenceMatcher
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 import xml.etree.ElementTree as ET
 
 
@@ -402,7 +402,11 @@ def build_container_xml() -> str:
     # Generate string
     return ET.tostring(container, encoding='unicode', method='xml', xml_declaration=True)
 
-def build_style_css() -> str:
+def build_style_css(custom_css: Optional[str] = None) -> str:
+    """Build CSS content, using custom CSS if provided."""
+    if custom_css:
+        return custom_css
+    # Default CSS
     return ("body{font-family:serif;line-height:1.4;margin:5%}"
             "h1{text-align:center;margin:2em 0 1em}"
             "p{text-indent:1.5em;margin:0 0 1em}"
@@ -410,17 +414,32 @@ def build_style_css() -> str:
 
 def build_content_opf(title: str, author: str,
                       manifest: List[str], spine: List[str],
-                      uid: str, cover_id: Optional[str]) -> str:
+                      uid: str, cover_id: Optional[str],
+                      language: str = "en", metadata: Optional[Dict[str, Any]] = None) -> str:
+    """Build OPF content with support for language and additional metadata."""
     date = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     meta_cover = f"\n    <meta name='cover' content='{cover_id}'/>" if cover_id else ""
+    
+    # Build additional metadata
+    extra_meta = ""
+    if metadata:
+        if metadata.get('publisher'):
+            extra_meta += f"\n    <dc:publisher>{html.escape(metadata['publisher'])}</dc:publisher>"
+        if metadata.get('description'):
+            extra_meta += f"\n    <dc:description>{html.escape(metadata['description'])}</dc:description>"
+        if metadata.get('series'):
+            extra_meta += f"\n    <meta name='calibre:series' content='{html.escape(metadata['series'])}'/>"
+        if metadata.get('series_index'):
+            extra_meta += f"\n    <meta name='calibre:series_index' content='{metadata['series_index']}'/>"
+    
     return f"""<?xml version='1.0' encoding='utf-8'?>
 <package xmlns='http://www.idpf.org/2007/opf' unique-identifier='BookID' version='2.0'>
   <metadata xmlns:dc='http://purl.org/dc/elements/1.1/' xmlns:opf='http://www.idpf.org/2007/opf'>
     <dc:title>{html.escape(title)}</dc:title>
     <dc:creator opf:role='aut'>{html.escape(author)}</dc:creator>
-    <dc:language>en</dc:language>
+    <dc:language>{html.escape(language)}</dc:language>
     <dc:identifier id='BookID'>urn:uuid:{uid}</dc:identifier>
-    <dc:date>{date}</dc:date>{meta_cover}
+    <dc:date>{date}</dc:date>{meta_cover}{extra_meta}
   </metadata>
   <manifest>
         {"\n        ".join(manifest)}
@@ -449,87 +468,82 @@ def build_toc_ncx(title: str, author: str,
 class ValidationError(Exception): ...
 
 def ensure_dir_readable(p: Path) -> None:
-    while True:
-        try:
-            if not p.exists() or not p.is_dir():
-                raise ValidationError(f"Directory '{p}' not found or not a directory.")
-            if not os.access(p, os.R_OK):
-                raise ValidationError(f"No read permission for '{p}'.")
-            list(p.iterdir())
-            return
-        except (OSError, ValidationError) as e:
-            log_issue(str(e))
-            if input("Retry directory check? [r/N] > ").lower() != "r":
-                sys.exit(1)
+    """Ensure directory is readable. Raises ValidationError if not."""
+    if not p.exists() or not p.is_dir():
+        raise ValidationError(f"Directory '{p}' not found or not a directory.")
+    if not os.access(p, os.R_OK):
+        raise ValidationError(f"No read permission for '{p}'.")
+    try:
+        list(p.iterdir())
+    except OSError as e:
+        raise ValidationError(f"Cannot read directory '{p}': {e}")
 
 def ensure_output_ok(path: Path, append: bool) -> None:
-    while True:
+    """Ensure output path is writable. Raises ValidationError if not."""
+    if append:
+        if path.suffix.lower() != ".epub" or not (path.exists() and os.access(path, os.W_OK)):
+            raise ValidationError(f"Cannot write EPUB '{path}'.")
+    else:
+        target = path.parent if path.suffix.lower()==".epub" else path
         try:
-            if append:
-                if path.suffix.lower() != ".epub" or not (path.exists() and os.access(path, os.W_OK)):
-                    raise ValidationError(f"Cannot write EPUB '{path}'.")
-            else:
-                target = path.parent if path.suffix.lower()==".epub" else path
-                target.mkdir(parents=True, exist_ok=True)
-                if not os.access(target, os.W_OK):
-                    raise ValidationError(f"No write permission for '{target}'.")
-            return
-        except (OSError, ValidationError) as e:
-            log_issue(str(e))
-            if input("Retry output check? [r/N] > ").lower() != "r":
-                sys.exit(1)
+            target.mkdir(parents=True, exist_ok=True)
+        except OSError as e:
+            raise ValidationError(f"Cannot create directory '{target}': {e}")
+        if not os.access(target, os.W_OK):
+            raise ValidationError(f"No write permission for '{target}'.")
 
 def ensure_cover_ok(p: Path) -> None:
-    while True:
-        try:
-            if not p.is_file():
-                raise ValidationError(f"Cover '{p}' is not a file.")
-            if p.suffix.lower() not in {".jpg",".jpeg",".png"}:
-                raise ValidationError("Cover must be .jpg/.jpeg/.png.")
-            if not os.access(p, os.R_OK):
-                raise ValidationError(f"No read permission for '{p}'.")
-            return
-        except (OSError, ValidationError) as e:
-            log_issue(str(e))
-            if input("Retry cover check? [r/N] > ").lower() != "r":
-                sys.exit(1)
+    """Ensure cover file is valid. Raises ValidationError if not."""
+    if not p.is_file():
+        raise ValidationError(f"Cover '{p}' is not a file.")
+    if p.suffix.lower() not in {".jpg",".jpeg",".png"}:
+        raise ValidationError("Cover must be .jpg/.jpeg/.png.")
+    if not os.access(p, os.R_OK):
+        raise ValidationError(f"No read permission for '{p}'.")
 
 def collect_chunks(folder: Path) -> Dict[int, Path]:
-    while True:
-        mapping: Dict[int, Path] = {}
-        issues: List[str] = []
+    """Collect chapter chunks from folder. Raises ValidationError if none found."""
+    mapping: Dict[int, Path] = {}
+    issues: List[str] = []
+    
+    for f in folder.glob("*.txt"):
         try:
-            for f in folder.glob("*.txt"):
-                try:
-                    if f.is_symlink() and not f.resolve().exists():
-                        issues.append(f"Broken symlink: {f}")
-                        continue
-                    m = FILENAME_RE.match(f.name)
-                    if not m:
-                        issues.append(f"Malformed filename: {f.name}")
-                        continue
-                    idx = int(m.group("num"))
-                    if f.stat().st_size == 0:
-                        issues.append(f"Empty file: {f.name}")
-                        continue
-                    mapping[idx] = f
-                except OSError as e:
-                    issues.append(f"OS error on {f}: {e}")
-            if not mapping:
-                raise ValidationError("No valid .txt chunks found.")
-            for msg in issues:
-                log_issue(msg)
-            return mapping
-        except ValidationError as e:
-            log_issue(str(e))
-            if input("Retry chunk scan? [r/N] > ").lower() != "r":
-                sys.exit(1)
+            if f.is_symlink() and not f.resolve().exists():
+                issues.append(f"Broken symlink: {f}")
+                continue
+            m = FILENAME_RE.match(f.name)
+            if not m:
+                issues.append(f"Malformed filename: {f.name}")
+                continue
+            idx = int(m.group("num"))
+            if f.stat().st_size == 0:
+                issues.append(f"Empty file: {f.name}")
+                continue
+            mapping[idx] = f
+        except OSError as e:
+            issues.append(f"OS error on {f}: {e}")
+    
+    if not mapping:
+        error_msg = "No valid .txt chunks found."
+        if issues:
+            error_msg += f" Issues: {'; '.join(issues[:3])}"
+            if len(issues) > 3:
+                error_msg += f" ... and {len(issues) - 3} more"
+        raise ValidationError(error_msg)
+    
+    # Log issues but don't fail
+    for msg in issues:
+        log_issue(msg)
+    
+    return mapping
 
 
 # ───────────── EPUB creation helpers ───────────── #
 
 def write_new_epub(chaps: List[Tuple[str,str]], out: Path,
-                   title: str, author: str, cover: Optional[Path]) -> None:
+                   title: str, author: str, cover: Optional[Path],
+                   language: str = "en", custom_css: Optional[str] = None,
+                   metadata: Optional[Dict[str, Any]] = None) -> None:
     uid = str(uuid.uuid4())
     with tempfile.TemporaryDirectory() as td:
         tmp = Path(td)
@@ -541,7 +555,7 @@ def write_new_epub(chaps: List[Tuple[str,str]], out: Path,
             (oebps/"Images").mkdir()
 
         (tmp/"META-INF"/"container.xml").write_text(build_container_xml(), ENCODING)
-        (oebps/"Styles"/"style.css").write_text(build_style_css(), ENCODING)
+        (oebps/"Styles"/"style.css").write_text(build_style_css(custom_css), ENCODING)
 
         manifest = [
             "<item id='ncx' href='toc.ncx' media-type='application/x-dtbncx+xml'/>",
@@ -567,7 +581,7 @@ def write_new_epub(chaps: List[Tuple[str,str]], out: Path,
             spine.append(f"<itemref idref='chap{idx}'/>")
             nav.append(f"<navPoint id='nav{idx}' playOrder='{idx}'><navLabel><text>{html.escape(title_)}</text></navLabel><content src='{xhtml}'/></navPoint>")
 
-        (oebps/"content.opf").write_text(build_content_opf(title, author, manifest, spine, uid, cover_id), ENCODING)
+        (oebps/"content.opf").write_text(build_content_opf(title, author, manifest, spine, uid, cover_id, language, metadata), ENCODING)
         (oebps/"toc.ncx").write_text(build_toc_ncx(title, author, nav, uid), ENCODING)
 
         with zipfile.ZipFile(out, "w") as z:
@@ -682,7 +696,10 @@ def create_epub_from_txt_file(
     cover_path: Optional[Path] = None,
     generate_toc: bool = True,
     validate: bool = True,
-    strict_mode: bool = False
+    strict_mode: bool = False,
+    language: str = "en",
+    custom_css: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None
 ) -> Tuple[bool, List[str]]:
     """
     Create an EPUB from a complete translated text file.
@@ -697,6 +714,13 @@ def create_epub_from_txt_file(
         generate_toc: Whether to detect chapter headings and build TOC
         validate: Whether to validate chapter sequence
         strict_mode: Whether to abort on validation issues
+        language: Language code for the book (default: 'en')
+        custom_css: Optional custom CSS content to use instead of default
+        metadata: Optional dictionary with additional metadata:
+            - publisher: Publisher name
+            - description: Book description
+            - series: Series name
+            - series_index: Position in series
         
     Returns:
         Tuple of (success: bool, issues: List[str])
@@ -738,7 +762,8 @@ def create_epub_from_txt_file(
     
     # Create the EPUB
     try:
-        write_new_epub(chapters, output_path, title, author, cover_path)
+        write_new_epub(chapters, output_path, title, author, cover_path,
+                      language=language, custom_css=custom_css, metadata=metadata)
         return True, issues
     except Exception as e:
         issues.append(f"Error creating EPUB: {e}")
