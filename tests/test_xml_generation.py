@@ -58,6 +58,7 @@ class TestXMLGeneration(unittest.TestCase):
         """Test that special characters are properly escaped"""
         # Characters that need escaping
         test_title = "Test & Book <with> \"quotes\" and 'apostrophes'"
+        test_attr = "attribute with \"quotes\" & special <chars>"
         
         # Create element
         html = ET.Element('html')
@@ -65,18 +66,27 @@ class TestXMLGeneration(unittest.TestCase):
         title_elem = ET.SubElement(head, 'title')
         title_elem.text = test_title
         
+        # Add an attribute to test attribute escaping
+        head.set('data-test', test_attr)
+        
         # Convert to string
         xml_str = ET.tostring(html, encoding='unicode')
         
-        # Verify escaping
+        # Verify text content escaping (& and < > are escaped, quotes are not in text)
         self.assertIn("Test &amp; Book", xml_str)
         self.assertIn("&lt;with&gt;", xml_str)
-        self.assertIn("&quot;quotes&quot;", xml_str)
+        # In text content, quotes don't need escaping
+        self.assertIn('"quotes"', xml_str)
+        
+        # Verify attribute escaping (quotes ARE escaped in attributes)
+        self.assertIn('data-test="attribute with &quot;quotes&quot; &amp; special &lt;chars&gt;"', xml_str)
         
         # Parse back and verify content is preserved
         parsed = ET.fromstring(xml_str)
         parsed_title = parsed.find('.//title').text
         self.assertEqual(parsed_title, test_title)
+        parsed_attr = parsed.find('.//head').get('data-test')
+        self.assertEqual(parsed_attr, test_attr)
     
     def test_opf_generation(self):
         """Test OPF file generation using ElementTree"""
