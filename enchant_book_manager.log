@@ -784,3 +784,8 @@ To resume translation from this point, use the --resume flag.
 2025-06-15 19:05:24,205 - __main__ - WARNING -   - number 4 is missing
 2025-06-15 19:05:24,205 - __main__ - WARNING -   - number 5 is missing
 2025-06-15 19:05:24,205 - __main__ - WARNING -   - number 7 is missing
+2025-06-15 19:58:22,212 - __main__ - INFO - --translated option provided, automatically skipping renaming and translation phases
+2025-06-15 19:58:22,213 - __main__ - INFO - Starting unified processing for file: tests/sample_novel/translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
+2025-06-15 19:58:22,213 - __main__ - INFO - Phase 3: Generating EPUB for translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
+2025-06-15 19:58:22,213 - __main__ - INFO - Using provided translated file: tests/sample_novel/translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
+2025-06-15 19:58:22,235 - __main__ - INFO - Creating EPUB for: translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī)

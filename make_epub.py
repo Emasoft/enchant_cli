@@ -61,7 +61,7 @@ HEADING_RE = re.compile(
     rf"^[^\w]*\s*"  # Allow leading non-word chars and whitespace
     rf"(?:"  # Start of main group
     rf"(?:chapter|ch\.?|chap\.?)\s*"  # "Chapter", "Ch.", "Ch", "Chap.", "Chap" (space optional)
-    rf"(?:(?P<num_d>\d+)|(?P<num_r>[ivxlcdm]+)|"
+    rf"(?:(?P<num_d>\d+[a-z]?)|(?P<num_r>[ivxlcdm]+)|"  # Added [a-z]? for letter suffixes
     rf"(?P<num_w>(?:{WORD_NUMS})(?:[-\s](?:{WORD_NUMS}))*))"
     rf"|"  # OR
     rf"(?:part|section|book)\s+"  # "Part", "Section", "Book"
@@ -146,6 +146,13 @@ def words_to_int(text: str) -> int:
 
 
 def parse_num(raw: str) -> Optional[int]:
+    # Handle letter suffixes like "14a", "14b"
+    if raw and raw[0].isdigit():
+        # Extract just the numeric part
+        num_part = ''.join(c for c in raw if c.isdigit())
+        if num_part:
+            return int(num_part)
+    
     if raw.isdigit():
         return int(raw)
     if re.fullmatch(r"[ivxlcdm]+", raw, re.IGNORECASE):
@@ -226,23 +233,82 @@ def detect_issues(seq: List[int]) -> List[str]:
 
 # ─────────────────── split text & collapse dup headings ─────────────────── #
 
+def is_valid_chapter_line(line: str) -> bool:
+    """
+    Check if a line contains a valid chapter heading based on:
+    1. Chapter word at start of line (or after special chars)
+    2. Chapter word not in quotes
+    """
+    line_stripped = line.strip()
+    lower_line = line_stripped.lower()
+    
+    # Check if line starts with quotes containing chapter
+    if line_stripped.startswith(('"', "'")) and 'chapter' in lower_line:
+        quote_char = line_stripped[0]
+        try:
+            end_quote = line_stripped.index(quote_char, 1)
+            if 'chapter' in line_stripped[:end_quote].lower():
+                return False  # Chapter word is in quotes
+        except ValueError:
+            pass
+    
+    # Check if chapter appears mid-sentence (not after special chars)
+    chapter_pos = lower_line.find('chapter')
+    if chapter_pos == -1:
+        return True  # No chapter word, let regex decide
+    
+    if chapter_pos == 0:
+        return True  # At start of line
+    
+    # Check what comes before chapter
+    before_chapter = line_stripped[:chapter_pos].strip()
+    
+    # Special characters that can precede chapter
+    if before_chapter and all(c in '#*>§[](){}|-–—•~/' or c.isspace() for c in before_chapter):
+        return True  # After special chars/whitespace only
+    
+    # Check if preceded by quotes
+    if before_chapter.endswith(('"', "'")):
+        return False  # Chapter word likely in quotes
+    
+    return False  # Mid-sentence
+
+
 def split_text(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str]], List[int]]:
     """
-    Returns (chapters, seq) collapsing adjacent duplicate headings separated
-    only by blank lines.
+    Enhanced version with:
+    1. Position/quote checking for chapter patterns
+    2. Smart duplicate detection (4-line window)
+    3. Sub-numbering for multi-part chapters
     """
     if not detect_headings:
         return [("Content", text)], []
 
-    chapters, seq, buf = [], [], []
+    # First pass: collect raw chapters with position/quote validation
+    raw_chapters = []
+    seq = []
+    buf = []
     cur_title = None
     front_done = False
     last_num: Optional[int] = None
     blank_only = True
-
-    for line in text.splitlines():
+    
+    # Track recent chapter detections for smart duplicate detection
+    last_chapter_line = -10  # Start far back
+    last_chapter_num = None
+    last_chapter_text = None
+    
+    lines = text.splitlines()
+    for line_idx, line in enumerate(lines):
         m = HEADING_RE.match(line.strip())
         if m:
+            # Additional validation for chapter patterns
+            if 'chapter' in line.lower() and not is_valid_chapter_line(line):
+                # Skip false positive (dialogue, mid-sentence, etc.)
+                buf.append(line)
+                blank_only = False
+                continue
+            
             # Extract number from whichever group matched
             num_str = (m.group("num_d") or m.group("num_r") or m.group("num_w") or 
                       m.group("part_d") or m.group("part_r") or m.group("part_w") or
@@ -252,6 +318,28 @@ def split_text(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str]],
                 buf.append(line)
                 blank_only = False
                 continue
+            
+            # Smart duplicate detection
+            lines_since_last = line_idx - last_chapter_line
+            current_text = line.strip()
+            
+            # Skip if same text within 4 lines (true duplicate)
+            if lines_since_last <= 4 and current_text == last_chapter_text:
+                buf.append(line)
+                blank_only = False
+                continue
+            
+            # For same number within 4 lines, check if it's a different part
+            if lines_since_last <= 4 and num == last_chapter_num:
+                # Allow if subtitle is different (multi-part chapter)
+                pass  # Will be handled by sub-numbering
+            
+            # Update tracking
+            last_chapter_line = line_idx
+            last_chapter_num = num
+            last_chapter_text = current_text
+            
+            # Original duplicate logic for blank-only sections
             if last_num == num and blank_only:
                 buf.clear()
                 continue
@@ -260,12 +348,12 @@ def split_text(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str]],
 
             if not front_done:
                 if buf:
-                    chapters.append(("Front Matter", "\n".join(buf).strip()))
+                    raw_chapters.append(("Front Matter", "\n".join(buf).strip(), None))
                     buf.clear()
                 front_done = True
 
             if cur_title:
-                chapters.append((cur_title, "\n".join(buf).strip()))
+                raw_chapters.append((cur_title, "\n".join(buf).strip(), last_num))
                 buf.clear()
 
             subtitle = (m.group("rest") or "").strip()
@@ -277,9 +365,42 @@ def split_text(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str]],
                 blank_only = False
 
     if cur_title:
-        chapters.append((cur_title, "\n".join(buf).strip()))
+        raw_chapters.append((cur_title, "\n".join(buf).strip(), last_num))
     elif buf:
-        chapters.append(("Content", "\n".join(buf).strip()))
+        raw_chapters.append(("Content", "\n".join(buf).strip(), None))
+    
+    # Second pass: apply sub-numbering to multi-part chapters
+    chapter_counts = {}
+    for title, content, num in raw_chapters:
+        if num is not None and title.startswith("Chapter "):
+            chapter_counts[num] = chapter_counts.get(num, 0) + 1
+    
+    # Third pass: generate final chapters with sub-numbering
+    chapters = []
+    part_counters = {}
+    
+    for title, content, num in raw_chapters:
+        if num is None or not title.startswith("Chapter "):
+            # Non-chapter content (Front Matter, etc.)
+            chapters.append((title, content))
+        elif chapter_counts.get(num, 1) == 1:
+            # Single chapter - keep as is
+            chapters.append((title, content))
+        else:
+            # Multi-part chapter - add sub-number
+            part_counters[num] = part_counters.get(num, 0) + 1
+            part_num = part_counters[num]
+            
+            # Extract subtitle from original title
+            subtitle_match = re.match(r'Chapter \d+[a-z]?\s*[–:]\s*(.+)', title)
+            if subtitle_match:
+                subtitle = subtitle_match.group(1)
+                new_title = f"Chapter {num}.{part_num}: {subtitle}"
+            else:
+                new_title = f"Chapter {num}.{part_num}"
+            
+            chapters.append((new_title, content))
+    
     return chapters, seq
 
 

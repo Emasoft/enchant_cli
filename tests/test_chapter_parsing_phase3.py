@@ -95,7 +95,7 @@ class TestChapterParsingPhase3:
         # Verify we're working with the full file
         file_size = sample_novel_path.stat().st_size
         line_count = sum(1 for _ in open(sample_novel_path, 'r', encoding='utf-8'))
-        print(f"Testing with full novel file:")
+        print("Testing with full novel file:")
         print(f"  - Path: {sample_novel_path}")
         print(f"  - Size: {file_size / 1024 / 1024:.1f} MB")
         print(f"  - Lines: {line_count:,}")
@@ -196,7 +196,7 @@ class TestChapterParsingPhase3:
                     seen_chapters.add(chapter)
                 
                 assert len(duplicates) == 0, \
-                    f"Found duplicate chapters in TOC:\n" + "\n".join(duplicates)
+                    "Found duplicate chapters in TOC:\n" + "\n".join(duplicates)
                 
                 print(f"✓ All {chapters_to_check} checked chapters match expected values")
                 print(f"✓ No duplicates found in {len(actual_chapters)} TOC entries")

@@ -335,7 +335,7 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                         tolog.error(f"Provided translated file not found: {args.translated}")
                     else:
                         progress['phases']['epub']['error'] = 'No translation directory or file found'
-                        tolog.warning(f"No translation output directory found or translated file missing")
+                        tolog.warning("No translation output directory found or translated file missing")
                 
             except Exception as e:
                 tolog.error(f"Error during EPUB generation: {e}")
