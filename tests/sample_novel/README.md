@@ -2,10 +2,16 @@
 
 This directory contains test data for the Phase 3 chapter parsing test.
 
+## Important Note
+
+**The test uses the FULL novel file (600K+ lines, ~30MB) without any truncation or sampling.**
+This ensures the program works correctly with real-world novel sizes.
+
 ## Required Files
 
 1. **translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt**
-   - The translated novel text file containing chapter headings to be parsed
+   - The complete translated novel text file (632,710 lines)
+   - Contains chapter headings to be parsed by the TOC parser
 
 2. **chapter_headings.txt**
    - Expected chapter headings in the format:
@@ -34,6 +40,21 @@ The test verifies that enchant_cli.py (using make_epub.py's TOC parser) correctl
 
 ## Running the Test
 
+Using the provided script (recommended):
+```bash
+./run_chapter_parsing_test.sh
+```
+
+Or directly with pytest:
 ```bash
 uv run pytest tests/test_chapter_parsing_phase3.py -v -s
 ```
+
+## Test Performance
+
+The test processes the full novel file to generate an EPUB. Expected performance:
+- EPUB generation: 2-5 minutes (depending on system)
+- Memory usage: ~500MB peak
+- Output EPUB size: ~250MB
+
+A temporary directory `temp_test_chapter_parsing/` is created in the repo root and cleaned up after the test.
