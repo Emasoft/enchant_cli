@@ -15,3 +15,6 @@ venv/
 .vscode/
 .idea/
 errors_*.log
+
+# Test temporary directories
+temp_test_chapter_parsing/
