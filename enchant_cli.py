@@ -567,30 +567,86 @@ def main():
 USAGE EXAMPLES:
 ====================================================================================
 
+SINGLE FILE PROCESSING:
+  
   Full processing (rename + translate + EPUB):
-    $ python enchant_cli.py novel.txt --openai-api-key YOUR_KEY
+    $ python enchant_cli.py "我的小说.txt" --openai-api-key YOUR_KEY
+    
+  Translation only (skip renaming, generate EPUB):
+    $ python enchant_cli.py "My Novel.txt" --skip-renaming
+    
+  EPUB from any translated text file:
+    $ python enchant_cli.py dummy.txt --skip-renaming --skip-translating --translated "path/to/translated.txt"
+    
+  Process renamed file (skip renaming phase):
+    $ python enchant_cli.py "Novel Title by Author Name.txt" --skip-renaming
+    
+  Just rename files (no translation or EPUB):
+    $ python enchant_cli.py "小说.txt" --skip-translating --skip-epub --openai-api-key YOUR_KEY
 
-  Skip renaming (translate + EPUB only):
-    $ python enchant_cli.py novel.txt --skip-renaming
-
-  Skip translation (rename + EPUB from existing translation):
-    $ python enchant_cli.py novel.txt --skip-translating --openai-api-key YOUR_KEY
-
-  EPUB generation only (from existing translation):
-    $ python enchant_cli.py dummy.txt --skip-renaming --skip-translating --translated translated_novel.txt
-
-  EPUB generation only (legacy method):
-    $ python enchant_cli.py novel.txt --skip-renaming --skip-translating
-
-  Batch processing with all phases:
-    $ python enchant_cli.py novels_dir --batch --openai-api-key YOUR_KEY
-
+BATCH PROCESSING:
+  
+  Process entire directory:
+    $ python enchant_cli.py novels/ --batch --openai-api-key YOUR_KEY
+    
   Resume interrupted batch:
-    $ python enchant_cli.py novels_dir --batch --resume
+    $ python enchant_cli.py novels/ --batch --resume
+    
+  Batch with custom encoding:
+    $ python enchant_cli.py novels/ --batch --encoding gb18030
 
+ADVANCED OPTIONS:
+  
+  Use remote API (OpenRouter) instead of local:
+    $ python enchant_cli.py novel.txt --remote
+    $ export OPENROUTER_API_KEY=your_key_here
+    
+  Custom configuration file:
+    $ python enchant_cli.py novel.txt --config my_config.yml
+    
+  Use configuration preset:
+    $ python enchant_cli.py novel.txt --preset REMOTE
+    
+  Override model settings:
+    $ python enchant_cli.py novel.txt --model "gpt-4" --temperature 0.3
+    
+  Handle Big5 encoded files:
+    $ python enchant_cli.py "traditional_novel.txt" --encoding big5
+    
+  Custom chunk size for large files:
+    $ python enchant_cli.py huge_novel.txt --max-chars 5000
+
+PHASE COMBINATIONS:
+  
+  Rename only:
+    $ python enchant_cli.py "中文小说.txt" --skip-translating --skip-epub --openai-api-key YOUR_KEY
+    
+  Translate only (no rename, no EPUB):
+    $ python enchant_cli.py "Already Named Novel.txt" --skip-renaming --skip-epub
+    
+  EPUB only from translation directory:
+    $ python enchant_cli.py "Novel by Author.txt" --skip-renaming --skip-translating
+    
+  EPUB from external translated file:
+    $ python enchant_cli.py any_file.txt --skip-renaming --skip-translating --translated "/path/to/translation.txt"
+
+SPECIAL CASES:
+  
+  When --translated is REQUIRED:
+    • Using --skip-translating without --skip-epub
+    • AND the expected translation directory doesn't exist
+    Example: $ python enchant_cli.py file.txt --skip-renaming --skip-translating --translated trans.txt
+    
+  When --translated is NOT needed:
+    • When translation phase runs (creates internal translated file)
+    • When --skip-epub is used (no EPUB generation)
+    • When translation directory already exists from previous run
+
+====================================================================================
 PROCESSING PHASES:
+====================================================================================
   1. RENAMING: Extract metadata and rename files (requires OpenAI API key)
-  2. TRANSLATION: Translate Chinese text to English
+  2. TRANSLATION: Translate Chinese text to English  
   3. EPUB: Generate EPUB from translated chapters
 
 SKIP FLAGS:
@@ -603,10 +659,12 @@ BEHAVIOR:
   • Skipped phases preserve existing data
   • --resume works with all phase combinations
   • Progress saved for batch operations
+  • --translated allows EPUB from any text file
 
 API KEYS:
   • Renaming requires OpenAI API key (--openai-api-key or OPENAI_API_KEY env)
   • Translation uses local LM Studio by default (--remote for OpenRouter)
+  • Remote translation requires OPENROUTER_API_KEY environment variable
 """
     )
     parser.add_argument("filepath", type=str, 
