@@ -4,7 +4,7 @@
 Tests for chunk-level retry mechanism in cli_translator.py
 """
 
-import unittest
+import pytest
 from unittest.mock import Mock, patch, MagicMock
 import sys
 from pathlib import Path
@@ -19,10 +19,11 @@ from cli_translator import save_translated_book
 from cli_translator import Book, Chapter, VARIATION_DB
 
 
-class TestChunkRetryMechanism(unittest.TestCase):
+class TestChunkRetryMechanism:
     """Test cases for chunk-level retry mechanism"""
     
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_method(self):
         """Set up test fixtures"""
         self.test_dir = tempfile.mkdtemp()
         self.book_id = "test-book-123"
@@ -50,7 +51,7 @@ class TestChunkRetryMechanism(unittest.TestCase):
             "var-3": Mock(text_content="Chapter 3 content")
         }
         
-    def tearDown(self):
+    def teardown_method(self):
         """Clean up test fixtures"""
         shutil.rmtree(self.test_dir, ignore_errors=True)
     
@@ -76,12 +77,12 @@ class TestChunkRetryMechanism(unittest.TestCase):
                 mock_exit.assert_not_called()
                 
                 # Should translate all chunks
-                self.assertEqual(mock_translator.translate.call_count, 3)
+                assert mock_translator.translate.call_count == 3
                 
                 # Check log messages
                 success_logs = [call for call in mock_tolog.info.call_args_list 
                                if "Successfully translated chunk" in str(call)]
-                self.assertEqual(len(success_logs), 3)
+                assert len(success_logs) == 3
     
     @patch('cli_translator.Book.get_by_id')
     @patch('cli_translator.VARIATION_DB')
@@ -114,10 +115,10 @@ class TestChunkRetryMechanism(unittest.TestCase):
                 mock_exit.assert_not_called()
                 
                 # Should have retried
-                self.assertEqual(mock_translator.translate.call_count, 5)
+                assert mock_translator.translate.call_count == 5
                 
                 # Check sleep was called for retries
-                self.assertEqual(mock_sleep.call_count, 2)
+                assert mock_sleep.call_count == 2
                 mock_sleep.assert_any_call(2)  # First retry
                 mock_sleep.assert_any_call(4)  # Second retry
     
@@ -145,25 +146,25 @@ class TestChunkRetryMechanism(unittest.TestCase):
                 # Since sys.exit will be called, we need to catch it to verify
                 mock_exit.side_effect = SystemExit(1)
                 
-                with self.assertRaises(SystemExit) as cm:
+                with pytest.raises(SystemExit) as cm:
                     save_translated_book(self.book_id)
                 
                 # Check exit code
-                self.assertEqual(cm.exception.code, 1)
+                assert cm.value.code == 1
                 
                 # Should exit with error code
                 mock_exit.assert_called_once_with(1)
                 
                 # Should have attempted max_chunk_retries times
-                self.assertEqual(mock_translator.translate.call_count, 3)
+                assert mock_translator.translate.call_count == 3
                 
                 # Check error message was logged
                 error_logs = [call for call in mock_tolog.error.call_args_list 
                              if "FATAL ERROR" in str(call)]
-                self.assertEqual(len(error_logs), 1)
+                assert len(error_logs) == 1
                 
                 # Check sleep was called correctly
-                self.assertEqual(mock_sleep.call_count, 2)  # No sleep after last attempt
+                assert mock_sleep.call_count == 2  # No sleep after last attempt
     
     @patch('cli_translator.Book.get_by_id')
     @patch('cli_translator.VARIATION_DB')
@@ -195,7 +196,7 @@ class TestChunkRetryMechanism(unittest.TestCase):
                 mock_exit.assert_not_called()
                 
                 # Should have retried
-                self.assertEqual(mock_translator.translate.call_count, 5)
+                assert mock_translator.translate.call_count == 5
     
     @patch('cli_translator.Book.get_by_id')
     @patch('cli_translator.VARIATION_DB')
@@ -232,11 +233,7 @@ class TestChunkRetryMechanism(unittest.TestCase):
         """Test that missing book raises ValueError"""
         mock_get_book.return_value = None
         
-        with self.assertRaises(ValueError) as context:
+        with pytest.raises(ValueError) as context:
             save_translated_book("non-existent-book")
         
-        self.assertEqual(str(context.exception), "Book not found")
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert str(context.value) == "Book not found"

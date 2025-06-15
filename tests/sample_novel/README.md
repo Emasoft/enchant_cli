@@ -40,15 +40,17 @@ The test verifies that enchant_cli.py (using make_epub.py's TOC parser) correctl
 
 ## Running the Test
 
-Using the provided script (recommended):
+From the project root directory:
 ```bash
-./run_chapter_parsing_test.sh
+uv run pytest
 ```
 
-Or directly with pytest:
+Or to run only this specific test:
 ```bash
 uv run pytest tests/test_chapter_parsing_phase3.py -v -s
 ```
+
+**Note**: The test will be automatically skipped if the required sample files are not present.
 
 ## Test Performance
 

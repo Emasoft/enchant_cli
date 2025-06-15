@@ -78,16 +78,14 @@ class TestChineseAITranslator:
         assert translator_remote.request_count == 0
     
     def test_init_remote_no_api_key(self, mock_logger):
-        """Test remote translator without API key logs error"""
+        """Test remote translator without API key raises error"""
         with patch.dict(os.environ, {}, clear=True):
-            translator = ChineseAITranslator(
-                logger=mock_logger,
-                use_remote=True,
-                api_key=None
-            )
-            mock_logger.error.assert_called_once_with(
-                "OPENROUTER_API_KEY not set in environment variables"
-            )
+            with pytest.raises(ValueError, match="OPENROUTER_API_KEY not set in environment variables"):
+                translator = ChineseAITranslator(
+                    logger=mock_logger,
+                    use_remote=True,
+                    api_key=None
+                )
     
     def test_log_method(self, translator_local):
         """Test logging method"""
@@ -207,7 +205,7 @@ class TestChineseAITranslator:
         assert "\n\n\nPrologue\n\n" in result
         assert "\n\n\nEpilogue" in result
     
-    @patch('requests.post')
+    @patch('translation_service.requests.post')
     def test_translate_messages_success_local(self, mock_post, translator_local):
         """Test successful translation with local API"""
         # Mock successful response
@@ -227,13 +225,13 @@ class TestChineseAITranslator:
         mock_response.raise_for_status = Mock()
         mock_post.return_value = mock_response
         
-        result = translator_local.translate_messages("Test message")
+        result = translator_local.translate_messages("Test message", is_last_chunk=True)
         
         assert result == "Translated text in English"
         assert mock_post.called
         assert translator_local.pricing_manager.calculate_cost.called
     
-    @patch('requests.post')
+    @patch('translation_service.requests.post')
     def test_translate_messages_success_remote(self, mock_post, translator_remote):
         """Test successful translation with remote API and cost tracking"""
         # Mock successful response with cost
@@ -254,7 +252,7 @@ class TestChineseAITranslator:
         mock_response.raise_for_status = Mock()
         mock_post.return_value = mock_response
         
-        result = translator_remote.translate_messages("Test message")
+        result = translator_remote.translate_messages("Test message", is_last_chunk=True)
         
         assert result == "Translated text in English"
         assert translator_remote.total_cost == 0.0025
@@ -265,7 +263,7 @@ class TestChineseAITranslator:
         call_args = mock_post.call_args
         assert call_args[1]['json']['usage'] == {'include': True}
     
-    @patch('requests.post')
+    @patch('translation_service.requests.post')
     def test_translate_messages_remote_no_cost(self, mock_post, translator_remote):
         """Test remote translation without cost information"""
         # Mock response without cost
@@ -285,14 +283,14 @@ class TestChineseAITranslator:
         mock_response.raise_for_status = Mock()
         mock_post.return_value = mock_response
         
-        result = translator_remote.translate_messages("Test")
+        result = translator_remote.translate_messages("Test", is_last_chunk=True)
         
         assert result == "Translated text"
         assert translator_remote.total_cost == 0.0
         assert translator_remote.total_tokens == 150
         assert translator_remote.request_count == 1
     
-    @patch('requests.post')
+    @patch('translation_service.requests.post')
     def test_translate_messages_thinking_removal(self, mock_post, translator_local):
         """Test thinking block removal from response"""
         mock_response = Mock()
@@ -306,10 +304,10 @@ class TestChineseAITranslator:
         mock_response.raise_for_status = Mock()
         mock_post.return_value = mock_response
         
-        result = translator_local.translate_messages("Test")
+        result = translator_local.translate_messages("Test", is_last_chunk=True)
         assert result == "Actual translation"
     
-    @patch('requests.post')
+    @patch('translation_service.requests.post')
     def test_translate_messages_non_latin_retry(self, mock_post, translator_local):
         """Test retry when translation is not Latin charset"""
         # First response with Chinese characters
@@ -336,11 +334,11 @@ class TestChineseAITranslator:
         
         mock_post.side_effect = [mock_response1, mock_response2]
         
-        result = translator_local.translate_messages("Test")
+        result = translator_local.translate_messages("Test", is_last_chunk=True)
         assert result == "This is English text"
         assert mock_post.call_count == 2
     
-    @patch('requests.post')
+    @patch('translation_service.requests.post')
     def test_translate_messages_too_short_retry(self, mock_post, translator_local):
         """Test retry when translation is too short"""
         # First response too short
@@ -371,7 +369,7 @@ class TestChineseAITranslator:
         assert result == 'A' * 301
         assert mock_post.call_count == 2
     
-    @patch('requests.post')
+    @patch('translation_service.requests.post')
     def test_translate_messages_last_chunk_short_ok(self, mock_post, translator_local):
         """Test that short translations are OK for last chunk"""
         mock_response = Mock()
@@ -389,7 +387,7 @@ class TestChineseAITranslator:
         assert result == "Short translation"
         assert mock_post.call_count == 1
     
-    @patch('requests.post')
+    @patch('translation_service.requests.post')
     def test_translate_messages_http_error(self, mock_post, translator_local):
         """Test HTTP error handling"""
         mock_response = Mock()
@@ -401,7 +399,7 @@ class TestChineseAITranslator:
         
         assert "HTTP error: 404 Not Found" in str(exc_info.value)
     
-    @patch('requests.post')
+    @patch('translation_service.requests.post')
     def test_translate_messages_request_exception(self, mock_post, translator_local):
         """Test request exception handling"""
         mock_post.side_effect = RequestException("Connection error")
@@ -411,7 +409,7 @@ class TestChineseAITranslator:
         
         assert "Request failed: Connection error" in str(exc_info.value)
     
-    @patch('requests.post')
+    @patch('translation_service.requests.post')
     def test_translate_messages_json_error(self, mock_post, translator_local):
         """Test JSON decode error"""
         mock_response = Mock()
@@ -424,7 +422,7 @@ class TestChineseAITranslator:
         
         assert "JSON error:" in str(exc_info.value)
     
-    @patch('requests.post')
+    @patch('translation_service.requests.post')
     def test_translate_messages_unexpected_response(self, mock_post, translator_local):
         """Test unexpected response structure"""
         mock_response = Mock()
@@ -437,7 +435,7 @@ class TestChineseAITranslator:
         
         assert "Unexpected response structure" in str(exc_info.value)
     
-    @patch('requests.post')
+    @patch('translation_service.requests.post')
     def test_translate_chunk(self, mock_post, translator_local):
         """Test translate_chunk method"""
         mock_response = Mock()
@@ -446,19 +444,24 @@ class TestChineseAITranslator:
                 'message': {
                     'content': '[TRANSLATION]English text[/TRANSLATION]'
                 }
-            }]
+            }],
+            'usage': {
+                'prompt_tokens': 100,
+                'completion_tokens': 50,
+                'total_tokens': 150
+            }
         }
         mock_response.raise_for_status = Mock()
         mock_post.return_value = mock_response
         
         # Test with excessive empty lines
         chinese_text = "中文\n\n\n\n\n\n文本"
-        result = translator_local.translate_chunk(chinese_text)
+        result = translator_local.translate_chunk(chinese_text, is_last_chunk=True)
         
         assert result == "English text"
         assert "\n\n\n\n\n" not in result
     
-    @patch('requests.post')
+    @patch('translation_service.requests.post')
     def test_translate_chunk_double_translation(self, mock_post, translator_local):
         """Test double translation feature"""
         # First translation
@@ -468,7 +471,12 @@ class TestChineseAITranslator:
                 'message': {
                     'content': 'First pass translation with 中文'
                 }
-            }]
+            }],
+            'usage': {
+                'prompt_tokens': 100,
+                'completion_tokens': 50,
+                'total_tokens': 150
+            }
         }
         mock_response1.raise_for_status = Mock()
         
@@ -479,13 +487,18 @@ class TestChineseAITranslator:
                 'message': {
                     'content': 'Second pass translation fully English'
                 }
-            }]
+            }],
+            'usage': {
+                'prompt_tokens': 100,
+                'completion_tokens': 50,
+                'total_tokens': 150
+            }
         }
         mock_response2.raise_for_status = Mock()
         
         mock_post.side_effect = [mock_response1, mock_response2]
         
-        result = translator_local.translate_chunk("中文文本", double_translation=True)
+        result = translator_local.translate_chunk("中文文本", double_translation=True, is_last_chunk=True)
         
         assert result == "Second pass translation fully English"
         assert mock_post.call_count == 2
@@ -688,6 +701,10 @@ class TestRetryWrapper:
         """Test retry on HTTP errors"""
         mock_obj = Mock()
         mock_obj.logger = Mock(spec=logging.Logger)
+        mock_obj.max_retries = 7
+        mock_obj.retry_wait_base = 1.0
+        mock_obj.retry_wait_min = 3.0
+        mock_obj.retry_wait_max = 60.0
         
         # Create a method that fails then succeeds
         call_count = 0
@@ -710,6 +727,10 @@ class TestRetryWrapper:
         """Test retry on TranslationException"""
         mock_obj = Mock()
         mock_obj.logger = Mock(spec=logging.Logger)
+        mock_obj.max_retries = 7
+        mock_obj.retry_wait_base = 1.0
+        mock_obj.retry_wait_min = 3.0
+        mock_obj.retry_wait_max = 60.0
         
         call_count = 0
         def failing_method(self):
@@ -727,6 +748,11 @@ class TestRetryWrapper:
     def test_retry_exhaustion(self):
         """Test retry exhaustion after max attempts"""
         mock_obj = Mock()
+        mock_obj.logger = Mock(spec=logging.Logger)
+        mock_obj.max_retries = 3
+        mock_obj.retry_wait_base = 0.1
+        mock_obj.retry_wait_min = 0.1
+        mock_obj.retry_wait_max = 0.5
         mock_obj.logger = Mock(spec=logging.Logger)
         
         def always_failing_method(self):

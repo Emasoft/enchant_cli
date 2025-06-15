@@ -1,0 +1,22 @@
+---
+created: '2025-06-14T10:50:33.425413'
+files:
+- end_time: '2025-06-14T10:57:58.348400'
+  error: One or more phases failed
+  path: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/修炼至尊.txt
+  retry_count: 1
+  start_time: '2025-06-14T10:57:58.301252'
+  status: failed/skipped
+- end_time: '2025-06-14T10:57:58.392909'
+  error: One or more phases failed
+  path: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt
+  retry_count: 1
+  start_time: '2025-06-14T10:57:58.348811'
+  status: failed/skipped
+- end_time: '2025-06-14T10:57:58.438628'
+  error: One or more phases failed
+  path: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt
+  retry_count: 1
+  start_time: '2025-06-14T10:57:58.393303'
+  status: failed/skipped
+input_folder: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0

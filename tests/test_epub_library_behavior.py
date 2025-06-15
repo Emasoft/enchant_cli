@@ -5,7 +5,7 @@
 Test suite to ensure make_epub behaves as a proper library (no user prompts).
 """
 
-import unittest
+import pytest
 from pathlib import Path
 import tempfile
 import shutil
@@ -18,14 +18,16 @@ from make_epub import (
 )
 
 
-class TestLibraryBehavior(unittest.TestCase):
+@pytest.fixture
+def temp_dir():
+    """Create a temporary directory for tests"""
+    temp_dir = tempfile.mkdtemp()
+    yield Path(temp_dir)
+    shutil.rmtree(temp_dir)
+
+
+class TestLibraryBehavior:
     """Test that make_epub behaves as a proper library"""
-    
-    def setUp(self):
-        self.temp_dir = tempfile.mkdtemp()
-    
-    def tearDown(self):
-        shutil.rmtree(self.temp_dir)
     
     def test_ensure_dir_readable_no_prompts(self):
         """Library functions should not prompt for user input"""
@@ -33,61 +35,61 @@ class TestLibraryBehavior(unittest.TestCase):
         bad_path = Path("/nonexistent/directory")
         
         # Should raise exception, not prompt user
-        with self.assertRaises(ValidationError) as cm:
+        with pytest.raises(ValidationError) as excinfo:
             ensure_dir_readable(bad_path)
         
-        self.assertIn("not found or not a directory", str(cm.exception))
+        assert "not found or not a directory" in str(excinfo.value)
     
     def test_ensure_output_ok_no_prompts(self):
         """Output validation should raise exceptions, not prompt"""
         # Test with non-writable path
         bad_path = Path("/root/test.epub")
         
-        with self.assertRaises(ValidationError) as cm:
+        with pytest.raises(ValidationError) as excinfo:
             ensure_output_ok(bad_path, append=False)
         
         # Should mention permission or creation issue
-        error_msg = str(cm.exception)
-        self.assertTrue("Cannot create directory" in error_msg or "No write permission" in error_msg)
+        error_msg = str(excinfo.value)
+        assert "Cannot create directory" in error_msg or "No write permission" in error_msg
     
-    def test_ensure_cover_ok_no_prompts(self):
+    def test_ensure_cover_ok_no_prompts(self, temp_dir):
         """Cover validation should raise exceptions, not prompt"""
         # Test with non-existent file
         bad_cover = Path("/nonexistent/cover.jpg")
         
-        with self.assertRaises(ValidationError) as cm:
+        with pytest.raises(ValidationError) as excinfo:
             ensure_cover_ok(bad_cover)
         
-        self.assertIn("is not a file", str(cm.exception))
+        assert "is not a file" in str(excinfo.value)
         
         # Test with wrong file type
-        bad_type = Path(self.temp_dir) / "cover.txt"
+        bad_type = temp_dir / "cover.txt"
         bad_type.write_text("not an image")
         
-        with self.assertRaises(ValidationError) as cm:
+        with pytest.raises(ValidationError) as excinfo:
             ensure_cover_ok(bad_type)
         
-        self.assertIn("must be .jpg/.jpeg/.png", str(cm.exception))
+        assert "must be .jpg/.jpeg/.png" in str(excinfo.value)
     
-    def test_collect_chunks_no_prompts(self):
+    def test_collect_chunks_no_prompts(self, temp_dir):
         """Chunk collection should raise exceptions, not prompt"""
         # Empty directory
-        empty_dir = Path(self.temp_dir) / "empty"
+        empty_dir = temp_dir / "empty"
         empty_dir.mkdir()
         
-        with self.assertRaises(ValidationError) as cm:
+        with pytest.raises(ValidationError) as excinfo:
             collect_chunks(empty_dir)
         
-        self.assertIn("No valid .txt chunks found", str(cm.exception))
+        assert "No valid .txt chunks found" in str(excinfo.value)
     
-    def test_create_epub_from_txt_file_validation_errors(self):
+    def test_create_epub_from_txt_file_validation_errors(self, temp_dir):
         """Main function should return errors, not exit"""
         # Test with non-existent file
         fake_file = Path("/nonexistent/file.txt")
-        output_path = Path(self.temp_dir) / "test.epub"
+        output_path = temp_dir / "test.epub"
         
         # Should raise ValidationError, not exit
-        with self.assertRaises(ValidationError) as cm:
+        with pytest.raises(ValidationError) as excinfo:
             create_epub_from_txt_file(
                 txt_file_path=fake_file,
                 output_path=output_path,
@@ -95,22 +97,22 @@ class TestLibraryBehavior(unittest.TestCase):
                 author="Test"
             )
         
-        self.assertIn("Input file not found", str(cm.exception))
+        assert "Input file not found" in str(excinfo.value)
     
-    def test_create_epub_with_invalid_cover(self):
+    def test_create_epub_with_invalid_cover(self, temp_dir):
         """Test handling of invalid cover image"""
         # Create test file
-        test_file = Path(self.temp_dir) / "test.txt"
+        test_file = temp_dir / "test.txt"
         test_file.write_text("Chapter 1\nTest content")
         
         # Create invalid cover (wrong type)
-        bad_cover = Path(self.temp_dir) / "cover.txt"
+        bad_cover = temp_dir / "cover.txt"
         bad_cover.write_text("not an image")
         
-        output_path = Path(self.temp_dir) / "test.epub"
+        output_path = temp_dir / "test.epub"
         
         # Should raise ValidationError about cover
-        with self.assertRaises(ValidationError) as cm:
+        with pytest.raises(ValidationError) as excinfo:
             create_epub_from_txt_file(
                 txt_file_path=test_file,
                 output_path=output_path,
@@ -119,12 +121,12 @@ class TestLibraryBehavior(unittest.TestCase):
                 cover_path=bad_cover
             )
         
-        self.assertIn("Cover must be .jpg/.jpeg/.png", str(cm.exception))
+        assert "Cover must be .jpg/.jpeg/.png" in str(excinfo.value)
     
-    def test_validation_mode_returns_issues(self):
+    def test_validation_mode_returns_issues(self, temp_dir):
         """Validation mode should return issues list without creating EPUB"""
         # Create test file with chapter issues
-        test_file = Path(self.temp_dir) / "test.txt"
+        test_file = temp_dir / "test.txt"
         test_file.write_text("""
 Chapter 1
 First chapter
@@ -136,7 +138,7 @@ Chapter 5
 Fifth chapter (missing chapter 4)
 """)
         
-        output_path = Path(self.temp_dir) / "test.epub"
+        output_path = temp_dir / "test.epub"
         
         success, issues = create_epub_from_txt_file(
             txt_file_path=test_file,
@@ -148,10 +150,6 @@ Fifth chapter (missing chapter 4)
         )
         
         # Should succeed but report issues
-        self.assertTrue(success)
-        self.assertGreater(len(issues), 0)
-        self.assertTrue(any("missing" in issue for issue in issues))
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert success
+        assert len(issues) > 0
+        assert any("missing" in issue for issue in issues)

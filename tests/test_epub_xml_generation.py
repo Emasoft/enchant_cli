@@ -5,7 +5,7 @@
 Test suite for XML generation using ElementTree.
 """
 
-import unittest
+import pytest
 from pathlib import Path
 import xml.etree.ElementTree as ET
 import sys
@@ -17,7 +17,7 @@ from make_epub import (
 )
 
 
-class TestXMLGeneration(unittest.TestCase):
+class TestXMLGeneration:
     """Test that all XML generation uses ElementTree properly"""
     
     def test_chapter_xhtml_generation(self):
@@ -28,8 +28,8 @@ class TestXMLGeneration(unittest.TestCase):
         result = build_chap_xhtml(title, body_html)
         
         # Should be valid XML
-        self.assertIn('<?xml version="1.0" encoding="utf-8"?>', result)
-        self.assertIn('<!DOCTYPE html>', result)
+        assert '<?xml version="1.0" encoding="utf-8"?>' in result
+        assert '<!DOCTYPE html>' in result
         
         # Parse to verify it's valid XML
         # Remove DOCTYPE declaration for parsing
@@ -37,15 +37,15 @@ class TestXMLGeneration(unittest.TestCase):
         root = ET.fromstring(xml_content)
         
         # Check namespace
-        self.assertEqual(root.tag, '{http://www.w3.org/1999/xhtml}html')
+        assert root.tag == '{http://www.w3.org/1999/xhtml}html'
         
         # Check title is properly escaped
         title_elem = root.find('.//{http://www.w3.org/1999/xhtml}title')
-        self.assertEqual(title_elem.text, "Chapter 1: Test & Escaping")
+        assert title_elem.text == "Chapter 1: Test & Escaping"
         
         # Check h1 is properly escaped
         h1_elem = root.find('.//{http://www.w3.org/1999/xhtml}h1')
-        self.assertEqual(h1_elem.text, "Chapter 1: Test & Escaping")
+        assert h1_elem.text == "Chapter 1: Test & Escaping"
     
     def test_cover_xhtml_generation(self):
         """Test cover XHTML generation"""
@@ -54,8 +54,8 @@ class TestXMLGeneration(unittest.TestCase):
         result = build_cover_xhtml(img_path)
         
         # Should be valid XML
-        self.assertIn('<?xml version="1.0" encoding="utf-8"?>', result)
-        self.assertIn('<!DOCTYPE html>', result)
+        assert '<?xml version="1.0" encoding="utf-8"?>' in result
+        assert '<!DOCTYPE html>' in result
         
         # Parse to verify
         xml_content = result.split('<!DOCTYPE html>')[1].strip()
@@ -63,27 +63,27 @@ class TestXMLGeneration(unittest.TestCase):
         
         # Check image element
         img_elem = root.find('.//{http://www.w3.org/1999/xhtml}img')
-        self.assertEqual(img_elem.get('src'), '../Images/cover.jpg')
-        self.assertEqual(img_elem.get('alt'), 'Cover')
+        assert img_elem.get('src') == '../Images/cover.jpg'
+        assert img_elem.get('alt') == 'Cover'
     
     def test_container_xml_generation(self):
         """Test container.xml generation"""
         result = build_container_xml()
         
         # Should be valid XML with declaration
-        self.assertIn('<?xml version', result)
+        assert '<?xml version' in result
         
         # Parse to verify
         root = ET.fromstring(result)
         
         # Check namespace and structure
-        self.assertEqual(root.tag, '{urn:oasis:names:tc:opendocument:xmlns:container}container')
-        self.assertEqual(root.get('version'), '1.0')
+        assert root.tag == '{urn:oasis:names:tc:opendocument:xmlns:container}container'
+        assert root.get('version') == '1.0'
         
         # Check rootfile
         rootfile = root.find('.//{urn:oasis:names:tc:opendocument:xmlns:container}rootfile')
-        self.assertEqual(rootfile.get('full-path'), 'OEBPS/content.opf')
-        self.assertEqual(rootfile.get('media-type'), 'application/oebps-package+xml')
+        assert rootfile.get('full-path') == 'OEBPS/content.opf'
+        assert rootfile.get('media-type') == 'application/oebps-package+xml'
     
     def test_content_opf_with_special_chars(self):
         """Test OPF generation with special characters"""
@@ -104,19 +104,19 @@ class TestXMLGeneration(unittest.TestCase):
         result = build_content_opf(title, author, manifest, spine, uid, cover_id, language, metadata)
         
         # Should contain properly escaped characters
-        self.assertIn('Test &amp; Book &lt;Special&gt;', result)
-        self.assertIn('Author &amp; Co.', result)
-        self.assertIn('Publisher &amp; Sons', result)
-        self.assertIn('A book with &lt;special&gt; characters', result)
-        self.assertIn('Series &amp; More', result)
+        assert 'Test &amp; Book &lt;Special&gt;' in result
+        assert 'Author &amp; Co.' in result
+        assert 'Publisher &amp; Sons' in result
+        assert 'A book with &lt;special&gt; characters' in result
+        assert 'Series &amp; More' in result
         
         # Should include language
-        self.assertIn('<dc:language>en</dc:language>', result)
+        assert '<dc:language>en</dc:language>' in result
         
         # Should include metadata
-        self.assertIn('<dc:publisher>', result)
-        self.assertIn('<dc:description>', result)
-        self.assertIn("calibre:series' content='Series &amp; More'", result)
+        assert '<dc:publisher>' in result
+        assert '<dc:description>' in result
+        assert "calibre:series' content='Series &amp; More'" in result
     
     def test_toc_ncx_with_special_chars(self):
         """Test NCX generation with special characters"""
@@ -130,13 +130,13 @@ class TestXMLGeneration(unittest.TestCase):
         result = build_toc_ncx(title, author, nav_points, uid)
         
         # Should contain properly escaped characters
-        self.assertIn('Book &amp; Title', result)
-        self.assertIn('Author &lt;Name&gt;', result)
+        assert 'Book &amp; Title' in result
+        assert 'Author &lt;Name&gt;' in result
         
         # Should be valid XML structure
-        self.assertIn('<?xml version', result)
-        self.assertIn('<!DOCTYPE ncx', result)
-        self.assertIn('urn:uuid:test-uuid', result)
+        assert '<?xml version' in result
+        assert '<!DOCTYPE ncx' in result
+        assert 'urn:uuid:test-uuid' in result
     
     def test_malformed_html_handling(self):
         """Test handling of malformed HTML in chapter content"""
@@ -147,7 +147,7 @@ class TestXMLGeneration(unittest.TestCase):
         result = build_chap_xhtml(title, body_html)
         
         # Should still produce valid XML (fallback to text)
-        self.assertIn('<?xml version="1.0" encoding="utf-8"?>', result)
+        assert '<?xml version="1.0" encoding="utf-8"?>' in result
         
         # Try to parse result - should not raise
         xml_content = result.split('<!DOCTYPE html>')[1].strip()
@@ -155,8 +155,4 @@ class TestXMLGeneration(unittest.TestCase):
         
         # Should have created some content
         body = root.find('.//{http://www.w3.org/1999/xhtml}body')
-        self.assertIsNotNone(body)
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert body is not None

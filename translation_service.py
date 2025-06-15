@@ -383,8 +383,9 @@ class ChineseAITranslator:
         # Escape keyword in case it contains regex special characters
         escaped_keyword = re.escape(keyword)
         # Build a regex pattern for all variants with different delimiters
+        # Include both opening and closing tags
         pattern_str = (
-            rf"(<{escaped_keyword}>|\[{escaped_keyword}\]|\{{{escaped_keyword}\}}|\({escaped_keyword}\)|##{escaped_keyword}##)"
+            rf"(</?{escaped_keyword}>|\[/?{escaped_keyword}\]|\{{/?{escaped_keyword}\}}|\(/?{escaped_keyword}\)|##{escaped_keyword}##)"
         )
         # Set regex flags based on the optional parameter
         flags = re.IGNORECASE if ignore_case else 0
@@ -648,25 +649,27 @@ class ChineseAITranslator:
 
     def separate_chapters(self, text: str) -> str:
         # Define patterns for chapter headings
+        # Use a single capturing group for the entire match
         patterns = [
             # Chapter X: Title or Chapter X - "Title" - Part 1
-            r'\b(Chapter\s+\d+\s*[-:—.]*\s*[\"«"]?[A-Za-z0-9\s.,:;!?…]*[\"»"]?\s*[-:—.]*\s*Part\s*\d*)',
+            r'Chapter\s+\d+\s*[-:—.]*\s*[\"«"]?[A-Za-z0-9\s.,:;!?…]*[\"»"]?\s*[-:—.]*\s*Part\s*\d*',
             # Chapter in Roman numerals like CHAPTER V: The Finale - Part 1
-            r'\b(Chapter\s+[IVXLC]+\s*[-:—.]*\s*[\"«"]?[A-Za-z0-9\s.,:;!?…]*[\"»"]?\s*[-:—.]*\s*Part\s*\d*)',
+            r'Chapter\s+[IVXLC]+\s*[-:—.]*\s*[\"«"]?[A-Za-z0-9\s.,:;!?…]*[\"»"]?\s*[-:—.]*\s*Part\s*\d*',
             # Chapter One - Title - Part 1
-            r'\b(Chapter\s+\w+\s*[-:—.]*\s*[\"«"]?[A-Za-z0-9\s.,:;!?…]*[\"»"]?\s*[-:—.]*\s*Part\s*\d*)',
+            r'Chapter\s+\w+\s*[-:—.]*\s*[\"«"]?[A-Za-z0-9\s.,:;!?…]*[\"»"]?\s*[-:—.]*\s*Part\s*\d*',
             # Chapter 3: My Farewell, Chapter 3 - My Farewell, etc.
-            r'\b(Chapter\s+\d+\s*[-:—]*\s*.*)',
+            r'Chapter\s+\d+\s*[-:—]*\s*[^\n]*',
             # Chapter IX - My Farewell
-            r'\b(Chapter\s+[IVXLC]+\s*[-:—]*\s*.*)',
+            r'Chapter\s+[IVXLC]+\s*[-:—]*\s*[^\n]*',
             # Chapter One - My Farewell
-            r'\b(Chapter\s+\w+\s*[-:—]*\s*.*)',
+            r'Chapter\s+\w+\s*[-:—]*\s*[^\n]*',
             # Chapter on its own line
-            r'\b(Chapter)\s*$',
+            r'Chapter\s*$',
             # Prologue and Epilogue
-            r'\b(Prologue|Epilogue)\s*$',
+            r'Prologue\s*$|Epilogue\s*$',
         ]
-        chapter_pattern = re.compile('|'.join(patterns), re.IGNORECASE)
+        # Create a single capturing group around all patterns
+        chapter_pattern = re.compile(r'(' + '|'.join(patterns) + ')', re.IGNORECASE | re.MULTILINE)
         return chapter_pattern.sub(r'\n\n\n\1\n\n', text)
 
     def translate_file(self, input_file: str, output_file: str, is_last_chunk=False) -> Optional[str]:

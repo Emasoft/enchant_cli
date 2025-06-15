@@ -25,10 +25,6 @@ with patch('cli_translator.ConfigManager'):
 class TestCostTrackingIntegration:
     """Integration tests for OpenRouter cost tracking"""
     
-    def __init__(self):
-        """Initialize test fixtures manually"""
-        self.config = self.mock_config()
-    
     def mock_config(self):
         """Mock configuration for testing - using exact production values"""
         return {

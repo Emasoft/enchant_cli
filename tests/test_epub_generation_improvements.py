@@ -6,7 +6,7 @@ Test suite for EPUB generation improvements.
 Using TDD approach - tests written before implementation.
 """
 
-import unittest
+import pytest
 from pathlib import Path
 import tempfile
 import shutil
@@ -19,10 +19,11 @@ from unittest.mock import patch, MagicMock
 # from common_utils import create_epub_with_config
 
 
-class TestChapterDetection(unittest.TestCase):
+class TestChapterDetection:
     """Test improved chapter detection including Chinese patterns"""
     
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_method(self):
         """Set up test data"""
         self.test_texts = {
             'english_numeric': "Chapter 1\nSome content\n\nChapter 2\nMore content",
@@ -38,25 +39,25 @@ class TestChapterDetection(unittest.TestCase):
         # When ChapterDetector is implemented
         # detector = ChapterDetector()
         # chapters = detector.detect_chapters(self.test_texts['english_numeric'])
-        # self.assertEqual(len(chapters), 2)
-        # self.assertEqual(chapters[0]['title'], 'Chapter 1')
-        # self.assertEqual(chapters[1]['title'], 'Chapter 2')
+        # assert len(chapters) == 2
+        # assert chapters[0]['title'] == 'Chapter 1'
+        # assert chapters[1]['title'] == 'Chapter 2'
         pass
     
     def test_detect_chinese_chapters(self):
         """Should detect Chinese chapter patterns"""
         # detector = ChapterDetector()
         # chapters = detector.detect_chapters(self.test_texts['chinese_numeric'])
-        # self.assertEqual(len(chapters), 2)
-        # self.assertEqual(chapters[0]['title'], '第一章')
-        # self.assertEqual(chapters[1]['title'], '第二章')
+        # assert len(chapters) == 2
+        # assert chapters[0]['title'] == '第一章'
+        # assert chapters[1]['title'] == '第二章'
         pass
     
     def test_detect_mixed_chapter_formats(self):
         """Should handle mixed chapter formats in same book"""
         # detector = ChapterDetector()
         # chapters = detector.detect_chapters(self.test_texts['mixed_format'])
-        # self.assertEqual(len(chapters), 3)
+        # assert len(chapters) == 3
         pass
     
     def test_configurable_chapter_patterns(self):
@@ -65,19 +66,19 @@ class TestChapterDetection(unittest.TestCase):
         # detector = ChapterDetector(patterns=config['chapter_patterns'])
         # text = "Section 1\nContent\n\nPart IV\nMore content"
         # chapters = detector.detect_chapters(text)
-        # self.assertEqual(len(chapters), 2)
+        # assert len(chapters) == 2
         pass
 
 
-class TestEPUBConfiguration(unittest.TestCase):
+class TestEPUBConfiguration:
     """Test configuration support for EPUB generation"""
     
     def test_default_config(self):
         """Should have sensible defaults"""
         # config = EPUBConfig()
-        # self.assertEqual(config.language, 'en')
-        # self.assertEqual(config.encoding, 'utf-8')
-        # self.assertIsNotNone(config.default_css)
+        # assert config.language == 'en'
+        # assert config.encoding == 'utf-8'
+        # assert config.default_css is not None
         pass
     
     def test_custom_language_setting(self):
@@ -109,15 +110,16 @@ class TestEPUBConfiguration(unittest.TestCase):
         pass
 
 
-class TestCommonEPUBUtility(unittest.TestCase):
+class TestCommonEPUBUtility:
     """Test the common EPUB generation utility function"""
     
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_method(self):
         self.temp_dir = tempfile.mkdtemp()
         self.test_file = Path(self.temp_dir) / "test_book.txt"
         self.test_file.write_text("Chapter 1\nTest content\n\nChapter 2\nMore content")
     
-    def tearDown(self):
+    def teardown_method(self):
         shutil.rmtree(self.temp_dir)
     
     def test_create_epub_with_config(self):
@@ -136,9 +138,9 @@ class TestCommonEPUBUtility(unittest.TestCase):
         #     config
         # )
         # 
-        # self.assertTrue(success)
-        # self.assertTrue(output_path.exists())
-        # self.assertEqual(len(issues), 0)
+        # assert success
+        # assert output_path.exists()
+        # assert len(issues) == 0
         pass
     
     def test_error_handling_without_user_prompts(self):
@@ -153,13 +155,13 @@ class TestCommonEPUBUtility(unittest.TestCase):
         #     {'title': 'Test', 'author': 'Test'}
         # )
         # 
-        # self.assertFalse(success)
-        # self.assertGreater(len(issues), 0)
-        # self.assertIn('not found', issues[0])
+        # assert not success
+        # assert len(issues) > 0
+        # assert 'not found' in issues[0]
         pass
 
 
-class TestXMLGeneration(unittest.TestCase):
+class TestXMLGeneration:
     """Test proper XML generation using libraries"""
     
     def test_xml_escaping(self):
@@ -173,7 +175,7 @@ class TestXMLGeneration(unittest.TestCase):
         # title_elem = opf_tree.find('.//{http://purl.org/dc/elements/1.1/}title')
         # 
         # # Should be properly escaped
-        # self.assertEqual(title_elem.text, title_with_specials)
+        # assert title_elem.text == title_with_specials
         pass
     
     def test_namespace_handling(self):
@@ -183,11 +185,11 @@ class TestXMLGeneration(unittest.TestCase):
         # 
         # # Verify namespaces are declared
         # root = opf_tree.getroot()
-        # self.assertIn('http://www.idpf.org/2007/opf', root.attrib.values())
+        # assert 'http://www.idpf.org/2007/opf' in root.attrib.values()
         pass
 
 
-class TestMemoryEfficiency(unittest.TestCase):
+class TestMemoryEfficiency:
     """Test memory-efficient processing"""
     
     def test_large_file_handling(self):
@@ -204,7 +206,7 @@ class TestMemoryEfficiency(unittest.TestCase):
         pass
 
 
-class TestEPUBValidation(unittest.TestCase):
+class TestEPUBValidation:
     """Test EPUB validation improvements"""
     
     def test_chapter_sequence_validation(self):
@@ -218,7 +220,7 @@ class TestEPUBValidation(unittest.TestCase):
         # 
         # for seq, expected_issues in sequences:
         #     issues = validate_chapter_sequence(seq)
-        #     self.assertEqual(len(issues), len(expected_issues))
+        #     assert len(issues) == len(expected_issues)
         pass
     
     def test_epub_structure_validation(self):
@@ -226,7 +228,3 @@ class TestEPUBValidation(unittest.TestCase):
         # # Test that generated EPUBs have correct structure
         # # mimetype, META-INF/container.xml, etc.
         pass
-
-
-if __name__ == '__main__':
-    unittest.main()

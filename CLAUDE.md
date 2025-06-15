@@ -61,9 +61,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 
 ### Testing Rules
-- Use unittest as the primary testing framework (pytest optional for specific tests)
-- Run tests with uv (`uv run python -m unittest discover`)
-- For pytest tests (if any): `uv run pytest <commands..>`
+- Always use pytest and pytest-cov for testing
+- Run tests with uv (`uv run pytest`)
+- For coverage reports: `uv run pytest --cov=. --cov-report=html`
 - Always convert the xtests in normal tests. Negative tests are confusing. Just make the test explicitly check for the negative outcome instead, and if the outcome is negative, the test is passed.
 - Always show a nicely color formatted table with the list of all tests (the functions, not the file) and the outcome (fail, success, skip, error). 
 - The table must use unicode border blocks to delimit the cells, thicker for the header row.
@@ -1017,7 +1017,7 @@ A comprehensive Chinese novel translation and EPUB generation system with three 
   - Small, focused modules under 10KB each
 
 ### Dependencies
-- Core tools: unittest (primary), pytest (optional), mypy, ruff, flake8, pre-commit, yamllint, actionlint, prefect, shellcheck, gh
+- Core tools: pytest, pytest-cov, pytest-mock, mypy, ruff, flake8, pre-commit, yamllint, actionlint, prefect, shellcheck, gh
 - Package management: UV (modern Python package manager)
 - Version management: bump-my-version, gitpython, gitleaks
 - UI/CLI: click, rich

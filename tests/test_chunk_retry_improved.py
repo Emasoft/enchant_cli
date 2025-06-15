@@ -4,7 +4,7 @@
 Improved tests for chunk-level retry mechanism with reduced duplication
 """
 
-import unittest
+import pytest
 from unittest.mock import Mock, patch, MagicMock
 import sys
 from pathlib import Path
@@ -18,10 +18,11 @@ from cli_translator import save_translated_book, DEFAULT_MAX_CHUNK_RETRIES, MAX_
 from cli_translator import Book, Chapter, VARIATION_DB
 
 
-class BaseChunkRetryTest(unittest.TestCase):
+class BaseChunkRetryTest:
     """Base class for chunk retry tests with common setup"""
     
-    def setUp(self):
+    @pytest.fixture(autouse=True)
+    def setup_method(self):
         """Set up common test fixtures"""
         self.test_dir = tempfile.mkdtemp()
         self.book_id = "test-book-123"
@@ -36,7 +37,7 @@ class BaseChunkRetryTest(unittest.TestCase):
         self.patches = []
         self._setup_patches()
         
-    def tearDown(self):
+    def teardown_method(self):
         """Clean up test fixtures and patches"""
         shutil.rmtree(self.test_dir, ignore_errors=True)
         for p in self.patches:
@@ -114,12 +115,12 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
             mock_exit.assert_not_called()
             
             # Should translate all chunks
-            self.assertEqual(self.mock_translator.translate.call_count, 3)
+            assert self.mock_translator.translate.call_count == 3
             
             # Check log messages
             success_logs = [call for call in self.mock_tolog.info.call_args_list 
                            if "Successfully translated chunk" in str(call)]
-            self.assertEqual(len(success_logs), 3)
+            assert len(success_logs) == 3
     
     @patch('cli_translator.time.sleep')
     def test_translation_retry_on_failure(self, mock_sleep):
@@ -140,10 +141,10 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
             mock_exit.assert_not_called()
             
             # Should have retried
-            self.assertEqual(self.mock_translator.translate.call_count, 5)
+            assert self.mock_translator.translate.call_count == 5
             
             # Check sleep was called for retries
-            self.assertEqual(mock_sleep.call_count, 2)
+            assert mock_sleep.call_count == 2
             mock_sleep.assert_any_call(2)  # First retry
             mock_sleep.assert_any_call(4)  # Second retry
     
@@ -157,25 +158,25 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
         with patch('sys.exit') as mock_exit:
             mock_exit.side_effect = SystemExit(1)
             
-            with self.assertRaises(SystemExit) as cm:
+            with pytest.raises(SystemExit) as cm:
                 save_translated_book(self.book_id)
             
             # Check exit code
-            self.assertEqual(cm.exception.code, 1)
+            assert cm.value.code == 1
             
             # Should exit with error code
             mock_exit.assert_called_once_with(1)
             
             # Should have attempted max_chunk_retries times
-            self.assertEqual(self.mock_translator.translate.call_count, 3)
+            assert self.mock_translator.translate.call_count == 3
             
             # Check error message was logged using format_chunk_error_message
             error_logs = [call for call in self.mock_tolog.error.call_args_list 
                          if "FATAL ERROR" in str(call)]
-            self.assertEqual(len(error_logs), 1)
+            assert len(error_logs) == 1
             
             # Check sleep was called correctly
-            self.assertEqual(mock_sleep.call_count, 2)  # No sleep after last attempt
+            assert mock_sleep.call_count == 2  # No sleep after last attempt
     
     def test_empty_translation_triggers_retry(self):
         """Test that empty or whitespace-only translations trigger retry"""
@@ -195,7 +196,7 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
             mock_exit.assert_not_called()
             
             # Should have retried
-            self.assertEqual(self.mock_translator.translate.call_count, 5)
+            assert self.mock_translator.translate.call_count == 5
     
     def test_constants_used_correctly(self):
         """Test that constants are used instead of magic numbers"""
@@ -207,11 +208,11 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
             with patch('sys.exit') as mock_exit:
                 mock_exit.side_effect = SystemExit(1)
                 
-                with self.assertRaises(SystemExit):
+                with pytest.raises(SystemExit):
                     save_translated_book(self.book_id)
                 
                 # Should have attempted DEFAULT_MAX_CHUNK_RETRIES times
-                self.assertEqual(self.mock_translator.translate.call_count, DEFAULT_MAX_CHUNK_RETRIES)
+                assert self.mock_translator.translate.call_count == DEFAULT_MAX_CHUNK_RETRIES
     
     @patch('cli_translator.time.sleep')
     def test_max_wait_time_respected(self, mock_sleep):
@@ -228,8 +229,4 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
                 # Check that no sleep call exceeds MAX_RETRY_WAIT_SECONDS
                 for call in mock_sleep.call_args_list:
                     wait_time = call[0][0]
-                    self.assertLessEqual(wait_time, MAX_RETRY_WAIT_SECONDS)
-
-
-if __name__ == '__main__':
-    unittest.main()
+                    assert wait_time <= MAX_RETRY_WAIT_SECONDS

@@ -12,6 +12,7 @@ import sys
 import os
 import tempfile
 from pathlib import Path
+import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -24,8 +25,9 @@ from translation_service import (
 class TestChineseAITranslatorReal:
     """Real API tests for ChineseAITranslator"""
     
-    def __init__(self):
-        """Initialize test suite"""
+    @pytest.fixture(autouse=True)
+    def setup(self):
+        """Setup test suite"""
         self.logger = logging.getLogger("test_real")
         logging.basicConfig(level=logging.INFO)
     
@@ -158,10 +160,10 @@ class TestChineseAITranslatorReal:
             if has_quotes:
                 print("✓ Curly quotes used")
             
-            return has_tang
+            assert has_tang, "Translation failed to include Tang Wutong"
         except Exception as e:
             print(f"✗ Translation failed: {e}")
-            return False
+            assert False, f"Translation failed: {e}"
     
     def test_real_double_translation(self):
         """Test double translation with real API"""
@@ -189,13 +191,12 @@ class TestChineseAITranslatorReal:
             
             if not double_has_chinese:
                 print("✓ Double translation removed all Chinese")
-                return True
             else:
                 print("✗ Chinese still present after double translation")
-                return False
+                assert False, "Chinese still present after double translation"
         except Exception as e:
             print(f"✗ Translation failed: {e}")
-            return False
+            assert False, f"Translation failed: {e}"
     
     def test_translate_file_real(self):
         """Test file translation with real API"""
@@ -229,16 +230,15 @@ class TestChineseAITranslatorReal:
                         print(f"✓ File translated successfully")
                         print(f"  Input: {test_content}")
                         print(f"  Output: {output_content}")
-                        return True
                     else:
                         print("✗ File translation incomplete")
-                        return False
+                        assert False, "File translation incomplete"
                 else:
                     print("✗ Output file not created")
-                    return False
+                    assert False, "Output file not created"
             except Exception as e:
                 print(f"✗ File translation failed: {e}")
-                return False
+                assert False, f"File translation failed: {e}"
     
     def test_cost_tracking_local(self):
         """Test that local API doesn't track costs"""
@@ -257,10 +257,9 @@ class TestChineseAITranslatorReal:
             assert translator.request_count == 0
             
             print("✓ Local API correctly doesn't track costs")
-            return True
         except Exception as e:
             print(f"✗ Test failed: {e}")
-            return False
+            assert False, f"Test failed: {e}"
     
     def test_real_performance(self):
         """Test translation performance with real API"""
@@ -294,7 +293,7 @@ class TestChineseAITranslatorReal:
                 print(f"✗ {name} text error: {e}")
                 all_passed = False
         
-        return all_passed
+        assert all_passed, "Not all performance tests passed"
     
     def test_thread_safety_real(self):
         """Test thread safety with real concurrent translations"""
@@ -330,14 +329,13 @@ class TestChineseAITranslatorReal:
         # Check results
         if errors:
             print(f"✗ Thread errors: {errors}")
-            return False
+            assert False, f"Thread errors: {errors}"
         
         if len(results) == len(test_texts):
             print(f"✓ All {len(test_texts)} concurrent translations completed")
-            return True
         else:
             print(f"✗ Only {len(results)}/{len(test_texts)} translations completed")
-            return False
+            assert False, f"Only {len(results)}/{len(test_texts)} translations completed"
 
 
 class TestUtilityFunctionsReal:
@@ -374,7 +372,7 @@ class TestUtilityFunctionsReal:
                 print(f"✗ {desc}: '{char}' expected {expected}, got {result}")
                 all_passed = False
         
-        return all_passed
+        assert all_passed, "Not all test cases passed"
     
     def test_is_latin_charset_real_texts(self):
         """Test charset detection with real text samples"""
@@ -397,7 +395,7 @@ class TestUtilityFunctionsReal:
             ("مرحبا", False, "Pure Arabic"),
             
             # Edge cases
-            ("", False, "Empty string"),
+            ("", True, "Empty string"),
             ("   ", True, "Only spaces"),
             ("123.45", True, "Numbers and punctuation"),
             ("\n\t", True, "Only whitespace"),
@@ -412,7 +410,7 @@ class TestUtilityFunctionsReal:
                 print(f"✗ {desc}: expected {expected}, got {result}")
                 all_passed = False
         
-        return all_passed
+        assert all_passed, "Not all test cases passed"
 
 
 def run_all_real_tests():

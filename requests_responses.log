@@ -1,3 +1,236 @@
 2025-06-11 02:05:43,927 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
 2025-06-11 02:05:43,933 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
 2025-06-11 02:05:43,933 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp6dfehzoh.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 06:09:03,164 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 06:09:03,169 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 06:09:03,169 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp5hbess1y/修炼高手.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 06:18:25,518 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 06:18:25,520 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 06:18:25,520 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpo3zy8jco/修炼高手.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 06:23:52,018 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 06:23:52,020 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 06:23:52,020 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpckjtxc05/修炼高手.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 10:07:07,349 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:07:07,351 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 10:07:07,352 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpixhpsfge/修炼至尊.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 10:10:13,408 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:10:13,410 - ERROR - Failed to decode file '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpmqeffy69/修炼至尊.txt': decode_full_file() got an unexpected keyword argument 'encoding_detector'
+2025-06-14 10:10:13,410 - ERROR - Failed to decode file content for /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpmqeffy69/修炼至尊.txt
+2025-06-14 10:11:15,419 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:11:15,421 - INFO - OpenAI API request successful.
+2025-06-14 10:11:15,421 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp5lfjzscb/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:11:15,421 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp5lfjzscb/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp5lfjzscb/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 10:11:57,017 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:11:57,019 - INFO - OpenAI API request successful.
+2025-06-14 10:11:57,019 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpawdoc0t2/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:11:57,019 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpawdoc0t2/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpawdoc0t2/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 10:12:53,742 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:12:53,744 - INFO - OpenAI API request successful.
+2025-06-14 10:12:53,744 - ERROR - No JSON object found in the response content.
+2025-06-14 10:12:53,744 - ERROR - Failed to extract JSON data from OpenAI response for file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp0o4tqium/修炼至尊.txt.
+2025-06-14 10:14:04,645 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:14:04,647 - INFO - OpenAI API request successful.
+2025-06-14 10:14:04,647 - ERROR - No JSON object found in the response content.
+2025-06-14 10:14:04,648 - ERROR - Failed to extract JSON data from OpenAI response for file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp_o3f2uk9/修炼至尊.txt.
+2025-06-14 10:17:26,923 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:17:26,925 - INFO - OpenAI API request successful.
+2025-06-14 10:17:26,925 - ERROR - No JSON object found in the response content.
+2025-06-14 10:17:26,925 - ERROR - Failed to extract JSON data from OpenAI response for file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpzit4qbnl/修炼至尊.txt.
+2025-06-14 10:18:46,261 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:18:46,263 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 10:18:46,263 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpmum_5o9i/修炼至尊.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 10:23:10,383 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:23:10,385 - INFO - OpenAI API request successful.
+2025-06-14 10:23:10,385 - ERROR - No JSON object found in the response content.
+2025-06-14 10:23:10,385 - ERROR - Failed to extract JSON data from OpenAI response for file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpoqlv9gi_/修炼至尊.txt.
+2025-06-14 10:23:45,038 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:23:45,040 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp4hwml0sr/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:23:45,040 - INFO - Dry run: Would rename '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp4hwml0sr/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp4hwml0sr/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 10:24:13,531 - INFO - OpenAI API request successful.
+2025-06-14 10:25:47,773 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:25:47,775 - INFO - OpenAI API request successful.
+2025-06-14 10:25:47,775 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpgdygj8_p/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:25:47,775 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpgdygj8_p/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpgdygj8_p/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 10:27:16,310 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:27:16,312 - INFO - OpenAI API request successful.
+2025-06-14 10:27:16,312 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpdw4g7t3n/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:27:16,312 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpdw4g7t3n/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpdw4g7t3n/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 10:27:52,534 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:27:52,539 - INFO - OpenAI API request successful.
+2025-06-14 10:27:52,539 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpbegcnr4t/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:27:52,539 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpbegcnr4t/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpbegcnr4t/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 10:28:56,707 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:28:56,709 - INFO - OpenAI API request successful.
+2025-06-14 10:28:56,709 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp4mraasxb/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:28:56,709 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp4mraasxb/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp4mraasxb/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 10:37:35,622 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:37:35,624 - INFO - OpenAI API request successful.
+2025-06-14 10:37:35,624 - ERROR - No JSON object found in the response content.
+2025-06-14 10:37:35,624 - ERROR - Failed to extract JSON data from OpenAI response for file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpab9w8weh/修炼至尊.txt.
+2025-06-14 10:38:18,549 - INFO - OpenAI API request successful.
+2025-06-14 10:38:18,550 - INFO - OpenAI API request successful.
+2025-06-14 10:38:18,550 - INFO - OpenAI API request successful.
+2025-06-14 10:38:56,118 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:38:56,120 - INFO - OpenAI API request successful.
+2025-06-14 10:38:56,120 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpbfkscr5c/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:38:56,120 - INFO - Dry run: Would rename '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpbfkscr5c/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpbfkscr5c/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 10:39:51,833 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:39:51,837 - INFO - OpenAI API request successful.
+2025-06-14 10:39:51,837 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpm0bobe7m/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:39:51,837 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpm0bobe7m/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpm0bobe7m/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 10:40:51,696 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:40:51,698 - INFO - OpenAI API request successful.
+2025-06-14 10:40:51,698 - ERROR - No JSON object found in the response content.
+2025-06-14 10:40:51,698 - ERROR - Failed to extract JSON data from OpenAI response for file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpxv6sd6st/修炼至尊.txt.
+2025-06-14 10:42:28,834 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:42:28,836 - INFO - OpenAI API request successful.
+2025-06-14 10:42:28,836 - ERROR - No JSON object found in the response content.
+2025-06-14 10:42:28,837 - ERROR - Failed to extract JSON data from OpenAI response for file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmprif9x_ad/修炼至尊.txt.
+2025-06-14 10:43:10,490 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:43:10,492 - INFO - OpenAI API request successful.
+2025-06-14 10:43:10,492 - ERROR - No JSON object found in the response content.
+2025-06-14 10:43:10,492 - ERROR - Failed to extract JSON data from OpenAI response for file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp1f47c1qv/修炼至尊.txt.
+2025-06-14 10:43:41,140 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:43:41,142 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpsy_n9r5n/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:43:41,142 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpsy_n9r5n/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpsy_n9r5n/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 10:44:24,058 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:44:24,060 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpol25l484/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:44:24,060 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpol25l484/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpol25l484/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 10:45:05,136 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:45:05,149 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp_z81bxjc/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:45:05,149 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp_z81bxjc/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp_z81bxjc/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 10:50:33,374 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:50:33,377 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp_qedv5xs/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:50:33,377 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp_qedv5xs/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp_qedv5xs/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 10:50:33,451 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:50:33,731 - ERROR - Error making OpenAI request: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 10:50:33,731 - ERROR - Error processing novel file /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/修炼至尊.txt: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 10:57:58,325 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:57:58,328 - ERROR - Error reading file '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/修炼至尊.txt': [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/修炼至尊.txt'
+2025-06-14 10:57:58,328 - ERROR - Failed to decode file '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/修炼至尊.txt': [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/修炼至尊.txt'
+2025-06-14 10:57:58,328 - ERROR - Failed to decode file content for /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/修炼至尊.txt
+2025-06-14 10:57:58,372 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:57:58,373 - ERROR - Error reading file '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt': [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt'
+2025-06-14 10:57:58,373 - ERROR - Failed to decode file '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt': [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt'
+2025-06-14 10:57:58,373 - ERROR - Failed to decode file content for /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt
+2025-06-14 10:57:58,418 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:57:58,419 - ERROR - Error reading file '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt': [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt'
+2025-06-14 10:57:58,419 - ERROR - Failed to decode file '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt': [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt'
+2025-06-14 10:57:58,419 - ERROR - Failed to decode file content for /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt
+2025-06-14 10:58:39,304 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:58:39,307 - INFO - File '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp50kfn3b9/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:58:39,307 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp50kfn3b9/修炼至尊.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp50kfn3b9/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 10:58:39,365 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:58:39,367 - INFO - File '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp50kfn3b9/都市异能王.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:58:39,367 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp50kfn3b9/都市异能王.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp50kfn3b9/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者 (1).txt'
+2025-06-14 10:58:39,411 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:58:39,413 - INFO - File '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp50kfn3b9/魔法学院.txt' used 255 tokens. Cost: $0.000072
+2025-06-14 10:58:39,413 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp50kfn3b9/魔法学院.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp50kfn3b9/Urban Ability King by Unknown Author (Weizhi Zuozhe) - 都市异能王 by 未知作者.txt'
+2025-06-14 10:59:18,607 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:59:18,610 - INFO - File '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmps7075mf5/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 10:59:18,610 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmps7075mf5/修炼至尊.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmps7075mf5/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 10:59:18,668 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:59:18,669 - INFO - File '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmps7075mf5/都市异能王.txt' used 255 tokens. Cost: $0.000072
+2025-06-14 10:59:18,669 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmps7075mf5/都市异能王.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmps7075mf5/Urban Ability King by Unknown Author (Weizhi Zuozhe) - 都市异能王 by 未知作者.txt'
+2025-06-14 10:59:18,713 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 10:59:18,714 - INFO - File '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmps7075mf5/魔法学院.txt' used 268 tokens. Cost: $0.000075
+2025-06-14 10:59:18,714 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmps7075mf5/魔法学院.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmps7075mf5/Magic Academy by Unknown Author (Weizhi Zuozhe) - 魔法学院 by 未知作者.txt'
+2025-06-14 11:04:41,622 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:04:41,624 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpktlh_jgk/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 11:04:41,625 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpktlh_jgk/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpktlh_jgk/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 11:04:41,695 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:04:41,697 - INFO - File '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp9razi6dl/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 11:04:41,697 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp9razi6dl/修炼至尊.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp9razi6dl/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 11:04:41,742 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:04:41,744 - INFO - File '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp9razi6dl/都市异能王.txt' used 255 tokens. Cost: $0.000072
+2025-06-14 11:04:41,744 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp9razi6dl/都市异能王.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp9razi6dl/Urban Ability King by Unknown Author (Weizhi Zuozhe) - 都市异能王 by 未知作者.txt'
+2025-06-14 11:04:41,789 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:04:41,791 - INFO - File '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp9razi6dl/魔法学院.txt' used 268 tokens. Cost: $0.000075
+2025-06-14 11:04:41,791 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp9razi6dl/魔法学院.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp9razi6dl/Magic Academy by Unknown Author (Weizhi Zuozhe) - 魔法学院 by 未知作者.txt'
+2025-06-14 11:04:41,854 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:04:42,132 - ERROR - Error making OpenAI request: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:04:42,132 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpl0d0cdyj/修炼至尊.txt: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:04:42,225 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:04:42,475 - ERROR - Error making OpenAI request: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:04:42,475 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp9i89ubc2/魔法学院.txt: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:09:44,704 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:09:45,006 - ERROR - Error making OpenAI request: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:09:45,006 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpr2ob_no5/修炼至尊.txt: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:14:47,227 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:14:47,231 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 11:14:47,231 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpxz8jukvp/修炼高手.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 11:14:47,320 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:14:47,322 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 11:14:47,322 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpydzdx2o4/修炼高手.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 11:22:23,247 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:22:23,252 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 11:22:23,252 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp85w1crhk/修炼高手.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 11:22:34,556 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:22:34,560 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 11:22:34,560 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp85w1crhk/修炼高手.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 11:34:44,843 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:34:44,845 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpzydbbjt_/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 11:34:44,846 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpzydbbjt_/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpzydbbjt_/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 11:34:44,924 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:34:44,926 - INFO - File '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp48ztb0v2/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 11:34:44,926 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp48ztb0v2/修炼至尊.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp48ztb0v2/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 11:34:44,974 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:34:44,976 - INFO - File '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp48ztb0v2/都市异能王.txt' used 255 tokens. Cost: $0.000072
+2025-06-14 11:34:44,976 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp48ztb0v2/都市异能王.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp48ztb0v2/Urban Ability King by Unknown Author (Weizhi Zuozhe) - 都市异能王 by 未知作者.txt'
+2025-06-14 11:34:45,020 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:34:45,021 - INFO - File '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp48ztb0v2/魔法学院.txt' used 268 tokens. Cost: $0.000075
+2025-06-14 11:34:45,021 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp48ztb0v2/魔法学院.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp48ztb0v2/Magic Academy by Unknown Author (Weizhi Zuozhe) - 魔法学院 by 未知作者.txt'
+2025-06-14 11:34:45,083 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:34:45,356 - ERROR - Error making OpenAI request: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:34:45,356 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmph5_5uhba/修炼至尊.txt: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:34:45,402 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:34:45,684 - ERROR - Error making OpenAI request: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:34:45,684 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmphl_tkaxx/魔法学院.txt: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:35:06,089 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:35:06,369 - ERROR - Error making OpenAI request: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:35:06,369 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpkg6gjrv1/修炼至尊.txt: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:35:24,941 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:35:24,948 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 11:35:24,949 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpni_sdt9a/修炼高手.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 11:35:25,025 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:35:25,027 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 11:35:25,027 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpcgfz36fv/修炼高手.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 11:35:40,212 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:35:40,214 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 11:35:40,214 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpzlbirwe6/修炼高手.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 11:35:50,608 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:35:50,615 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 11:35:50,615 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpzlbirwe6/修炼高手.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 11:47:12,433 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:47:12,439 - INFO - File '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp9q8cz2b_/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 11:47:12,439 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp9q8cz2b_/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp9q8cz2b_/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 11:47:12,515 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:47:12,517 - INFO - File '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp18k2yq5q/修炼至尊.txt' used 280 tokens. Cost: $0.000078
+2025-06-14 11:47:12,517 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp18k2yq5q/修炼至尊.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp18k2yq5q/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-14 11:47:12,562 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:47:12,564 - INFO - File '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp18k2yq5q/都市异能王.txt' used 255 tokens. Cost: $0.000072
+2025-06-14 11:47:12,564 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp18k2yq5q/都市异能王.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp18k2yq5q/Urban Ability King by Unknown Author (Weizhi Zuozhe) - 都市异能王 by 未知作者.txt'
+2025-06-14 11:47:12,613 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:47:12,614 - INFO - File '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp18k2yq5q/魔法学院.txt' used 268 tokens. Cost: $0.000075
+2025-06-14 11:47:12,614 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp18k2yq5q/魔法学院.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp18k2yq5q/Magic Academy by Unknown Author (Weizhi Zuozhe) - 魔法学院 by 未知作者.txt'
+2025-06-14 11:47:12,675 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:47:12,952 - ERROR - Error making OpenAI request: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:47:12,952 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpkblz0ddg/修炼至尊.txt: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:47:13,013 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:47:13,313 - ERROR - Error making OpenAI request: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:47:13,313 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpdvyuyni2/魔法学院.txt: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:47:40,195 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:47:40,458 - ERROR - Error making OpenAI request: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:47:40,459 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpttk_9lvz/修炼至尊.txt: 401 Client Error: Unauthorized for url: https://api.openai.com/v1/chat/completions
+2025-06-14 11:48:00,885 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:48:00,889 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 11:48:00,889 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpqrke90yl/修炼高手.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 11:48:00,957 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:48:00,959 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 11:48:00,959 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpaainicjr/修炼高手.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 11:48:13,838 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:48:13,840 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 11:48:13,840 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpo2ob3mno/修炼高手.txt: Missing commands: downloadFolder, downloadFile
+2025-06-14 11:48:29,154 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-14 11:48:29,161 - ERROR - Missing required commands: downloadFolder, downloadFile. Please install them and ensure they are in the system's PATH.
+2025-06-14 11:48:29,161 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpo2ob3mno/修炼高手.txt: Missing commands: downloadFolder, downloadFile

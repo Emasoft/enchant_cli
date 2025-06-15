@@ -4,7 +4,7 @@
 Tests for chunk retry constants and configuration
 """
 
-import unittest
+import pytest
 from unittest.mock import patch
 import sys
 from pathlib import Path
@@ -15,23 +15,23 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import cli_translator
 
 
-class TestChunkRetryConstants(unittest.TestCase):
+class TestChunkRetryConstants:
     """Test cases for chunk retry constants"""
     
     def test_default_constants_exist(self):
         """Test that default constants are defined"""
-        self.assertTrue(hasattr(cli_translator, 'DEFAULT_MAX_CHUNK_RETRIES'))
-        self.assertTrue(hasattr(cli_translator, 'MAX_RETRY_WAIT_SECONDS'))
+        assert hasattr(cli_translator, 'DEFAULT_MAX_CHUNK_RETRIES')
+        assert hasattr(cli_translator, 'MAX_RETRY_WAIT_SECONDS')
         
     def test_default_values(self):
         """Test default constant values"""
-        self.assertEqual(cli_translator.DEFAULT_MAX_CHUNK_RETRIES, 10)
-        self.assertEqual(cli_translator.MAX_RETRY_WAIT_SECONDS, 60)
+        assert cli_translator.DEFAULT_MAX_CHUNK_RETRIES == 10
+        assert cli_translator.MAX_RETRY_WAIT_SECONDS == 60
         
     def test_format_chunk_error_message_exists(self):
         """Test that error message formatter exists"""
-        self.assertTrue(hasattr(cli_translator, 'format_chunk_error_message'))
-        self.assertTrue(callable(cli_translator.format_chunk_error_message))
+        assert hasattr(cli_translator, 'format_chunk_error_message')
+        assert callable(cli_translator.format_chunk_error_message)
         
     def test_format_chunk_error_message(self):
         """Test error message formatting"""
@@ -44,14 +44,10 @@ class TestChunkRetryConstants(unittest.TestCase):
             output_path="test/path.txt"
         )
         
-        self.assertIn("Failed to translate chunk 000005", msg)
-        self.assertIn("10 attempts", msg)
-        self.assertIn("Connection refused", msg)
-        self.assertIn("Test Book by Test Author", msg)
-        self.assertIn("test/path.txt", msg)
-        self.assertIn("Possible causes:", msg)
-        self.assertIn("--resume flag", msg)
-
-
-if __name__ == '__main__':
-    unittest.main()
+        assert "Failed to translate chunk 000005" in msg
+        assert "10 attempts" in msg
+        assert "Connection refused" in msg
+        assert "Test Book by Test Author" in msg
+        assert "test/path.txt" in msg
+        assert "Possible causes:" in msg
+        assert "--resume flag" in msg

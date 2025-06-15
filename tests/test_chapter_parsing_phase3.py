@@ -24,7 +24,13 @@ import subprocess
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+# Check if sample files exist
+sample_novel_path = project_root / "tests" / "sample_novel" / "translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt"
+chapter_headings_path = project_root / "tests" / "sample_novel" / "chapter_headings.txt"
+sample_files_exist = sample_novel_path.exists() and chapter_headings_path.exists()
 
+
+@pytest.mark.skipif(not sample_files_exist, reason="Sample novel files not found in tests/sample_novel/")
 class TestChapterParsingPhase3:
     """Test that enchant_cli.py correctly generates EPUB with proper chapter TOC"""
     

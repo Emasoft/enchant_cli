@@ -20,12 +20,11 @@ from cli_translator import split_chinese_text_in_parts
 class TestRealAPIIntegration:
     """Integration tests that connect to real APIs"""
     
-    def __init__(self):
-        self.local_api_url = "http://127.0.0.1:1234/v1/chat/completions"
-        self.test_texts = {
-            'short': "你好世界",
-            'medium': "这是一个测试句子。我们需要验证翻译功能是否正常工作。",
-            'long': """第一章：开始
+    local_api_url = "http://127.0.0.1:1234/v1/chat/completions"
+    test_texts = {
+        'short': "你好世界",
+        'medium': "这是一个测试句子。我们需要验证翻译功能是否正常工作。",
+        'long': """第一章：开始
             
             在一个风和日丽的早晨，小明走出了家门。他今天要去参加一个重要的会议。
             路上的风景很美，但他没有心情欣赏。他的心里充满了紧张和期待。

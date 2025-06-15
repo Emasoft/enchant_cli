@@ -46,3 +46,741 @@ Total Cost: $0.000000
 Total Requests: 0
 Total Tokens: 0
 
+2025-06-14 10:25:47,795 - cli_translator - INFO - Starting book import for file: /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpgdygj8_p/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt
+2025-06-14 10:25:47,796 - cli_translator - INFO - Book imported successfully. Book ID: 9028dc5e-280d-4d20-ac1b-cbbe53149ab5
+2025-06-14 10:25:47,806 - cli_translator - INFO - TRANSLATING CHUNK 000001 of 1 (Attempt 1/10)
+2025-06-14 10:25:47,806 - cli_translator - INFO - Translating chunk
+2025-06-14 10:25:47,806 - cli_translator - INFO - Double Translation : False
+2025-06-14 10:25:47,807 - cli_translator - INFO - Sending translation request to API
+2025-06-14 10:25:47,807 - cli_translator - INFO - AI MODEL USED: local-model
+2025-06-14 10:25:47,807 - cli_translator - INFO - Request sent to http://localhost:1234/v1/chat/completions
+2025-06-14 10:25:47,807 - cli_translator - INFO - Server returned RESPONSE: 
+{'choices': [{'message': {'content': '{"detected_language": "Chinese", "novel_title_original": "修炼至尊", "author_name_original": "未知作者", "novel_title_english": "Cultivation Supreme", "author_name_english": "Unknown Author", "author_name_romanized": "Weizhi Zuozhe"}'}}], 'usage': {'prompt_tokens': 200, 'completion_tokens': 80, 'total_tokens': 280}}
+2025-06-14 10:25:47,808 - cli_translator - INFO - Successfully translated chunk 000001 on attempt 1
+2025-06-14 10:25:47,808 - cli_translator - INFO - 
+Chunk 000001:
+{"detected_language": "Chinese", "novel_title_original": "修炼至尊", "author_name_original": "未知作者", "novel_title_english": "Cultivation Supreme", "author_name_english": "Unknown Author", "author_name_romanized": "Weizhi Zuozhe"}
+
+
+2025-06-14 10:25:47,808 - cli_translator - INFO - Translated book saved to Cultivation Supreme by Unknown Author (Weizhi Zuozhe)/translated_Cultivation Supreme by Unknown Author (Weizhi Zuozhe).txt
+2025-06-14 10:25:47,808 - cli_translator - INFO - Translated book saved successfully.
+2025-06-14 10:25:47,808 - cli_translator - INFO - Cost Summary:
+=== Cost Summary ===
+Total Cost: $0.000000
+Total Requests: 0
+Total Tokens: 0
+
+2025-06-14 10:27:16,332 - cli_translator - INFO - Starting book import for file: /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpdw4g7t3n/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt
+2025-06-14 10:27:16,333 - cli_translator - INFO - Book imported successfully. Book ID: 04c5744d-eae8-4d81-afc1-75802b13c63b
+2025-06-14 10:27:16,344 - cli_translator - INFO - TRANSLATING CHUNK 000001 of 1 (Attempt 1/10)
+2025-06-14 10:27:16,344 - cli_translator - INFO - Translating chunk
+2025-06-14 10:27:16,344 - cli_translator - INFO - Double Translation : False
+2025-06-14 10:27:16,344 - cli_translator - INFO - Sending translation request to API
+2025-06-14 10:27:16,344 - cli_translator - INFO - AI MODEL USED: local-model
+2025-06-14 10:27:16,344 - cli_translator - INFO - Request sent to http://localhost:1234/v1/chat/completions
+2025-06-14 10:27:16,344 - cli_translator - INFO - Server returned RESPONSE: 
+{'choices': [{'message': {'content': 'Chapter 1: Awakening\n\nLin Fan was an ordinary high school student, until that day when he awakened his cultivation talent.'}}], 'usage': {'prompt_tokens': 400, 'completion_tokens': 200, 'total_tokens': 600}}
+2025-06-14 10:27:16,345 - cli_translator - INFO - Successfully translated chunk 000001 on attempt 1
+2025-06-14 10:27:16,345 - cli_translator - INFO - 
+Chunk 000001:
+Chapter 1: Awakening
+
+Lin Fan was an ordinary high school student, until that day when he awakened his cultivation talent.
+
+
+2025-06-14 10:27:16,345 - cli_translator - INFO - Translated book saved to Cultivation Supreme by Unknown Author (Weizhi Zuozhe)/translated_Cultivation Supreme by Unknown Author (Weizhi Zuozhe).txt
+2025-06-14 10:27:16,345 - cli_translator - INFO - Translated book saved successfully.
+2025-06-14 10:27:16,345 - cli_translator - INFO - Cost Summary:
+=== Cost Summary ===
+Total Cost: $0.000000
+Total Requests: 0
+Total Tokens: 0
+
+2025-06-14 10:28:56,683 - enchant_cli - INFO - Starting unified processing for file: /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp4mraasxb/修炼至尊.txt
+2025-06-14 10:28:56,683 - enchant_cli - INFO - Phase 1: Renaming file 修炼至尊.txt
+2025-06-14 10:28:56,710 - enchant_cli - INFO - File renamed to: Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt
+2025-06-14 10:28:56,710 - enchant_cli - INFO - Phase 2: Translating Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt
+2025-06-14 10:28:56,730 - cli_translator - INFO - Starting book import for file: /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp4mraasxb/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt
+2025-06-14 10:28:56,731 - cli_translator - INFO - Book imported successfully. Book ID: b80661ac-f091-4450-86cb-91896f4c580e
+2025-06-14 10:28:56,741 - cli_translator - INFO - TRANSLATING CHUNK 000001 of 1 (Attempt 1/10)
+2025-06-14 10:28:56,741 - cli_translator - INFO - Translating chunk
+2025-06-14 10:28:56,741 - cli_translator - INFO - Double Translation : False
+2025-06-14 10:28:56,741 - cli_translator - INFO - Sending translation request to API
+2025-06-14 10:28:56,741 - cli_translator - INFO - AI MODEL USED: local-model
+2025-06-14 10:28:56,741 - cli_translator - INFO - Request sent to http://localhost:1234/v1/chat/completions
+2025-06-14 10:28:56,741 - cli_translator - INFO - Server returned RESPONSE: 
+{'choices': [{'message': {'content': 'Chapter 1: Awakening\\n\\nLin Fan was an ordinary high school student.'}}], 'usage': {'prompt_tokens': 400, 'completion_tokens': 200}}
+2025-06-14 10:28:56,742 - cli_translator - INFO - Successfully translated chunk 000001 on attempt 1
+2025-06-14 10:28:56,742 - cli_translator - INFO - 
+Chunk 000001:
+Chapter 1: Awakening\n\nLin Fan was an ordinary high school student.
+
+
+2025-06-14 10:28:56,743 - cli_translator - INFO - Translated book saved to Cultivation Supreme by Unknown Author (Weizhi Zuozhe)/translated_Cultivation Supreme by Unknown Author (Weizhi Zuozhe).txt
+2025-06-14 10:28:56,743 - cli_translator - INFO - Translated book saved successfully.
+2025-06-14 10:28:56,743 - cli_translator - INFO - Cost Summary:
+=== Cost Summary ===
+Total Cost: $0.000000
+Total Requests: 0
+Total Tokens: 0
+
+2025-06-14 10:28:56,743 - enchant_cli - INFO - Translation completed for Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt
+2025-06-14 10:28:56,743 - enchant_cli - INFO - Phase 3: Generating EPUB for Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt
+2025-06-14 10:28:56,743 - enchant_cli - WARNING - No translation output directory found at /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp4mraasxb/Cultivation Supreme by Unknown Author
+2025-06-14 10:28:56,744 - enchant_cli - INFO - All phases completed, removed progress file
+2025-06-14 10:39:51,806 - enchant_cli - INFO - Starting unified processing for file: /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpm0bobe7m/修炼至尊.txt
+2025-06-14 10:39:51,806 - enchant_cli - INFO - Phase 1: Renaming file 修炼至尊.txt
+2025-06-14 10:39:51,837 - enchant_cli - INFO - File renamed to: Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt
+2025-06-14 10:39:51,838 - enchant_cli - INFO - Phase 2: Translating Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt
+2025-06-14 10:39:51,869 - cli_translator - INFO - Starting book import for file: /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpm0bobe7m/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt
+2025-06-14 10:39:51,870 - cli_translator - INFO - Book imported successfully. Book ID: 6afb8af3-89a8-498f-81e7-0818d1b21795
+2025-06-14 10:39:51,884 - cli_translator - INFO - TRANSLATING CHUNK 000001 of 1 (Attempt 1/10)
+2025-06-14 10:39:51,884 - cli_translator - INFO - Translating chunk
+2025-06-14 10:39:51,884 - cli_translator - INFO - Double Translation : False
+2025-06-14 10:39:51,884 - cli_translator - INFO - Sending translation request to API
+2025-06-14 10:39:51,884 - cli_translator - INFO - AI MODEL USED: local-model
+2025-06-14 10:39:51,885 - cli_translator - INFO - Request sent to http://localhost:1234/v1/chat/completions
+2025-06-14 10:39:51,885 - cli_translator - INFO - Server returned RESPONSE: 
+{'choices': [{'message': {'content': 'Chapter 1: Awakening\n\nLin Fan was an ordinary high school student, until that day when he awakened his cultivation talent.\n\n"My God, what is this power?" Lin Fan looked at his glowing hands in shock.'}}], 'usage': {'prompt_tokens': 400, 'completion_tokens': 200, 'total_tokens': 600}}
+2025-06-14 10:39:51,886 - cli_translator - INFO - Successfully translated chunk 000001 on attempt 1
+2025-06-14 10:39:51,886 - cli_translator - INFO - 
+Chunk 000001:
+Chapter 1: Awakening
+
+Lin Fan was an ordinary high school student, until that day when he awakened his cultivation talent.
+
+"My God, what is this power?" Lin Fan looked at his glowing hands in shock.
+
+
+2025-06-14 10:39:51,886 - cli_translator - INFO - Translated book saved to Cultivation Supreme by Unknown Author (Weizhi Zuozhe)/translated_Cultivation Supreme by Unknown Author (Weizhi Zuozhe).txt
+2025-06-14 10:39:51,886 - cli_translator - INFO - Translated book saved successfully.
+2025-06-14 10:39:51,886 - cli_translator - INFO - Cost Summary:
+=== Cost Summary ===
+Total Cost: $0.000000
+Total Requests: 0
+Total Tokens: 0
+
+2025-06-14 10:39:51,886 - enchant_cli - INFO - Translation completed for Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt
+2025-06-14 10:39:51,887 - enchant_cli - INFO - Phase 3: Generating EPUB for Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt
+2025-06-14 10:39:51,887 - enchant_cli - WARNING - No translation output directory found at /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpm0bobe7m/Cultivation Supreme by Unknown Author
+2025-06-14 10:39:51,887 - enchant_cli - INFO - All phases completed, removed progress file
+2025-06-14 10:50:33,789 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:50:33,789 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:50:33,789 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 1/10: Translation returned empty or whitespace-only text
+2025-06-14 10:50:35,794 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:50:35,794 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:50:35,795 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 2/10: Translation returned empty or whitespace-only text
+2025-06-14 10:50:39,800 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:50:39,800 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:50:39,800 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 3/10: Translation returned empty or whitespace-only text
+2025-06-14 10:50:47,810 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:50:47,811 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:50:47,811 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 4/10: Translation returned empty or whitespace-only text
+2025-06-14 10:51:03,818 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:51:03,818 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:51:03,819 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 5/10: Translation returned empty or whitespace-only text
+2025-06-14 10:51:35,827 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:51:35,827 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:51:35,827 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 6/10: Translation returned empty or whitespace-only text
+2025-06-14 10:52:35,837 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:52:35,838 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:52:35,838 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 7/10: Translation returned empty or whitespace-only text
+2025-06-14 10:53:35,847 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:53:35,848 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:53:35,848 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 8/10: Translation returned empty or whitespace-only text
+2025-06-14 10:54:35,859 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:54:35,859 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:54:35,860 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 9/10: Translation returned empty or whitespace-only text
+2025-06-14 10:55:35,864 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:55:35,865 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 10:55:35,865 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 10/10: Translation returned empty or whitespace-only text
+2025-06-14 10:55:35,865 - cli_translator - ERROR - 
+
+FATAL ERROR: Failed to translate chunk 000001 after 10 attempts.
+Last error: Translation returned empty or whitespace-only text
+Book:  by  n.d. 
+Chunk file would have been: by n.d./ by  n.d.  - Chunk_000001.txt
+
+Possible causes:
+- Translation API is unreachable or returning errors
+- Network connectivity issues
+- Insufficient disk space to save translated chunks
+- File permissions preventing file write
+- API quota exceeded or authentication issues
+
+Please check the logs above for more details and resolve the issue before retrying.
+To resume translation from this point, use the --resume flag.
+
+2025-06-14 10:57:58,347 - cli_translator - ERROR - Error detecting encoding for /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/修炼至尊.txt: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/修炼至尊.txt'
+2025-06-14 10:57:58,347 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 296, in decode_input_file_content
+    with codecs.open(input_file, 'r', encoding=encoding) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen codecs>", line 918, in open
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/修炼至尊.txt'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 304, in decode_input_file_content
+    with codecs.open(input_file, 'r', encoding=encoding) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen codecs>", line 918, in open
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/修炼至尊.txt'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 424, in import_book_from_txt
+    book_content = decode_input_file_content(Path(file_path))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 310, in decode_input_file_content
+    with open(input_file, 'rb') as file:
+         ^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/修炼至尊.txt'
+2025-06-14 10:57:58,392 - cli_translator - ERROR - Error detecting encoding for /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt'
+2025-06-14 10:57:58,392 - cli_translator - ERROR - Error detecting encoding for /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt'
+2025-06-14 10:57:58,392 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 296, in decode_input_file_content
+    with codecs.open(input_file, 'r', encoding=encoding) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen codecs>", line 918, in open
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 304, in decode_input_file_content
+    with codecs.open(input_file, 'r', encoding=encoding) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen codecs>", line 918, in open
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 424, in import_book_from_txt
+    book_content = decode_input_file_content(Path(file_path))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 310, in decode_input_file_content
+    with open(input_file, 'rb') as file:
+         ^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt'
+2025-06-14 10:57:58,392 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 296, in decode_input_file_content
+    with codecs.open(input_file, 'r', encoding=encoding) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen codecs>", line 918, in open
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 304, in decode_input_file_content
+    with codecs.open(input_file, 'r', encoding=encoding) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen codecs>", line 918, in open
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 424, in import_book_from_txt
+    book_content = decode_input_file_content(Path(file_path))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 310, in decode_input_file_content
+    with open(input_file, 'rb') as file:
+         ^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/都市异能王.txt'
+2025-06-14 10:57:58,438 - cli_translator - ERROR - Error detecting encoding for /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt'
+2025-06-14 10:57:58,438 - cli_translator - ERROR - Error detecting encoding for /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt'
+2025-06-14 10:57:58,438 - cli_translator - ERROR - Error detecting encoding for /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt'
+2025-06-14 10:57:58,438 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 296, in decode_input_file_content
+    with codecs.open(input_file, 'r', encoding=encoding) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen codecs>", line 918, in open
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 304, in decode_input_file_content
+    with codecs.open(input_file, 'r', encoding=encoding) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen codecs>", line 918, in open
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 424, in import_book_from_txt
+    book_content = decode_input_file_content(Path(file_path))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 310, in decode_input_file_content
+    with open(input_file, 'rb') as file:
+         ^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt'
+2025-06-14 10:57:58,438 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 296, in decode_input_file_content
+    with codecs.open(input_file, 'r', encoding=encoding) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen codecs>", line 918, in open
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 304, in decode_input_file_content
+    with codecs.open(input_file, 'r', encoding=encoding) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen codecs>", line 918, in open
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 424, in import_book_from_txt
+    book_content = decode_input_file_content(Path(file_path))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 310, in decode_input_file_content
+    with open(input_file, 'rb') as file:
+         ^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt'
+2025-06-14 10:57:58,438 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 296, in decode_input_file_content
+    with codecs.open(input_file, 'r', encoding=encoding) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen codecs>", line 918, in open
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 304, in decode_input_file_content
+    with codecs.open(input_file, 'r', encoding=encoding) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen codecs>", line 918, in open
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 424, in import_book_from_txt
+    book_content = decode_input_file_content(Path(file_path))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 310, in decode_input_file_content
+    with open(input_file, 'rb') as file:
+         ^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmppe_lz_k0/魔法学院.txt'
+2025-06-14 11:04:42,530 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:04:42,530 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:04:42,531 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 1/10: Translation returned empty or whitespace-only text
+2025-06-14 11:04:44,540 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:04:44,540 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:04:44,540 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 2/10: Translation returned empty or whitespace-only text
+2025-06-14 11:04:48,551 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:04:48,552 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:04:48,552 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 3/10: Translation returned empty or whitespace-only text
+2025-06-14 11:04:56,564 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:04:56,564 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:04:56,565 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 4/10: Translation returned empty or whitespace-only text
+2025-06-14 11:05:12,581 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:05:12,581 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:05:12,582 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 5/10: Translation returned empty or whitespace-only text
+2025-06-14 11:05:44,590 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:05:44,590 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:05:44,591 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 6/10: Translation returned empty or whitespace-only text
+2025-06-14 11:06:44,600 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:06:44,601 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:06:44,601 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 7/10: Translation returned empty or whitespace-only text
+2025-06-14 11:07:44,608 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:07:44,608 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:07:44,608 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 8/10: Translation returned empty or whitespace-only text
+2025-06-14 11:08:44,618 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:08:44,618 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:08:44,618 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 9/10: Translation returned empty or whitespace-only text
+2025-06-14 11:09:44,626 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:44,627 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:44,627 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 10/10: Translation returned empty or whitespace-only text
+2025-06-14 11:09:44,628 - cli_translator - ERROR - 
+
+FATAL ERROR: Failed to translate chunk 000001 after 10 attempts.
+Last error: Translation returned empty or whitespace-only text
+Book:  by  n.d. 
+Chunk file would have been: by n.d./ by  n.d.  - Chunk_000001.txt
+
+Possible causes:
+- Translation API is unreachable or returning errors
+- Network connectivity issues
+- Insufficient disk space to save translated chunks
+- File permissions preventing file write
+- API quota exceeded or authentication issues
+
+Please check the logs above for more details and resolve the issue before retrying.
+To resume translation from this point, use the --resume flag.
+
+2025-06-14 11:09:45,049 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:45,049 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:45,049 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:45,049 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:45,049 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 1/10: Translation returned empty or whitespace-only text
+2025-06-14 11:09:45,049 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 1/10: Translation returned empty or whitespace-only text
+2025-06-14 11:09:47,057 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:47,057 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:47,057 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:47,057 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:47,058 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 2/10: Translation returned empty or whitespace-only text
+2025-06-14 11:09:47,058 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 2/10: Translation returned empty or whitespace-only text
+2025-06-14 11:09:51,072 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:51,072 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:51,072 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:51,072 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:51,072 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 3/10: Translation returned empty or whitespace-only text
+2025-06-14 11:09:51,072 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 3/10: Translation returned empty or whitespace-only text
+2025-06-14 11:09:59,077 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:59,077 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:59,077 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:59,077 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:09:59,077 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 4/10: Translation returned empty or whitespace-only text
+2025-06-14 11:09:59,077 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 4/10: Translation returned empty or whitespace-only text
+2025-06-14 11:10:15,084 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:10:15,084 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:10:15,084 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:10:15,084 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:10:15,084 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 5/10: Translation returned empty or whitespace-only text
+2025-06-14 11:10:15,084 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 5/10: Translation returned empty or whitespace-only text
+2025-06-14 11:10:47,088 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:10:47,088 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:10:47,089 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:10:47,089 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:10:47,089 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 6/10: Translation returned empty or whitespace-only text
+2025-06-14 11:10:47,089 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 6/10: Translation returned empty or whitespace-only text
+2025-06-14 11:11:47,095 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:11:47,095 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:11:47,096 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:11:47,096 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:11:47,096 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 7/10: Translation returned empty or whitespace-only text
+2025-06-14 11:11:47,096 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 7/10: Translation returned empty or whitespace-only text
+2025-06-14 11:12:47,103 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:12:47,103 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:12:47,104 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:12:47,104 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:12:47,104 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 8/10: Translation returned empty or whitespace-only text
+2025-06-14 11:12:47,104 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 8/10: Translation returned empty or whitespace-only text
+2025-06-14 11:13:47,128 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:13:47,128 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:13:47,129 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:13:47,129 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:13:47,129 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 9/10: Translation returned empty or whitespace-only text
+2025-06-14 11:13:47,129 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 9/10: Translation returned empty or whitespace-only text
+2025-06-14 11:14:47,174 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:14:47,174 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:14:47,175 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:14:47,175 - cli_translator - ERROR - Unexpected error during file translation: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-14 11:14:47,175 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 10/10: Translation returned empty or whitespace-only text
+2025-06-14 11:14:47,175 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 10/10: Translation returned empty or whitespace-only text
+2025-06-14 11:14:47,175 - cli_translator - ERROR - 
+
+FATAL ERROR: Failed to translate chunk 000001 after 10 attempts.
+Last error: Translation returned empty or whitespace-only text
+Book:  by  n.d. 
+Chunk file would have been: by n.d./ by  n.d.  - Chunk_000001.txt
+
+Possible causes:
+- Translation API is unreachable or returning errors
+- Network connectivity issues
+- Insufficient disk space to save translated chunks
+- File permissions preventing file write
+- API quota exceeded or authentication issues
+
+Please check the logs above for more details and resolve the issue before retrying.
+To resume translation from this point, use the --resume flag.
+
+2025-06-14 11:14:47,175 - cli_translator - ERROR - 
+
+FATAL ERROR: Failed to translate chunk 000001 after 10 attempts.
+Last error: Translation returned empty or whitespace-only text
+Book:  by  n.d. 
+Chunk file would have been: by n.d./ by  n.d.  - Chunk_000001.txt
+
+Possible causes:
+- Translation API is unreachable or returning errors
+- Network connectivity issues
+- Insufficient disk space to save translated chunks
+- File permissions preventing file write
+- API quota exceeded or authentication issues
+
+Please check the logs above for more details and resolve the issue before retrying.
+To resume translation from this point, use the --resume flag.
+
+2025-06-14 11:15:04,440 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:04,440 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:04,440 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:04,440 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:04,440 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:04,440 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 1/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:04,440 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 1/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:04,440 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 1/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:04,440 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 1/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:04,440 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 1/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:24,577 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:24,577 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:24,577 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:24,577 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:24,577 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:24,577 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 2/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:24,577 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 2/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:24,577 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 2/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:24,577 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 2/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:24,577 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 2/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:43,597 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:43,597 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:43,597 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:43,597 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:43,597 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:43,598 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 3/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:43,598 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 3/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:43,598 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 3/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:43,598 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 3/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:15:43,598 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 3/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:09,657 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:09,657 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:09,657 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:09,657 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:09,657 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:09,657 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 4/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:09,657 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 4/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:09,657 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 4/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:09,657 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 4/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:09,657 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 4/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:38,718 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:38,718 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:38,718 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:38,718 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:38,718 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:38,718 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 5/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:38,718 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 5/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:38,718 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 5/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:38,718 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 5/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:16:38,718 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 5/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:17:24,640 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:17:24,640 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:17:24,640 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:17:24,640 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:17:24,640 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:17:24,641 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 6/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:17:24,641 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 6/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:17:24,641 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 6/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:17:24,641 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 6/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:17:24,641 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 6/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:18:35,515 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:18:35,515 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:18:35,515 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:18:35,515 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:18:35,515 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:18:35,516 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 7/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:18:35,516 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 7/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:18:35,516 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 7/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:18:35,516 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 7/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:18:35,516 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 7/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:19:47,101 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:19:47,101 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:19:47,101 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:19:47,101 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:19:47,101 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:19:47,102 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 8/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:19:47,102 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 8/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:19:47,102 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 8/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:19:47,102 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 8/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:19:47,102 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 8/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:20:59,927 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:20:59,927 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:20:59,927 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:20:59,927 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:20:59,927 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:20:59,928 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 9/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:20:59,928 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 9/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:20:59,928 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 9/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:20:59,928 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 9/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:20:59,928 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 9/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:22:13,064 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:22:13,064 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:22:13,064 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:22:13,064 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:22:13,064 - cli_translator - ERROR - Error saving chunk 000001 to by n.d./ by  n.d.  - Chunk_000001.txt: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:22:13,065 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 10/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:22:13,065 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 10/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:22:13,065 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 10/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:22:13,065 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 10/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:22:13,065 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 10/10: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+2025-06-14 11:22:13,065 - cli_translator - ERROR - 
+
+FATAL ERROR: Failed to translate chunk 000001 after 10 attempts.
+Last error: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+Book:  by  n.d. 
+Chunk file would have been: by n.d./ by  n.d.  - Chunk_000001.txt
+
+Possible causes:
+- Translation API is unreachable or returning errors
+- Network connectivity issues
+- Insufficient disk space to save translated chunks
+- File permissions preventing file write
+- API quota exceeded or authentication issues
+
+Please check the logs above for more details and resolve the issue before retrying.
+To resume translation from this point, use the --resume flag.
+
+2025-06-14 11:22:13,065 - cli_translator - ERROR - 
+
+FATAL ERROR: Failed to translate chunk 000001 after 10 attempts.
+Last error: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+Book:  by  n.d. 
+Chunk file would have been: by n.d./ by  n.d.  - Chunk_000001.txt
+
+Possible causes:
+- Translation API is unreachable or returning errors
+- Network connectivity issues
+- Insufficient disk space to save translated chunks
+- File permissions preventing file write
+- API quota exceeded or authentication issues
+
+Please check the logs above for more details and resolve the issue before retrying.
+To resume translation from this point, use the --resume flag.
+
+2025-06-14 11:22:13,065 - cli_translator - ERROR - 
+
+FATAL ERROR: Failed to translate chunk 000001 after 10 attempts.
+Last error: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+Book:  by  n.d. 
+Chunk file would have been: by n.d./ by  n.d.  - Chunk_000001.txt
+
+Possible causes:
+- Translation API is unreachable or returning errors
+- Network connectivity issues
+- Insufficient disk space to save translated chunks
+- File permissions preventing file write
+- API quota exceeded or authentication issues
+
+Please check the logs above for more details and resolve the issue before retrying.
+To resume translation from this point, use the --resume flag.
+
+2025-06-14 11:22:13,065 - cli_translator - ERROR - 
+
+FATAL ERROR: Failed to translate chunk 000001 after 10 attempts.
+Last error: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+Book:  by  n.d. 
+Chunk file would have been: by n.d./ by  n.d.  - Chunk_000001.txt
+
+Possible causes:
+- Translation API is unreachable or returning errors
+- Network connectivity issues
+- Insufficient disk space to save translated chunks
+- File permissions preventing file write
+- API quota exceeded or authentication issues
+
+Please check the logs above for more details and resolve the issue before retrying.
+To resume translation from this point, use the --resume flag.
+
+2025-06-14 11:22:13,065 - cli_translator - ERROR - 
+
+FATAL ERROR: Failed to translate chunk 000001 after 10 attempts.
+Last error: [Errno 2] No such file or directory: 'by n.d./ by  n.d.  - Chunk_000001.txt'
+Book:  by  n.d. 
+Chunk file would have been: by n.d./ by  n.d.  - Chunk_000001.txt
+
+Possible causes:
+- Translation API is unreachable or returning errors
+- Network connectivity issues
+- Insufficient disk space to save translated chunks
+- File permissions preventing file write
+- API quota exceeded or authentication issues
+
+Please check the logs above for more details and resolve the issue before retrying.
+To resume translation from this point, use the --resume flag.
+
+2025-06-15 18:57:28,209 - __main__ - INFO - Starting unified processing for file: translated_Supreme Spirit Emperor by Going to School with a Backpack (Beizhe Shubao Shangxue Qu).txt
+2025-06-15 18:57:28,210 - __main__ - INFO - Phase 3: Generating EPUB for translated_Supreme Spirit Emperor by Going to School with a Backpack (Beizhe Shubao Shangxue Qu).txt
+2025-06-15 18:57:28,210 - __main__ - WARNING - No translation output directory found at translated_Supreme Spirit Emperor by Going to School with a Backpack (Beizhe Shubao Shangxue Qu)
+2025-06-15 18:58:58,650 - __main__ - INFO - Starting unified processing for file: Supreme Spirit Emperor by Going to School with a Backpack (Beizhe Shubao Shangxue Qu).txt
+2025-06-15 18:58:58,650 - __main__ - INFO - Phase 3: Generating EPUB for Supreme Spirit Emperor by Going to School with a Backpack (Beizhe Shubao Shangxue Qu).txt
+2025-06-15 18:58:58,671 - __main__ - INFO - Creating EPUB for: Supreme Spirit Emperor by Going to School with a Backpack (Beizhe Shubao Shangxue Qu)
+2025-06-15 18:59:02,441 - __main__ - INFO - EPUB created successfully: Supreme Spirit Emperor.epub
+2025-06-15 18:59:02,441 - __main__ - WARNING - EPUB created with 110824 validation warnings
+2025-06-15 18:59:02,441 - __main__ - WARNING -   - number 1 is out of place after number 110795
+2025-06-15 18:59:02,441 - __main__ - WARNING -   - number 3 is missing
+2025-06-15 18:59:02,441 - __main__ - WARNING -   - number 4 is missing
+2025-06-15 18:59:02,441 - __main__ - WARNING -   - number 5 is missing
+2025-06-15 18:59:02,441 - __main__ - WARNING -   - number 7 is missing
+2025-06-15 18:59:02,441 - __main__ - WARNING -   ... and 110819 more warnings
+2025-06-15 18:59:02,441 - __main__ - INFO - EPUB created successfully: Supreme Spirit Emperor.epub
+2025-06-15 18:59:02,441 - __main__ - WARNING - EPUB created with 110824 validation warnings
+2025-06-15 18:59:02,441 - __main__ - WARNING -   - number 1 is out of place after number 110795
+2025-06-15 18:59:02,441 - __main__ - WARNING -   - number 3 is missing
+2025-06-15 18:59:02,441 - __main__ - WARNING -   - number 4 is missing
+2025-06-15 18:59:02,441 - __main__ - WARNING -   - number 5 is missing
+2025-06-15 18:59:02,441 - __main__ - WARNING -   - number 7 is missing
+2025-06-15 19:03:48,736 - __main__ - ERROR - File not found: dummy.txt
+2025-06-15 19:04:02,321 - __main__ - INFO - Starting unified processing for file: dummy.txt
+2025-06-15 19:04:02,321 - __main__ - INFO - Phase 3: Generating EPUB for dummy.txt
+2025-06-15 19:04:02,321 - __main__ - INFO - Using provided translated file: translated_Supreme Spirit Emperor by Going to School with a Backpack (Beizhe Shubao Shangxue Qu).txt
+2025-06-15 19:04:02,344 - __main__ - INFO - Creating EPUB for: translated_Supreme Spirit Emperor by Going to School with a Backpack (Beizhe Shubao Shangxue Qu)
+2025-06-15 19:04:06,256 - __main__ - INFO - EPUB created successfully: translated_Supreme Spirit Emperor.epub
+2025-06-15 19:04:06,257 - __main__ - WARNING - EPUB created with 110824 validation warnings
+2025-06-15 19:04:06,257 - __main__ - WARNING -   - number 1 is out of place after number 110795
+2025-06-15 19:04:06,257 - __main__ - WARNING -   - number 3 is missing
+2025-06-15 19:04:06,257 - __main__ - WARNING -   - number 4 is missing
+2025-06-15 19:04:06,257 - __main__ - WARNING -   - number 5 is missing
+2025-06-15 19:04:06,257 - __main__ - WARNING -   - number 7 is missing
+2025-06-15 19:04:06,257 - __main__ - WARNING -   ... and 110819 more warnings
+2025-06-15 19:04:06,257 - __main__ - INFO - EPUB created successfully: translated_Supreme Spirit Emperor.epub
+2025-06-15 19:04:06,257 - __main__ - WARNING - EPUB created with 110824 validation warnings
+2025-06-15 19:04:06,257 - __main__ - WARNING -   - number 1 is out of place after number 110795
+2025-06-15 19:04:06,257 - __main__ - WARNING -   - number 3 is missing
+2025-06-15 19:04:06,257 - __main__ - WARNING -   - number 4 is missing
+2025-06-15 19:04:06,257 - __main__ - WARNING -   - number 5 is missing
+2025-06-15 19:04:06,257 - __main__ - WARNING -   - number 7 is missing
+2025-06-15 19:04:29,858 - __main__ - INFO - Starting unified processing for file: dummy.txt
+2025-06-15 19:05:20,463 - __main__ - INFO - Starting unified processing for file: test.txt
+2025-06-15 19:05:20,463 - __main__ - INFO - Phase 3: Generating EPUB for test.txt
+2025-06-15 19:05:20,463 - __main__ - INFO - Using provided translated file: translated_Supreme Spirit Emperor by Going to School with a Backpack (Beizhe Shubao Shangxue Qu).txt
+2025-06-15 19:05:20,484 - __main__ - INFO - Creating EPUB for: translated_Supreme Spirit Emperor by Going to School with a Backpack (Beizhe Shubao Shangxue Qu)
+2025-06-15 19:05:24,204 - __main__ - INFO - EPUB created successfully: translated_Supreme Spirit Emperor.epub
+2025-06-15 19:05:24,205 - __main__ - WARNING - EPUB created with 110824 validation warnings
+2025-06-15 19:05:24,205 - __main__ - WARNING -   - number 1 is out of place after number 110795
+2025-06-15 19:05:24,205 - __main__ - WARNING -   - number 3 is missing
+2025-06-15 19:05:24,205 - __main__ - WARNING -   - number 4 is missing
+2025-06-15 19:05:24,205 - __main__ - WARNING -   - number 5 is missing
+2025-06-15 19:05:24,205 - __main__ - WARNING -   - number 7 is missing
+2025-06-15 19:05:24,205 - __main__ - WARNING -   ... and 110819 more warnings
+2025-06-15 19:05:24,205 - __main__ - INFO - EPUB created successfully: translated_Supreme Spirit Emperor.epub
+2025-06-15 19:05:24,205 - __main__ - WARNING - EPUB created with 110824 validation warnings
+2025-06-15 19:05:24,205 - __main__ - WARNING -   - number 1 is out of place after number 110795
+2025-06-15 19:05:24,205 - __main__ - WARNING -   - number 3 is missing
+2025-06-15 19:05:24,205 - __main__ - WARNING -   - number 4 is missing
+2025-06-15 19:05:24,205 - __main__ - WARNING -   - number 5 is missing
+2025-06-15 19:05:24,205 - __main__ - WARNING -   - number 7 is missing

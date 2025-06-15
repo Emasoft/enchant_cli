@@ -314,9 +314,6 @@ def decode_file_content(file_path: Path, kb_to_read: int, icloud_sync: ICloudSyn
         # Use the common file utils with size limit
         content = decode_full_file(
             synced_path,
-            encoding_detector='auto',
-            confidence_threshold=0.7,
-            fallback_encodings=['gb18030', 'utf-8', 'gb2312'],
             logger=logger
         )
         
