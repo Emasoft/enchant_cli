@@ -252,23 +252,38 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
             progress['phases']['epub']['error'] = 'Module not available'
         else:
             try:
-                # Extract book info from filename
-                book_info = extract_book_info_from_path(current_path)
-                
-                # Find the output directory for this book
-                book_title = book_info.get('title_english', current_path.stem)
-                book_author = book_info.get('author_english', "Unknown")
-                
-                # Look for translated chapters directory
-                safe_folder_name = sanitize_filename(f"{book_title} by {book_author}")
-                book_dir = current_path.parent / safe_folder_name
-                
-                if book_dir.exists() and book_dir.is_dir():
-                    # Look for the complete translated text file
-                    translated_file_pattern = f"translated_{book_title} by {book_author}.txt"
-                    translated_file = book_dir / translated_file_pattern
+                # Check if --translated option was provided
+                if hasattr(args, 'translated') and args.translated:
+                    # Use the provided translated file directly
+                    translated_file = Path(args.translated)
                     
-                    if translated_file.exists():
+                    # Extract book info from the translated file name or original file
+                    book_info = extract_book_info_from_path(translated_file)
+                    book_title = book_info.get('title_english', translated_file.stem)
+                    book_author = book_info.get('author_english', "Unknown")
+                    
+                    tolog.info(f"Using provided translated file: {translated_file}")
+                else:
+                    # Original logic: look for translated file in expected directory
+                    # Extract book info from filename
+                    book_info = extract_book_info_from_path(current_path)
+                    
+                    # Find the output directory for this book
+                    book_title = book_info.get('title_english', current_path.stem)
+                    book_author = book_info.get('author_english', "Unknown")
+                    
+                    # Look for translated chapters directory
+                    safe_folder_name = sanitize_filename(f"{book_title} by {book_author}")
+                    book_dir = current_path.parent / safe_folder_name
+                    
+                    if book_dir.exists() and book_dir.is_dir():
+                        # Look for the complete translated text file
+                        translated_file_pattern = f"translated_{book_title} by {book_author}.txt"
+                        translated_file = book_dir / translated_file_pattern
+                    else:
+                        translated_file = None
+                
+                if translated_file and translated_file.exists():
                         # Create EPUB output path
                         epub_name = sanitize_filename(book_title) + ".epub"
                         epub_path = current_path.parent / epub_name
@@ -312,14 +327,15 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                             progress['phases']['epub']['status'] = 'failed'
                             progress['phases']['epub']['error'] = f'EPUB creation failed: {"; ".join(issues[:3])}'
                             tolog.error(f"EPUB creation failed with {len(issues)} errors")
-                    else:
-                        progress['phases']['epub']['status'] = 'failed'
-                        progress['phases']['epub']['error'] = 'Translated text file not found'
-                        tolog.error(f"Could not find translated file: {translated_file}")
                 else:
-                    tolog.warning(f"No translation output directory found at {book_dir}")
-                    progress['phases']['epub']['status'] = 'skipped'
-                    progress['phases']['epub']['error'] = 'No translation directory found'
+                    # Translated file not found
+                    progress['phases']['epub']['status'] = 'failed'
+                    if hasattr(args, 'translated') and args.translated:
+                        progress['phases']['epub']['error'] = 'Provided translated file not found'
+                        tolog.error(f"Provided translated file not found: {args.translated}")
+                    else:
+                        progress['phases']['epub']['error'] = 'No translation directory or file found'
+                        tolog.warning(f"No translation output directory found or translated file missing")
                 
             except Exception as e:
                 tolog.error(f"Error during EPUB generation: {e}")
@@ -560,7 +576,10 @@ USAGE EXAMPLES:
   Skip translation (rename + EPUB from existing translation):
     $ python enchant_cli.py novel.txt --skip-translating --openai-api-key YOUR_KEY
 
-  EPUB generation only:
+  EPUB generation only (from existing translation):
+    $ python enchant_cli.py dummy.txt --skip-renaming --skip-translating --translated translated_novel.txt
+
+  EPUB generation only (legacy method):
     $ python enchant_cli.py novel.txt --skip-renaming --skip-translating
 
   Batch processing with all phases:
@@ -632,6 +651,10 @@ API KEYS:
     parser.add_argument("--skip-translating", action="store_true", help="Skip the translation phase")
     parser.add_argument("--skip-epub", action="store_true", help="Skip the EPUB generation phase")
     
+    # Translated file path for direct EPUB generation
+    parser.add_argument("--translated", type=str, 
+                        help="Path to already translated text file for direct EPUB generation (required when using --skip-translating without --skip-epub)")
+    
     # API key for renaming (if not skipped)
     parser.add_argument("--openai-api-key", type=str, help="OpenAI API key for novel renaming (can also use OPENAI_API_KEY env var)")
     
@@ -661,6 +684,18 @@ API KEYS:
     
     # Update config with preset and command-line arguments
     config = config_manager.update_with_args(args)
+    
+    # Validate arguments
+    if args.skip_translating and not args.skip_epub and not args.translated:
+        parser.error("--translated option is required when using --skip-translating without --skip-epub")
+    
+    if args.translated:
+        # Validate that the translated file exists
+        translated_path = Path(args.translated)
+        if not translated_path.exists():
+            parser.error(f"Translated file not found: {args.translated}")
+        if not translated_path.is_file():
+            parser.error(f"Translated path is not a file: {args.translated}")
     
     # Process files using unified orchestration
     if args.batch:
