@@ -86,6 +86,12 @@ class TestChapterParsingPhase3:
     def test_epub_toc_matches_expected_chapters(self, sample_novel_path, expected_chapters):
         """Test that the generated EPUB TOC matches expected chapter list"""
         
+        # Clean up any existing EPUB files before test
+        epub_dir = sample_novel_path.parent
+        for old_epub in epub_dir.glob("*.epub"):
+            old_epub.unlink()
+            print(f"Cleaned up existing EPUB: {old_epub.name}")
+        
         # Verify we're working with the full file
         file_size = sample_novel_path.stat().st_size
         line_count = sum(1 for _ in open(sample_novel_path, 'r', encoding='utf-8'))
@@ -99,17 +105,11 @@ class TestChapterParsingPhase3:
         temp_dir.mkdir(exist_ok=True)
         
         try:
-            # Create a dummy file for the main argument
-            dummy_file = temp_dir / "dummy.txt"
-            dummy_file.write_text("dummy content")
-            
             # Run enchant_cli.py to generate EPUB using existing TOC parser
+            # Using simplified syntax where --translated implies skip flags
             cmd = [
                 sys.executable,
                 str(project_root / "enchant_cli.py"),
-                str(dummy_file),
-                "--skip-renaming",
-                "--skip-translating", 
                 "--translated", str(sample_novel_path)
             ]
             
@@ -121,8 +121,14 @@ class TestChapterParsingPhase3:
             elapsed = time.time() - start_time
             print(f"EPUB generation completed in {elapsed:.1f} seconds")
             
-            # Find the generated EPUB file
-            epub_files = list(temp_dir.glob("*.epub"))
+            # Find the generated EPUB file - should be in the same directory as the translated file
+            epub_dir = sample_novel_path.parent
+            epub_files = list(epub_dir.glob("*.epub"))
+            
+            # If not found there, check temp_dir (backward compatibility)
+            if not epub_files:
+                epub_files = list(temp_dir.glob("*.epub"))
+            
             assert len(epub_files) > 0, f"No EPUB file created. stdout: {result.stdout}\nstderr: {result.stderr}"
             
             epub_file = epub_files[0]
@@ -201,6 +207,11 @@ class TestChapterParsingPhase3:
             if temp_dir.exists():
                 shutil.rmtree(temp_dir)
                 print(f"Cleaned up temp directory: {temp_dir}")
+            
+            # Clean up generated EPUB file
+            if 'epub_file' in locals() and epub_file.exists():
+                epub_file.unlink()
+                print(f"Cleaned up generated EPUB: {epub_file}")
 
 
 if __name__ == "__main__":

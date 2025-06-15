@@ -576,7 +576,7 @@ SINGLE FILE PROCESSING:
     $ python enchant_cli.py "My Novel.txt" --skip-renaming
     
   EPUB from any translated text file:
-    $ python enchant_cli.py dummy.txt --skip-renaming --skip-translating --translated "path/to/translated.txt"
+    $ python enchant_cli.py --translated "path/to/translated.txt"
     
   Process renamed file (skip renaming phase):
     $ python enchant_cli.py "Novel Title by Author Name.txt" --skip-renaming
@@ -627,20 +627,21 @@ PHASE COMBINATIONS:
   EPUB only from translation directory:
     $ python enchant_cli.py "Novel by Author.txt" --skip-renaming --skip-translating
     
-  EPUB from external translated file:
-    $ python enchant_cli.py any_file.txt --skip-renaming --skip-translating --translated "/path/to/translation.txt"
+  EPUB from external translated file (simplified):
+    $ python enchant_cli.py --translated "/path/to/translation.txt"
 
 SPECIAL CASES:
   
-  When --translated is REQUIRED:
-    • Using --skip-translating without --skip-epub
-    • AND the expected translation directory doesn't exist
-    Example: $ python enchant_cli.py file.txt --skip-renaming --skip-translating --translated trans.txt
+  Using --translated option:
+    • Automatically implies --skip-renaming and --skip-translating
+    • Makes the filepath argument optional
+    • Creates EPUB in the same directory as the translated file
+    Example: $ python enchant_cli.py --translated "my_translated_novel.txt"
     
-  When --translated is NOT needed:
-    • When translation phase runs (creates internal translated file)
-    • When --skip-epub is used (no EPUB generation)
-    • When translation directory already exists from previous run
+  Legacy method (without --translated):
+    • Requires filepath argument
+    • Looks for translation in expected directory structure
+    Example: $ python enchant_cli.py "Novel.txt" --skip-renaming --skip-translating
 
 ====================================================================================
 PROCESSING PHASES:
@@ -667,8 +668,8 @@ API KEYS:
   • Remote translation requires OPENROUTER_API_KEY environment variable
 """
     )
-    parser.add_argument("filepath", type=str, 
-                        help="Path to Chinese novel text file (single mode) or directory containing novels (batch mode)")
+    parser.add_argument("filepath", type=str, nargs='?',
+                        help="Path to Chinese novel text file (single mode) or directory containing novels (batch mode). Optional when using --translated with --skip-renaming and --skip-translating")
     
     parser.add_argument("--config", type=str, default="enchant_config.yml",
                         help="Path to configuration file (default: enchant_config.yml)")
@@ -711,7 +712,7 @@ API KEYS:
     
     # Translated file path for direct EPUB generation
     parser.add_argument("--translated", type=str, 
-                        help="Path to already translated text file for direct EPUB generation (required when using --skip-translating without --skip-epub)")
+                        help="Path to already translated text file for direct EPUB generation. Automatically implies --skip-renaming and --skip-translating. Makes filepath argument optional")
     
     # API key for renaming (if not skipped)
     parser.add_argument("--openai-api-key", type=str, help="OpenAI API key for novel renaming (can also use OPENAI_API_KEY env var)")
@@ -743,11 +744,12 @@ API KEYS:
     # Update config with preset and command-line arguments
     config = config_manager.update_with_args(args)
     
-    # Validate arguments
-    if args.skip_translating and not args.skip_epub and not args.translated:
-        parser.error("--translated option is required when using --skip-translating without --skip-epub")
-    
+    # If --translated is provided, automatically set skip flags
     if args.translated:
+        args.skip_renaming = True
+        args.skip_translating = True
+        tolog.info("--translated option provided, automatically skipping renaming and translation phases")
+        
         # Validate that the translated file exists
         translated_path = Path(args.translated)
         if not translated_path.exists():
@@ -755,19 +757,36 @@ API KEYS:
         if not translated_path.is_file():
             parser.error(f"Translated path is not a file: {args.translated}")
     
+    # Check if filepath is required
+    if not args.filepath:
+        # filepath is optional when using --translated
+        if not args.translated:
+            parser.error("filepath is required unless using --translated option")
+    
     # Process files using unified orchestration
     if args.batch:
         process_batch(args)
         return
     
     # Single file processing
-    file_path = Path(args.filepath)
-    
-    # Check if file exists
-    if not file_path.exists():
-        tolog.error(f"File not found: {file_path}")
-        safe_print(f"[bold red]File not found: {file_path}[/bold red]")
-        sys.exit(1)
+    if args.filepath:
+        file_path = Path(args.filepath)
+        
+        # Check if file exists
+        if not file_path.exists():
+            tolog.error(f"File not found: {file_path}")
+            safe_print(f"[bold red]File not found: {file_path}[/bold red]")
+            sys.exit(1)
+    else:
+        # Using --translated directly without filepath
+        if args.translated:
+            # Use the translated file's directory as the working directory
+            file_path = Path(args.translated)
+        else:
+            # This shouldn't happen due to validation, but just in case
+            tolog.error("No input file specified")
+            safe_print("[bold red]No input file specified[/bold red]")
+            sys.exit(1)
     
     # Process single file with unified processor
     tolog.info(f"Starting unified processing for file: {file_path}")
