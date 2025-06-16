@@ -9,7 +9,6 @@ Uses simplified schema and two-stage search for better performance.
 from __future__ import annotations
 
 import re
-import io
 from datetime import datetime
 from typing import List, Tuple, Optional, Callable, Pattern, TYPE_CHECKING
 
@@ -81,22 +80,28 @@ def close_database() -> None:
 def import_text_optimized(text: str) -> None:
     """
     Import text using optimized file loading method.
-    Uses buffered reading and chunk size of 1000 for best performance.
+    Uses direct line splitting and chunk size of 1000 for best performance.
     """
-    # Use buffered line splitting (fastest method from benchmark)
-    lines = []
-    buffer = io.StringIO(text)
-    for line in buffer:
-        lines.append(line.rstrip('\n'))
+    if not text or not text.strip():
+        return  # Handle empty text gracefully
+    
+    # Direct line splitting is actually faster than StringIO for in-memory text
+    lines = text.splitlines()
+    
+    if not lines:
+        return
     
     # Prepare data for bulk insert
     data = [{'line_number': i+1, 'text_content': line} 
             for i, line in enumerate(lines)]
     
     # Insert using optimal chunk size (1000 from benchmark)
-    with db.atomic():
-        for batch in chunked(data, 1000):
-            TextLine.insert_many(batch).execute()
+    try:
+        with db.atomic():
+            for batch in chunked(data, 1000):
+                TextLine.insert_many(batch).execute()
+    except Exception as e:
+        raise RuntimeError(f"Failed to import text to database: {e}")
 
 
 def find_chapters_two_stage(

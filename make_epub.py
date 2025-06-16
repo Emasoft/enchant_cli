@@ -55,6 +55,13 @@ except ImportError:
     )
     DB_OPTIMIZED = False
 
+# Import enhanced TOC builder
+try:
+    from epub_toc_enhanced import build_enhanced_toc_ncx
+    TOC_ENHANCED = True
+except ImportError:
+    TOC_ENHANCED = False
+
 
 # ────────────────────────── regexes & tables ────────────────────────── #
 
@@ -762,7 +769,14 @@ def write_new_epub(chaps: List[Tuple[str,str]], out: Path,
             nav.append(f"<navPoint id='nav{idx}' playOrder='{idx}'><navLabel><text>{html.escape(title_)}</text></navLabel><content src='{xhtml}'/></navPoint>")
 
         (oebps/"content.opf").write_text(build_content_opf(title, author, manifest, spine, uid, cover_id, language, metadata), ENCODING)
-        (oebps/"toc.ncx").write_text(build_toc_ncx(title, author, nav, uid), ENCODING)
+        
+        # Use enhanced TOC builder if available
+        if TOC_ENHANCED:
+            # Pass full chapter data for hierarchical analysis
+            toc_content = build_enhanced_toc_ncx(chaps, title, author, uid, hierarchical=True)
+            (oebps/"toc.ncx").write_text(toc_content, ENCODING)
+        else:
+            (oebps/"toc.ncx").write_text(build_toc_ncx(title, author, nav, uid), ENCODING)
 
         with zipfile.ZipFile(out, "w") as z:
             z.writestr("mimetype", MIMETYPE, zipfile.ZIP_STORED)
