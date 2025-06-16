@@ -73,10 +73,15 @@ class LineVariation(BaseModel):
 def setup_database() -> None:
     """Initialize database and create tables"""
     try:
-        db.connect()
-        db.create_tables([BookLine, LineVariation])
+        if db.is_closed():
+            db.connect()
+        db.create_tables([BookLine, LineVariation], safe=True)
     except Exception as e:
-        raise RuntimeError(f"Failed to setup database: {e}")
+        # If already connected, just ensure tables exist
+        if "already opened" in str(e):
+            db.create_tables([BookLine, LineVariation], safe=True)
+        else:
+            raise RuntimeError(f"Failed to setup database: {e}")
 
 
 def close_database() -> None:
