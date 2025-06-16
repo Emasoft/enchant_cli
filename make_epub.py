@@ -43,11 +43,17 @@ from typing import Dict, List, Tuple, Optional, Any
 import xml.etree.ElementTree as ET
 
 # Import database module for fast chapter indexing
-from epub_db import (
-    setup_database, close_database, import_text_to_db,
-    find_and_mark_chapters, get_chapters_with_content,
-    BookLine, LineVariation
-)
+try:
+    from epub_db_optimized import process_text_optimized
+    DB_OPTIMIZED = True
+except ImportError:
+    # Fallback to original database module
+    from epub_db import (
+        setup_database, close_database, import_text_to_db,
+        find_and_mark_chapters, get_chapters_with_content,
+        BookLine, LineVariation
+    )
+    DB_OPTIMIZED = False
 
 
 # ────────────────────────── regexes & tables ────────────────────────── #
@@ -291,27 +297,25 @@ def split_text_db(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str
         return [("Content", text)], []
     
     try:
-        # Setup database
-        setup_database()
-        
-        # Import text into database (creates BookLine and LineVariation for each line)
-        import_text_to_db(text)
-        
-        # Find and mark chapter headings in the database
-        find_and_mark_chapters(HEADING_RE, parse_num, is_valid_chapter_line)
-        
-        # Get chapters with content and sequence (handles sub-numbering)
-        chapters, seq = get_chapters_with_content()
-        
-        return chapters, seq
+        if DB_OPTIMIZED:
+            # Use new optimized approach with two-stage search
+            return process_text_optimized(text, HEADING_RE, parse_num, is_valid_chapter_line)
+        else:
+            # Use original database approach
+            setup_database()
+            import_text_to_db(text)
+            find_and_mark_chapters(HEADING_RE, parse_num, is_valid_chapter_line)
+            chapters, seq = get_chapters_with_content()
+            return chapters, seq
         
     except Exception as e:
         # Log error and fallback to non-database method
         log_issue(f"Database processing failed: {e}")
         return split_text(text, detect_headings)
     finally:
-        # Always close database
-        close_database()
+        # Always close database if using original approach
+        if not DB_OPTIMIZED:
+            close_database()
 
 
 def split_text(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str]], List[int]]:
