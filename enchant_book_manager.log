@@ -789,3 +789,48 @@ To resume translation from this point, use the --resume flag.
 2025-06-15 19:58:22,213 - __main__ - INFO - Phase 3: Generating EPUB for translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
 2025-06-15 19:58:22,213 - __main__ - INFO - Using provided translated file: tests/sample_novel/translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
 2025-06-15 19:58:22,235 - __main__ - INFO - Creating EPUB for: translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī)
+2025-06-16 00:35:39,861 - __main__ - INFO - --translated option provided, automatically skipping renaming and translation phases
+2025-06-16 00:35:39,861 - __main__ - INFO - Starting unified processing for file: tests/sample_novel/translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
+2025-06-16 00:35:39,861 - __main__ - INFO - Phase 3: Generating EPUB for translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
+2025-06-16 00:35:39,861 - __main__ - INFO - Using provided translated file: tests/sample_novel/translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
+2025-06-16 00:35:39,882 - __main__ - INFO - Creating EPUB for: translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī)
+2025-06-16 00:51:25,344 - __main__ - INFO - --translated option provided, automatically skipping renaming and translation phases
+2025-06-16 00:51:25,344 - __main__ - INFO - Starting unified processing for file: tests/sample_novel/translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
+2025-06-16 00:51:25,344 - __main__ - INFO - Phase 3: Generating EPUB for translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
+2025-06-16 00:51:25,344 - __main__ - INFO - Using provided translated file: tests/sample_novel/translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
+2025-06-16 00:51:25,369 - __main__ - INFO - Creating EPUB for: translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī)
+2025-06-16 01:03:06,238 - __main__ - INFO - --translated option provided, automatically skipping renaming and translation phases
+2025-06-16 01:03:06,239 - __main__ - INFO - Starting unified processing for file: tests/sample_novel/test_excerpt.txt
+2025-06-16 01:03:06,239 - __main__ - INFO - Phase 3: Generating EPUB for test_excerpt.txt
+2025-06-16 01:03:06,239 - __main__ - INFO - Using provided translated file: tests/sample_novel/test_excerpt.txt
+2025-06-16 01:03:06,265 - __main__ - INFO - Creating EPUB for: test_excerpt by Unknown
+2025-06-16 01:05:29,644 - __main__ - INFO - --translated option provided, automatically skipping renaming and translation phases
+2025-06-16 01:05:29,644 - __main__ - INFO - Starting unified processing for file: tests/sample_novel/tiny_excerpt.txt
+2025-06-16 01:05:29,644 - __main__ - INFO - Phase 3: Generating EPUB for tiny_excerpt.txt
+2025-06-16 01:05:29,645 - __main__ - INFO - Using provided translated file: tests/sample_novel/tiny_excerpt.txt
+2025-06-16 01:05:29,665 - __main__ - INFO - Creating EPUB for: tiny_excerpt by Unknown
+2025-06-16 01:05:29,789 - __main__ - INFO - EPUB created successfully: tests/sample_novel/tiny_excerpt.epub
+2025-06-16 01:05:29,789 - __main__ - WARNING - EPUB created with 5001 validation warnings
+2025-06-16 01:05:29,789 - __main__ - WARNING -   - number 11 is missing
+2025-06-16 01:05:29,789 - __main__ - WARNING -   - number 12 is missing
+2025-06-16 01:05:29,789 - __main__ - WARNING -   - number 13 is missing
+2025-06-16 01:05:29,789 - __main__ - WARNING -   - number 14 is missing
+2025-06-16 01:05:29,789 - __main__ - WARNING -   - number 15 is missing
+2025-06-16 01:05:29,789 - __main__ - WARNING -   ... and 4996 more warnings
+2025-06-16 01:05:29,789 - __main__ - INFO - EPUB created successfully: tests/sample_novel/tiny_excerpt.epub
+2025-06-16 01:05:29,789 - __main__ - WARNING - EPUB created with 5001 validation warnings
+2025-06-16 01:05:29,789 - __main__ - WARNING -   - number 11 is missing
+2025-06-16 01:05:29,789 - __main__ - WARNING -   - number 12 is missing
+2025-06-16 01:05:29,789 - __main__ - WARNING -   - number 13 is missing
+2025-06-16 01:05:29,789 - __main__ - WARNING -   - number 14 is missing
+2025-06-16 01:05:29,789 - __main__ - WARNING -   - number 15 is missing
+2025-06-16 01:14:24,328 - __main__ - INFO - --translated option provided, automatically skipping renaming and translation phases
+2025-06-16 01:14:24,328 - __main__ - INFO - Starting unified processing for file: tests/sample_novel/translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
+2025-06-16 01:14:24,328 - __main__ - INFO - Phase 3: Generating EPUB for translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
+2025-06-16 01:14:24,329 - __main__ - INFO - Using provided translated file: tests/sample_novel/translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
+2025-06-16 01:14:24,350 - __main__ - INFO - Creating EPUB for: translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī)
+2025-06-16 02:40:19,728 - __main__ - INFO - --translated option provided, automatically skipping renaming and translation phases
+2025-06-16 02:40:19,729 - __main__ - INFO - Starting unified processing for file: tests/sample_novel/translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
+2025-06-16 02:40:19,729 - __main__ - INFO - Phase 3: Generating EPUB for translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
+2025-06-16 02:40:19,729 - __main__ - INFO - Using provided translated file: tests/sample_novel/translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
+2025-06-16 02:40:19,751 - __main__ - INFO - Creating EPUB for: translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī)

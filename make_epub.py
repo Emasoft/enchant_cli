@@ -42,6 +42,13 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 import xml.etree.ElementTree as ET
 
+# Import database module for fast chapter indexing
+from epub_db import (
+    setup_database, close_database, import_text_to_db,
+    find_and_mark_chapters, get_chapters_with_content,
+    BookLine, LineVariation
+)
+
 
 # ────────────────────────── regexes & tables ────────────────────────── #
 
@@ -274,13 +281,49 @@ def is_valid_chapter_line(line: str) -> bool:
     return False  # Mid-sentence
 
 
+def split_text_db(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str]], List[int]]:
+    """
+    Database-optimized version for fast chapter parsing.
+    Uses SQLite with indexes for efficient processing of large files.
+    """
+    if not detect_headings:
+        return [("Content", text)], []
+    
+    try:
+        # Setup database
+        setup_database()
+        
+        # Import text into database (creates BookLine and LineVariation for each line)
+        import_text_to_db(text)
+        
+        # Find and mark chapter headings in the database
+        find_and_mark_chapters(HEADING_RE, parse_num, is_valid_chapter_line)
+        
+        # Get chapters with content and sequence (handles sub-numbering)
+        chapters, seq = get_chapters_with_content()
+        
+        return chapters, seq
+        
+    finally:
+        # Always close database
+        close_database()
+
+
 def split_text(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str]], List[int]]:
     """
     Enhanced version with:
     1. Position/quote checking for chapter patterns
     2. Smart duplicate detection (4-line window)
     3. Sub-numbering for multi-part chapters
+    
+    For large files (>100K lines), automatically uses database optimization.
     """
+    # Use database optimization for large files
+    lines = text.splitlines()
+    if len(lines) > 100000:
+        return split_text_db(text, detect_headings)
+    
+    # Original implementation for smaller files
     if not detect_headings:
         return [("Content", text)], []
 
