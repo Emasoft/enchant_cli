@@ -1,0 +1,14 @@
+original_file: "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/tests/sample_novel/translated_Global\
+  \ High Martial Arts by Eagle Eats Chick (L\u01CEo y\u012Bng ch\u012B xi\u01CEo j\u012B\
+  ).txt"
+phases:
+  epub:
+    result: /Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/tests/sample_novel/translated_Global
+      High Martial Arts.epub
+    status: completed
+  renaming:
+    result: null
+    status: pending
+  translation:
+    result: null
+    status: pending
