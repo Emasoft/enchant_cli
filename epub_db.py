@@ -135,33 +135,31 @@ def find_and_mark_chapters(
 ) -> None:
     """
     Find chapter headings in the database and mark them.
+    Uses peewee ORM to efficiently filter lines containing 'chapter' first.
     
     Args:
         heading_regex: Compiled regex pattern for chapter headings
         parse_num_func: Function to parse chapter numbers
         is_valid_func: Function to validate chapter lines
     """
-    # Query all LineVariations and check for chapter patterns
-    chapter_updates = []
+    # First pass: Use peewee ORM to find all lines containing 'chapter' (case insensitive)
+    # This reduces our search space from 600K+ lines to just a few thousand
+    potential_chapter_lines = (LineVariation
+                              .select(LineVariation, BookLine)
+                              .join(BookLine, on=(LineVariation.book_line_id == BookLine.book_line_id))
+                              .where(fn.LOWER(LineVariation.text_content).contains('chapter'))
+                              .order_by(LineVariation.book_line_number))
     
-    # Use a single query with join for efficiency
-    query = (LineVariation
-             .select(LineVariation, BookLine)
-             .join(BookLine, on=(LineVariation.book_line_id == BookLine.book_line_id))
-             .order_by(LineVariation.book_line_number))
+    # Process these candidates with regex and validation
+    validated_chapters = []
     
-    # Track for duplicate detection
-    last_chapter_line = -10
-    last_chapter_num = None
-    last_chapter_text = None
-    
-    for line_var in query:
+    for line_var in potential_chapter_lines:
         content = line_var.text_content.strip()
         match = heading_regex.match(content)
         
         if match:
             # Additional validation
-            if 'chapter' in content.lower() and not is_valid_func(line_var.text_content):
+            if not is_valid_func(line_var.text_content):
                 continue
             
             # Extract chapter number
@@ -174,31 +172,54 @@ def find_and_mark_chapters(
             if num is None:
                 continue
             
-            # Smart duplicate detection
-            lines_since_last = line_var.book_line_number - last_chapter_line
-            
-            # Skip if same text within 4 lines
-            if lines_since_last <= 4 and content == last_chapter_text:
-                continue
-            
-            # Extract subtitle for title
-            subtitle = (match.group("rest") or "").strip()
-            title = f"Chapter {num}{(' – ' + subtitle) if subtitle else ''}"
-            
-            # Mark this BookLine as a chapter
-            chapter_updates.append({
-                'book_line_id': line_var.book_line_id,
-                'is_chapter_heading': True,
+            validated_chapters.append({
+                'line_var': line_var,
                 'chapter_number': num,
-                'book_line_title': title
+                'content': content,
+                'match': match
             })
-            
-            # Update tracking
-            last_chapter_line = line_var.book_line_number
-            last_chapter_num = num
-            last_chapter_text = content
     
-    # Bulk update BookLines
+    # Second pass: Apply duplicate detection using peewee queries
+    chapter_updates = []
+    
+    for i, chapter in enumerate(validated_chapters):
+        line_var = chapter['line_var']
+        num = chapter['chapter_number']
+        content = chapter['content']
+        match = chapter['match']
+        
+        # Use peewee to check for duplicates within 4-line window
+        is_duplicate = False
+        
+        # Check previous chapters in our validated list
+        for j in range(max(0, i - 1), i):
+            prev = validated_chapters[j]
+            lines_apart = line_var.book_line_number - prev['line_var'].book_line_number
+            
+            if lines_apart <= 4:
+                # Same text within 4 lines = duplicate
+                if content == prev['content']:
+                    is_duplicate = True
+                    break
+                # Same number within 4 lines = multi-part (not duplicate)
+                # Will be handled by sub-numbering
+        
+        if is_duplicate:
+            continue
+        
+        # Extract subtitle for title
+        subtitle = (match.group("rest") or "").strip()
+        title = f"Chapter {num}{(' – ' + subtitle) if subtitle else ''}"
+        
+        # Mark this BookLine as a chapter
+        chapter_updates.append({
+            'book_line_id': line_var.book_line_id,
+            'is_chapter_heading': True,
+            'chapter_number': num,
+            'book_line_title': title
+        })
+    
+    # Bulk update BookLines using peewee
     if chapter_updates:
         with db.atomic():
             for update in chapter_updates:
@@ -215,29 +236,39 @@ def find_and_mark_chapters(
 def get_chapters_with_content() -> Tuple[List[Tuple[str, str]], List[int]]:
     """
     Get all chapters with their content and handle sub-numbering.
+    Uses efficient peewee ORM queries.
     
     Returns:
         Tuple of (chapters list with content, chapter number sequence)
     """
-    # Get all chapter headings
-    chapter_query = (BookLine
+    # Get all chapter headings using peewee
+    chapters_query = (BookLine
+                     .select(BookLine.book_line_number, 
+                            BookLine.chapter_number,
+                            BookLine.book_line_title)
+                     .where(BookLine.is_chapter_heading == True)
+                     .order_by(BookLine.book_line_number))
+    
+    chapters_info = list(chapters_query.dicts())
+    
+    if not chapters_info:
+        # No chapters found, return all as content
+        all_lines = (LineVariation
                     .select()
-                    .where(BookLine.is_chapter_heading == True)
-                    .order_by(BookLine.book_line_number))
+                    .order_by(LineVariation.book_line_number))
+        content = '\n'.join([line.text_content for line in all_lines])
+        return [("Content", content.strip())], []
     
-    chapters_info = []
-    for chapter in chapter_query:
-        chapters_info.append({
-            'line_number': chapter.book_line_number,
-            'chapter_number': chapter.chapter_number,
-            'title': chapter.book_line_title
-        })
-    
-    # Count occurrences for sub-numbering
+    # Count occurrences for sub-numbering using peewee aggregation
     chapter_counts = {}
-    for ch in chapters_info:
-        num = ch['chapter_number']
-        chapter_counts[num] = chapter_counts.get(num, 0) + 1
+    count_query = (BookLine
+                  .select(BookLine.chapter_number, fn.COUNT(BookLine.chapter_number).alias('count'))
+                  .where((BookLine.is_chapter_heading == True) & 
+                         (BookLine.chapter_number.is_null(False)))
+                  .group_by(BookLine.chapter_number))
+    
+    for row in count_query:
+        chapter_counts[row.chapter_number] = row.count
     
     # Apply sub-numbering
     part_counters = {}
@@ -251,30 +282,31 @@ def get_chapters_with_content() -> Tuple[List[Tuple[str, str]], List[int]]:
             part_num = part_counters[num]
             
             # Update title with sub-number
-            title = ch['title']
+            title = ch['book_line_title']
             if ' – ' in title:
                 base, subtitle = title.split(' – ', 1)
                 new_title = f"Chapter {num}.{part_num}: {subtitle}"
             else:
                 new_title = f"Chapter {num}.{part_num}"
             
-            ch['title'] = new_title
+            ch['book_line_title'] = new_title
         
         final_chapters_info.append(ch)
     
-    # Now build chapters with content
+    # Build chapters with content
     chapters = []
     seq = []
     
-    # Get total line count
-    total_lines = BookLine.select(fn.MAX(BookLine.book_line_number)).scalar()
+    # Get total line count using peewee
+    total_lines = BookLine.select(fn.MAX(BookLine.book_line_number)).scalar() or 0
     
     # Add front matter if exists
-    if final_chapters_info and final_chapters_info[0]['line_number'] > 1:
-        # Get front matter content
+    first_chapter_line = final_chapters_info[0]['book_line_number']
+    if first_chapter_line > 1:
+        # Get front matter content using peewee
         front_matter_lines = (LineVariation
-                            .select()
-                            .where(LineVariation.book_line_number < final_chapters_info[0]['line_number'])
+                            .select(LineVariation.text_content)
+                            .where(LineVariation.book_line_number < first_chapter_line)
                             .order_by(LineVariation.book_line_number))
         
         content = '\n'.join([line.text_content for line in front_matter_lines])
@@ -283,20 +315,22 @@ def get_chapters_with_content() -> Tuple[List[Tuple[str, str]], List[int]]:
     
     # Process each chapter
     for i, ch_info in enumerate(final_chapters_info):
-        start_line = ch_info['line_number']
-        end_line = final_chapters_info[i + 1]['line_number'] if i + 1 < len(final_chapters_info) else total_lines + 1
+        start_line = ch_info['book_line_number']
+        end_line = (final_chapters_info[i + 1]['book_line_number'] 
+                   if i + 1 < len(final_chapters_info) 
+                   else total_lines + 1)
         
-        # Get chapter content (excluding the heading line itself)
-        content_lines = (LineVariation
-                        .select()
+        # Get chapter content using peewee (excluding the heading line)
+        content_query = (LineVariation
+                        .select(LineVariation.text_content)
                         .where(
                             (LineVariation.book_line_number > start_line) &
                             (LineVariation.book_line_number < end_line)
                         )
                         .order_by(LineVariation.book_line_number))
         
-        content = '\n'.join([line.text_content for line in content_lines])
-        chapters.append((ch_info['title'], content.strip()))
+        content = '\n'.join([line.text_content for line in content_query])
+        chapters.append((ch_info['book_line_title'], content.strip()))
         seq.append(ch_info['chapter_number'])
     
     return chapters, seq
