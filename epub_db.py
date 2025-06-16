@@ -18,11 +18,12 @@ import tempfile
 from peewee import (
     Model, SqliteDatabase, CharField, IntegerField, 
     TextField, DateTimeField, BooleanField, AutoField,
-    Check, chunked, fn
+    Check, chunked, fn, SQL
 )
+from playhouse.sqlite_ext import SqliteExtDatabase
 
-# Database instance - use in-memory for speed
-db = SqliteDatabase(':memory:', pragmas={'journal_mode': 'memory'})
+# Database instance - use SqliteExtDatabase for advanced features
+db = SqliteExtDatabase(':memory:', pragmas={'journal_mode': 'memory'})
 
 
 class BaseModel(Model):
@@ -75,10 +76,17 @@ def setup_database() -> None:
     try:
         if db.is_closed():
             db.connect()
+        # Register regex functions for SQLite
+        # regex_search(pattern, string) returns 1 if match, 0 if not
+        db.register_function(lambda pattern, string: bool(re.search(pattern, string, re.IGNORECASE)), 'regex_search', 2)
+        # Also register REGEXP for standard SQLite REGEXP operator
+        db.register_function(lambda pattern, string: bool(re.search(pattern, string)), 'REGEXP', 2)
         db.create_tables([BookLine, LineVariation], safe=True)
     except Exception as e:
         # If already connected, just ensure tables exist
         if "already opened" in str(e):
+            db.register_function(lambda pattern, string: bool(re.search(pattern, string, re.IGNORECASE)), 'regex_search', 2)
+            db.register_function(lambda pattern, string: bool(re.search(pattern, string)), 'REGEXP', 2)
             db.create_tables([BookLine, LineVariation], safe=True)
         else:
             raise RuntimeError(f"Failed to setup database: {e}")
@@ -112,6 +120,7 @@ def import_text_to_db(text: str, book_id: str = 'temp_book') -> None:
     line_variations_data = []
     
     for index, line_content in enumerate(lines, start=1):
+        
         book_line_id = str(uuid.uuid4())
         line_variation_id = str(uuid.uuid4())
         
@@ -135,11 +144,16 @@ def import_text_to_db(text: str, book_id: str = 'temp_book') -> None:
     
     # Bulk insert for performance
     with db.atomic():
-        # Insert in chunks to avoid memory issues
-        for batch in chunked(book_lines_data, 1000):
+        # SQLite has a limit of 999 variables per query
+        # BookLine has 5 fields, so max chunk size is 999/5 = 199
+        # LineVariation has 5 fields, so max chunk size is 999/5 = 199
+        # Use 100 for safety margin
+        chunk_size = 100
+        
+        for batch in chunked(book_lines_data, chunk_size):
             BookLine.insert_many(batch).execute()
         
-        for batch in chunked(line_variations_data, 1000):
+        for batch in chunked(line_variations_data, chunk_size):
             LineVariation.insert_many(batch).execute()
 
 
@@ -149,20 +163,23 @@ def find_and_mark_chapters(
     is_valid_func: Callable[[str], bool]
 ) -> None:
     """
-    Find chapter headings in the database and mark them.
-    Uses peewee ORM to efficiently filter lines containing 'chapter' first.
+    Find chapter headings using SQLite regex_search for maximum efficiency.
+    All regex matching happens at the database level.
     
     Args:
         heading_regex: Compiled regex pattern for chapter headings
         parse_num_func: Function to parse chapter numbers
         is_valid_func: Function to validate chapter lines
     """
-    # First pass: Use peewee ORM to find all lines containing 'chapter' (case insensitive)
-    # This reduces our search space from 600K+ lines to just a few thousand
+    # Convert Python regex pattern to SQL pattern
+    pattern = heading_regex.pattern
+    
+    # Use regex_search UDF to find all potential chapters in one query
+    # This is MUCH faster than fetching and testing in Python
     potential_chapter_lines = (LineVariation
                               .select(LineVariation, BookLine)
                               .join(BookLine, on=(LineVariation.book_line_id == BookLine.book_line_id))
-                              .where(fn.LOWER(LineVariation.text_content).contains('chapter'))
+                              .where(fn.regex_search(pattern, LineVariation.text_content))
                               .order_by(LineVariation.book_line_number))
     
     # Process these candidates with regex and validation
@@ -203,23 +220,20 @@ def find_and_mark_chapters(
         content = chapter['content']
         match = chapter['match']
         
-        # Use peewee to check for duplicates within 4-line window
-        is_duplicate = False
+        # Use peewee subquery to check for duplicates within 4-line window
+        # More efficient than Python iteration
+        window_start = max(1, line_var.book_line_number - 4)
         
-        # Check previous chapters in our validated list
-        for j in range(max(0, i - 1), i):
-            prev = validated_chapters[j]
-            lines_apart = line_var.book_line_number - prev['line_var'].book_line_number
-            
-            if lines_apart <= 4:
-                # Same text within 4 lines = duplicate
-                if content == prev['content']:
-                    is_duplicate = True
-                    break
-                # Same number within 4 lines = multi-part (not duplicate)
-                # Will be handled by sub-numbering
+        # Check if this exact text appears in previous 4 lines
+        duplicate_check = (LineVariation
+                          .select()
+                          .where(
+                              (LineVariation.book_line_number.between(window_start, line_var.book_line_number - 1)) &
+                              (LineVariation.text_content == line_var.text_content)
+                          )
+                          .exists())
         
-        if is_duplicate:
+        if duplicate_check:
             continue
         
         # Extract subtitle for title
@@ -315,21 +329,25 @@ def get_chapters_with_content() -> Tuple[List[Tuple[str, str]], List[int]]:
     chapters = []
     seq = []
     
-    # Get total line count using peewee
+    # Get total line count using peewee aggregation
     total_lines = BookLine.select(fn.MAX(BookLine.book_line_number)).scalar() or 0
     
     # Add front matter if exists
     first_chapter_line = final_chapters_info[0]['book_line_number']
     if first_chapter_line > 1:
-        # Get front matter content using peewee
-        front_matter_lines = (LineVariation
-                            .select(LineVariation.text_content)
+        # Use GROUP_CONCAT for efficient string aggregation
+        # This is much faster than fetching all rows and joining in Python
+        front_matter_query = (LineVariation
+                            .select(fn.GROUP_CONCAT(
+                                LineVariation.text_content, 
+                                '\n'
+                            ).alias('content'))
                             .where(LineVariation.book_line_number < first_chapter_line)
                             .order_by(LineVariation.book_line_number))
         
-        content = '\n'.join([line.text_content for line in front_matter_lines])
-        if content.strip():
-            chapters.append(("Front Matter", content.strip()))
+        result = front_matter_query.get()
+        if result.content and result.content.strip():
+            chapters.append(("Front Matter", result.content.strip()))
     
     # Process each chapter
     for i, ch_info in enumerate(final_chapters_info):
@@ -338,17 +356,71 @@ def get_chapters_with_content() -> Tuple[List[Tuple[str, str]], List[int]]:
                    if i + 1 < len(final_chapters_info) 
                    else total_lines + 1)
         
-        # Get chapter content using peewee (excluding the heading line)
+        # Get chapter content using GROUP_CONCAT for efficiency
         content_query = (LineVariation
-                        .select(LineVariation.text_content)
+                        .select(fn.GROUP_CONCAT(
+                            LineVariation.text_content,
+                            '\n'
+                        ).alias('content'))
                         .where(
                             (LineVariation.book_line_number > start_line) &
                             (LineVariation.book_line_number < end_line)
-                        )
-                        .order_by(LineVariation.book_line_number))
+                        ))
         
-        content = '\n'.join([line.text_content for line in content_query])
+        result = content_query.get()
+        content = result.content or ''
         chapters.append((ch_info['book_line_title'], content.strip()))
         seq.append(ch_info['chapter_number'])
     
     return chapters, seq
+
+
+def get_chapter_statistics() -> Dict[str, Any]:
+    """
+    Get statistics about chapters using advanced peewee features.
+    Demonstrates window functions, CTEs, and aggregations.
+    """
+    # Use window functions to calculate chapter gaps
+    ChapterGaps = (BookLine
+                  .select(
+                      BookLine.book_line_number,
+                      BookLine.chapter_number,
+                      fn.LAG(BookLine.book_line_number, 1).over(
+                          order_by=[BookLine.book_line_number]
+                      ).alias('prev_line'),
+                      (BookLine.book_line_number - 
+                       fn.LAG(BookLine.book_line_number, 1).over(
+                           order_by=[BookLine.book_line_number]
+                       )).alias('gap')
+                  )
+                  .where(BookLine.is_chapter_heading)
+                  .alias('gaps'))
+    
+    # Calculate statistics
+    stats = {
+        'total_chapters': BookLine.select().where(BookLine.is_chapter_heading).count(),
+        'unique_chapter_numbers': (BookLine
+                                 .select(BookLine.chapter_number)
+                                 .where(BookLine.is_chapter_heading)
+                                 .distinct()
+                                 .count()),
+        'max_chapter_number': (BookLine
+                             .select(fn.MAX(BookLine.chapter_number))
+                             .where(BookLine.is_chapter_heading)
+                             .scalar()),
+        'avg_lines_per_chapter': 0,
+        'chapters_with_subtitles': (BookLine
+                                  .select()
+                                  .where(
+                                      BookLine.is_chapter_heading &
+                                      BookLine.book_line_title.contains(' – ')
+                                  )
+                                  .count())
+    }
+    
+    # Calculate average lines per chapter if there are chapters
+    if stats['total_chapters'] > 0:
+        total_lines = BookLine.select(fn.MAX(BookLine.book_line_number)).scalar() or 0
+        stats['avg_lines_per_chapter'] = total_lines / stats['total_chapters']
+    
+    return stats

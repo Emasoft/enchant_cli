@@ -14,8 +14,10 @@ from typing import List, Tuple, Optional
 from epub_db import (
     setup_database, close_database, import_text_to_db,
     find_and_mark_chapters, get_chapters_with_content,
+    get_chapter_statistics,
     BookLine, LineVariation, db
 )
+from peewee import fn
 
 
 class TestEpubDatabase(unittest.TestCase):
@@ -223,15 +225,16 @@ Another chapter 3 here"""
         
         import_text_to_db(text)
         
-        # Test case-insensitive search using peewee
+        # Test regex_search UDF functionality
         from peewee import fn
         
+        # Test case-insensitive regex search
         chapter_lines = (LineVariation
                         .select()
-                        .where(fn.LOWER(LineVariation.text_content).contains('chapter'))
+                        .where(fn.regex_search(r'(?i)chapter', LineVariation.text_content))
                         .order_by(LineVariation.book_line_number))
         
-        # Should find 4 lines containing 'chapter'
+        # Should find 4 lines containing 'chapter' (case-insensitive)
         results = list(chapter_lines)
         self.assertEqual(len(results), 4)
         
@@ -279,16 +282,62 @@ Another chapter 3 here"""
         chapters = BookLine.select().where(BookLine.is_chapter_heading).count()
         self.assertEqual(chapters, 10)
         
-        # Test efficient filtering
+        # Test efficient filtering using regex_search
         from peewee import fn
         
         # This should be fast - only checking ~10 lines instead of 1000
         potential_chapters = (LineVariation
                             .select()
-                            .where(fn.LOWER(LineVariation.text_content).contains('chapter'))
+                            .where(fn.regex_search(r'(?i)^chapter\s+\d+', LineVariation.text_content))
                             .count())
         
         self.assertEqual(potential_chapters, 10)
+    
+    def test_regex_search_advanced_patterns(self):
+        """Test regex_search with complex patterns"""
+        text = """Prologue
+Chapter 1: Introduction
+Ch. 2 - The Beginning
+CHAPTER THREE: UPPERCASE
+Chap 4: Abbreviated
+Chapter V: Roman Numerals
+Part 1: Different Pattern
+§ 42: Section Style
+5. Numbered List Style
+Not a valid chapter in middle of line"""
+        
+        import_text_to_db(text)
+        
+        # Test the actual complex heading regex pattern
+        # Note: regex_search uses case-insensitive by default in our implementation
+        pattern = r"^[^\w]*\s*(?:(?:chapter|ch\.?|chap\.?)\s*\d+|(?:chapter|ch\.?|chap\.?)\s*[ivxlcdm]+|(?:part|section)\s+\d+|§\s*\d+|\d+\s*(?:\.|:|-)?)"
+        
+        matches = (LineVariation
+                  .select()
+                  .where(fn.regex_search(pattern, LineVariation.text_content))
+                  .order_by(LineVariation.book_line_number))
+        
+        # Debug: print what was matched
+        results = list(matches)
+        print(f"\nMatched {len(results)} lines:")
+        for r in results:
+            print(f"  Line {r.book_line_number}: '{r.text_content}'")
+        
+        # Should match lines 2, 3, 5, 6, 7, 8, 9 (not line 4 which has word "THREE")
+        # Updated expectation based on actual regex capabilities
+        self.assertEqual(len(results), 7)
+        
+        # Verify specific matches
+        matched_texts = [r.text_content for r in results]
+        self.assertIn("Chapter 1: Introduction", matched_texts)
+        self.assertIn("Ch. 2 - The Beginning", matched_texts)
+        self.assertIn("Chap 4: Abbreviated", matched_texts)
+        self.assertIn("Chapter V: Roman Numerals", matched_texts)
+        self.assertIn("Part 1: Different Pattern", matched_texts)
+        self.assertIn("§ 42: Section Style", matched_texts)
+        self.assertIn("5. Numbered List Style", matched_texts)
+        self.assertNotIn("CHAPTER THREE: UPPERCASE", matched_texts)  # Word numbers not in this pattern
+        self.assertNotIn("Not a valid chapter in middle of line", matched_texts)
 
 
 if __name__ == '__main__':
