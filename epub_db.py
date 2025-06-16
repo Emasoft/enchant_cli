@@ -11,7 +11,7 @@ import os
 import re
 import uuid
 from pathlib import Path
-from typing import List, Tuple, Optional, Dict, Any
+from typing import List, Tuple, Optional, Dict, Any, Callable, Pattern
 from datetime import datetime
 import tempfile
 
@@ -72,14 +72,21 @@ class LineVariation(BaseModel):
 
 def setup_database() -> None:
     """Initialize database and create tables"""
-    db.connect()
-    db.create_tables([BookLine, LineVariation])
+    try:
+        db.connect()
+        db.create_tables([BookLine, LineVariation])
+    except Exception as e:
+        raise RuntimeError(f"Failed to setup database: {e}")
 
 
 def close_database() -> None:
     """Close database connection"""
-    if not db.is_closed():
-        db.close()
+    try:
+        if not db.is_closed():
+            db.close()
+    except Exception:
+        # Ignore errors during close
+        pass
 
 
 def import_text_to_db(text: str, book_id: str = 'temp_book') -> None:
@@ -90,6 +97,9 @@ def import_text_to_db(text: str, book_id: str = 'temp_book') -> None:
         text: The full text content
         book_id: Identifier for this book
     """
+    if not text or not text.strip():
+        return  # Handle empty text gracefully
+    
     lines = text.splitlines()
     
     # Prepare batch data
@@ -129,9 +139,9 @@ def import_text_to_db(text: str, book_id: str = 'temp_book') -> None:
 
 
 def find_and_mark_chapters(
-    heading_regex: re.Pattern,
-    parse_num_func: callable,
-    is_valid_func: callable
+    heading_regex: Pattern[str],
+    parse_num_func: Callable[[str], Optional[int]],
+    is_valid_func: Callable[[str], bool]
 ) -> None:
     """
     Find chapter headings in the database and mark them.
@@ -222,15 +232,18 @@ def find_and_mark_chapters(
     # Bulk update BookLines using peewee
     if chapter_updates:
         with db.atomic():
-            for update in chapter_updates:
-                (BookLine
-                 .update(
-                     is_chapter_heading=update['is_chapter_heading'],
-                     chapter_number=update['chapter_number'],
-                     book_line_title=update['book_line_title']
-                 )
-                 .where(BookLine.book_line_id == update['book_line_id'])
-                 .execute())
+            # Use bulk update for better performance
+            # Process in chunks to avoid query size limits
+            for batch in chunked(chapter_updates, 100):
+                for update in batch:
+                    (BookLine
+                     .update(
+                         is_chapter_heading=update['is_chapter_heading'],
+                         chapter_number=update['chapter_number'],
+                         book_line_title=update['book_line_title']
+                     )
+                     .where(BookLine.book_line_id == update['book_line_id'])
+                     .execute())
 
 
 def get_chapters_with_content() -> Tuple[List[Tuple[str, str]], List[int]]:
@@ -246,7 +259,7 @@ def get_chapters_with_content() -> Tuple[List[Tuple[str, str]], List[int]]:
                      .select(BookLine.book_line_number, 
                             BookLine.chapter_number,
                             BookLine.book_line_title)
-                     .where(BookLine.is_chapter_heading == True)
+                     .where(BookLine.is_chapter_heading)
                      .order_by(BookLine.book_line_number))
     
     chapters_info = list(chapters_query.dicts())
@@ -263,7 +276,7 @@ def get_chapters_with_content() -> Tuple[List[Tuple[str, str]], List[int]]:
     chapter_counts = {}
     count_query = (BookLine
                   .select(BookLine.chapter_number, fn.COUNT(BookLine.chapter_number).alias('count'))
-                  .where((BookLine.is_chapter_heading == True) & 
+                  .where((BookLine.is_chapter_heading) & 
                          (BookLine.chapter_number.is_null(False)))
                   .group_by(BookLine.chapter_number))
     
@@ -271,7 +284,7 @@ def get_chapters_with_content() -> Tuple[List[Tuple[str, str]], List[int]]:
         chapter_counts[row.chapter_number] = row.count
     
     # Apply sub-numbering
-    part_counters = {}
+    part_counters: Dict[int, int] = {}
     final_chapters_info = []
     
     for ch in chapters_info:

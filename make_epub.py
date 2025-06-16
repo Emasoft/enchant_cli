@@ -110,7 +110,7 @@ _ERROR_LOG: Optional[Path] = None
 _JSON_LOG: Optional[Path] = None
 
 
-def log_issue(msg: str, obj: Optional[dict] = None) -> None:
+def log_issue(msg: str, obj: Optional[Dict[str, Any]] = None) -> None:
     """Append *msg* (and *obj* if requested) to per-run log files."""
     global _ERROR_LOG
     if _ERROR_LOG is None:
@@ -194,7 +194,8 @@ def detect_issues(seq: List[int]) -> List[str]:
                 pred = next(x for x in reversed(seq[:idx]) if x != v)
             except StopIteration:
                 # No non-identical predecessor found (all previous values are the same)
-                pred = seq[0] if idx > 0 else v
+                # Use the first value in sequence, or 0 if this is the first
+                pred = seq[0] if idx > 0 and seq[0] != v else 0
             # count run length from here
             run_len = 1
             j = idx
@@ -304,6 +305,10 @@ def split_text_db(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str
         
         return chapters, seq
         
+    except Exception as e:
+        # Log error and fallback to non-database method
+        log_issue(f"Database processing failed: {e}")
+        return split_text(text, detect_headings)
     finally:
         # Always close database
         close_database()
@@ -321,14 +326,18 @@ def split_text(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str]],
     # Use database optimization for large files
     lines = text.splitlines()
     if len(lines) > 100000:
-        return split_text_db(text, detect_headings)
+        try:
+            return split_text_db(text, detect_headings)
+        except Exception:
+            # Fallback to regular processing if database fails
+            pass
     
     # Original implementation for smaller files
     if not detect_headings:
         return [("Content", text)], []
 
     # First pass: collect raw chapters with position/quote validation
-    raw_chapters = []
+    raw_chapters: List[Tuple[str, str, Optional[int]]] = []
     seq = []
     buf = []
     cur_title = None
@@ -413,14 +422,14 @@ def split_text(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str]],
         raw_chapters.append(("Content", "\n".join(buf).strip(), None))
     
     # Second pass: apply sub-numbering to multi-part chapters
-    chapter_counts = {}
+    chapter_counts: Dict[int, int] = {}
     for title, content, num in raw_chapters:
         if num is not None and title.startswith("Chapter "):
             chapter_counts[num] = chapter_counts.get(num, 0) + 1
     
     # Third pass: generate final chapters with sub-numbering
     chapters = []
-    part_counters = {}
+    part_counters: Dict[int, int] = {}
     
     for title, content, num in raw_chapters:
         if num is None or not title.startswith("Chapter "):
@@ -495,10 +504,13 @@ def build_chap_xhtml(title: str, body_html: str) -> str:
         # Move all children from wrapper to body
         for child in body_content:
             body.append(child)
-    except ET.ParseError:
-        # Fallback: create a single paragraph with the content
+    except (ET.ParseError, Exception) as e:
+        # Fallback: create a single paragraph with escaped content
         p = ET.SubElement(body, '{http://www.w3.org/1999/xhtml}p')
-        p.text = body_html
+        # Strip any HTML tags and use plain text
+        import re
+        plain_text = re.sub(r'<[^>]+>', '', body_html)
+        p.text = plain_text or "[Content could not be parsed]"
     
     # Generate string with XML declaration and DOCTYPE
     tree = ET.ElementTree(html)
@@ -776,6 +788,10 @@ def extend_epub(epub: Path, new: List[Tuple[str,str]]) -> None:
         spine = opf.find("opf:spine", ns_opf)
         ncx = ET.parse(oebps/"toc.ncx")
         navmap = ncx.find("ncx:navMap", ns_ncx)
+        
+        if manifest is None or spine is None or navmap is None:
+            raise ValueError("Invalid EPUB structure: missing manifest, spine, or navMap")
+        
         play = max((int(n.get("playOrder","0")) for n in navmap.findall("ncx:navPoint", ns_ncx)), default=0)
 
         for title_, body_html in new:
@@ -1043,7 +1059,7 @@ def main() -> None:
     chunks = collect_chunks(args.input_dir)
 
     selected = ({n:p for n,p in chunks.items()
-                 if n == add_start or (add_plus and n >= add_start)}
+                 if add_start is not None and (n == add_start or (add_plus and n >= add_start))}
                 if append else chunks)
     if append and not selected:
         sys.exit(f"No chunks ≥ {add_start} found.")
@@ -1069,7 +1085,8 @@ def main() -> None:
     else:
         first = chunks[min(chunks)]
         def_title, def_author = ("Untitled","Unknown")
-        if m:=FILENAME_RE.match(first.name):
+        m = FILENAME_RE.match(first.name)
+        if m:
             def_title, def_author = m.group("title"), m.group("author")
         title = args.title or def_title
         author = args.author or def_author
