@@ -1211,3 +1211,129 @@ TypeError: '>' not supported between instances of 'int' and 'Mock'
 2025-06-17 04:00:21,323 - cli_translator - WARNING - Retry attempt 5/10 after 18.0s
 2025-06-17 04:00:21,326 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
 2025-06-17 04:00:21,326 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:14:42,291 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:14:42,291 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:14:45,296 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 07:14:45,308 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:14:45,308 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:14:48,309 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 07:14:48,319 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:14:48,319 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:14:52,325 - cli_translator - WARNING - Retry attempt 4/10 after 10.1s
+2025-06-17 07:14:52,334 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:14:52,334 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:15:00,336 - cli_translator - WARNING - Retry attempt 5/10 after 18.1s
+2025-06-17 07:15:00,348 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:15:00,348 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:15:37,793 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:15:37,793 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:15:40,798 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 07:15:40,808 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:15:40,808 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:15:43,812 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 07:15:43,820 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:15:43,820 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:15:47,825 - cli_translator - WARNING - Retry attempt 4/10 after 10.0s
+2025-06-17 07:15:47,835 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:15:47,835 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:15:55,840 - cli_translator - WARNING - Retry attempt 5/10 after 18.1s
+2025-06-17 07:15:55,849 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:15:55,849 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:17:03,972 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:17:03,972 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:17:06,974 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 07:17:06,982 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:17:06,982 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:17:09,983 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 07:17:09,990 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:17:09,991 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:17:13,996 - cli_translator - WARNING - Retry attempt 4/10 after 10.0s
+2025-06-17 07:17:14,006 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:17:14,006 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:17:22,011 - cli_translator - WARNING - Retry attempt 5/10 after 18.0s
+2025-06-17 07:17:22,021 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:17:22,021 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:18:02,063 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:18:02,063 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:18:05,068 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 07:18:05,076 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:18:05,076 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:18:08,087 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 07:18:08,095 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:18:08,095 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:18:12,097 - cli_translator - WARNING - Retry attempt 4/10 after 10.0s
+2025-06-17 07:18:12,106 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:18:12,106 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:18:20,111 - cli_translator - WARNING - Retry attempt 5/10 after 18.1s
+2025-06-17 07:18:20,119 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:18:20,119 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:19:02,942 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:19:02,943 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:19:05,947 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 07:19:05,956 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:19:05,956 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:19:08,958 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 07:19:08,967 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:19:08,967 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:19:12,968 - cli_translator - WARNING - Retry attempt 4/10 after 10.0s
+2025-06-17 07:19:12,976 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:19:12,977 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:19:20,982 - cli_translator - WARNING - Retry attempt 5/10 after 18.0s
+2025-06-17 07:19:20,993 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:19:20,993 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:20:18,160 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:20:18,160 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:20:21,163 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 07:20:21,172 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:20:21,172 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:20:24,177 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 07:20:24,185 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:20:24,185 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:20:28,188 - cli_translator - WARNING - Retry attempt 4/10 after 10.0s
+2025-06-17 07:20:28,197 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:20:28,197 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:20:36,202 - cli_translator - WARNING - Retry attempt 5/10 after 18.0s
+2025-06-17 07:20:36,213 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:20:36,213 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:21:20,710 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:21:20,710 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:21:23,713 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 07:21:23,722 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:21:23,722 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:21:26,727 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 07:21:26,735 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:21:26,735 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:21:30,738 - cli_translator - WARNING - Retry attempt 4/10 after 10.0s
+2025-06-17 07:21:30,744 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:21:30,745 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:21:38,748 - cli_translator - WARNING - Retry attempt 5/10 after 18.0s
+2025-06-17 07:21:38,757 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:21:38,757 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:22:22,653 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:22:22,653 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:22:25,658 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 07:22:25,665 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:22:25,665 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:22:28,670 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 07:22:28,678 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:22:28,678 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:22:32,681 - cli_translator - WARNING - Retry attempt 4/10 after 10.0s
+2025-06-17 07:22:32,688 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:22:32,688 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:22:40,694 - cli_translator - WARNING - Retry attempt 5/10 after 18.0s
+2025-06-17 07:22:40,702 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:22:40,702 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:23:49,755 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:23:49,755 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:23:52,757 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 07:23:52,764 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:23:52,765 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:23:55,767 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 07:23:55,775 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:23:55,775 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:23:59,780 - cli_translator - WARNING - Retry attempt 4/10 after 10.0s
+2025-06-17 07:23:59,788 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:23:59,788 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:24:07,792 - cli_translator - WARNING - Retry attempt 5/10 after 18.0s
+2025-06-17 07:24:07,799 - cli_translator - ERROR - HTTP error occurred: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions
+2025-06-17 07:24:07,799 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 400 Client Error: Bad Request for url: http://localhost:1234/v1/chat/completions

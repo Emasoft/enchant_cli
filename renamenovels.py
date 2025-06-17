@@ -258,32 +258,56 @@ def load_model_pricing() -> Optional[dict]:
             logger.warning(f"Error fetching model pricing information from {pricing_url}: {e}")
     raise RuntimeError("Failed to fetch model pricing information from all available mirrors.")
 
-# Retry mechanism for making requests to OpenAI API
+# Model name mapping for OpenRouter
+OPENROUTER_MODEL_MAPPING = {
+    "gpt-4o": "openai/gpt-4o",
+    "gpt-4o-mini": "openai/gpt-4o-mini",
+    "gpt-4-turbo": "openai/gpt-4-turbo",
+    "gpt-4": "openai/gpt-4",
+    "gpt-3.5-turbo": "openai/gpt-3.5-turbo",
+    "gpt-3.5-turbo-16k": "openai/gpt-3.5-turbo-16k",
+}
+
+# Retry mechanism for making requests to OpenRouter API
 @retry(
     stop=stop_after_attempt(5),
     wait=wait_exponential(multiplier=1, min=4, max=10),
     retry=retry_if_exception_type((HTTPError, ConnectionError, Timeout))
 )
 def make_openai_request(api_key: str, model: str, temperature: float, messages: list) -> dict:
+    # Map model names to OpenRouter format if needed
+    openrouter_model = OPENROUTER_MODEL_MAPPING.get(model, model)
+    if openrouter_model != model:
+        logger.info(f"Mapped model '{model}' to OpenRouter model '{openrouter_model}'")
+    
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}"
+        "Authorization": f"Bearer {api_key}",
+        "HTTP-Referer": "https://github.com/enchant-book-manager",  # Required by OpenRouter
+        "X-Title": "EnChANT Book Manager - Renaming Phase"
     }
     data = {
-        "model": model,
+        "model": openrouter_model,
         "temperature": temperature,
-        "messages": messages
+        "messages": messages,
+        "usage": {"include": True}  # Request usage/cost information
     }
     try:
-        response = requests.post('https://api.openai.com/v1/chat/completions', headers=headers, json=data, timeout=10)
+        response = requests.post('https://openrouter.ai/api/v1/chat/completions', headers=headers, json=data, timeout=10)
         response.raise_for_status()
-        logger.info("OpenAI API request successful.")
+        logger.info("OpenRouter API request successful.")
         return response.json()
+    except HTTPError as e:
+        if e.response.status_code == 400 and "model" in e.response.text.lower():
+            logger.error(f"Model '{model}' (mapped to '{openrouter_model}') not available on OpenRouter.")
+            logger.error("Available OpenAI models on OpenRouter: " + ", ".join(OPENROUTER_MODEL_MAPPING.values()))
+            logger.error("For other models, use the full model name as listed on OpenRouter.")
+        raise
     except KeyboardInterrupt:
         logger.error("Request interrupted by user (Ctrl+C). Exiting gracefully.")
         sys.exit(1)
     except Exception as e:
-        logger.error(f"Error making OpenAI request: {e}")
+        logger.error(f"Error making OpenRouter request: {e}")
         raise
 
 # Function to find all eligible text files in a given folder
@@ -473,18 +497,32 @@ def process_novel_file(file_path: Path, api_key: str, model: str = 'gpt-4o-mini'
             logger.error(f"Missing keys in response data for file {file_path}: {response_data}")
             return False, file_path, {}
         
-        # Calculate cost
+        # Calculate cost - OpenRouter provides cost directly in the response
         usage = response.get('usage', {})
         prompt_tokens = usage.get('prompt_tokens', 0)
         completion_tokens = usage.get('completion_tokens', 0)
         total_tokens = usage.get('total_tokens', 0)
-
-        model_pricing = pricing_info.get(model, {})
-        if model_pricing:
-            input_cost_per_token = model_pricing.get('input_cost_per_token', 0.0)
-            output_cost_per_token = model_pricing.get('output_cost_per_token', 0.0)
-            cost = (prompt_tokens * input_cost_per_token) + (completion_tokens * output_cost_per_token)
+        
+        # OpenRouter provides cost directly
+        cost = usage.get('cost', 0.0)
+        
+        global cumulative_cost
+        
+        if cost > 0:
             logger.info(f"File '{file_path}' used {total_tokens} tokens. Cost: ${cost:.6f}")
+            # Update cumulative cost
+            with cumulative_cost_lock:
+                cumulative_cost += cost
+        else:
+            # Fallback to manual calculation if cost not provided
+            model_pricing = pricing_info.get(model, {})
+            if model_pricing:
+                input_cost_per_token = model_pricing.get('input_cost_per_token', 0.0)
+                output_cost_per_token = model_pricing.get('output_cost_per_token', 0.0)
+                cost = (prompt_tokens * input_cost_per_token) + (completion_tokens * output_cost_per_token)
+                logger.info(f"File '{file_path}' used {total_tokens} tokens. Cost: ${cost:.6f}")
+                with cumulative_cost_lock:
+                    cumulative_cost += cost
         
         # Determine new file path
         title_eng = sanitize_filename(response_data.get('novel_title_english', 'Unknown Title'))
@@ -672,12 +710,12 @@ def main():
         kb_to_read = config.get('kb_to_read', kb_to_read)
 
         # Load API key from config or environment
-        api_key = config.get('api_key') or os.getenv('OPENAI_API_KEY')
+        api_key = config.get('api_key') or os.getenv('OPENROUTER_API_KEY')
         if not api_key:
-            api_key = getpass.getpass("Please enter your OpenAI API key: ").strip()
+            api_key = getpass.getpass("Please enter your OpenRouter API key: ").strip()
 
         if not api_key:
-            logger.error("OpenAI API key is required. Please provide it via config file, environment variable, or input prompt.")
+            logger.error("OpenRouter API key is required. Please provide it via config file, environment variable (OPENROUTER_API_KEY), or input prompt.")
             sys.exit(1)
 
         # Load model pricing information

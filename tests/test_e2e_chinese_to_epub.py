@@ -567,7 +567,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             # Restore original ICLOUD value
             renamenovels.ICLOUD = original_icloud
 
-    @pytest.mark.timeout(30)
+    @pytest.mark.timeout(300)  # 5 minutes for real API calls
     def test_resume_functionality(self, temp_workspace, mock_openai_responses, mock_translation_responses):
         """Test resume functionality when process is interrupted"""
         
@@ -581,18 +581,15 @@ They needed to venture deep into the forest and clear out the magical beasts the
         
         try:
             # First run - complete only renaming phase
-            with patch('requests.post') as mock_post:
-                mock_post.return_value = Mock(
-                json=lambda: mock_openai_responses["修炼至尊.txt"],
-                raise_for_status=lambda: None
-            )
+            # Ensure OpenRouter API key is set
+            if not os.environ.get('OPENROUTER_API_KEY'):
+                pytest.skip("OPENROUTER_API_KEY not set")
             
             # Simulate interrupted process by only doing renaming
             cmd = [
                 sys.executable, str(project_root / "enchant_cli.py"),
                 str(test_novel),
                 "--config", str(config_file),
-                "--openai-api-key", "test_openai_key",
                 "--skip-translating",
                 "--skip-epub"
             ]
@@ -608,17 +605,12 @@ They needed to venture deep into the forest and clear out the magical beasts the
             # Verify renamed file exists
             renamed_files = list(temp_workspace.glob("Cultivation Supreme by Unknown Author*.txt"))
             assert len(renamed_files) == 1
+            renamed_file = renamed_files[0]  # Get the actual renamed file path
             
             # Second run - resume with translation and EPUB
-            with patch('requests.post') as mock_post:
-                mock_post.return_value = Mock(
-                json=lambda: mock_translation_responses["cultivation"],
-                raise_for_status=lambda: None
-            )
-            
             cmd = [
                 sys.executable, str(project_root / "enchant_cli.py"),
-                str(test_novel),
+                str(renamed_file),  # Use the renamed file path
                 "--config", str(config_file),
                 "--resume",
                 "--skip-renaming"  # Skip since already done

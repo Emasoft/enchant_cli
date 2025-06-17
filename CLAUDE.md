@@ -1,5 +1,11 @@
 # CLAUDE.md
 
+## API Configuration
+- The system uses OpenRouter API for both renaming and translation phases
+- Set `OPENROUTER_API_KEY` environment variable with your OpenRouter API key
+- OpenRouter provides unified cost tracking across all models
+- Model names are automatically mapped (e.g., "gpt-4o-mini" → "openai/gpt-4o-mini")
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## General Development Guidelines and Rules
