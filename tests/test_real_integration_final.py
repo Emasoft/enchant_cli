@@ -9,6 +9,7 @@ import os
 import time
 import logging
 import requests
+import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -20,6 +21,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("integration_test")
 
 
+@pytest.mark.slow
+@pytest.mark.skip(reason="Requires local LLM server running")
 class RealIntegrationTests:
     """Real integration tests that connect to LM Studio"""
     

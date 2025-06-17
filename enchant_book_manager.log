@@ -834,3 +834,380 @@ To resume translation from this point, use the --resume flag.
 2025-06-16 02:40:19,729 - __main__ - INFO - Phase 3: Generating EPUB for translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
 2025-06-16 02:40:19,729 - __main__ - INFO - Using provided translated file: tests/sample_novel/translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
 2025-06-16 02:40:19,751 - __main__ - INFO - Creating EPUB for: translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī)
+2025-06-16 19:46:05,527 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 19:46:05,527 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 19:46:05,556 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 19:46:05,556 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 19:46:05,556 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 19:46:06,351 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 19:46:06,351 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 19:46:06,351 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 19:46:06,351 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 19:46:07,192 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 19:46:07,192 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 19:46:07,192 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 19:46:07,192 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 19:46:07,192 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 20:00:27,379 - cli_translator - ERROR - Request exception: HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=300)
+2025-06-16 20:00:27,379 - cli_translator - ERROR - Request exception: HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=300)
+2025-06-16 20:00:27,379 - cli_translator - ERROR - Unexpected error during file translation: Request failed: HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=300)
+2025-06-16 20:00:27,379 - cli_translator - ERROR - Unexpected error during file translation: Request failed: HTTPConnectionPool(host='localhost', port=1234): Read timed out. (read timeout=300)
+2025-06-16 20:00:27,379 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 1/10: Translation returned empty or whitespace-only text
+2025-06-16 20:00:27,379 - cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 1/10: Translation returned empty or whitespace-only text
+2025-06-16 20:07:27,004 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 20:07:27,004 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 20:07:27,004 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 20:07:27,004 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 20:07:27,690 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 20:07:27,690 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 20:07:27,690 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 20:07:27,690 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-16 20:07:27,690 - cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1331, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 442, in import_book_from_txt
+    splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 700, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-17 03:53:09,730 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:53:09,731 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:53:12,736 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 03:53:12,741 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:53:12,742 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:53:15,745 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 03:53:15,749 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:53:15,750 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:53:19,753 - cli_translator - WARNING - Retry attempt 4/10 after 10.0s
+2025-06-17 03:53:19,759 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:53:19,759 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:53:27,764 - cli_translator - WARNING - Retry attempt 5/10 after 18.0s
+2025-06-17 03:53:27,767 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:53:27,767 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:54:10,557 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:54:10,557 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:54:13,562 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 03:54:13,566 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:54:13,566 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:54:16,569 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 03:54:16,574 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:54:16,574 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:54:20,577 - cli_translator - WARNING - Retry attempt 4/10 after 10.0s
+2025-06-17 03:54:20,581 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:54:20,581 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:54:28,586 - cli_translator - WARNING - Retry attempt 5/10 after 18.0s
+2025-06-17 03:54:28,591 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:54:28,591 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:55:11,017 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:55:11,017 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:55:14,021 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 03:55:14,024 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:55:14,024 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:55:17,025 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 03:55:17,029 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:55:17,030 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:55:21,030 - cli_translator - WARNING - Retry attempt 4/10 after 10.0s
+2025-06-17 03:55:21,037 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:55:21,038 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:55:29,043 - cli_translator - WARNING - Retry attempt 5/10 after 18.0s
+2025-06-17 03:55:29,047 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:55:29,047 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:56:10,056 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:56:10,056 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:56:13,061 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 03:56:13,065 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:56:13,065 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:56:16,070 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 03:56:16,074 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:56:16,075 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:56:20,078 - cli_translator - WARNING - Retry attempt 4/10 after 10.0s
+2025-06-17 03:56:20,082 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:56:20,082 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:56:28,087 - cli_translator - WARNING - Retry attempt 5/10 after 18.0s
+2025-06-17 03:56:28,091 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:56:28,091 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:57:12,794 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:57:12,794 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:57:15,798 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 03:57:15,801 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:57:15,802 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:57:18,806 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 03:57:18,810 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:57:18,810 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:57:22,815 - cli_translator - WARNING - Retry attempt 4/10 after 10.0s
+2025-06-17 03:57:22,819 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:57:22,819 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:57:30,821 - cli_translator - WARNING - Retry attempt 5/10 after 18.0s
+2025-06-17 03:57:30,825 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:57:30,825 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:58:35,652 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:58:35,652 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:58:38,652 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 03:58:38,655 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:58:38,656 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:58:41,660 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 03:58:41,664 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:58:41,664 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:58:45,669 - cli_translator - WARNING - Retry attempt 4/10 after 10.0s
+2025-06-17 03:58:45,673 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 03:58:45,673 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 04:00:03,292 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 04:00:03,292 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 04:00:06,296 - cli_translator - WARNING - Retry attempt 2/10 after 3.0s
+2025-06-17 04:00:06,300 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 04:00:06,301 - cli_translator - WARNING - Waiting 3.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 04:00:09,305 - cli_translator - WARNING - Retry attempt 3/10 after 6.0s
+2025-06-17 04:00:09,308 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 04:00:09,308 - cli_translator - WARNING - Waiting 4.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 04:00:13,311 - cli_translator - WARNING - Retry attempt 4/10 after 10.0s
+2025-06-17 04:00:13,318 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 04:00:13,318 - cli_translator - WARNING - Waiting 8.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 04:00:21,323 - cli_translator - WARNING - Retry attempt 5/10 after 18.0s
+2025-06-17 04:00:21,326 - cli_translator - ERROR - HTTP error occurred: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions
+2025-06-17 04:00:21,326 - cli_translator - WARNING - Waiting 16.0s before retry. Error: HTTP error: 404 Client Error: Not Found for url: http://localhost:1234/v1/chat/completions

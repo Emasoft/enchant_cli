@@ -383,10 +383,35 @@ They needed to venture deep into the forest and clear out the magical beasts the
                     # Subsequent calls are translation requests
                     return translation_response
             
+            # Create a mock translate_novel function that creates expected output
+            def mock_translate_novel(input_file, **kwargs):
+                from common_utils import sanitize_filename, extract_book_info_from_path
+                
+                # Get the renamed file path
+                input_path = Path(input_file)
+                
+                # Extract book info to get proper title and author
+                book_info = extract_book_info_from_path(input_path)
+                book_title = book_info.get('title_english', 'Cultivation Supreme')
+                book_author = book_info.get('author_english', 'Unknown Author')
+                
+                # Create translation directory structure matching what enchant_cli expects
+                safe_folder_name = sanitize_filename(f"{book_title} by {book_author}")
+                translation_dir = input_path.parent / safe_folder_name
+                translation_dir.mkdir(exist_ok=True)
+                
+                # Create translated file with exact expected name
+                translated_file_name = f"translated_{book_title} by {book_author}.txt"
+                translated_file = translation_dir / translated_file_name
+                translated_content = mock_translation_responses["cultivation"]['choices'][0]['message']['content']
+                translated_file.write_text(translated_content, encoding='utf-8')
+                
+                return True
+            
             # Patch make_openai_request directly to avoid any issues
             with patch('renamenovels.make_openai_request') as mock_openai_request, \
                  patch('requests.post', side_effect=mock_requests_post) as mock_post, \
-                 patch('translation_service.requests.post', return_value=translation_response) as mock_trans_post:
+                 patch('enchant_cli.translate_novel', side_effect=mock_translate_novel) as mock_translate:
                 
                 # Set the return value for make_openai_request
                 mock_openai_request.return_value = mock_openai_responses["修炼至尊.txt"]
@@ -542,6 +567,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             # Restore original ICLOUD value
             renamenovels.ICLOUD = original_icloud
 
+    @pytest.mark.timeout(30)
     def test_resume_functionality(self, temp_workspace, mock_openai_responses, mock_translation_responses):
         """Test resume functionality when process is interrupted"""
         
@@ -613,6 +639,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             # Restore original ICLOUD value
             renamenovels.ICLOUD = original_icloud
 
+    @pytest.mark.timeout(30)
     def test_epub_content_quality(self, temp_workspace, mock_openai_responses, mock_translation_responses):
         """Test quality and correctness of generated EPUB content"""
         

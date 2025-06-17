@@ -318,14 +318,14 @@ def split_text_db(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str
     except Exception as e:
         # Log error and fallback to non-database method
         log_issue(f"Database processing failed: {e}")
-        return split_text(text, detect_headings)
+        return split_text(text, detect_headings, force_no_db=True)
     finally:
         # Always close database if using original approach
         if not DB_OPTIMIZED:
             close_database()
 
 
-def split_text(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str]], List[int]]:
+def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> Tuple[List[Tuple[str, str]], List[int]]:
     """
     Enhanced version with:
     1. Position/quote checking for chapter patterns
@@ -333,10 +333,15 @@ def split_text(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str]],
     3. Sub-numbering for multi-part chapters
     
     For large files (>100K lines), automatically uses database optimization.
+    
+    Args:
+        text: The text to split
+        detect_headings: Whether to detect chapter headings
+        force_no_db: Force non-database processing (used for fallback)
     """
-    # Use database optimization for large files
+    # Use database optimization for large files (unless forced not to)
     lines = text.splitlines()
-    if len(lines) > 100000:
+    if not force_no_db and len(lines) > 100000:
         try:
             return split_text_db(text, detect_headings)
         except Exception:

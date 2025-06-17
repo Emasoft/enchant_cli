@@ -1,0 +1,35 @@
+AI Translation Cost Log
+======================
+
+Novel:  by  n.d. 
+Translation Date: 2025-06-16 16:57:12
+API Service: OpenRouter (Remote)
+Model: deepseek/deepseek-chat
+
+
+=== Translation Cost Summary ===
+Model: deepseek/deepseek-chat
+API Type: remote
+Total Cost: $0.001096
+Total Requests: 2
+Total Tokens: 2,159
+  - Prompt Tokens: 1,795
+  - Completion Tokens: 364
+Average Cost per Request: $0.000548
+Average Tokens per Request: 1,079
+
+
+Detailed Breakdown:
+-------------------
+Total Chunks Translated: 1
+Average Cost per Chapter: $0.001096
+Average Tokens per Chapter: 2,159
+
+
+Raw Data:
+---------
+total_cost: 0.00109568
+total_tokens: 2159
+total_prompt_tokens: 1795
+total_completion_tokens: 364
+request_count: 2

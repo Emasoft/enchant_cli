@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# HERE IS THE CHANGELOG FOR THIS VERSION OF THE CODE:
+# - Initial implementation of enhanced TOC builder
+# - Added hierarchical TOC support (Parts -> Books -> Sections -> Chapters)
+# - Added proper XML escaping for special characters
+# - Added EPUB3 navigation document support
+# - Added backward compatibility with flat TOC structure
+# 
+
 """
 Enhanced TOC generation for EPUB files.
 Supports hierarchical structure and better chapter organization.

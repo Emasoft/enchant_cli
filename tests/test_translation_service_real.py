@@ -22,6 +22,8 @@ from translation_service import (
 )
 
 
+@pytest.mark.slow
+@pytest.mark.skip(reason="Requires local LLM server running at localhost:1234")
 class TestChineseAITranslatorReal:
     """Real API tests for ChineseAITranslator"""
     

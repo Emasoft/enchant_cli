@@ -265,7 +265,7 @@ def create_epub_from_chapters(
         (tmppath / "mimetype").write_text(MIMETYPE, encoding="ascii")
         
         # Write container.xml
-        container_xml = f'''<?xml version="1.0" encoding="UTF-8"?>
+        container_xml = '''<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
     <rootfiles>
         <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
@@ -285,12 +285,12 @@ def create_epub_from_chapters(
             manifest_items.append(f'<item id="cover-image" href="cover.jpg" media-type="{mime}"/>')
             
             # Create cover HTML
-            cover_html = f'''<!DOCTYPE html>
+            cover_html = '''<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>Cover</title>
     <style type="text/css">
-        img {{ max-width: 100%; }}
+        img { max-width: 100%; }
     </style>
 </head>
 <body>

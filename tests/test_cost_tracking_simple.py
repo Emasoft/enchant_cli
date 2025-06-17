@@ -8,12 +8,6 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Disable retries for testing
-import tenacity
-def no_retry_call(self, fn, *args, **kwargs):
-    return fn(*args, **kwargs)
-tenacity.Retrying.__call__ = no_retry_call
-
 from unittest.mock import Mock, patch
 from translation_service import ChineseAITranslator
 
@@ -25,16 +19,18 @@ def test_remote_cost_tracking():
     # Create translator
     translator = ChineseAITranslator(
         use_remote=True,
-        api_key="test_key"
+        api_key="test_key",
+        double_pass=False  # Disable double translation for testing
     )
     
     # Mock API response with cost data
-    with patch('requests.post') as mock_post:
+    with patch('requests.post') as mock_post, \
+         patch('time.sleep', return_value=None):
         mock_response = Mock()
         mock_response.json.return_value = {
             'choices': [{
                 'message': {
-                    'content': 'Translated text in English'
+                    'content': 'This is a much longer translated text in English. ' * 10  # Make it over 300 chars
                 }
             }],
             'usage': {
@@ -68,10 +64,11 @@ def test_remote_cost_tracking():
     
     # Make 3 more requests
     for i in range(3):
-        with patch('requests.post') as mock_post:
+        with patch('requests.post') as mock_post, \
+             patch('time.sleep', return_value=None):
             mock_response = Mock()
             mock_response.json.return_value = {
-                'choices': [{'message': {'content': f'Translation {i}'}}],
+                'choices': [{'message': {'content': f'This is translation number {i}. ' * 20}}],
                 'usage': {
                     'prompt_tokens': 200,
                     'completion_tokens': 100,
@@ -119,10 +116,11 @@ def test_local_api_no_cost():
         pricing_manager=Mock()
     )
     
-    with patch('requests.post') as mock_post:
+    with patch('requests.post') as mock_post, \
+         patch('time.sleep', return_value=None):
         mock_response = Mock()
         mock_response.json.return_value = {
-            'choices': [{'message': {'content': 'Translation'}}],
+            'choices': [{'message': {'content': 'This is a long translation for local API testing. ' * 10}}],
             'usage': {
                 'prompt_tokens': 100,
                 'completion_tokens': 50,

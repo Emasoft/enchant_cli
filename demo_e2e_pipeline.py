@@ -67,7 +67,7 @@ def demo_complete_pipeline():
     
     print(f"\n📖 Created test Chinese novel: {test_file.name}")
     print(f"   Content length: {len(chinese_content)} characters")
-    print(f"   Contains 3 chapters in Chinese")
+    print("   Contains 3 chapters in Chinese")
     
     try:
         from enchant_cli import process_novel_unified
@@ -213,7 +213,7 @@ From then on, Li Ming's life completely changed. He was no longer an ordinary hi
                     chapter_files = list(translation_dir.glob("*Chapter*.txt"))
                     combined_file = translation_dir / f"translated_{book_title}.txt"
                     
-                    print(f"✅ Translation completed successfully!")
+                    print("✅ Translation completed successfully!")
                     print(f"   Translation directory: {translation_dir}")
                     print(f"   Chapter files created: {len(chapter_files)}")
                     if combined_file.exists():
@@ -271,7 +271,7 @@ From then on, Li Ming's life completely changed. He was no longer an ordinary hi
         return False
     finally:
         # Clean up test files
-        print(f"\n🧹 Cleaning up test files...")
+        print("\n🧹 Cleaning up test files...")
         
         # Clean up original and renamed files
         for pattern in ["*.txt", "*.epub"]:
@@ -281,7 +281,7 @@ From then on, Li Ming's life completely changed. He was no longer an ordinary hi
                         if f.is_file():
                             f.unlink()
                             print(f"   Deleted: {f.name}")
-                    except:
+                    except Exception:
                         pass
         
         # Clean up translation directory
@@ -290,7 +290,7 @@ From then on, Li Ming's life completely changed. He was no longer an ordinary hi
             try:
                 shutil.rmtree(translation_dir)
                 print(f"   Deleted directory: {translation_dir}")
-            except:
+            except Exception:
                 pass
     
     return True

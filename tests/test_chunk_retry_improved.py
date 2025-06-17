@@ -198,7 +198,8 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
             # Should have retried
             assert self.mock_translator.translate.call_count == 5
     
-    def test_constants_used_correctly(self):
+    @patch('cli_translator.time.sleep')
+    def test_constants_used_correctly(self, mock_sleep):
         """Test that constants are used instead of magic numbers"""
         # Check that DEFAULT_MAX_CHUNK_RETRIES is used when no config
         with patch('cli_translator._module_config', None):

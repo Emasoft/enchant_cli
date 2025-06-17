@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import os
+import sys
 import logging
 import requests
 import json
@@ -36,8 +37,8 @@ from common_text_utils import (
 
 # Constant parameters: 
 DEFAULT_CHUNK_SIZE = 12000  # max chars for each chunk of chinese text to send to the server
-CONNECTION_TIMEOUT = 30    # max seconds to wait for connecting with the server (reduced from 100)
-RESPONSE_TIMEOUT = 300     # max seconds to wait for the server response (reduced from 3000)
+CONNECTION_TIMEOUT = 60    # max seconds to wait for connecting with the server (1 minute)
+RESPONSE_TIMEOUT = 360     # max seconds to wait for the server response (6 minutes total)
 DEFAULT_MAX_TOKENS = 4000  # Default max tokens for API responses
 
 # Define a custom exception for translation failures
@@ -48,27 +49,82 @@ class TranslationException(Exception):
 def retry_with_tenacity(method):
     @wraps(method)
     def wrapper(self, *args, **kwargs):
-        # Get retry settings from instance or use defaults
-        max_retries = getattr(self, 'max_retries', 7)
-        retry_wait_base = getattr(self, 'retry_wait_base', 1.0)
-        retry_wait_min = getattr(self, 'retry_wait_min', 3.0)
-        retry_wait_max = getattr(self, 'retry_wait_max', 60.0)
+        # Improved retry settings with time limit
+        max_retries = 10  # Maximum 10 retries
+        total_time_limit = 18 * 60  # 18 minutes total time limit
+        retry_wait_base = 1.0
+        retry_wait_min = 3.0
+        retry_wait_max = 30.0  # Max 30 seconds between retries
         
-        @retry(
-            stop=stop_after_attempt(max_retries),
-            wait=wait_exponential(multiplier=retry_wait_base, min=retry_wait_min, max=retry_wait_max),
-            retry=retry_if_exception_type((
-                requests.exceptions.RequestException,
-                requests.exceptions.HTTPError,
-                TranslationException
-            )),
-            before_sleep=before_sleep_log(self.logger, logging.WARNING)
-        )
-        @wraps(method)
-        def inner(*args, **kwargs):
-            return method(self, *args, **kwargs)
-
-        return inner(*args, **kwargs)
+        start_time = time.time()
+        attempts = 0
+        last_exception = None
+        
+        while attempts < max_retries:
+            attempts += 1
+            elapsed_time = time.time() - start_time
+            
+            # Check if we've exceeded total time limit
+            if elapsed_time >= total_time_limit:
+                error_msg = (f"Translation failed: Exceeded total time limit of {total_time_limit/60:.1f} minutes "
+                           f"after {attempts} attempts. Last error: {last_exception}")
+                self.logger.error(error_msg)
+                # Exit the program on failure - never continue
+                print(f"\n❌ FATAL ERROR: {error_msg}")
+                sys.exit(1)
+            
+            try:
+                # Log attempt
+                if attempts > 1:
+                    self.logger.warning(f"Retry attempt {attempts}/{max_retries} after {elapsed_time:.1f}s")
+                
+                # Call the actual method
+                result = method(self, *args, **kwargs)
+                
+                # Success! Return the result
+                if attempts > 1:
+                    self.logger.info(f"Successfully completed after {attempts} attempts in {elapsed_time:.1f}s")
+                return result
+                
+            except (requests.exceptions.RequestException, 
+                    requests.exceptions.HTTPError,
+                    TranslationException) as e:
+                last_exception = e
+                
+                # Check if we should retry
+                if attempts >= max_retries:
+                    error_msg = f"Translation failed after {max_retries} retries: {e}"
+                    self.logger.error(error_msg)
+                    print(f"\n❌ FATAL ERROR: {error_msg}")
+                    sys.exit(1)
+                
+                # Check time limit again before waiting
+                elapsed_time = time.time() - start_time
+                if elapsed_time >= total_time_limit:
+                    error_msg = (f"Translation failed: Exceeded total time limit of {total_time_limit/60:.1f} minutes "
+                               f"after {attempts} attempts. Last error: {e}")
+                    self.logger.error(error_msg)
+                    print(f"\n❌ FATAL ERROR: {error_msg}")
+                    sys.exit(1)
+                
+                # Calculate wait time with exponential backoff
+                wait_time = min(retry_wait_base * (2 ** (attempts - 1)), retry_wait_max)
+                wait_time = max(wait_time, retry_wait_min)
+                
+                # Don't wait if it would exceed time limit
+                if elapsed_time + wait_time >= total_time_limit:
+                    wait_time = max(0, total_time_limit - elapsed_time - 1)
+                
+                if wait_time > 0:
+                    self.logger.warning(f"Waiting {wait_time:.1f}s before retry. Error: {e}")
+                    time.sleep(wait_time)
+                    
+        # Should never reach here, but just in case
+        error_msg = f"Translation failed: Unexpected exit from retry loop"
+        self.logger.error(error_msg)
+        print(f"\n❌ FATAL ERROR: {error_msg}")
+        sys.exit(1)
+        
     return wrapper
     
 

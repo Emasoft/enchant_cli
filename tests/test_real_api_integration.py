@@ -10,6 +10,7 @@ import os
 import time
 import requests
 from pathlib import Path
+import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -17,6 +18,8 @@ from translation_service import ChineseAITranslator
 from cli_translator import split_chinese_text_in_parts
 
 
+@pytest.mark.slow
+@pytest.mark.skip(reason="Requires local LLM server running")
 class TestRealAPIIntegration:
     """Integration tests that connect to real APIs"""
     

@@ -1024,3 +1024,34 @@ A comprehensive Chinese novel translation and EPUB generation system with three 
 - Frontend/Nodejs: pnpm, eslint
 - AI/ML libraries: openai, litellm, google-generativeai (for certain features)
 
+
+
+### Pytest Timeout Configuration
+
+pytest-timeout prevents tests from hanging indefinitely.
+
+# Installation (already included in dev dependencies)
+uv add pytest-timeout --dev
+
+# Usage
+Run the test suite with a global timeout in seconds:
+pytest --timeout=300
+
+# Per-test timeout using decorator
+@pytest.mark.timeout(60)
+def test_foo():
+    pass
+
+# Configuration priority (from low to high):
+1. Global timeout in pytest.ini: 
+   [pytest]
+   timeout = 300
+2. PYTEST_TIMEOUT environment variable
+3. --timeout command line option
+4. @pytest.mark.timeout() decorator on individual tests
+
+# Disable timeout for specific test
+@pytest.mark.timeout(0)
+def test_long_running():
+    pass
+EOF < /dev/null
