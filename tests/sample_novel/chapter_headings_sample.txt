@@ -1,0 +1,15 @@
+Chapter Number
+Line Number
+Found String
+
+1
+58
+Chapter One: The Script Is Wrong
+
+2
+232
+Chapter Two: Must Take the Martial Arts Examination!
+
+3
+438
+Chapter Three: Poor Literature, Rich Martial Arts

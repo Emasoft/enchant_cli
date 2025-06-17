@@ -1,6 +1,0 @@
-api_key: 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
-kb_to_read: 50
-max_workers: 1
-min_file_size_kb: 100
-model: gpt-4o-mini
-temperature: 0.0

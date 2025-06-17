@@ -18,3 +18,65 @@ errors_*.log
 
 # Test temporary directories
 temp_test_chapter_parsing/
+
+# Cleanup archive
+.cleanup_archive/
+
+# Novel files and directories (too large for version control)
+*by*Author*/
+*by*Unknown*/
+*Cultivation*/
+*Supreme*/
+*Returning*after*/
+*Translated*/
+*Chasing*Beauty*/
+*The*Dragon*/
+*Test*Novel*/
+*Local*Test*/
+
+# Temporary book files
+translated_*
+Translated*
+*by*Unknown*
+Supreme*
+The*King*
+Cultivation*
+Urban*
+Magic*
+Test*Novel*
+*章节*
+*第*章*
+*Chapter*.txt
+!tests/sample_novel/sample_chapters.txt
+!tests/sample_novel/chapter_headings.txt
+
+# Large novel files
+*.txt
+!requirements.txt
+!tests/**/*.txt
+translated_*.epub
+*.epub
+
+# Reports and logs
+*_report.md
+*_summary.md
+mypy*.txt
+mypy*.json
+*_output.log
+
+# Backup files
+*.backup
+*_backup.py
+BACKUPS/
+*_BAK/
+
+# Lock files
+*.lock
+
+# macOS
+.DS_Store
+
+# Cache directories
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/

@@ -5,10 +5,10 @@
 Test for Phase 3 chapter parsing logic.
 
 This test verifies that enchant_cli.py correctly uses the TOC parser from make_epub.py
-to identify chapter headings when generating an EPUB from a full translated novel file.
+to identify chapter headings when generating an EPUB from a translated novel file.
 
-The test uses a complete novel (600K+ lines) to ensure the program handles real-world
-file sizes correctly. No truncation or sampling is done - the full file is processed.
+The test uses a sample of the first 3 chapters (500 lines) to ensure fast test execution
+while still validating the core functionality.
 """
 
 import pytest
@@ -25,8 +25,8 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 # Check if sample files exist
-sample_novel_path = project_root / "tests" / "sample_novel" / "translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt"
-chapter_headings_path = project_root / "tests" / "sample_novel" / "chapter_headings.txt"
+sample_novel_path = project_root / "tests" / "sample_novel" / "sample_chapters.txt"
+chapter_headings_path = project_root / "tests" / "sample_novel" / "chapter_headings_sample.txt"
 sample_files_exist = sample_novel_path.exists() and chapter_headings_path.exists()
 
 
@@ -37,12 +37,12 @@ class TestChapterParsingPhase3:
     @pytest.fixture
     def sample_novel_path(self):
         """Path to the sample translated novel"""
-        return project_root / "tests" / "sample_novel" / "translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt"
+        return project_root / "tests" / "sample_novel" / "sample_chapters.txt"
     
     @pytest.fixture
     def expected_chapters_path(self):
         """Path to the expected chapter headings file"""
-        return project_root / "tests" / "sample_novel" / "chapter_headings.txt"
+        return project_root / "tests" / "sample_novel" / "chapter_headings_sample.txt"
     
     @pytest.fixture
     def expected_chapters(self, expected_chapters_path):
@@ -92,12 +92,12 @@ class TestChapterParsingPhase3:
             old_epub.unlink()
             print(f"Cleaned up existing EPUB: {old_epub.name}")
         
-        # Verify we're working with the full file
+        # Verify file info
         file_size = sample_novel_path.stat().st_size
         line_count = sum(1 for _ in open(sample_novel_path, 'r', encoding='utf-8'))
-        print("Testing with full novel file:")
+        print("Testing with sample novel file:")
         print(f"  - Path: {sample_novel_path}")
-        print(f"  - Size: {file_size / 1024 / 1024:.1f} MB")
+        print(f"  - Size: {file_size / 1024:.1f} KB")
         print(f"  - Lines: {line_count:,}")
         
         # Create temp directory inside the repo
@@ -113,11 +113,11 @@ class TestChapterParsingPhase3:
                 "--translated", str(sample_novel_path)
             ]
             
-            # Run the command with longer timeout for large file
-            print("Generating EPUB from full novel (this may take a few minutes)...")
+            # Run the command
+            print("Generating EPUB from sample novel...")
             import time
             start_time = time.time()
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(temp_dir), timeout=600)
+            result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(temp_dir), timeout=60)
             elapsed = time.time() - start_time
             print(f"EPUB generation completed in {elapsed:.1f} seconds")
             

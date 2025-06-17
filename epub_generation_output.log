@@ -1,6 +1,0 @@
-2025-06-16 00:51:25,343 - model_pricing - INFO - Loaded model pricing data from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
-2025-06-16 00:51:25,344 - __main__ - INFO - --translated option provided, automatically skipping renaming and translation phases
-2025-06-16 00:51:25,344 - __main__ - INFO - Starting unified processing for file: tests/sample_novel/translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
-2025-06-16 00:51:25,344 - __main__ - INFO - Phase 3: Generating EPUB for translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
-2025-06-16 00:51:25,344 - __main__ - INFO - Using provided translated file: tests/sample_novel/translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī).txt
-2025-06-16 00:51:25,369 - __main__ - INFO - Creating EPUB for: translated_Global High Martial Arts by Eagle Eats Chick (Lǎo yīng chī xiǎo jī)
