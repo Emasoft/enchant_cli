@@ -357,6 +357,7 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
     seq = []
     buf = []
     cur_title = None
+    cur_num = None  # Track the current chapter's number
     front_done = False
     last_num: Optional[int] = None
     blank_only = True
@@ -421,11 +422,12 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
                 front_done = True
 
             if cur_title:
-                raw_chapters.append((cur_title, "\n".join(buf).strip(), last_num))
+                raw_chapters.append((cur_title, "\n".join(buf).strip(), cur_num))
                 buf.clear()
 
-            subtitle = (m.group("rest") or "").strip()
-            cur_title = f"Chapter {num}{(' – ' + subtitle) if subtitle else ''}"
+            # Use the original line text as the chapter title
+            cur_title = line.strip()
+            cur_num = num  # Save the current chapter's number
             seq.append(num)
         else:
             buf.append(line)
@@ -433,12 +435,13 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
                 blank_only = False
 
     if cur_title:
-        raw_chapters.append((cur_title, "\n".join(buf).strip(), last_num))
+        raw_chapters.append((cur_title, "\n".join(buf).strip(), cur_num))
     elif buf:
         raw_chapters.append(("Content", "\n".join(buf).strip(), None))
     
     # Second pass: apply sub-numbering to multi-part chapters
     chapter_counts: Dict[int, int] = {}
+    
     for title, content, num in raw_chapters:
         if num is not None and title.startswith("Chapter "):
             chapter_counts[num] = chapter_counts.get(num, 0) + 1
@@ -459,13 +462,18 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
             part_counters[num] = part_counters.get(num, 0) + 1
             part_num = part_counters[num]
             
-            # Extract subtitle from original title
-            subtitle_match = re.match(r'Chapter \d+[a-z]?\s*[–:]\s*(.+)', title)
-            if subtitle_match:
-                subtitle = subtitle_match.group(1)
-                new_title = f"Chapter {num}.{part_num}: {subtitle}"
+            # For multi-part chapters, append part number to original title
+            # Try to insert the part number after the chapter number
+            # Match various chapter patterns to insert part number appropriately
+            if re.match(r'^Chapter\s+\w+:', title, re.IGNORECASE):
+                # "Chapter One: Title" -> "Chapter One.1: Title"
+                new_title = re.sub(r'^(Chapter\s+\w+):', rf'\1.{part_num}:', title, flags=re.IGNORECASE)
+            elif re.match(r'^Chapter\s+\w+\s', title, re.IGNORECASE):
+                # "Chapter One Title" -> "Chapter One.1 Title"
+                new_title = re.sub(r'^(Chapter\s+\w+)(\s)', rf'\1.{part_num}\2', title, flags=re.IGNORECASE)
             else:
-                new_title = f"Chapter {num}.{part_num}"
+                # Fallback: just append part number
+                new_title = f"{title} (Part {part_num})"
             
             chapters.append((new_title, content))
     
