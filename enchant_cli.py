@@ -148,9 +148,9 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
             progress['phases']['renaming']['error'] = 'Module not available'
         else:
             # Get API key for renaming
-            api_key = getattr(args, 'openai_api_key', None) or os.getenv('OPENAI_API_KEY')
+            api_key = getattr(args, 'openai_api_key', None) or os.getenv('OPENROUTER_API_KEY')
             if not api_key:
-                tolog.error("OpenAI API key required for renaming. Use --openai-api-key or set OPENAI_API_KEY env var")
+                tolog.error("OpenRouter API key required for renaming. Use --openai-api-key or set OPENROUTER_API_KEY env var")
                 progress['phases']['renaming']['status'] = 'failed'
                 progress['phases']['renaming']['error'] = 'No API key'
             else:
@@ -663,7 +663,7 @@ BEHAVIOR:
   • --translated allows EPUB from any text file
 
 API KEYS:
-  • Renaming requires OpenAI API key (--openai-api-key or OPENAI_API_KEY env)
+  • Renaming requires OpenRouter API key (--openai-api-key or OPENROUTER_API_KEY env)
   • Translation uses local LM Studio by default (--remote for OpenRouter)
   • Remote translation requires OPENROUTER_API_KEY environment variable
 """
@@ -715,7 +715,7 @@ API KEYS:
                         help="Path to already translated text file for direct EPUB generation. Automatically implies --skip-renaming and --skip-translating. Makes filepath argument optional")
     
     # API key for renaming (if not skipped)
-    parser.add_argument("--openai-api-key", type=str, help="OpenAI API key for novel renaming (can also use OPENAI_API_KEY env var)")
+    parser.add_argument("--openai-api-key", type=str, help="OpenRouter API key for novel renaming (can also use OPENROUTER_API_KEY env var)")
     
     # Add configuration override arguments
     parser.add_argument("--timeout", type=int,

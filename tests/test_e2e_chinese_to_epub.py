@@ -418,7 +418,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
                 
                 # Set environment
                 env = os.environ.copy()
-                env['OPENAI_API_KEY'] = 'test_openai_key'
+                env['OPENROUTER_API_KEY'] = 'test_openai_key'
                 
                 # Run enchant_cli as subprocess to test actual CLI
                 cmd = [
@@ -534,7 +534,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
                 ]
                 
                 with patch('sys.argv', cmd[1:]), \
-                     patch.dict(os.environ, {'OPENAI_API_KEY': 'test_openai_key'}):
+                     patch.dict(os.environ, {'OPENROUTER_API_KEY': 'test_openai_key'}):
                     
                     # Save current directory and change to test workspace
                     original_cwd = os.getcwd()

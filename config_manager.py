@@ -261,7 +261,7 @@ novel_renaming:
   
   # OpenAI API settings for metadata extraction
   openai:
-    # API key for OpenAI (can also be set via OPENAI_API_KEY environment variable)
+    # API key for OpenRouter (can also be set via OPENROUTER_API_KEY environment variable)
     api_key: null
     # Model to use for metadata extraction (default: gpt-4o-mini)
     model: "gpt-4o-mini"
@@ -1061,7 +1061,7 @@ class ConfigManager:
         # Check environment variables first
         env_vars = {
             'openrouter': 'OPENROUTER_API_KEY',
-            'openai': 'OPENAI_API_KEY'
+            'openai': 'OPENROUTER_API_KEY'
         }
         
         env_key = os.getenv(env_vars.get(service, ''))

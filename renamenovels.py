@@ -25,6 +25,7 @@ import concurrent.futures
 import threading
 import waiting  # Ensure this library is installed: pip install waiting
 from common_file_utils import decode_full_file
+from cost_tracker import global_cost_tracker
 
 # ==========================
 # ICloudSync Class Definition
@@ -196,7 +197,7 @@ file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 
-ICLOUD = True  # Set this to True if you are using iCloud
+ICLOUD = False  # Set this to True if you are using iCloud (requires downloadFolder/downloadFile commands)
 
 SUPPORTED_ENCODINGS = [
     'utf-8', 'ascii', 'latin-1', 'macroman', 'windows-1252', 'cp850', 'iso-8859-3', 'iso-8859-15', 'cp437',
@@ -406,9 +407,7 @@ def extract_json(response_content: str) -> Optional[dict]:
             logger.error("No JSON object found in the response content.")
             return None
 
-# Global variables for cumulative cost
-cumulative_cost = 0.0
-cumulative_cost_lock = threading.Lock()
+# Global cost tracker is imported from cost_tracker module
 
 def process_novel_file(file_path: Path, api_key: str, model: str = 'gpt-4o-mini', 
                       temperature: float = 0.0, dry_run: bool = False) -> tuple[bool, Path, dict]:
@@ -497,32 +496,9 @@ def process_novel_file(file_path: Path, api_key: str, model: str = 'gpt-4o-mini'
             logger.error(f"Missing keys in response data for file {file_path}: {response_data}")
             return False, file_path, {}
         
-        # Calculate cost - OpenRouter provides cost directly in the response
+        # Track cost using unified cost tracker
         usage = response.get('usage', {})
-        prompt_tokens = usage.get('prompt_tokens', 0)
-        completion_tokens = usage.get('completion_tokens', 0)
-        total_tokens = usage.get('total_tokens', 0)
-        
-        # OpenRouter provides cost directly
-        cost = usage.get('cost', 0.0)
-        
-        global cumulative_cost
-        
-        if cost > 0:
-            logger.info(f"File '{file_path}' used {total_tokens} tokens. Cost: ${cost:.6f}")
-            # Update cumulative cost
-            with cumulative_cost_lock:
-                cumulative_cost += cost
-        else:
-            # Fallback to manual calculation if cost not provided
-            model_pricing = pricing_info.get(model, {})
-            if model_pricing:
-                input_cost_per_token = model_pricing.get('input_cost_per_token', 0.0)
-                output_cost_per_token = model_pricing.get('output_cost_per_token', 0.0)
-                cost = (prompt_tokens * input_cost_per_token) + (completion_tokens * output_cost_per_token)
-                logger.info(f"File '{file_path}' used {total_tokens} tokens. Cost: ${cost:.6f}")
-                with cumulative_cost_lock:
-                    cumulative_cost += cost
+        cost = global_cost_tracker.track_usage(usage, str(file_path))
         
         # Determine new file path
         title_eng = sanitize_filename(response_data.get('novel_title_english', 'Unknown Title'))
@@ -561,7 +537,6 @@ def process_novel_file(file_path: Path, api_key: str, model: str = 'gpt-4o-mini'
 
 # Helper function to process a single file (used by batch processing)
 def process_single_file(file_path: Path, kb_to_read: int, api_key: str, model: str, temperature: float, pricing_info: dict, icloud_sync: ICloudSync):
-    global cumulative_cost
     content = decode_file_content(file_path, kb_to_read, icloud_sync)
     if content is None:
         logger.error(f"Skipping file {file_path} due to decoding errors or iCloud sync failure.")
@@ -618,27 +593,9 @@ def process_single_file(file_path: Path, kb_to_read: int, api_key: str, model: s
             logger.error(f"Missing keys in response data for file {file_path}: {response_data}")
             return
 
-        # Calculate cost
+        # Track cost using unified cost tracker
         usage = response.get('usage', {})
-        prompt_tokens = usage.get('prompt_tokens', 0)
-        completion_tokens = usage.get('completion_tokens', 0)
-        total_tokens = usage.get('total_tokens', 0)
-
-        model_pricing = pricing_info.get(model)
-        if not model_pricing:
-            logger.warning(f"No pricing information found for model '{model}'. Unable to calculate cost.")
-            cost = 0.0
-        else:
-            input_cost_per_token = model_pricing.get('input_cost_per_token', 0.0)
-            output_cost_per_token = model_pricing.get('output_cost_per_token', 0.0)
-            # Calculate cost
-            cost = (prompt_tokens * input_cost_per_token) + (completion_tokens * output_cost_per_token)
-
-        logger.info(f"File '{file_path}' used {total_tokens} tokens. Cost: ${cost:.6f}")
-
-        # Accumulate the cost
-        with cumulative_cost_lock:
-            cumulative_cost += cost
+        cost = global_cost_tracker.track_usage(usage, str(file_path))
 
         rename_file(file_path, response_data)
     except JSONDecodeError as e:
@@ -681,7 +638,9 @@ def process_files(folder_or_path: Path, recursive: bool, kb_to_read: int, api_ke
         except Exception as e:
             logger.error(f"An error occurred during file processing: {e}")
 
-    logger.info(f"Total cost for all transactions: ${cumulative_cost:.6f}")
+    # Get final cost summary
+    summary = global_cost_tracker.get_summary()
+    logger.info(f"Total cost for all transactions: ${summary['total_cost']:.6f}")
 
 # Argument parsing
 def parse_args():
@@ -718,8 +677,12 @@ def main():
             logger.error("OpenRouter API key is required. Please provide it via config file, environment variable (OPENROUTER_API_KEY), or input prompt.")
             sys.exit(1)
 
-        # Load model pricing information
-        pricing_info = load_model_pricing()
+        # Load model pricing information (optional - OpenRouter provides costs directly)
+        try:
+            pricing_info = load_model_pricing()
+        except Exception as e:
+            logger.warning(f"Could not load pricing info (not needed for OpenRouter): {e}")
+            pricing_info = {}
 
         # Initialize ICloudSync
         icloud_sync = ICloudSync(icloud_enabled=False)

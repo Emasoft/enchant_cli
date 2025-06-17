@@ -10,10 +10,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from unittest.mock import Mock, patch
 from translation_service import ChineseAITranslator
+from cost_tracker import global_cost_tracker
 
 
 def test_remote_cost_tracking():
     """Test cost tracking for remote API"""
+    # Reset global tracker before test
+    global_cost_tracker.reset()
     print("\nTesting remote cost tracking...")
     
     # Create translator
@@ -46,12 +49,13 @@ def test_remote_cost_tracking():
         # Make translation request
         result = translator.translate("中文文本")
         
-        # Verify cost tracking
-        assert translator.total_cost == 0.0015
-        assert translator.total_tokens == 150
-        assert translator.total_prompt_tokens == 100
-        assert translator.total_completion_tokens == 50
-        assert translator.request_count == 1
+        # Verify cost tracking through global tracker
+        summary = global_cost_tracker.get_summary()
+        assert summary['total_cost'] == 0.0015
+        assert summary['total_tokens'] == 150
+        assert summary['total_prompt_tokens'] == 100
+        assert summary['total_completion_tokens'] == 50
+        assert summary['request_count'] == 1
         
         # Verify usage tracking was enabled
         call_args = mock_post.call_args
@@ -82,9 +86,10 @@ def test_remote_cost_tracking():
             translator.translate(f"Text {i}")
     
     # Verify cumulative tracking
-    assert translator.total_cost == 0.0015 + (0.003 * 3)  # 0.0105
-    assert translator.total_tokens == 150 + (300 * 3)     # 1050
-    assert translator.request_count == 4
+    summary = global_cost_tracker.get_summary()
+    assert summary['total_cost'] == 0.0015 + (0.003 * 3)  # 0.0105
+    assert summary['total_tokens'] == 150 + (300 * 3)     # 1050
+    assert summary['request_count'] == 4
     
     print("✓ Cumulative cost tracking works correctly")
     
@@ -101,14 +106,17 @@ def test_remote_cost_tracking():
     # Test reset
     print("\nTesting cost reset...")
     translator.reset_cost_tracking()
-    assert translator.total_cost == 0.0
-    assert translator.request_count == 0
+    summary = global_cost_tracker.get_summary()
+    assert summary['total_cost'] == 0.0
+    assert summary['request_count'] == 0
     
     print("✓ Cost reset works correctly")
 
 
 def test_local_api_no_cost():
     """Test that local API doesn't track costs"""
+    # Reset global tracker before test
+    global_cost_tracker.reset()
     print("\nTesting local API (no cost tracking)...")
     
     translator = ChineseAITranslator(
@@ -132,9 +140,9 @@ def test_local_api_no_cost():
         
         result = translator.translate("Text")
         
-        # No cost tracking for local API
-        assert translator.total_cost == 0.0
-        assert translator.request_count == 0
+        # For local API, cost should remain 0
+        summary = translator.get_cost_summary()
+        assert summary['total_cost'] == 0.0
         
         # Verify usage was NOT requested
         call_args = mock_post.call_args

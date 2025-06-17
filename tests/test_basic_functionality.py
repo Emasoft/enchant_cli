@@ -16,22 +16,30 @@ tenacity.Retrying.__call__ = no_retry_call
 
 from translation_service import ChineseAITranslator, is_latin_charset
 from common_text_utils import clean, limit_repeated_chars, remove_html_markup
+from cost_tracker import global_cost_tracker
 
 
 def test_basic_initialization():
     """Test basic translator initialization"""
+    # Reset global cost tracker before test
+    global_cost_tracker.reset()
+    
     # Local translator
     translator = ChineseAITranslator(use_remote=False)
     assert not translator.is_remote
-    assert translator.total_cost == 0.0
     assert translator.request_count == 0
+    # Check global cost tracker instead of translator.total_cost
+    summary = global_cost_tracker.get_summary()
+    assert summary['total_cost'] == 0.0
     print("✓ Local translator initialized correctly")
     
     # Remote translator
     translator = ChineseAITranslator(use_remote=True, api_key="test_key")
     assert translator.is_remote
     assert translator.api_key == "test_key"
-    assert translator.total_cost == 0.0
+    # Check global cost tracker
+    summary = global_cost_tracker.get_summary()
+    assert summary['total_cost'] == 0.0
     print("✓ Remote translator initialized correctly")
 
 
@@ -80,13 +88,21 @@ def test_html_processing():
 
 def test_cost_tracking():
     """Test cost tracking functionality"""
+    # Reset global tracker
+    global_cost_tracker.reset()
+    
     translator = ChineseAITranslator(use_remote=True, api_key="test_key")
     
-    # Manually update costs (simulating API response)
-    with translator._cost_lock:
-        translator.total_cost = 0.05
-        translator.total_tokens = 1000
-        translator.request_count = 2
+    # Simulate API response with cost tracking
+    usage_data = {
+        'cost': 0.05,
+        'total_tokens': 1000,
+        'prompt_tokens': 600,
+        'completion_tokens': 400
+    }
+    # Track usage through global tracker
+    global_cost_tracker.track_usage(usage_data)
+    global_cost_tracker.track_usage({'cost': 0.0, 'total_tokens': 0})  # Second request
     
     summary = translator.get_cost_summary()
     assert summary['total_cost'] == 0.05
@@ -97,8 +113,9 @@ def test_cost_tracking():
     
     # Test reset
     translator.reset_cost_tracking()
-    assert translator.total_cost == 0.0
-    assert translator.request_count == 0
+    summary = global_cost_tracker.get_summary()
+    assert summary['total_cost'] == 0.0
+    assert summary['request_count'] == 0
     print("✓ Cost reset works correctly")
 
 
@@ -118,16 +135,21 @@ def test_remove_thinking_block():
 
 def test_format_cost_summary():
     """Test cost summary formatting"""
-    translator = ChineseAITranslator(use_remote=True, api_key="test")
+    # Reset global tracker
+    global_cost_tracker.reset()
     
-    # Set test values
-    with translator._cost_lock:
-        translator.total_cost = 0.15
-        translator.total_tokens = 5000
-        translator.total_prompt_tokens = 3000
-        translator.total_completion_tokens = 2000
-        translator.request_count = 5
-        translator.MODEL_NAME = "test-model"
+    translator = ChineseAITranslator(use_remote=True, api_key="test")
+    translator.MODEL_NAME = "test-model"
+    
+    # Simulate API responses with cost tracking
+    for i in range(5):
+        usage_data = {
+            'cost': 0.03,  # 0.15 total for 5 requests
+            'total_tokens': 1000,
+            'prompt_tokens': 600,
+            'completion_tokens': 400
+        }
+        global_cost_tracker.track_usage(usage_data)
     
     summary = translator.format_cost_summary()
     assert "Total Cost: $0.150000" in summary

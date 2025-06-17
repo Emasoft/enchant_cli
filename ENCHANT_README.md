@@ -41,7 +41,7 @@ pip install -r requirements.txt
 - `--skip-epub` - Skip the EPUB generation phase
 
 ### Configuration
-- `--openai-api-key` - API key for renaming phase (or set OPENAI_API_KEY env)
+- `--openai-api-key` - API key for renaming phase (or set OPENROUTER_API_KEY env)
 - `--remote` - Use remote translation API instead of local LM Studio
 - `--encoding` - File encoding (default: utf-8)
 - `--max_chars` - Maximum characters per chapter (default: 12000)

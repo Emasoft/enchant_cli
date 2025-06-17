@@ -27,6 +27,7 @@ import string
 import functools
 import html
 import time
+from cost_tracker import global_cost_tracker
 from common_text_utils import (
     clean, replace_repeated_chars, limit_repeated_chars,
     remove_html_markup, extract_code_blocks, extract_inline_code,
@@ -388,12 +389,9 @@ class ChineseAITranslator:
         # Double pass setting
         self.double_pass = double_pass
         
-        # Initialize cumulative cost tracking for remote API
+        # Cost tracking is handled by global_cost_tracker from cost_tracker module
+        # Keep local counters for backward compatibility and session-specific stats
         self._cost_lock = threading.Lock()
-        self.total_cost = 0.0
-        self.total_tokens = 0
-        self.total_prompt_tokens = 0
-        self.total_completion_tokens = 0
         self.request_count = 0
         
         if self.is_remote:
@@ -635,30 +633,20 @@ class ChineseAITranslator:
                 usage = result['usage']
                 
                 if self.is_remote:
-                    # Use OpenRouter's built-in cost tracking
+                    # Use unified cost tracker for OpenRouter
+                    cost = global_cost_tracker.track_usage(usage)
                     with self._cost_lock:
-                        cost = usage.get('cost', 0.0)
-                        if isinstance(cost, (int, float)) and cost > 0:
-                            self.total_cost += cost
-                            self.request_count += 1
-                            self.total_tokens += usage.get('total_tokens', 0)
-                            self.total_prompt_tokens += usage.get('prompt_tokens', 0)
-                            self.total_completion_tokens += usage.get('completion_tokens', 0)
-                            
-                            self.log("\n=== Token Usage ===")
-                            self.log(f"Prompt tokens: {usage.get('prompt_tokens', 0)}")
-                            self.log(f"Completion tokens: {usage.get('completion_tokens', 0)}")
-                            self.log(f"Total tokens: {usage.get('total_tokens', 0)}")
-                            self.log(f"Cost for this request: ${cost:.6f}")
-                            self.log(f"Cumulative cost: ${self.total_cost:.6f}")
-                            self.log(f"Total requests so far: {self.request_count}")
-                        else:
-                            # Still track token usage even without cost
-                            self.request_count += 1
-                            self.total_tokens += usage.get('total_tokens', 0)
-                            self.total_prompt_tokens += usage.get('prompt_tokens', 0)
-                            self.total_completion_tokens += usage.get('completion_tokens', 0)
-                            self.log("Warning: Cost information not available in response", "warning")
+                        self.request_count += 1
+                    
+                    self.log("\n=== Token Usage ===")
+                    self.log(f"Prompt tokens: {usage.get('prompt_tokens', 0)}")
+                    self.log(f"Completion tokens: {usage.get('completion_tokens', 0)}")
+                    self.log(f"Total tokens: {usage.get('total_tokens', 0)}")
+                    if cost > 0:
+                        self.log(f"Cost for this request: ${cost:.6f}")
+                    summary = global_cost_tracker.get_summary()
+                    self.log(f"Cumulative cost: ${summary['total_cost']:.6f}")
+                    self.log(f"Total requests so far: {summary['request_count']}")
                 elif self.pricing_manager:
                     # For local API, use pricing manager for statistics only
                     try:
@@ -765,25 +753,22 @@ class ChineseAITranslator:
     
     def get_cost_summary(self) -> Dict[str, Any]:
         """Get cumulative cost summary for remote API usage."""
-        with self._cost_lock:
-            if self.is_remote:
-                return {
-                    'total_cost': self.total_cost,
-                    'total_tokens': self.total_tokens,
-                    'total_prompt_tokens': self.total_prompt_tokens,
-                    'total_completion_tokens': self.total_completion_tokens,
-                    'request_count': self.request_count,
-                    'average_cost_per_request': self.total_cost / self.request_count if self.request_count > 0 else 0,
-                    'model': self.MODEL_NAME,
-                    'api_type': 'remote'
-                }
-            else:
-                return {
-                    'total_cost': 0.0,
-                    'message': 'Local API - no costs incurred',
-                    'model': self.MODEL_NAME,
-                    'api_type': 'local'
-                }
+        # Get summary from global cost tracker
+        summary = global_cost_tracker.get_summary()
+        
+        # Add model and API type information
+        summary['model'] = self.MODEL_NAME
+        
+        if self.is_remote:
+            summary['api_type'] = 'remote'
+        else:
+            summary['api_type'] = 'local'
+            summary['message'] = 'Local API - no costs incurred'
+            # Override cost fields for local API
+            summary['total_cost'] = 0.0
+            summary['average_cost_per_request'] = 0.0
+            
+        return summary
     
     def format_cost_summary(self) -> str:
         """Format cost summary for display."""
@@ -809,11 +794,11 @@ class ChineseAITranslator:
     
     def reset_cost_tracking(self) -> None:
         """Reset cost tracking counters."""
+        # Reset global tracker
+        global_cost_tracker.reset()
+        
+        # Reset local counter
         with self._cost_lock:
-            self.total_cost = 0.0
-            self.total_tokens = 0
-            self.total_prompt_tokens = 0
-            self.total_completion_tokens = 0
             self.request_count = 0
 
 
