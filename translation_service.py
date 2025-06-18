@@ -24,10 +24,7 @@ import string
 import functools
 import time
 from cost_tracker import global_cost_tracker
-from common_text_utils import (
-    clean, SENTENCE_ENDING, CLOSING_QUOTES, NON_BREAKING,
-    CHINESE_PUNCTUATION, ENGLISH_PUNCTUATION, ALL_PUNCTUATION
-)
+from common_text_utils import clean
 
 
 # Constant parameters: 
@@ -115,7 +112,7 @@ def retry_with_tenacity(method):
                     time.sleep(wait_time)
                     
         # Should never reach here, but just in case
-        error_msg = f"Translation failed: Unexpected exit from retry loop"
+        error_msg = "Translation failed: Unexpected exit from retry loop"
         self.logger.error(error_msg)
         print(f"\n❌ FATAL ERROR: {error_msg}")
         sys.exit(1)
@@ -221,9 +218,6 @@ USER_PROMPT_2NDPASS_QWEN = """;; Examine the following text containing a mix of 
 
 """
 
-# All punctuation constants are imported from common_text_utils:
-# SENTENCE_ENDING, CLOSING_QUOTES, NON_BREAKING, ALL_PUNCTUATION
-# CHINESE_PUNCTUATION, ENGLISH_PUNCTUATION
 
 # PARAGRAPH DELIMITERS (characters that denote new paragraphs)
 # PARAGRAPH_DELIMITERS is already defined at the module level, no need to redefine it here.

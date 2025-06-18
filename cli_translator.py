@@ -94,8 +94,7 @@ from cost_tracker import global_cost_tracker
 # Import common text processing utilities
 from common_text_utils import (
     clean, replace_repeated_chars, clean_adverts,
-    ALL_PUNCTUATION, SENTENCE_ENDING, CLOSING_QUOTES, NON_BREAKING,
-    CHINESE_PUNCTUATION, ENGLISH_PUNCTUATION
+    ALL_PUNCTUATION, SENTENCE_ENDING, CLOSING_QUOTES, NON_BREAKING
 )
 
 # Global variables - will be initialized in main()
@@ -114,7 +113,6 @@ MAX_RETRY_WAIT_SECONDS = 60
 
 # All punctuation constants are imported from common_text_utils:
 # SENTENCE_ENDING, CLOSING_QUOTES, NON_BREAKING, ALL_PUNCTUATION
-# CHINESE_PUNCTUATION, ENGLISH_PUNCTUATION
 
 
 # PARAGRAPH DELIMITERS (characters that denote new paragraphs)

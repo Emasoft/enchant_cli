@@ -427,8 +427,8 @@ def run_all_real_tests():
         if response.status_code != 200:
             print("⚠️  LM Studio server not responding properly")
             return
-    except:
-        print("⚠️  Cannot connect to LM Studio server at http://127.0.0.1:1234")
+    except Exception as e:
+        print(f"⚠️  Cannot connect to LM Studio server at http://127.0.0.1:1234: {e}")
         print("Please ensure LM Studio is running")
         return
     

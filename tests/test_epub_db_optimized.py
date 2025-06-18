@@ -29,7 +29,7 @@ class TestEpubDatabaseOptimized(unittest.TestCase):
             if not db.is_closed():
                 TextLine.delete().execute()
                 Chapter.delete().execute()
-        except:
+        except Exception:
             pass  # Tables might not exist if test closed the connection
         close_database()
     
