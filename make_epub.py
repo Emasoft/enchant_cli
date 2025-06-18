@@ -96,6 +96,30 @@ HEADING_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Regex patterns for detecting part notation in chapter titles
+PART_PATTERNS = [
+    # Fraction patterns: 1/3, 2/3, [1/3], (1 of 3)
+    re.compile(r'\b(\d+)\s*/\s*(\d+)\b'),
+    re.compile(r'\[(\d+)\s*/\s*(\d+)\]'),
+    re.compile(r'\((\d+)\s*of\s*(\d+)\)', re.IGNORECASE),
+    re.compile(r'\((\d+)\s*out\s*of\s*(\d+)\)', re.IGNORECASE),
+    # Part word patterns: part 1, part one, pt. 1
+    re.compile(r'\bpart\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b', re.IGNORECASE),
+    re.compile(r'\bpt\.?\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b', re.IGNORECASE),
+    # Dash number patterns: - 1, - 2
+    re.compile(r'\s+-\s+(\d+)\s*$'),
+    # Roman numeral patterns at end: I, II, III
+    re.compile(r'\s+([IVX]+)\s*$'),
+]
+
+def has_part_notation(title: str) -> bool:
+    """Check if a title contains part notation patterns."""
+    for pattern in PART_PATTERNS:
+        if pattern.search(title):
+            return True
+    return False
+
+
 _SINGLE = {
     "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4,
     "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
@@ -439,26 +463,78 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
     elif buf:
         raw_chapters.append(("Content", "\n".join(buf).strip(), None))
     
-    # Second pass: apply sub-numbering to multi-part chapters
-    chapter_counts: Dict[int, int] = {}
+    # Second pass: analyze patterns to determine which chapters need sub-numbering
+    chapter_groups: Dict[int, List[Tuple[str, str, Optional[int]]]] = {}
     
-    for title, content, num in raw_chapters:
-        if num is not None and title.startswith("Chapter "):
-            chapter_counts[num] = chapter_counts.get(num, 0) + 1
+    # Group chapters by their number
+    for idx, (title, content, num) in enumerate(raw_chapters):
+        if num is not None:
+            if num not in chapter_groups:
+                chapter_groups[num] = []
+            chapter_groups[num].append((title, content, num))
     
-    # Third pass: generate final chapters with sub-numbering
+    # Analyze each group to determine if sub-numbering is needed
+    needs_subnumbering: Dict[int, bool] = {}
+    
+    for num, group in chapter_groups.items():
+        if len(group) > 1:
+            # Multiple chapters with same number - check if they have part notation
+            has_parts = any(has_part_notation(title) for title, _, _ in group)
+            
+            # Also check if it's a letter suffix case (14a, 14b, 14c)
+            has_letter_suffix = any(
+                re.search(rf'\b{num}[a-z]\b', title, re.IGNORECASE) 
+                for title, _, _ in group
+            )
+            
+            # Need sub-numbering if multiple chapters share a number
+            needs_subnumbering[num] = True
+        else:
+            # Single chapter with this number - check if it's part of a sequence
+            # Look for part notation that might indicate it's part of a larger sequence
+            title = group[0][0]
+            
+            # If it has part notation, check adjacent chapters
+            if has_part_notation(title):
+                # Find this chapter's position in raw_chapters
+                for idx, (t, _, n) in enumerate(raw_chapters):
+                    if n == num and t == title:
+                        # Check previous and next chapters
+                        prev_has_parts = (idx > 0 and 
+                                        raw_chapters[idx-1][2] is not None and
+                                        has_part_notation(raw_chapters[idx-1][0]))
+                        next_has_parts = (idx < len(raw_chapters) - 1 and
+                                        raw_chapters[idx+1][2] is not None and
+                                        has_part_notation(raw_chapters[idx+1][0]))
+                        
+                        # If adjacent chapters also have part notation with different numbers,
+                        # then this is likely sequential numbering, not sub-parts
+                        if (prev_has_parts or next_has_parts):
+                            prev_num = raw_chapters[idx-1][2] if idx > 0 else None
+                            next_num = raw_chapters[idx+1][2] if idx < len(raw_chapters) - 1 else None
+                            
+                            # Sequential if numbers are different
+                            if (prev_num != num and prev_num is not None) or \
+                               (next_num != num and next_num is not None):
+                                needs_subnumbering[num] = False
+                            else:
+                                needs_subnumbering[num] = True
+                        else:
+                            needs_subnumbering[num] = False
+                        break
+            else:
+                needs_subnumbering[num] = False
+    
+    # Third pass: generate final chapters with sub-numbering only where needed
     chapters = []
     part_counters: Dict[int, int] = {}
     
     for title, content, num in raw_chapters:
-        if num is None or not title.startswith("Chapter "):
+        if num is None:
             # Non-chapter content (Front Matter, etc.)
             chapters.append((title, content))
-        elif chapter_counts.get(num, 1) == 1:
-            # Single chapter - keep as is
-            chapters.append((title, content))
-        else:
-            # Multi-part chapter - add sub-number
+        elif needs_subnumbering.get(num, False):
+            # This chapter needs sub-numbering
             part_counters[num] = part_counters.get(num, 0) + 1
             part_num = part_counters[num]
             
@@ -476,6 +552,9 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
                 new_title = f"{title} (Part {part_num})"
             
             chapters.append((new_title, content))
+        else:
+            # Single chapter or sequential numbering - keep as is
+            chapters.append((title, content))
     
     return chapters, seq
 
