@@ -465,13 +465,15 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
     
     # Second pass: analyze patterns to determine which chapters need sub-numbering
     chapter_groups: Dict[int, List[Tuple[str, str, Optional[int]]]] = {}
+    chapter_index: Dict[Tuple[Optional[int], str], int] = {}  # Map (num, title) to index for O(1) lookup
     
-    # Group chapters by their number
+    # Group chapters by their number and build index
     for idx, (title, content, num) in enumerate(raw_chapters):
         if num is not None:
             if num not in chapter_groups:
                 chapter_groups[num] = []
             chapter_groups[num].append((title, content, num))
+            chapter_index[(num, title)] = idx
     
     # Analyze each group to determine if sub-numbering is needed
     needs_subnumbering: Dict[int, bool] = {}
@@ -496,32 +498,31 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
             
             # If it has part notation, check adjacent chapters
             if has_part_notation(title):
-                # Find this chapter's position in raw_chapters
-                for idx, (t, _, n) in enumerate(raw_chapters):
-                    if n == num and t == title:
-                        # Check previous and next chapters
-                        prev_has_parts = (idx > 0 and 
-                                        raw_chapters[idx-1][2] is not None and
-                                        has_part_notation(raw_chapters[idx-1][0]))
-                        next_has_parts = (idx < len(raw_chapters) - 1 and
-                                        raw_chapters[idx+1][2] is not None and
-                                        has_part_notation(raw_chapters[idx+1][0]))
+                # Use index for O(1) lookup instead of linear search
+                idx = chapter_index.get((num, title))
+                if idx is not None:
+                    # Check previous and next chapters
+                    prev_has_parts = (idx > 0 and 
+                                    raw_chapters[idx-1][2] is not None and
+                                    has_part_notation(raw_chapters[idx-1][0]))
+                    next_has_parts = (idx < len(raw_chapters) - 1 and
+                                    raw_chapters[idx+1][2] is not None and
+                                    has_part_notation(raw_chapters[idx+1][0]))
+                    
+                    # If adjacent chapters also have part notation with different numbers,
+                    # then this is likely sequential numbering, not sub-parts
+                    if (prev_has_parts or next_has_parts):
+                        prev_num = raw_chapters[idx-1][2] if idx > 0 else None
+                        next_num = raw_chapters[idx+1][2] if idx < len(raw_chapters) - 1 else None
                         
-                        # If adjacent chapters also have part notation with different numbers,
-                        # then this is likely sequential numbering, not sub-parts
-                        if (prev_has_parts or next_has_parts):
-                            prev_num = raw_chapters[idx-1][2] if idx > 0 else None
-                            next_num = raw_chapters[idx+1][2] if idx < len(raw_chapters) - 1 else None
-                            
-                            # Sequential if numbers are different
-                            if (prev_num != num and prev_num is not None) or \
-                               (next_num != num and next_num is not None):
-                                needs_subnumbering[num] = False
-                            else:
-                                needs_subnumbering[num] = True
-                        else:
+                        # Sequential if numbers are different
+                        if (prev_num != num and prev_num is not None) or \
+                           (next_num != num and next_num is not None):
                             needs_subnumbering[num] = False
-                        break
+                        else:
+                            needs_subnumbering[num] = True
+                    else:
+                        needs_subnumbering[num] = False
             else:
                 needs_subnumbering[num] = False
     
