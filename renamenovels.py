@@ -60,6 +60,14 @@ SUPPORTED_ENCODINGS = [
 
 # Load configuration from YAML file
 def load_config() -> dict:
+    """
+    Load configuration from YAML file or create default.
+    
+    Creates a default config file if none exists.
+    
+    Returns:
+        Dictionary containing configuration settings
+    """
     default_config = {
         'model': 'gpt-4o-mini',
         'temperature': 0.0,
@@ -111,6 +119,24 @@ OPENROUTER_MODEL_MAPPING = {
     retry=retry_if_exception_type((HTTPError, ConnectionError, Timeout))
 )
 def make_openai_request(api_key: str, model: str, temperature: float, messages: list) -> dict:
+    """
+    Make request to OpenRouter API with retry logic.
+    
+    Maps model names to OpenRouter format and handles errors.
+    
+    Args:
+        api_key: OpenRouter API key
+        model: Model name (will be mapped to OpenRouter format)
+        temperature: Temperature setting for the model
+        messages: List of message dictionaries for the chat
+        
+    Returns:
+        API response dictionary
+        
+    Raises:
+        HTTPError: If API request fails
+        KeyboardInterrupt: If interrupted by user
+    """
     # Map model names to OpenRouter format if needed
     openrouter_model = OPENROUTER_MODEL_MAPPING.get(model, model)
     if openrouter_model != model:
@@ -148,6 +174,18 @@ def make_openai_request(api_key: str, model: str, temperature: float, messages: 
 
 # Function to find all eligible text files in a given folder
 def find_text_files(folder_path: Path, recursive: bool) -> list:
+    """
+    Find all eligible text files in a given folder.
+    
+    Filters out hidden files and files smaller than MIN_FILE_SIZE_KB.
+    
+    Args:
+        folder_path: Directory to search in
+        recursive: Whether to search subdirectories
+        
+    Returns:
+        List of Path objects for eligible text files
+    """
     txt_files = []
 
     if recursive:
@@ -202,6 +240,16 @@ def sanitize_filename(name: str) -> str:
 
 # Function to rename the original file with novel information
 def rename_file(file_path: Path, data: dict) -> None:
+    """
+    Rename file based on extracted novel metadata.
+    
+    Creates filename in format: "Title by Author (Romanized) - Original Title by Original Author.txt"
+    Handles naming collisions by appending a counter.
+    
+    Args:
+        file_path: Path to the file to rename
+        data: Dictionary containing novel metadata
+    """
     title_eng = sanitize_filename(data.get('novel_title_english', 'Unknown Title'))
     author_eng = sanitize_filename(data.get('author_name_english', 'Unknown Author'))
     author_roman = sanitize_filename(data.get('author_name_romanized', 'Unknown'))
@@ -367,6 +415,19 @@ def process_novel_file(file_path: Path, api_key: str, model: str = 'gpt-4o-mini'
 
 # Helper function to process a single file (used by batch processing)
 def process_single_file(file_path: Path, kb_to_read: int, api_key: str, model: str, temperature: float, icloud_sync: ICloudSync) -> None:
+    """
+    Process a single file for batch processing.
+    
+    Decodes content, extracts metadata via API, and renames the file.
+    
+    Args:
+        file_path: Path to the file to process
+        kb_to_read: KB to read from file start
+        api_key: OpenRouter API key
+        model: Model name to use
+        temperature: Temperature setting
+        icloud_sync: iCloud sync handler
+    """
     content = decode_file_content(file_path, kb_to_read, icloud_sync)
     if content is None:
         logger.error(f"Skipping file {file_path} due to decoding errors or iCloud sync failure.")
@@ -437,6 +498,21 @@ def process_single_file(file_path: Path, kb_to_read: int, api_key: str, model: s
 
 # Function to process all files
 def process_files(folder_or_path: Path, recursive: bool, kb_to_read: int, api_key: str, model: str, temperature: float, max_workers: int, icloud_sync: ICloudSync) -> None:
+    """
+    Process all eligible files in parallel.
+    
+    Uses ThreadPoolExecutor for concurrent processing.
+    
+    Args:
+        folder_or_path: Directory to process
+        recursive: Whether to search subdirectories
+        kb_to_read: KB to read from each file
+        api_key: OpenRouter API key
+        model: Model name to use
+        temperature: Temperature setting
+        max_workers: Maximum concurrent threads
+        icloud_sync: iCloud sync handler
+    """
     txt_files = find_text_files(folder_or_path, recursive=recursive)
     if not txt_files:
         logger.error("No eligible text files found to process. Please check the folder or file pattern and ensure files are not hidden or too small.")
@@ -473,6 +549,12 @@ def process_files(folder_or_path: Path, recursive: bool, kb_to_read: int, api_ke
 
 # Argument parsing
 def parse_args() -> argparse.Namespace:
+    """
+    Parse command line arguments.
+    
+    Returns:
+        Namespace object with parsed arguments
+    """
     parser = argparse.ArgumentParser(
         description=f"Novel Auto Renamer v{VERSION}\nAutomatically rename text files based on extracted novel information.",
         epilog="Example usage:\n  python renamenovels.py /path/to/folder -r -k 50",
@@ -486,6 +568,11 @@ def parse_args() -> argparse.Namespace:
 
 # Entry point of the script
 def main() -> None:
+    """
+    Main entry point for the script.
+    
+    Loads configuration, processes arguments, and starts file processing.
+    """
     try:
         args = parse_args()
         kb_to_read = args.kb
