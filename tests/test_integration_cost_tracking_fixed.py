@@ -8,6 +8,7 @@ import os
 import sys
 from unittest.mock import Mock, patch
 import threading
+import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -20,6 +21,10 @@ with patch('cli_translator.ConfigManager'):
 
 class TestCostTrackingIntegration:
     """Integration tests for OpenRouter cost tracking"""
+    
+    def setup_method(self):
+        """Reset global cost tracker before each test"""
+        global_cost_tracker.reset()
     
     def mock_config(self):
         """Mock configuration for testing - using exact production values"""
@@ -60,7 +65,8 @@ class TestCostTrackingIntegration:
         translator = ChineseAITranslator(
             use_remote=True,
             api_key="test_key",
-            temperature=0.05  # Production override value
+            temperature=0.05,  # Production override value
+            double_pass=False  # Disable double pass for predictable cost tracking
         )
         
         # Mock API response with cost data and time.sleep to avoid test delays
@@ -69,7 +75,7 @@ class TestCostTrackingIntegration:
             mock_response.json.return_value = {
                 'choices': [{
                     'message': {
-                        'content': 'Translated text'
+                        'content': 'This is a much longer translated text that contains enough characters to pass the minimum length validation. The translation service requires at least 300 characters for non-final chunks to ensure the translation is complete and meaningful. This mock response provides sufficient content to satisfy that requirement and allow the test to proceed without triggering validation errors.'
                     }
                 }],
                 'usage': {
@@ -103,13 +109,14 @@ class TestCostTrackingIntegration:
         translator = ChineseAITranslator(
             use_remote=True,
             api_key="test_key",
-            temperature=0.05  # Production value
+            temperature=0.05,  # Production value
+            double_pass=False  # Disable double pass for predictable cost tracking
         )
         
         # Mock multiple API responses
         responses = [
             {
-                'choices': [{'message': {'content': 'Translation 1'}}],
+                'choices': [{'message': {'content': 'This is translation number one with enough characters to pass the minimum length validation. The translation service requires at least 300 characters for non-final chunks to ensure the translation is complete and meaningful. This mock response provides sufficient content to satisfy that requirement and allow the test to proceed without triggering validation errors for the first translation.'}}],
                 'usage': {
                     'prompt_tokens': 100,
                     'completion_tokens': 50,
@@ -118,7 +125,7 @@ class TestCostTrackingIntegration:
                 }
             },
             {
-                'choices': [{'message': {'content': 'Translation 2'}}],
+                'choices': [{'message': {'content': 'This is translation number two with enough characters to pass the minimum length validation. The translation service requires at least 300 characters for non-final chunks to ensure the translation is complete and meaningful. This mock response provides sufficient content to satisfy that requirement and allow the test to proceed without triggering validation errors for the second translation.'}}],
                 'usage': {
                     'prompt_tokens': 200,
                     'completion_tokens': 100,
@@ -127,7 +134,7 @@ class TestCostTrackingIntegration:
                 }
             },
             {
-                'choices': [{'message': {'content': 'Translation 3'}}],
+                'choices': [{'message': {'content': 'This is translation number three with enough characters to pass the minimum length validation. The translation service requires at least 300 characters for non-final chunks to ensure the translation is complete and meaningful. This mock response provides sufficient content to satisfy that requirement and allow the test to proceed without triggering validation errors for the third translation.'}}],
                 'usage': {
                     'prompt_tokens': 150,
                     'completion_tokens': 75,
@@ -154,7 +161,7 @@ class TestCostTrackingIntegration:
             
             # Verify cumulative tracking through global_cost_tracker
             summary = global_cost_tracker.get_summary()
-            assert summary['total_cost'] == 0.00675  # Sum of all costs
+            assert summary['total_cost'] == pytest.approx(0.00675)  # Sum of all costs
             assert summary['total_tokens'] == 675    # Sum of all tokens
             assert summary['total_prompt_tokens'] == 450
             assert summary['total_completion_tokens'] == 225
@@ -166,7 +173,8 @@ class TestCostTrackingIntegration:
         translator = ChineseAITranslator(
             use_remote=True,
             api_key="test_key",
-            temperature=0.05  # Production value
+            temperature=0.05,  # Production value
+            double_pass=False  # Disable double pass for predictable cost tracking
         )
         
         # Mock global_cost_tracker summary
@@ -180,34 +188,35 @@ class TestCostTrackingIntegration:
                 'average_cost_per_request': 0.004938
             }
             translator.request_count = 25
-        
-        # Get formatted summary
-        summary = translator.format_cost_summary()
-        
-        # Verify formatting
-        assert "Total Cost: $0.123450" in summary
-        assert "Total Requests: 25" in summary
-        assert "Total Tokens: 50,000" in summary
-        assert "Prompt Tokens: 30,000" in summary
-        assert "Completion Tokens: 20,000" in summary
-        assert "Average Cost per Request: $0.004938" in summary
-        assert "Average Tokens per Request: 2,000" in summary
-        assert "Model: deepseek/deepseek-r1:nitro" in summary
-        assert "API Type: remote" in summary
+            
+            # Get formatted summary
+            summary = translator.format_cost_summary()
+            
+            # Verify formatting
+            assert "Total Cost: $0.123450" in summary
+            assert "Total Requests: 25" in summary
+            assert "Total Tokens: 50,000" in summary
+            assert "Prompt Tokens: 30,000" in summary
+            assert "Completion Tokens: 20,000" in summary
+            assert "Average Cost per Request: $0.004938" in summary
+            assert "Average Tokens per Request: 2,000" in summary
+            assert "Model: deepseek/deepseek-r1:nitro" in summary
+            assert "API Type: remote" in summary
     
     def test_cost_tracking_with_missing_cost_field(self):
         """Test handling of responses without cost information"""
         translator = ChineseAITranslator(
             use_remote=True,
             api_key="test_key",
-            temperature=0.05  # Production value
+            temperature=0.05,  # Production value
+            double_pass=False  # Disable double pass for predictable cost tracking
         )
         
         with patch('requests.post') as mock_post, patch('time.sleep'):
             # Response without cost field
             mock_response = Mock()
             mock_response.json.return_value = {
-                'choices': [{'message': {'content': 'Translation'}}],
+                'choices': [{'message': {'content': 'This is a translated text with enough characters to pass the minimum length validation. The translation service requires at least 300 characters for non-final chunks to ensure the translation is complete and meaningful. This mock response provides sufficient content to satisfy that requirement and allow the test to proceed without triggering validation errors in the test scenario.'}}],
                 'usage': {
                     'prompt_tokens': 100,
                     'completion_tokens': 50,
@@ -233,7 +242,8 @@ class TestCostTrackingIntegration:
         translator = ChineseAITranslator(
             use_remote=True,
             api_key="test_key",
-            temperature=0.05  # Production value
+            temperature=0.05,  # Production value
+            double_pass=False  # Disable double pass for predictable cost tracking
         )
         
         # Function to simulate concurrent API calls
@@ -241,7 +251,7 @@ class TestCostTrackingIntegration:
             with patch('requests.post') as mock_post, patch('time.sleep'):
                 mock_response = Mock()
                 mock_response.json.return_value = {
-                    'choices': [{'message': {'content': f'Translation {request_id}'}}],
+                    'choices': [{'message': {'content': f'This is translation {request_id} with enough characters to pass the minimum length validation. The translation service requires at least 300 characters for non-final chunks to ensure the translation is complete and meaningful. This mock response provides sufficient content to satisfy that requirement and allow the test to proceed without triggering validation errors.'}}],
                     'usage': {
                         'prompt_tokens': 100,
                         'completion_tokens': 50,
@@ -269,7 +279,7 @@ class TestCostTrackingIntegration:
         
         # Verify thread-safe accumulation (allowing small floating point differences)
         summary = global_cost_tracker.get_summary()
-        assert abs(summary['total_cost'] - 0.01) < 1e-9  # 10 * 0.001
+        assert summary['total_cost'] == pytest.approx(0.01)  # 10 * 0.001
         assert summary['total_tokens'] == 1500  # 10 * 150
         assert summary['request_count'] == 10
         assert translator.request_count == 10
@@ -279,7 +289,8 @@ class TestCostTrackingIntegration:
         translator = ChineseAITranslator(
             use_remote=True,
             api_key="test_key",
-            temperature=0.05  # Production value
+            temperature=0.05,  # Production value
+            double_pass=False  # Disable double pass for predictable cost tracking
         )
         
         # Simulate some usage by mocking global_cost_tracker
@@ -315,7 +326,7 @@ class TestCostTrackingIntegration:
         with patch('requests.post') as mock_post:
             mock_response = Mock()
             mock_response.json.return_value = {
-                'choices': [{'message': {'content': 'Translation'}}],
+                'choices': [{'message': {'content': 'This is a translated text with enough characters to pass the minimum length validation. The translation service requires at least 300 characters for non-final chunks to ensure the translation is complete and meaningful. This mock response provides sufficient content to satisfy that requirement and allow the test to proceed without triggering validation errors in the test scenario.'}}],
                 'usage': {
                     'prompt_tokens': 100,
                     'completion_tokens': 50,
@@ -342,7 +353,8 @@ class TestCostTrackingIntegration:
         translator = ChineseAITranslator(
             use_remote=True,
             api_key="test_key",
-            temperature=0.05  # Production value
+            temperature=0.05,  # Production value
+            double_pass=False  # Disable double pass for predictable cost tracking
         )
         
         # Test with zero requests
