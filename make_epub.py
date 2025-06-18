@@ -140,6 +140,12 @@ def parse_num(raw: Optional[str]) -> Optional[int]:
 # ──────────────────────────── logging ──────────────────────────── #
 
 def _log_path() -> Path:
+    """
+    Generate log file path with timestamp.
+    
+    Returns:
+        Path object for error log file
+    """
     return Path.cwd() / f"errors_{datetime.now():%Y%m%d_%H%M%S}.log"
 
 _ERROR_LOG: Optional[Path] = None
@@ -147,7 +153,15 @@ _JSON_LOG: Optional[Path] = None
 
 
 def log_issue(msg: str, obj: Optional[Dict[str, Any]] = None) -> None:
-    """Append *msg* (and *obj* if requested) to per-run log files."""
+    """
+    Append msg (and obj if requested) to per-run log files.
+    
+    Creates log files with timestamp if they don't exist.
+    
+    Args:
+        msg: Message to log
+        obj: Optional object to log as JSON
+    """
     global _ERROR_LOG
     if _ERROR_LOG is None:
         _ERROR_LOG = _log_path()
@@ -500,6 +514,18 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
 # ───────────── plain text → XHTML ───────────── #
 
 def paragraphize(txt: str) -> str:
+    """
+    Convert plain text to HTML paragraphs.
+    
+    Groups lines into paragraphs, preserving line breaks within paragraphs.
+    Empty lines separate paragraphs.
+    
+    Args:
+        txt: Plain text to convert
+        
+    Returns:
+        HTML with paragraph tags
+    """
     out, buf = [], []
     for ln in txt.splitlines():
         if ln.rstrip():
@@ -515,7 +541,18 @@ def paragraphize(txt: str) -> str:
 # ───────────── XHTML / EPUB fragment builders ───────────── #
 
 def build_chap_xhtml(title: str, body_html: str) -> str:
-    """Build chapter XHTML using ElementTree for proper XML handling"""
+    """
+    Build chapter XHTML using ElementTree for proper XML handling.
+    
+    Creates valid XHTML with proper namespace handling and escaping.
+    
+    Args:
+        title: Chapter title
+        body_html: HTML content for chapter body
+        
+    Returns:
+        Complete XHTML document as string
+    """
     # Register XHTML namespace
     ET.register_namespace('', 'http://www.w3.org/1999/xhtml')
     
@@ -567,7 +604,17 @@ def build_chap_xhtml(title: str, body_html: str) -> str:
     return result
 
 def build_cover_xhtml(img_rel: str) -> str:
-    """Build cover XHTML using ElementTree"""
+    """
+    Build cover XHTML using ElementTree.
+    
+    Creates minimal cover page with centered image.
+    
+    Args:
+        img_rel: Relative path to cover image
+        
+    Returns:
+        Complete XHTML document for cover page
+    """
     # Register XHTML namespace
     ET.register_namespace('', 'http://www.w3.org/1999/xhtml')
     
@@ -602,7 +649,14 @@ def build_cover_xhtml(img_rel: str) -> str:
     return result
 
 def build_container_xml() -> str:
-    """Build container.xml using ElementTree"""
+    """
+    Build container.xml using ElementTree.
+    
+    Creates the EPUB container XML that points to the OPF file.
+    
+    Returns:
+        Container XML as string
+    """
     # Register namespace
     container_ns = 'urn:oasis:names:tc:opendocument:xmlns:container'
     ET.register_namespace('', container_ns)
@@ -685,7 +739,17 @@ def build_toc_ncx(title: str, author: str,
 class ValidationError(Exception): ...
 
 def ensure_dir_readable(p: Path) -> None:
-    """Ensure directory is readable. Raises ValidationError if not."""
+    """
+    Ensure directory is readable.
+    
+    Checks existence, directory status, and read permissions.
+    
+    Args:
+        p: Path to directory
+        
+    Raises:
+        ValidationError: If directory is not readable
+    """
     if not p.exists() or not p.is_dir():
         raise ValidationError(f"Directory '{p}' not found or not a directory.")
     if not os.access(p, os.R_OK):
@@ -696,7 +760,18 @@ def ensure_dir_readable(p: Path) -> None:
         raise ValidationError(f"Cannot read directory '{p}': {e}")
 
 def ensure_output_ok(path: Path, append: bool) -> None:
-    """Ensure output path is writable. Raises ValidationError if not."""
+    """
+    Ensure output path is writable.
+    
+    Checks write permissions and handles append vs overwrite scenarios.
+    
+    Args:
+        path: Output file path
+        append: Whether appending to existing file
+        
+    Raises:
+        ValidationError: If output path is not writable
+    """
     if append:
         if path.suffix.lower() != ".epub" or not (path.exists() and os.access(path, os.W_OK)):
             raise ValidationError(f"Cannot write EPUB '{path}'.")
