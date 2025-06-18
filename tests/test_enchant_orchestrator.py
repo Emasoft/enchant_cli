@@ -174,11 +174,8 @@ class TestEnChANTOrchestrator:
         """Test Phase 1: Novel renaming with metadata extraction"""
         
         # Mock make_openai_request directly to avoid API calls
-        # Also mock check_required_commands to avoid missing command errors
-        with patch('renamenovels.make_openai_request') as mock_openai_request, \
-             patch('renamenovels.check_required_commands') as mock_check_commands:
+        with patch('renamenovels.make_openai_request') as mock_openai_request:
             mock_openai_request.return_value = mock_openai_response
-            mock_check_commands.return_value = True
             
             # Test renaming
             success, new_path, metadata = process_novel_file(
@@ -334,8 +331,7 @@ class TestEnChANTOrchestrator:
             return True
         
         with patch('requests.post') as mock_post, \
-             patch('enchant_cli.translate_novel', side_effect=mock_translate_novel) as mock_translate, \
-             patch('renamenovels.check_required_commands', return_value=True):
+             patch('enchant_cli.translate_novel', side_effect=mock_translate_novel) as mock_translate:
             # Setup mock responses for renaming
             mock_post.return_value.json.return_value = mock_openai_response
             mock_post.return_value.raise_for_status.return_value = None

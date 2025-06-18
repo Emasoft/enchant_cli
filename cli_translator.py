@@ -1250,8 +1250,7 @@ def translate_novel(file_path: str, encoding: str = 'utf-8', max_chars: int = 12
             model=config['translation']['remote']['model'],
             temperature=config['translation']['temperature'],
             max_tokens=config['translation']['max_tokens'],
-            timeout=config['translation']['remote']['timeout'],
-            pricing_manager=None  # Deprecated - cost tracking handled by global_cost_tracker
+            timeout=config['translation']['remote']['timeout']
         )
     else:
         translator = ChineseAITranslator(
@@ -1261,8 +1260,7 @@ def translate_novel(file_path: str, encoding: str = 'utf-8', max_chars: int = 12
             model=config['translation']['local']['model'],
             temperature=config['translation']['temperature'],
             max_tokens=config['translation']['max_tokens'],
-            timeout=config['translation']['local']['timeout'],
-            pricing_manager=None  # Deprecated - cost tracking handled by global_cost_tracker
+            timeout=config['translation']['local']['timeout']
         )
     
     # Note: batch processing is handled by the orchestrator, not here
@@ -1271,7 +1269,7 @@ def translate_novel(file_path: str, encoding: str = 'utf-8', max_chars: int = 12
     
     try:
         # Call the import_book_from_txt function to process the text file
-        new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
+        new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_method=split_method)
         tolog.info(f"Book imported successfully. Book ID: {new_book_id}")
         safe_print(f"[bold green]Book imported successfully. Book ID: {new_book_id}[/bold green]")
     except Exception as e:
