@@ -123,3 +123,4 @@
 2025-06-18 12:24:41,841 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
 2025-06-18 12:24:50,961 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
 2025-06-18 12:24:51,069 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp7ri4f6mk/修炼高手.txt: RetryError[<Future at 0x10a49ce00 state=finished raised HTTPError>]
+2025-06-18 12:39:11,165 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp4_c_9h44/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp4_c_9h44/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'

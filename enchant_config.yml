@@ -213,17 +213,7 @@ translation:
 # Text Processing Settings
 # -----------------------
 text_processing:
-  # Method for splitting text into paragraphs
-  # - 'paragraph': Split on double newlines (recommended)
-  # - 'punctuation': Split on Chinese punctuation (legacy)
-  # (default: paragraph)
-  split_method: paragraph
-  
-  # How to split large texts
-  # - 'PARAGRAPHS': Split by paragraph boundaries
-  # - 'SPLIT_POINTS': Use explicit markers in text
-  # (default: PARAGRAPHS)
-  split_mode: PARAGRAPHS
+  # Text is automatically split into paragraphs at double newlines
   
   # Maximum characters per translation chunk (default: 11999)
   max_chars_per_chunk: 11999

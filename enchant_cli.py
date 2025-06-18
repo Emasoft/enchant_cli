@@ -207,8 +207,6 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                     str(current_path),
                     encoding=getattr(args, 'encoding', 'utf-8'),
                     max_chars=getattr(args, 'max_chars', 12000),
-                    split_mode=getattr(args, 'split_mode', 'PARAGRAPHS'),
-                    split_method=getattr(args, 'split_method', 'paragraph'),
                     resume=args.resume,
                     create_epub=False,  # EPUB handled in phase 3
                     remote=getattr(args, 'remote', False)
@@ -689,21 +687,11 @@ API KEYS:
     parser.add_argument("--epub", action="store_true", 
                         help="Generate EPUB file after translation completes. Creates formatted e-book with table of contents")
     
-    parser.add_argument("--split-mode", type=str, 
-                        choices=["PARAGRAPHS", "SPLIT_POINTS"], 
-                        default=config['text_processing']['split_mode'], 
-                        help=f"Text splitting mode. PARAGRAPHS: auto-split by paragraphs. SPLIT_POINTS: use markers in text (default: {config['text_processing']['split_mode']})")
-    
     parser.add_argument("--batch", action="store_true", 
                         help="Batch mode: process all .txt files in the specified directory. Tracks progress automatically")
     
     parser.add_argument("--remote", action='store_true', 
                         help="Use remote OpenRouter API instead of local LM Studio. Requires OPENROUTER_API_KEY environment variable")
-    
-    parser.add_argument("--split-method", dest='split_method', 
-                        choices=['punctuation', 'paragraph'], 
-                        default=config['text_processing']['split_method'],
-                        help=f"Paragraph detection method. 'paragraph': split on double newlines (recommended). 'punctuation': split on Chinese punctuation patterns (legacy) (default: {config['text_processing']['split_method']})")
     
     # Skip flags for different phases
     parser.add_argument("--skip-renaming", action="store_true", help="Skip the file renaming phase")

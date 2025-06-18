@@ -127,8 +127,6 @@ class TestE2EChineseToEPUB:
                 'text_processing': {
                     'max_chars_per_chunk': 1500,
                     'default_encoding': 'utf-8',
-                    'split_mode': 'PARAGRAPHS',
-                    'split_method': 'paragraph'
                 },
                 'translation': {
                     'temperature': 0.0,
@@ -613,8 +611,6 @@ They needed to venture deep into the forest and clear out the magical beasts the
                 'max_retries': 3
             },
             'text_processing': {
-                'split_method': 'paragraph',
-                'split_mode': 'PARAGRAPHS',
                 'max_chars_per_chunk': 11999,
                 'default_encoding': 'utf-8'
             },

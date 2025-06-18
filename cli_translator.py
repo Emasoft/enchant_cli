@@ -88,6 +88,7 @@ import filelock
 # Import new modules for enhanced functionality
 from icloud_sync import ICloudSync, ensure_synced, prepare_for_write
 from config_manager import ConfigManager
+from cost_tracker import global_cost_tracker
 # Note: model_pricing module is deprecated - using global_cost_tracker instead
 
 # Import common text processing utilities
@@ -360,7 +361,7 @@ def foreign_book_title_splitter(filename: Union[str, Path]) -> Tuple[str, str, s
 
 
 # Import the original language novel txt file and split it in chunks of max MAXCHARS characters
-def import_book_from_txt(file_path: Union[str, Path], encoding: str = 'utf-8', max_chars: int = MAXCHARS, split_method: str = 'paragraph') -> str:
+def import_book_from_txt(file_path: Union[str, Path], encoding: str = 'utf-8', max_chars: int = MAXCHARS) -> str:
     if tolog is not None:
         tolog.debug(" -> import_book_from_text()")
 
@@ -384,7 +385,7 @@ def import_book_from_txt(file_path: Union[str, Path], encoding: str = 'utf-8', m
 
     
     # SPLIT THE BOOK IN CHUNKS
-    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars, split_method)
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
 
         
     # Create new book entry in database
@@ -617,9 +618,10 @@ def split_text_by_actual_paragraphs(text: str) -> list:
     
     
 ## Function to split a chinese novel in parts of max n characters keeping the paragraphs intact
-def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS, split_method: str = 'paragraph') -> List[str]:
+def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS) -> List[str]:
     # Choose splitting method based on parameter
-    if split_method == 'punctuation':
+    # Always use paragraph splitting method
+    if False:  # Legacy punctuation method disabled
         # Use legacy punctuation-based splitting
         paragraphs = split_on_punctuation_contextual(text)
     else:
@@ -1067,9 +1069,7 @@ def process_batch(args) -> None:
                 tolog.info(f"Processing: {Path(item['path']).name}")
                 book_id = import_book_from_txt(item['path'], 
                                      encoding=args.encoding,
-                                     max_chars=args.max_chars, 
-                                     split_mode=args.split_mode,
-                                     split_method=args.split_method)
+                                     max_chars=args.max_chars)
                 save_translated_book(book_id, resume=args.resume, create_epub=args.epub)
                 item['status'] = 'completed'
             except Exception as e:
@@ -1159,7 +1159,6 @@ def process_batch(args) -> None:
             tolog.info(f"Batch cost summary saved to {batch_cost_log_path}")
 
 def translate_novel(file_path: str, encoding: str = 'utf-8', max_chars: int = 12000, 
-                   split_mode: str = 'PARAGRAPHS', split_method: str = 'paragraph', 
                    resume: bool = False, create_epub: bool = False, remote: bool = False) -> bool:
     """
     Translate a Chinese novel to English.
@@ -1168,8 +1167,6 @@ def translate_novel(file_path: str, encoding: str = 'utf-8', max_chars: int = 12
         file_path: Path to the Chinese novel text file
         encoding: File encoding (default: utf-8)
         max_chars: Maximum characters per translation chunk (default: 12000)
-        split_mode: Text splitting mode (PARAGRAPHS or SPLIT_POINTS)
-        split_method: Paragraph detection method (paragraph or punctuation)
         resume: Resume interrupted translation
         create_epub: (Deprecated) Kept for backward compatibility, ignored. 
                      EPUB generation is handled by enchant_cli.py orchestrator
@@ -1269,7 +1266,7 @@ def translate_novel(file_path: str, encoding: str = 'utf-8', max_chars: int = 12
     
     try:
         # Call the import_book_from_txt function to process the text file
-        new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_method=split_method)
+        new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
         tolog.info(f"Book imported successfully. Book ID: {new_book_id}")
         safe_print(f"[bold green]Book imported successfully. Book ID: {new_book_id}[/bold green]")
     except Exception as e:
@@ -1403,10 +1400,6 @@ USAGE EXAMPLES:
     parser.add_argument("--epub", action="store_true", 
                         help="Generate EPUB file after translation completes. Creates formatted e-book with table of contents")
     
-    parser.add_argument("--split_mode", type=str, 
-                        choices=["PARAGRAPHS", "SPLIT_POINTS"], 
-                        default=config['text_processing']['split_mode'], 
-                        help=f"Text splitting mode. PARAGRAPHS: auto-split by paragraphs. SPLIT_POINTS: use markers in text (default: {config['text_processing']['split_mode']})")
     
     parser.add_argument("--batch", action="store_true", 
                         help="Batch mode: process all .txt files in the specified directory. Tracks progress automatically")
@@ -1414,10 +1407,6 @@ USAGE EXAMPLES:
     parser.add_argument("--remote", action='store_true', 
                         help="Use remote OpenRouter API instead of local LM Studio. Requires OPENROUTER_API_KEY environment variable")
     
-    parser.add_argument("--split-method", dest='split_method', 
-                        choices=['punctuation', 'paragraph'], 
-                        default=config['text_processing']['split_method'],
-                        help=f"Paragraph detection method. 'paragraph': split on double newlines (recommended). 'punctuation': split on Chinese punctuation patterns (legacy) (default: {config['text_processing']['split_method']})")
     
     args = parser.parse_args()
     
@@ -1433,8 +1422,6 @@ USAGE EXAMPLES:
         file_path=args.filepath,
         encoding=args.encoding,
         max_chars=args.max_chars,
-        split_mode=args.split_mode,
-        split_method=args.split_method,
         resume=args.resume,
         create_epub=args.epub,
         remote=args.remote

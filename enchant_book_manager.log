@@ -34,3 +34,9 @@ Traceback (most recent call last):
     new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars, split_mode=split_mode, split_method=split_method)
                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 TypeError: import_book_from_txt() got an unexpected keyword argument 'split_mode'
+2025-06-18 12:37:37,101 - cli_translator - ERROR - Error saving translated book.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/cli_translator.py", line 1287, in translate_novel
+    summary = global_cost_tracker.get_summary()
+              ^^^^^^^^^^^^^^^^^^^
+NameError: name 'global_cost_tracker' is not defined

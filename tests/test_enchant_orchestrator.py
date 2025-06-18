@@ -75,8 +75,6 @@ class TestEnChANTOrchestrator:
             'text_processing': {
                 'max_chars_per_chunk': 2000,
                 'default_encoding': 'utf-8',
-                'split_mode': 'PARAGRAPHS',
-                'split_method': 'paragraph'
             },
             'translation': {
                 'temperature': 0.0,
@@ -203,23 +201,25 @@ class TestEnChANTOrchestrator:
         
         renamed_file.write_text(chinese_content, encoding='utf-8')
         
-        # Mock the translate_novel function to avoid actual execution
-        with patch('cli_translator.translate_novel') as mock_translate:
-            mock_translate.return_value = True
+        # Mock requests to avoid actual API calls
+        with patch('requests.post') as mock_post:
+            # Mock response for local translation
+            mock_response = Mock()
+            mock_response.json.return_value = mock_translation_response
+            mock_response.raise_for_status = Mock()
+            mock_post.return_value = mock_response
             
             # Test translation
             success = translate_novel(
                 str(renamed_file),
                 encoding='utf-8',
                 max_chars=2000,
-                split_mode='PARAGRAPHS',
-                split_method='paragraph',
                 resume=False,
                 create_epub=False,
                 remote=False
             )
             
-            # Verify the function was called and returned True
+            # Verify translation succeeded
             assert success is True
 
     def test_phase3_epub_generation_success(self, temp_dir):
@@ -296,8 +296,6 @@ class TestEnChANTOrchestrator:
         args.openai_api_key = "test_openai_key"
         args.encoding = 'utf-8'
         args.max_chars = 2000
-        args.split_mode = 'PARAGRAPHS'
-        args.split_method = 'paragraph'
         args.remote = False
         
         # Create a mock translate_novel function that creates expected output
@@ -379,8 +377,6 @@ class TestEnChANTOrchestrator:
         args.resume = False
         args.encoding = 'utf-8'
         args.max_chars = 2000
-        args.split_mode = 'PARAGRAPHS'
-        args.split_method = 'paragraph'
         args.remote = False
         
         with patch('enchant_cli.translate_novel') as mock_translate:
@@ -444,8 +440,6 @@ class TestEnChANTOrchestrator:
         args.resume = True
         args.encoding = 'utf-8'
         args.max_chars = 2000
-        args.split_mode = 'PARAGRAPHS'
-        args.split_method = 'paragraph'
         args.remote = False
         
         with patch('enchant_cli.translate_novel') as mock_translate:
@@ -507,8 +501,6 @@ class TestEnChANTOrchestrator:
         args.skip_epub = False
         args.encoding = 'utf-8'
         args.max_chars = 2000
-        args.split_mode = 'PARAGRAPHS'
-        args.split_method = 'paragraph'
         args.remote = False
         
         with patch('cli_translator.translate_novel') as mock_translate:

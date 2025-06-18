@@ -51,7 +51,6 @@ class TestCostTrackingIntegration:
             },
             'text_processing': {
                 'max_chars_per_chunk': 11999,
-                'split_method': 'paragraph',
                 'default_encoding': 'utf-8'
             },
             'pricing': {
@@ -392,7 +391,6 @@ class TestCostTrackingIntegration:
         assert config['translation']['local']['connection_timeout'] == 30
         assert config['translation']['max_retries'] == 7
         assert config['text_processing']['max_chars_per_chunk'] == 11999
-        assert config['text_processing']['split_method'] == 'paragraph'
 
 
 if __name__ == "__main__":

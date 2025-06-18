@@ -232,17 +232,7 @@ translation:
 # Text Processing Settings
 # -----------------------
 text_processing:
-  # Method for splitting text into paragraphs
-  # - 'paragraph': Split on double newlines (recommended)
-  # - 'punctuation': Split on Chinese punctuation (legacy)
-  # (default: paragraph)
-  split_method: paragraph
-  
-  # How to split large texts
-  # - 'PARAGRAPHS': Split by paragraph boundaries
-  # - 'SPLIT_POINTS': Use explicit markers in text
-  # (default: PARAGRAPHS)
-  split_mode: PARAGRAPHS
+  # Text is automatically split into paragraphs at double newlines
   
   # Maximum characters per translation chunk (default: 11999)
   max_chars_per_chunk: 11999
@@ -533,19 +523,7 @@ class ConfigManager:
                         'message': f"Invalid value '{config['translation']['service']}' for translation.service. Must be 'local' or 'remote'"
                     }
         
-        # Check text_processing section
-        if 'text_processing' in config:
-            if 'split_method' in config['text_processing']:
-                if config['text_processing']['split_method'] not in ['paragraph', 'punctuation']:
-                    line_num = self._find_line_number('text_processing.split_method')
-                    return {
-                        'type': 'invalid_value',
-                        'path': 'text_processing.split_method',
-                        'value': config['text_processing']['split_method'],
-                        'valid_values': ['paragraph', 'punctuation'],
-                        'line': line_num,
-                        'message': f"Invalid value '{config['text_processing']['split_method']}' for split_method. Must be 'paragraph' or 'punctuation'"
-                    }
+        # Text is automatically split into paragraphs at double newlines
         
         return None
     
@@ -980,8 +958,6 @@ class ConfigManager:
         arg_mapping = {
             'encoding': 'text_processing.default_encoding',
             'max_chars': 'text_processing.max_chars_per_chunk',
-            'split_method': 'text_processing.split_method',
-            'split_mode': 'text_processing.split_mode',
             'remote': 'translation.service',  # True -> 'remote', False -> 'local'
             'epub': 'epub.enabled',
             'batch': 'batch.enabled',
