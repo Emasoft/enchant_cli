@@ -380,36 +380,8 @@ def foreign_book_title_splitter(filename: Union[str, Path]) -> Tuple[str, str, s
     return original_title, translated_title, transliterated_title, original_author, translated_author, transliterated_author
 
 
-def split_chinese_text_using_split_points(book_content: str, max_chars: int = MAXCHARS) -> List[str]:
-    # SPLIT POINT METHOD
-    # Compute split points based on max_chars and chapter patterns
-    chapter_pattern = r'第\d+章'  # pattern to split at Chapter title/number line
-    total_book_characters = len(book_content)
-    split_points_list = []
-    counter_chars = 0
-    # Ensure pattern_length is at least 0
-    pattern_length = max(0, len(chapter_pattern) - 2)  # accounting for the regex special characters
-    i = 0
-    while i < total_book_characters:
-        counter_chars += 1
-        if counter_chars > max_chars:
-            split_points_list.append(i)
-            counter_chars = 0
-        elif book_content[i:i+pattern_length] == chapter_pattern:
-            split_points_list.append(i)
-            counter_chars = 0
-        i += 1
-
-    # Split book content at computed split points
-    splitted_chapters = [book_content[i:j] for i, j in zip([0]+split_points_list, split_points_list+[None])]
-    
-    return splitted_chapters
-
-
-# NOTE: If a chapter/chunk go over the characters limit of max_char, 
-# then the chapter is split anyway without waiting for
-# the chapter title pattern.
-def import_book_from_txt(file_path: Union[str, Path], encoding: str = 'utf-8', chapter_pattern: str = r'Chapter \d+', max_chars: int = MAXCHARS, split_mode: str = 'PARAGRAPHS', split_method: str = 'paragraph') -> str:
+# Import the original language novel txt file and split it in chunks of max MAXCHARS characters
+def import_book_from_txt(file_path: Union[str, Path], encoding: str = 'utf-8', max_chars: int = MAXCHARS, split_method: str = 'paragraph') -> str:
     if tolog is not None:
         tolog.debug(" -> import_book_from_text()")
 
@@ -433,13 +405,8 @@ def import_book_from_txt(file_path: Union[str, Path], encoding: str = 'utf-8', c
 
     
     # SPLIT THE BOOK IN CHUNKS
-    if split_mode == "SPLIT_POINTS":
-        splitted_chapters = split_chinese_text_using_split_points(book_content, max_chars)
-    elif split_mode == "PARAGRAPHS":
-        splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
-    else:
-        # default use split_mode = 'PARAGRAPHS'
-        splitted_chapters = split_chinese_text_in_parts(book_content, max_chars, split_method)
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars, split_method)
+
         
     # Create new book entry in database
     new_book_id = str(uuid.uuid4())
@@ -463,38 +430,38 @@ def import_book_from_txt(file_path: Union[str, Path], encoding: str = 'utf-8', c
             )
     except Exception as e:
         if tolog is not None:
-            tolog.debug("An exception happened when creating a new variation original for a chapter:")
+            tolog.debug("An exception happened when creating a new variation original for a chunk:")
             tolog.debug("ERROR: "+ str(e))
     finally:
         manual_commit()            
     
     book = Book.get_by_id(new_book_id)
     
-    # for each chapter create a new chapter entry and a new orig variation in database
-    for index, chapter_content in enumerate(splitted_chapters, start=1):
-        new_chapter_id = str(uuid.uuid4())
+    # for each chunk create a new chunk entry and a new orig variation in database
+    for index, chunk_content in enumerate(splitted_chunks, start=1):
+        new_chunk_id = str(uuid.uuid4())
         new_variation_id = str(uuid.uuid4())
         try:
-            Chapter.create(chapter_id=new_chapter_id, book_id=new_book_id, chapter_number=index, original_variation_id=new_variation_id)
+            chunk.create(chunk_id=new_chunk_id, book_id=new_book_id, chunk_number=index, original_variation_id=new_variation_id)
         except Exception as e:
             if tolog is not None:
-                tolog.debug(f"An exception happened when creating chapter n.{index} with ID {new_variation_id}. ")
+                tolog.debug(f"An exception happened when creating chunk n.{index} with ID {new_variation_id}. ")
                 tolog.debug("ERROR: "+ str(e))
         else:
             try:
                 Variation.create(
                     variation_id=new_variation_id,
                     book_id=new_book_id,
-                    chapter_id=new_chapter_id,
-                    chapter_number=index,
+                    chunk_id=new_chunk_id,
+                    chunk_number=index,
                     language="original",
                     category="original",
-                    text_content=chapter_content
+                    text_content=chunk_content
                 )
             except Exception as e:
-                chapter_number = index if 'index' in locals() else 'unknown'
+                chunk_number = index if 'index' in locals() else 'unknown'
                 if tolog is not None:
-                    tolog.debug(f"An exception happened when creating a new variation original for chapter n.{chapter_number}:")
+                    tolog.debug(f"An exception happened when creating a new variation original for chunk n.{chunk_number}:")
                     tolog.debug("ERROR: "+ str(e))
         finally:
             manual_commit() 
@@ -682,8 +649,8 @@ def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS, split_meth
     else:
         # Use the new function that splits on actual paragraph breaks
         paragraphs = split_text_by_actual_paragraphs(text)
-    chapters = list()
-    chapters_counter = 1
+    chunks = list()
+    chunks_counter = 1
     current_char_count = 0
     paragraphs_buffer = []
     paragraph_index = 0
@@ -701,9 +668,9 @@ def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS, split_meth
             # Only save if buffer has content
             if paragraphs_buffer:
                 paragraph_index += len(paragraphs_buffer)
-                chapter = "".join(paragraphs_buffer)
-                chapters.append(chapter)
-                chapters_counter += 1
+                chunk = "".join(paragraphs_buffer)
+                chunks.append(chunk)
+                chunks_counter += 1
                 current_char_count = 0
                 paragraphs_buffer = []
         
@@ -715,14 +682,14 @@ def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS, split_meth
     # THEN SAVE THE RESIDUAL PARAGRAPHS IN A FINAL FILE.
     if paragraphs_buffer:
         paragraph_index += len(paragraphs_buffer)
-        chapter = "".join(paragraphs_buffer)
-        chapters.append(chapter)
-        chapters_counter += 1
+        chunk = "".join(paragraphs_buffer)
+        chunks.append(chunk)
+        chunks_counter += 1
                 
     if tolog is not None:
-        tolog.debug(f"\n -> Import COMPLETE.\n  Total number of paragraphs: {str(paragraph_index)}\n  Total number of chapters: {str(chapters_counter)}\n")
+        tolog.debug(f"\n -> Import COMPLETE.\n  Total number of paragraphs: {str(paragraph_index)}\n  Total number of chunks: {str(chunks_counter)}\n")
     
-    return chapters
+    return chunks
 
 # Main function is at the end of this file
 
@@ -732,7 +699,7 @@ def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS, split_meth
 
 # In-memory “database” dictionaries
 BOOK_DB = {}
-CHAPTER_DB = {}
+chunk_DB = {}
 VARIATION_DB = {}
 
 class Field:
@@ -766,7 +733,7 @@ class Book:
         self.transliterated_author = transliterated_author
         self.source_file = source_file
         self.total_characters = total_characters
-        self.chapters = []  # List to hold Chapter instances
+        self.chunks = []  # List to hold chunk instances
 
     @classmethod
     def create(cls, **kwargs):
@@ -797,29 +764,29 @@ class Book:
     def get_by_id(cls, book_id):
         return BOOK_DB.get(book_id)
 
-class Chapter:
-    def __init__(self, chapter_id, book_id, chapter_number, original_variation_id):
-        self.chapter_id = chapter_id
+class chunk:
+    def __init__(self, chunk_id, book_id, chunk_number, original_variation_id):
+        self.chunk_id = chunk_id
         self.book_id = book_id
-        self.chapter_number = chapter_number
+        self.chunk_number = chunk_number
         self.original_variation_id = original_variation_id
 
     @classmethod
-    def create(cls, chapter_id, book_id, chapter_number, original_variation_id):
-        chapter = cls(chapter_id, book_id, chapter_number, original_variation_id)
-        CHAPTER_DB[chapter_id] = chapter
-        # Also add the chapter to the corresponding Book's chapters list
+    def create(cls, chunk_id, book_id, chunk_number, original_variation_id):
+        chunk = cls(chunk_id, book_id, chunk_number, original_variation_id)
+        chunk_DB[chunk_id] = chunk
+        # Also add the chunk to the corresponding Book's chunks list
         book = Book.get_by_id(book_id)
         if book:
-            book.chapters.append(chapter)
-        return chapter
+            book.chunks.append(chunk)
+        return chunk
 
 class Variation:
-    def __init__(self, variation_id, book_id, chapter_id, chapter_number, language, category, text_content):
+    def __init__(self, variation_id, book_id, chunk_id, chunk_number, language, category, text_content):
         self.variation_id = variation_id
         self.book_id = book_id
-        self.chapter_id = chapter_id
-        self.chapter_number = chapter_number
+        self.chunk_id = chunk_id
+        self.chunk_number = chunk_number
         self.language = language
         self.category = category
         self.text_content = text_content
@@ -829,8 +796,8 @@ class Variation:
         variation = cls(
             variation_id=kwargs.get("variation_id"),
             book_id=kwargs.get("book_id"),
-            chapter_id=kwargs.get("chapter_id"),
-            chapter_number=kwargs.get("chapter_number"),
+            chunk_id=kwargs.get("chunk_id"),
+            chunk_number=kwargs.get("chunk_number"),
             language=kwargs.get("language"),
             category=kwargs.get("category"),
             text_content=kwargs.get("text_content")
@@ -913,20 +880,20 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
         if existing_chunk_nums:
             tolog.info(f"Autoresume active: existing translated chunks detected: {sorted(existing_chunk_nums)}")
         else:
-            tolog.info("Autoresume active but no existing chapter files found.")
+            tolog.info("Autoresume active but no existing chunk files found.")
 
     translated_contents = []
-    # Sort chapters by chapter_number
-    sorted_chapters = sorted(book.chapters, key=lambda ch: ch.chapter_number)
-    for chapter in sorted_chapters:
+    # Sort chunks by chunk_number
+    sorted_chunks = sorted(book.chunks, key=lambda ch: ch.chunk_number)
+    for chunk in sorted_chunks:
         # Retrieve the Variation corresponding to the original text
-        variation = VARIATION_DB.get(chapter.original_variation_id)
+        variation = VARIATION_DB.get(chunk.original_variation_id)
         if variation:
-            if resume and chapter.chapter_number in existing_chunk_nums:
-                p_existing = book_dir / f"{book.translated_title} by {book.translated_author} - Chunk_{chapter.chapter_number:06d}.txt"
+            if resume and chunk.chunk_number in existing_chunk_nums:
+                p_existing = book_dir / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
                 try:
                     translated_text = p_existing.read_text(encoding="utf-8")
-                    tolog.info(f"Skipping translation for chunk {chapter.chapter_number}; using existing translation.")
+                    tolog.info(f"Skipping translation for chunk {chunk.chunk_number}; using existing translation.")
                 except FileNotFoundError:
                     tolog.warning(f"Expected file {p_existing.name} not found; re-translating.")
                 else:
@@ -937,12 +904,12 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
             # Use the max_chunk_retries loaded above
             chunk_translated = False
             last_error = None
-            output_filename_chapter = book_dir / f"{book.translated_title} by {book.translated_author} - Chunk_{chapter.chapter_number:06d}.txt"
+            output_filename_chunk = book_dir / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
             
             for chunk_attempt in range(1, max_chunk_retries + 1):
                 try:
-                    tolog.info(f"TRANSLATING CHUNK {chapter.chapter_number:06d} of {len(sorted_chapters)} (Attempt {chunk_attempt}/{max_chunk_retries})")
-                    is_last_chunk = (chapter.chapter_number == len(sorted_chapters))
+                    tolog.info(f"TRANSLATING CHUNK {chunk.chunk_number:06d} of {len(sorted_chunks)} (Attempt {chunk_attempt}/{max_chunk_retries})")
+                    is_last_chunk = (chunk.chunk_number == len(sorted_chunks))
                     translated_text = translator.translate(original_text, is_last_chunk)
                     
                     # Validate translated text
@@ -950,22 +917,22 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
                         raise ValueError("Translation returned empty or whitespace-only text")
                     
                     # Save chunk to file
-                    p = output_filename_chapter
+                    p = output_filename_chunk
                     try:
                         p.write_text(translated_text)
                     except (IOError, OSError, PermissionError) as e:
                         if tolog is not None:
-                            tolog.error(f"Error saving chunk {chapter.chapter_number:06d} to {p}: {e}")
+                            tolog.error(f"Error saving chunk {chunk.chunk_number:06d} to {p}: {e}")
                         raise
                     
                     # Success! Mark as translated and break out of retry loop
                     chunk_translated = True
-                    tolog.info(f"Successfully translated chunk {chapter.chapter_number:06d} on attempt {chunk_attempt}")
+                    tolog.info(f"Successfully translated chunk {chunk.chunk_number:06d} on attempt {chunk_attempt}")
                     break
                     
                 except Exception as e:
                     last_error = e
-                    tolog.error(f"ERROR: Translation failed for chunk {chapter.chapter_number:06d} on attempt {chunk_attempt}/{max_chunk_retries}: {str(e)}")
+                    tolog.error(f"ERROR: Translation failed for chunk {chunk.chunk_number:06d} on attempt {chunk_attempt}/{max_chunk_retries}: {str(e)}")
                     
                     if chunk_attempt < max_chunk_retries:
                         # Calculate wait time with exponential backoff
@@ -977,19 +944,19 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
             if not chunk_translated:
                 # All attempts failed - exit with error
                 error_message = format_chunk_error_message(
-                    chunk_number=chapter.chapter_number,
+                    chunk_number=chunk.chunk_number,
                     max_retries=max_chunk_retries,
                     last_error=str(last_error),
                     book_title=book.translated_title,
                     book_author=book.translated_author,
-                    output_path=str(output_filename_chapter)
+                    output_path=str(output_filename_chunk)
                 )
                 tolog.error(error_message)
                 print(error_message)
                 sys.exit(1)
             else:
                 # Translation succeeded - log and append to contents
-                tolog.info(f"\nChunk {chapter.chapter_number:06d}:\n{translated_text}\n\n")
+                tolog.info(f"\nChunk {chunk.chunk_number:06d}:\n{translated_text}\n\n")
                 translated_contents.append(f"\n{translated_text}\n")
     # Combine all translated chunks into one full text
     full_translated_text = "\n".join(translated_contents)
@@ -1027,10 +994,10 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
                 # Add per-request breakdown if needed
                 f.write("\n\nDetailed Breakdown:\n")
                 f.write("-------------------\n")
-                f.write(f"Total Chunks Translated: {len(sorted_chapters)}\n")
-                if translator.request_count > 0 and len(sorted_chapters) > 0:
-                    f.write(f"Average Cost per Chapter: ${translator.total_cost / len(sorted_chapters):.6f}\n")
-                    f.write(f"Average Tokens per Chapter: {translator.total_tokens // len(sorted_chapters):,}\n")
+                f.write(f"Total Chunks Translated: {len(sorted_chunks)}\n")
+                if translator.request_count > 0 and len(sorted_chunks) > 0:
+                    f.write(f"Average Cost per chunk: ${translator.total_cost / len(sorted_chunks):.6f}\n")
+                    f.write(f"Average Tokens per chunk: {translator.total_tokens // len(sorted_chunks):,}\n")
         
                 # Save raw data for potential future analysis
                 f.write("\n\nRaw Data:\n")
@@ -1457,7 +1424,7 @@ USAGE EXAMPLES:
                         help=f"Maximum characters per translation chunk. Affects API usage and memory (default: {config['text_processing']['max_chars_per_chunk']})")
     
     parser.add_argument("--resume", action="store_true", 
-                        help="Resume interrupted translation. Single: continues from last chapter. Batch: uses progress file")
+                        help="Resume interrupted translation. Single: continues from last chunk. Batch: uses progress file")
     
     parser.add_argument("--epub", action="store_true", 
                         help="Generate EPUB file after translation completes. Creates formatted e-book with table of contents")

@@ -273,7 +273,7 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                     book_title = book_info.get('title_english', current_path.stem)
                     book_author = book_info.get('author_english', "Unknown")
                     
-                    # Look for translated chapters directory
+                    # Look for translated chunks directory
                     safe_folder_name = sanitize_filename(f"{book_title} by {book_author}")
                     book_dir = current_path.parent / safe_folder_name
                     
@@ -649,7 +649,7 @@ PROCESSING PHASES:
 ====================================================================================
   1. RENAMING: Extract metadata and rename files (requires OpenAI API key)
   2. TRANSLATION: Translate Chinese text to English  
-  3. EPUB: Generate EPUB from translated chapters
+  3. EPUB: Generate EPUB from translated novel.
 
 SKIP FLAGS:
   --skip-renaming     Skip phase 1 (file renaming)
@@ -685,7 +685,7 @@ API KEYS:
                         help=f"Maximum characters per translation chunk. Affects API usage and memory (default: {config['text_processing']['max_chars_per_chunk']})")
     
     parser.add_argument("--resume", action="store_true", 
-                        help="Resume interrupted translation. Single: continues from last chapter. Batch: uses progress file")
+                        help="Resume interrupted translation. Single: continues from last chunk. Batch: uses progress file")
     
     parser.add_argument("--epub", action="store_true", 
                         help="Generate EPUB file after translation completes. Creates formatted e-book with table of contents")

@@ -576,10 +576,6 @@ class ChineseAITranslator:
             final_translation = self.remove_translation_markers(final_translation)
         else:
             final_translation = first_translation
-
-            
-        ## Clean the text and separate chapters
-        #final_translation = self.separate_chapters(final_translation)
         
         ## RETURN THE FINAL TRANSLATED STRING
         return final_translation
@@ -681,32 +677,6 @@ class ChineseAITranslator:
             self.log(f"Unexpected error: {e}", "error")
             raise TranslationException(f"Unexpected error: {e}") from e
 
-
-
-    def separate_chapters(self, text: str) -> str:
-        # Define patterns for chapter headings
-        # Use a single capturing group for the entire match
-        patterns = [
-            # Chapter X: Title or Chapter X - "Title" - Part 1
-            r'Chapter\s+\d+\s*[-:—.]*\s*[\"«"]?[A-Za-z0-9\s.,:;!?…]*[\"»"]?\s*[-:—.]*\s*Part\s*\d*',
-            # Chapter in Roman numerals like CHAPTER V: The Finale - Part 1
-            r'Chapter\s+[IVXLC]+\s*[-:—.]*\s*[\"«"]?[A-Za-z0-9\s.,:;!?…]*[\"»"]?\s*[-:—.]*\s*Part\s*\d*',
-            # Chapter One - Title - Part 1
-            r'Chapter\s+\w+\s*[-:—.]*\s*[\"«"]?[A-Za-z0-9\s.,:;!?…]*[\"»"]?\s*[-:—.]*\s*Part\s*\d*',
-            # Chapter 3: My Farewell, Chapter 3 - My Farewell, etc.
-            r'Chapter\s+\d+\s*[-:—]*\s*[^\n]*',
-            # Chapter IX - My Farewell
-            r'Chapter\s+[IVXLC]+\s*[-:—]*\s*[^\n]*',
-            # Chapter One - My Farewell
-            r'Chapter\s+\w+\s*[-:—]*\s*[^\n]*',
-            # Chapter on its own line
-            r'Chapter\s*$',
-            # Prologue and Epilogue
-            r'Prologue\s*$|Epilogue\s*$',
-        ]
-        # Create a single capturing group around all patterns
-        chapter_pattern = re.compile(r'(' + '|'.join(patterns) + ')', re.IGNORECASE | re.MULTILINE)
-        return chapter_pattern.sub(r'\n\n\n\1\n\n', text)
 
     def translate_file(self, input_file: str, output_file: str, is_last_chunk=False) -> Optional[str]:
         self.log(f"Translating file: {input_file}")
