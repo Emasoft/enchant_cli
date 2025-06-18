@@ -343,17 +343,6 @@ import tenacity
 original_retry_call = tenacity.Retrying.__call__
 
 def no_retry_call(self, fn, *args, **kwargs):
-    """
-    Disabled retry mechanism - calls function directly without retries.
-    
-    Args:
-        fn: Function to call
-        *args: Positional arguments
-        **kwargs: Keyword arguments
-        
-    Returns:
-        Result of function call
-    """
     return fn(*args, **kwargs)
 
 # Globally disable retries by overriding Retrying.__call__

@@ -124,3 +124,19 @@
 2025-06-18 12:24:50,961 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
 2025-06-18 12:24:51,069 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp7ri4f6mk/修炼高手.txt: RetryError[<Future at 0x10a49ce00 state=finished raised HTTPError>]
 2025-06-18 12:39:11,165 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp4_c_9h44/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp4_c_9h44/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-18 17:26:33,597 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpsggr3z9b/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpsggr3z9b/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-18 17:26:33,658 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpddgbegg_/修炼至尊.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpddgbegg_/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-18 17:26:33,683 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpddgbegg_/都市异能王.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpddgbegg_/Urban Ability King by Unknown Author (Weizhi Zuozhe) - 都市异能王 by 未知作者.txt'
+2025-06-18 17:26:33,708 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpddgbegg_/魔法学院.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpddgbegg_/Magic Academy by Unknown Author (Weizhi Zuozhe) - 魔法学院 by 未知作者.txt'
+2025-06-18 17:26:33,750 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-18 17:26:33,866 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp_r62qv3x/魔法学院.txt: 401 Client Error: Unauthorized for url: https://openrouter.ai/api/v1/chat/completions
+2025-06-18 17:27:17,476 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpl05cr77y/修炼高手.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpl05cr77y/Cultivation Master by Unknown Author (Weizhi Zuozhe) - 修炼高手 by 未知作者.txt'
+2025-06-18 17:27:17,533 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-18 17:27:17,533 - INFO - OpenRouter API request successful.
+2025-06-18 17:27:17,533 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpg8ekq6da/修炼高手.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpg8ekq6da/Cultivation Master by Unknown Author (Weizhi Zuozhe) - 修炼高手 by 未知作者.txt'
+2025-06-18 17:27:17,566 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-18 17:27:17,678 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpyqwicge4/修炼高手.txt: 401 Client Error: Unauthorized for url: https://openrouter.ai/api/v1/chat/completions
+2025-06-18 17:27:17,704 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-18 17:27:17,833 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpyqwicge4/修炼高手.txt: 401 Client Error: Unauthorized for url: https://openrouter.ai/api/v1/chat/completions
+2025-06-18 17:27:24,173 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-18 17:27:24,173 - INFO - OpenRouter API request successful.
