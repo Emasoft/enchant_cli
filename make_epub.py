@@ -108,16 +108,26 @@ PART_PATTERNS = [
     re.compile(r'\bpt\.?\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b', re.IGNORECASE),
     # Dash number patterns: - 1, - 2
     re.compile(r'\s+-\s+(\d+)\s*$'),
-    # Roman numeral patterns at end: I, II, III
-    re.compile(r'\s+([IVX]+)\s*$'),
+    # Roman numeral patterns at end with word boundary: Part I, Part II, etc
+    # More restrictive to avoid matching names like "Louis XIV"
+    re.compile(r'(?:part|pt\.?)\s+([IVX]+)\s*$', re.IGNORECASE),
+    re.compile(r'\s+-\s+([IVX]+)\s*$'),  # "- I", "- II", etc
 ]
 
 def has_part_notation(title: str) -> bool:
-    """Check if a title contains part notation patterns."""
-    for pattern in PART_PATTERNS:
-        if pattern.search(title):
-            return True
-    return False
+    """Check if a title contains part notation patterns.
+    
+    Args:
+        title: Chapter title to check
+        
+    Returns:
+        True if title contains part notation, False otherwise
+    """
+    if not title:  # Handle None or empty string
+        return False
+        
+    # Early return on first match for better performance
+    return any(pattern.search(title) for pattern in PART_PATTERNS)
 
 
 _SINGLE = {
@@ -499,7 +509,7 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
             # If it has part notation, check adjacent chapters
             if has_part_notation(title):
                 # Use index for O(1) lookup instead of linear search
-                idx = chapter_index.get((num, title))
+                idx: Optional[int] = chapter_index.get((num, title))
                 if idx is not None:
                     # Check previous and next chapters
                     prev_has_parts = (idx > 0 and 
