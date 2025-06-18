@@ -158,8 +158,8 @@ class TestCommonEPUBUtility:
         pass
 
 
-class TestXMLGeneration:
-    """Test proper XML generation using libraries"""
+class TestXMLGenerationImprovements:
+    """Test proper XML generation using libraries for EPUB improvements"""
     
     def test_xml_escaping(self):
         """Should properly escape special characters in XML"""

@@ -16,8 +16,8 @@ from make_epub import (
 )
 
 
-class TestXMLGeneration:
-    """Test that all XML generation uses ElementTree properly"""
+class TestXMLGenerationEPUB:
+    """Test that all EPUB XML generation uses ElementTree properly"""
     
     def test_chapter_xhtml_generation(self):
         """Test chapter XHTML generation with proper escaping"""

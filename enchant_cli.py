@@ -12,7 +12,6 @@
 
 from __future__ import annotations
 
-import builtins
 import sys
 import re
 from pathlib import Path
@@ -20,32 +19,12 @@ import logging
 import signal
 import yaml
 import datetime as dt
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
+from common_print_utils import safe_print, rich_available
 
 APP_NAME = "EnChANT - English-Chinese Automatic Novel Translator"
 APP_VERSION = "1.0.0"  # Semantic version (major.minor.patch)
 MIN_PYTHON_VERSION_REQUIRED = "3.8"
-
-# Fallback to standard print if rich isn't available
-try:
-    from rich import print
-except ImportError:
-    # Use standard print if rich isn't available
-    print = builtins.print
-    # Set flag to indicate rich is not available
-    rich_available = False
-else:
-    rich_available = True
-
-def safe_print(*args, **kwargs) -> None:
-    """Print with rich if available, else strip markup tags"""
-    if rich_available:
-        print(*args, **kwargs)
-    else:
-        # Strip rich markup tags for plain text output
-        text = " ".join(str(arg) for arg in args)
-        clean_text = re.sub(r'\[/?[^]]+\]', '', text)
-        builtins.print(clean_text)
 
 try:
     import colorama as cr
@@ -474,7 +453,7 @@ def process_batch(args: argparse.Namespace) -> None:
 ###############################################
 
 
-def setup_configuration():
+def setup_configuration() -> Tuple[ConfigManager, Dict[str, Any]]:
     """Load and validate configuration from config file."""
     import argparse
     
@@ -499,7 +478,7 @@ def setup_configuration():
         print("Please fix the configuration file or delete it to regenerate defaults.")
         sys.exit(1)
 
-def setup_logging(config):
+def setup_logging(config: Dict[str, Any]) -> logging.Logger:
     """Set up logging based on configuration."""
     log_level = getattr(logging, config['logging']['level'], logging.INFO)
     log_format = config['logging']['format']
@@ -523,7 +502,7 @@ def setup_logging(config):
                 tolog.error(f"Failed to set up file logging to {config['logging']['file_path']}: {e}")
             # Continue without file logging
 
-def setup_global_services(config):
+def setup_global_services(config: Dict[str, Any]) -> None:
     """Initialize global services like iCloud sync."""
     global icloud_sync, MAXCHARS
     icloud_sync = ICloudSync(enabled=config['icloud']['enabled'])
@@ -532,7 +511,7 @@ def setup_global_services(config):
     # Update MAXCHARS from config
     MAXCHARS = config['text_processing']['max_chars_per_chunk']
 
-def main():
+def main() -> None:
     global tolog
     
     # Set up configuration first

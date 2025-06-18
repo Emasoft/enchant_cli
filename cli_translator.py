@@ -20,34 +20,13 @@
 
 from __future__ import annotations
 
-import builtins
 import sys
 import re
+from common_print_utils import safe_print, rich_available
 
 APP_NAME = "cli-translator"
 APP_VERSION = "0.1.0"  # Semantic version (major.minor.patch)
 MIN_PYTHON_VERSION_REQUIRED = "3.8"
-
-# Fallback to standard print if rich isn't available
-try:
-    from rich import print
-except ImportError:
-    # Use standard print if rich isn't available
-    print = builtins.print
-    # Set flag to indicate rich is not available
-    rich_available = False
-else:
-    rich_available = True
-
-def safe_print(*args, **kwargs) -> None:
-    """Print with rich if available, else strip markup tags"""
-    if rich_available:
-        print(*args, **kwargs)
-    else:
-        # Strip rich markup tags for plain text output
-        text = " ".join(str(arg) for arg in args)
-        clean_text = re.sub(r'\[/?[^]]+\]', '', text)
-        builtins.print(clean_text)
 
 try:
     import colorama as cr

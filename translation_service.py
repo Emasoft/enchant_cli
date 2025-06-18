@@ -752,6 +752,7 @@ if __name__ == "__main__":
         output_file="output.txt"
     )
     if english_text:
+        # This is example code, print is acceptable here
         print("Translation completed successfully.")
 
 

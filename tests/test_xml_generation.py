@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 
-class TestXMLGeneration:
+class TestXMLGenerationElementTree:
     """Test XML generation using ElementTree instead of string concatenation"""
     
     def test_chapter_xhtml_generation(self):

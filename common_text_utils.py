@@ -69,7 +69,7 @@ def replace_repeated_chars(text: str, chars) -> str:
     return text
 
 
-def limit_repeated_chars(text, force_chinese=False, force_english=False):
+def limit_repeated_chars(text: str, force_chinese: bool = False, force_english: bool = False) -> str:
     """
     Normalize repeated character sequences in the input text.
 
