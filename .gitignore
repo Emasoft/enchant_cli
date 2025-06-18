@@ -6,6 +6,10 @@ __pycache__/
 dist/
 build/
 venv/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
 
 # Environment
 .env
@@ -75,6 +79,7 @@ BACKUPS/
 
 # macOS
 .DS_Store
+**/.DS_Store
 
 # Cache directories
 .mypy_cache/

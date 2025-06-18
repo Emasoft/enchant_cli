@@ -65,7 +65,7 @@ class TocEntry:
 class EnhancedTocBuilder:
     """Build enhanced table of contents with hierarchical support"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.entries: List[TocEntry] = []
         self.play_order = 1
     

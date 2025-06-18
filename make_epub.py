@@ -131,8 +131,10 @@ def has_part_notation(title: str) -> bool:
 
 
 # Use parse_num wrapper to maintain compatibility with existing code
-def parse_num(raw: str) -> Optional[int]:
+def parse_num(raw: Optional[str]) -> Optional[int]:
     """Wrapper for shared parse_num function."""
+    if raw is None:
+        return None
     return parse_num_shared(raw)
 
 
@@ -435,21 +437,21 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
             # If it has part notation, check adjacent chapters
             if has_part_notation(title):
                 # Use index for O(1) lookup instead of linear search
-                idx: Optional[int] = chapter_index.get((num, title))
-                if idx is not None:
+                chapter_idx: Optional[int] = chapter_index.get((num, title))
+                if chapter_idx is not None:
                     # Check previous and next chapters
-                    prev_has_parts = (idx > 0 and 
-                                    raw_chapters[idx-1][2] is not None and
-                                    has_part_notation(raw_chapters[idx-1][0]))
-                    next_has_parts = (idx < len(raw_chapters) - 1 and
-                                    raw_chapters[idx+1][2] is not None and
-                                    has_part_notation(raw_chapters[idx+1][0]))
+                    prev_has_parts = (chapter_idx > 0 and 
+                                    raw_chapters[chapter_idx-1][2] is not None and
+                                    has_part_notation(raw_chapters[chapter_idx-1][0]))
+                    next_has_parts = (chapter_idx < len(raw_chapters) - 1 and
+                                    raw_chapters[chapter_idx+1][2] is not None and
+                                    has_part_notation(raw_chapters[chapter_idx+1][0]))
                     
                     # If adjacent chapters also have part notation with different numbers,
                     # then this is likely sequential numbering, not sub-parts
                     if (prev_has_parts or next_has_parts):
-                        prev_num = raw_chapters[idx-1][2] if idx > 0 else None
-                        next_num = raw_chapters[idx+1][2] if idx < len(raw_chapters) - 1 else None
+                        prev_num = raw_chapters[chapter_idx-1][2] if chapter_idx > 0 else None
+                        next_num = raw_chapters[chapter_idx+1][2] if chapter_idx < len(raw_chapters) - 1 else None
                         
                         # Sequential if numbers are different
                         if (prev_num != num and prev_num is not None) or \
@@ -1132,9 +1134,9 @@ def main() -> None:
     else:
         first = chunks[min(chunks)]
         def_title, def_author = ("Untitled","Unknown")
-        m = FILENAME_RE.match(first.name)
-        if m:
-            def_title, def_author = m.group("title"), m.group("author")
+        match = FILENAME_RE.match(first.name)
+        if match:
+            def_title, def_author = match.group("title"), match.group("author")
         title = args.title or def_title
         author = args.author or def_author
         safe = re.sub(r"[^A-Za-z0-9_]+","_", title).strip("_") or "book"

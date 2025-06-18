@@ -1,0 +1,6 @@
+usage: make_epub_debug.py [-h] -o OUTPUT [--title TITLE] [--author AUTHOR]
+                          [--toc] [--cover COVER] [--add N[+]]
+                          [--validate-only] [--no-strict]
+                          [--json-log JSON_LOG]
+                          input_dir
+make_epub_debug.py: error: the following arguments are required: -o/--output

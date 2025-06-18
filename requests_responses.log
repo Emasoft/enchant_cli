@@ -1,0 +1,40 @@
+2025-06-17 11:46:28,668 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-17 11:46:28,670 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpknxnfs08/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpknxnfs08/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-17 11:46:28,738 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-17 11:46:28,740 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp2h_56ihj/修炼至尊.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp2h_56ihj/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-17 11:46:28,792 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-17 11:46:28,793 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp2h_56ihj/都市异能王.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp2h_56ihj/Urban Ability King by Unknown Author (Weizhi Zuozhe) - 都市异能王 by 未知作者.txt'
+2025-06-17 11:46:28,842 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-17 11:46:28,844 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp2h_56ihj/魔法学院.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp2h_56ihj/Magic Academy by Unknown Author (Weizhi Zuozhe) - 魔法学院 by 未知作者.txt'
+2025-06-17 11:46:28,908 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-17 11:46:28,910 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-17 11:46:29,028 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpajux9hyv/魔法学院.txt: 401 Client Error: Unauthorized for url: https://openrouter.ai/api/v1/chat/completions
+2025-06-17 13:37:01,813 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-17 13:37:01,817 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpau2uoefh/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpau2uoefh/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-17 13:37:01,889 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-17 13:37:01,892 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpj_tkh7cp/修炼至尊.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpj_tkh7cp/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-17 13:37:01,947 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-17 13:37:01,949 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpj_tkh7cp/都市异能王.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpj_tkh7cp/Urban Ability King by Unknown Author (Weizhi Zuozhe) - 都市异能王 by 未知作者.txt'
+2025-06-17 13:37:02,006 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-17 13:37:02,008 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpj_tkh7cp/魔法学院.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpj_tkh7cp/Magic Academy by Unknown Author (Weizhi Zuozhe) - 魔法学院 by 未知作者.txt'
+2025-06-17 13:37:02,078 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-17 13:37:02,079 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-17 13:37:02,255 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpvz59feuo/魔法学院.txt: 401 Client Error: Unauthorized for url: https://openrouter.ai/api/v1/chat/completions
+2025-06-18 07:10:10,856 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-18 07:10:10,859 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp901adqa2/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp901adqa2/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-18 07:10:10,930 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-18 07:10:10,932 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpg16jyl1r/修炼至尊.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpg16jyl1r/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-18 07:10:10,987 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-18 07:10:10,989 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpg16jyl1r/都市异能王.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpg16jyl1r/Urban Ability King by Unknown Author (Weizhi Zuozhe) - 都市异能王 by 未知作者.txt'
+2025-06-18 07:10:11,044 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-18 07:10:11,046 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpg16jyl1r/魔法学院.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpg16jyl1r/Magic Academy by Unknown Author (Weizhi Zuozhe) - 魔法学院 by 未知作者.txt'
+2025-06-18 07:10:11,118 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-18 07:10:11,121 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-18 07:10:11,246 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpstihmkeq/魔法学院.txt: 401 Client Error: Unauthorized for url: https://openrouter.ai/api/v1/chat/completions
+2025-06-18 07:17:57,959 - INFO - Successfully fetched model pricing information from https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json
+2025-06-18 07:17:57,962 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-18 07:18:02,239 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-18 07:18:07,335 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-18 07:18:11,448 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-18 07:18:19,558 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-18 07:18:19,659 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpxxykc2c1/魔法学院.txt: RetryError[<Future at 0x10806bf50 state=finished raised HTTPError>]

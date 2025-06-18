@@ -43,7 +43,7 @@ def detect_chapter_issues(seq: List[int]) -> List[Tuple[int, str]]:
     Detect issues in chapter sequence (missing, out of order, duplicates).
     Returns list of (position, issue_description) tuples.
     """
-    issues = []
+    issues: List[Tuple[int, str]] = []
     if not seq:
         return issues
         
@@ -114,8 +114,8 @@ def split_text(text: str, detect_headings: bool = True) -> Tuple[List[Tuple[str,
     chapters = []
     chapter_nums = []
     current_toc_title = None
-    current_original_heading = None
-    current_text = []
+    current_original_heading = ""
+    current_text: List[str] = []
     
     for line in text.split('\n'):
         # Check if line is a chapter heading
