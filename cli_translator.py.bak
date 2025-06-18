@@ -111,9 +111,11 @@ DEFAULT_MAX_CHUNK_RETRIES = 10
 MAX_RETRY_WAIT_SECONDS = 60 
 
 
+# Note: All punctuation constants are imported from common_text_utils
 # All punctuation constants are imported from common_text_utils:
-# SENTENCE_ENDING, CLOSING_QUOTES, NON_BREAKING, ALL_PUNCTUATION
-# CHINESE_PUNCTUATION, ENGLISH_PUNCTUATION
+CLOSING_QUOTES = {'」', '”', '】', '》'}
+NON_BREAKING = {'，', '、', '°', }
+# Note: ALL_PUNCTUATION, CHINESE_PUNCTUATION, and ENGLISH_PUNCTUATION are imported from common_text_utils
 
 
 # PARAGRAPH DELIMITERS (characters that denote new paragraphs)
@@ -490,7 +492,9 @@ def split_on_punctuation_contextual(text: str) -> list:
     # Characters groups for chinese punctuation and paragraph delimiters.
     # Ideographic '『' and '』' are omitted because they are usually nested inside '「' and '」'.
     # Ideographic '（' and '）' are omitted because they are rarely used as paragraph delimiters.
-    # Use the imported punctuation constants from common_text_utils
+        CLOSING_QUOTES = {'」', '”', '】', '》'}
+    NON_BREAKING = {'，', '、'}
+    # Use the imported ALL_PUNCTUATION from common_text_utils instead of redefining
 
     # Define a comprehensive set of paragraph delimiters.
     PARAGRAPH_DELIMITERS = {

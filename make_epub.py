@@ -47,7 +47,6 @@ import tempfile
 import uuid
 import zipfile
 from datetime import datetime, timezone
-from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 import xml.etree.ElementTree as ET
@@ -55,7 +54,7 @@ import xml.etree.ElementTree as ET
 # Import shared constants and utilities
 from epub_constants import (
     ENCODING, MIMETYPE, WORD_NUMS, FILENAME_RE,
-    roman_to_int, words_to_int, parse_num as parse_num_shared
+    parse_num as parse_num_shared
 )
 
 # Import database module for fast chapter indexing

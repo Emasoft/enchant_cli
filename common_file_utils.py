@@ -7,10 +7,9 @@ This module provides unified file encoding detection and content decoding
 with configurable behavior for different use cases.
 """
 
-import codecs
 import logging
 from pathlib import Path
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple
 import chardet
 from chardet.universaldetector import UniversalDetector
 

@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import re
 import html
-from typing import List, Tuple, Dict, Optional, Any
+from typing import List, Tuple, Optional
 from dataclasses import dataclass, field
 
 

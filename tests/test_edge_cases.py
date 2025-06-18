@@ -10,8 +10,7 @@ except ImportError:
     pytest = None
 import sys
 import os
-from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -209,7 +208,6 @@ if __name__ == "__main__":
         pytest.main([__file__, "-v"])
     else:
         # Manual test runner
-        import inspect
         
         test_class = TestEdgeCases()
         test_methods = [method for method in dir(test_class) 

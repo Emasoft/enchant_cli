@@ -4,14 +4,10 @@
 Integration tests for cost tracking functionality between cli_translator and translation_service
 """
 
-import json
 import os
 import sys
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
+from unittest.mock import Mock, patch
 import threading
-import time
-import concurrent.futures
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -67,8 +63,8 @@ class TestCostTrackingIntegration:
             temperature=0.05  # Production override value
         )
         
-        # Mock API response with cost data
-        with patch('requests.post') as mock_post:
+        # Mock API response with cost data and time.sleep to avoid test delays
+        with patch('requests.post') as mock_post, patch('time.sleep'):
             mock_response = Mock()
             mock_response.json.return_value = {
                 'choices': [{
@@ -141,7 +137,7 @@ class TestCostTrackingIntegration:
             }
         ]
         
-        with patch('requests.post') as mock_post:
+        with patch('requests.post') as mock_post, patch('time.sleep'):
             mock_responses = []
             for resp_data in responses:
                 mock_resp = Mock()
@@ -207,7 +203,7 @@ class TestCostTrackingIntegration:
             temperature=0.05  # Production value
         )
         
-        with patch('requests.post') as mock_post:
+        with patch('requests.post') as mock_post, patch('time.sleep'):
             # Response without cost field
             mock_response = Mock()
             mock_response.json.return_value = {
@@ -242,7 +238,7 @@ class TestCostTrackingIntegration:
         
         # Function to simulate concurrent API calls
         def make_request(request_id):
-            with patch('requests.post') as mock_post:
+            with patch('requests.post') as mock_post, patch('time.sleep'):
                 mock_response = Mock()
                 mock_response.json.return_value = {
                     'choices': [{'message': {'content': f'Translation {request_id}'}}],

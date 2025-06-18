@@ -13,8 +13,6 @@ while still validating the core functionality.
 
 import pytest
 import sys
-import os
-import tempfile
 import zipfile
 import xml.etree.ElementTree as ET
 from pathlib import Path

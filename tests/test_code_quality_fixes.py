@@ -9,13 +9,12 @@ Following TDD methodology
 import unittest
 import sys
 from pathlib import Path
-from typing import Optional
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from make_epub import parse_num, has_part_notation, split_text
+from make_epub import parse_num, split_text
 from epub_constants import roman_to_int, words_to_int, parse_num as parse_num_shared
 
 
@@ -122,7 +121,6 @@ class TestModuleIntegrity(unittest.TestCase):
         # Import in different order
         import epub_constants
         import make_epub
-        import epub_builder
         
         # Should be able to use functions from both
         self.assertTrue(callable(make_epub.parse_num))

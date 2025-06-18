@@ -15,23 +15,18 @@ Mock external services to focus on integration testing.
 
 import pytest
 import tempfile
-import shutil
 from pathlib import Path
 import os
 import sys
-import subprocess
 import yaml
 import zipfile
-import xml.etree.ElementTree as ET
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import json
-import re
 
 # Add project root to Python path  
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from enchant_cli import main as enchant_main
 
 
 class TestE2EChineseToEPUB:

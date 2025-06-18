@@ -221,9 +221,16 @@ USER_PROMPT_2NDPASS_QWEN = """;; Examine the following text containing a mix of 
 
 """
 
-# All punctuation constants are imported from common_text_utils:
-# SENTENCE_ENDING, CLOSING_QUOTES, NON_BREAKING, ALL_PUNCTUATION
-# CHINESE_PUNCTUATION, ENGLISH_PUNCTUATION
+# CHINESE PUNCTUATION sets.
+CLOSING_QUOTES = {'」', '”', '】', '》'}
+NON_BREAKING = {'，', '、'}
+ALL_PUNCTUATION = SENTENCE_ENDING | CLOSING_QUOTES | NON_BREAKING
+
+# Define explicit sets for Chinese and English punctuation.
+# Chinese punctuation includes full-width or ideographic punctuation.
+CHINESE_PUNCTUATION = {'。', '！', '？', '…', '；', '，', '、', '」', '”', '】', '》'}
+# English punctuation: common ASCII punctuation characters.
+ENGLISH_PUNCTUATION = {'.', ',', '!', '?', ';', ':'}
 
 # PARAGRAPH DELIMITERS (characters that denote new paragraphs)
 # PARAGRAPH_DELIMITERS is already defined at the module level, no need to redefine it here.

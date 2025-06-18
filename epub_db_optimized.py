@@ -17,14 +17,13 @@ Uses simplified schema and two-stage search for better performance.
 from __future__ import annotations
 
 import re
-from datetime import datetime
 from typing import List, Tuple, Optional, Callable, Pattern, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from re import Pattern as RePattern
+    pass
 
 from peewee import (
-    Model, CharField, IntegerField, TextField, BooleanField, 
+    Model, IntegerField, TextField, BooleanField, 
     AutoField, fn, chunked
 )
 from playhouse.sqlite_ext import SqliteExtDatabase

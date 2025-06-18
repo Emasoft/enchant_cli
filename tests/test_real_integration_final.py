@@ -14,7 +14,6 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from translation_service import ChineseAITranslator
-from cli_translator import split_chinese_text_in_parts
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

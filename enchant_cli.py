@@ -58,10 +58,9 @@ import filelock
 import argparse
 
 # Import enhanced functionality modules
-from icloud_sync import ICloudSync, ensure_synced, prepare_for_write
+from icloud_sync import ICloudSync
 from config_manager import ConfigManager, get_config
 # Note: model_pricing module is deprecated - using global_cost_tracker instead
-from cost_tracker import global_cost_tracker
 from common_utils import sanitize_filename, extract_book_info_from_path
 
 # Import modules for the three phases

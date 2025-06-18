@@ -10,7 +10,6 @@ from pathlib import Path
 import tempfile
 import shutil
 import zipfile
-import xml.etree.ElementTree as ET
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 

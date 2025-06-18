@@ -4,8 +4,6 @@
 Tests for chunk retry constants and configuration
 """
 
-import pytest
-from unittest.mock import patch
 import sys
 from pathlib import Path
 

@@ -10,9 +10,6 @@ import pytest
 from pathlib import Path
 import tempfile
 import shutil
-import zipfile
-import xml.etree.ElementTree as ET
-from unittest.mock import patch, MagicMock
 
 # Future imports - these don't exist yet but will be implemented
 # from epub_utils import EPUBGenerator, EPUBConfig, ChapterDetector

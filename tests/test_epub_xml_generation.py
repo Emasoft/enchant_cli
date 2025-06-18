@@ -5,7 +5,6 @@
 Test suite for XML generation using ElementTree.
 """
 
-import pytest
 from pathlib import Path
 import xml.etree.ElementTree as ET
 import sys

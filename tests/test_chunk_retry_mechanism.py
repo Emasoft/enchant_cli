@@ -5,18 +5,17 @@ Tests for chunk-level retry mechanism in cli_translator.py
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import sys
 from pathlib import Path
 import tempfile
 import shutil
-from typing import Optional
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from cli_translator import save_translated_book
-from cli_translator import Book, Chapter, VARIATION_DB
+from cli_translator import Book, chunk
 
 
 class TestChunkRetryMechanism:
@@ -37,12 +36,12 @@ class TestChunkRetryMechanism:
         # Create mock chapters
         self.mock_chapters = []
         for i in range(3):
-            chapter = Mock(spec=Chapter)
-            chapter.chapter_number = i + 1
+            chapter = Mock(spec=chunk)
+            chapter.chunk_number = i + 1
             chapter.original_variation_id = f"var-{i+1}"
             self.mock_chapters.append(chapter)
         
-        self.mock_book.chapters = self.mock_chapters
+        self.mock_book.chunks = self.mock_chapters
         
         # Create mock variations
         self.mock_variations = {
@@ -65,8 +64,13 @@ class TestChunkRetryMechanism:
         mock_get_book.return_value = self.mock_book
         mock_var_db.get.side_effect = lambda var_id: self.mock_variations.get(var_id)
         mock_translator.translate.return_value = "Translated content"
-        mock_translator.is_remote = False
-        mock_translator.request_count = 0
+        # Configure attributes properly to avoid MagicMock comparison issues
+        mock_translator.configure_mock(
+            is_remote=False,
+            request_count=0,
+            total_cost=0.0,
+            total_tokens=0
+        )
         
         # Change to test directory
         with patch('cli_translator.Path.cwd', return_value=Path(self.test_dir)):
@@ -103,8 +107,13 @@ class TestChunkRetryMechanism:
             "Translated content 2",
             "Translated content 3"
         ]
-        mock_translator.is_remote = False
-        mock_translator.request_count = 0
+        # Configure attributes properly to avoid MagicMock comparison issues
+        mock_translator.configure_mock(
+            is_remote=False,
+            request_count=0,
+            total_cost=0.0,
+            total_tokens=0
+        )
         
         # Change to test directory
         with patch('cli_translator.Path.cwd', return_value=Path(self.test_dir)):
@@ -137,8 +146,13 @@ class TestChunkRetryMechanism:
         
         # All attempts fail
         mock_translator.translate.side_effect = Exception("Persistent error")
-        mock_translator.is_remote = False
-        mock_translator.request_count = 0
+        # Configure attributes properly to avoid MagicMock comparison issues
+        mock_translator.configure_mock(
+            is_remote=False,
+            request_count=0,
+            total_cost=0.0,
+            total_tokens=0
+        )
         
         # Change to test directory
         with patch('cli_translator.Path.cwd', return_value=Path(self.test_dir)):
@@ -170,7 +184,8 @@ class TestChunkRetryMechanism:
     @patch('cli_translator.VARIATION_DB')
     @patch('cli_translator.translator')
     @patch('cli_translator.tolog')
-    def test_empty_translation_triggers_retry(self, mock_tolog, mock_translator, mock_var_db, mock_get_book):
+    @patch('cli_translator.time.sleep')
+    def test_empty_translation_triggers_retry(self, mock_sleep, mock_tolog, mock_translator, mock_var_db, mock_get_book):
         """Test that empty or whitespace-only translations trigger retry"""
         # Setup mocks
         mock_get_book.return_value = self.mock_book
@@ -184,8 +199,13 @@ class TestChunkRetryMechanism:
             "Valid translation 2",
             "Valid translation 3"
         ]
-        mock_translator.is_remote = False
-        mock_translator.request_count = 0
+        # Configure attributes properly to avoid MagicMock comparison issues
+        mock_translator.configure_mock(
+            is_remote=False,
+            request_count=0,
+            total_cost=0.0,
+            total_tokens=0
+        )
         
         # Change to test directory
         with patch('cli_translator.Path.cwd', return_value=Path(self.test_dir)):
@@ -202,14 +222,20 @@ class TestChunkRetryMechanism:
     @patch('cli_translator.VARIATION_DB')
     @patch('cli_translator.translator')
     @patch('cli_translator.tolog')
-    def test_file_write_error_triggers_retry(self, mock_tolog, mock_translator, mock_var_db, mock_get_book):
+    @patch('cli_translator.time.sleep')
+    def test_file_write_error_triggers_retry(self, mock_sleep, mock_tolog, mock_translator, mock_var_db, mock_get_book):
         """Test that file write errors trigger retry"""
         # Setup mocks
         mock_get_book.return_value = self.mock_book
         mock_var_db.get.side_effect = lambda var_id: self.mock_variations.get(var_id)
         mock_translator.translate.return_value = "Translated content"
-        mock_translator.is_remote = False
-        mock_translator.request_count = 0
+        # Configure attributes properly to avoid MagicMock comparison issues
+        mock_translator.configure_mock(
+            is_remote=False,
+            request_count=0,
+            total_cost=0.0,
+            total_tokens=0
+        )
         
         # Make first write attempt fail
         write_attempts = [0]

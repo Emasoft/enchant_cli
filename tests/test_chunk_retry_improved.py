@@ -5,7 +5,7 @@ Improved tests for chunk-level retry mechanism with reduced duplication
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import sys
 from pathlib import Path
 import tempfile
@@ -15,7 +15,7 @@ import shutil
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from cli_translator import save_translated_book, DEFAULT_MAX_CHUNK_RETRIES, MAX_RETRY_WAIT_SECONDS
-from cli_translator import Book, Chapter, VARIATION_DB
+from cli_translator import Book, chunk
 
 
 class BaseChunkRetryTest:
@@ -53,12 +53,12 @@ class BaseChunkRetryTest:
         # Create mock chapters
         mock_chapters = []
         for i in range(3):
-            chapter = Mock(spec=Chapter)
-            chapter.chapter_number = i + 1
+            chapter = Mock(spec=chunk)
+            chapter.chunk_number = i + 1
             chapter.original_variation_id = f"var-{i+1}"
             mock_chapters.append(chapter)
         
-        mock_book.chapters = mock_chapters
+        mock_book.chunks = mock_chapters
         return mock_book
     
     def _create_mock_variations(self):
@@ -86,8 +86,13 @@ class BaseChunkRetryTest:
         # translator
         trans_patch = patch('cli_translator.translator')
         self.mock_translator = trans_patch.start()
-        self.mock_translator.is_remote = False
-        self.mock_translator.request_count = 0
+        # Configure attributes properly to avoid MagicMock comparison issues
+        self.mock_translator.configure_mock(
+            is_remote=False,
+            request_count=0,
+            total_cost=0.0,
+            total_tokens=0
+        )
         self.patches.append(trans_patch)
         
         # tolog
@@ -178,7 +183,8 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
             # Check sleep was called correctly
             assert mock_sleep.call_count == 2  # No sleep after last attempt
     
-    def test_empty_translation_triggers_retry(self):
+    @patch('cli_translator.time.sleep')
+    def test_empty_translation_triggers_retry(self, mock_sleep):
         """Test that empty or whitespace-only translations trigger retry"""
         # Return empty/whitespace translations then valid ones
         self.mock_translator.translate.side_effect = [

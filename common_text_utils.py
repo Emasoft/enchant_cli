@@ -9,9 +9,7 @@ functions used across multiple EnChANT modules.
 
 import re
 import html
-import string
-import unicodedata
-from typing import List, Tuple, Set, Optional
+from typing import List, Tuple
 
 # Constants from original modules
 PRESERVE_UNLIMITED = {
@@ -34,6 +32,15 @@ ENGLISH_PUNCTUATION = {
     '{', '}', '-', '—', '…', '/', '\\', '@', '#', '$', '%', '^', 
     '&', '*', '+', '=', '|', '~', '`', '<', '>'
 }
+
+# Sentence ending punctuation
+SENTENCE_ENDING = {'。', '！', '？', '…', '.', ';', '；'}
+
+# Closing quotes
+CLOSING_QUOTES = {'」', '"', '】', '》'}
+
+# Non-breaking punctuation
+NON_BREAKING = {'，', '、', '°'}
 
 ALL_PUNCTUATION = CHINESE_PUNCTUATION | ENGLISH_PUNCTUATION
 

@@ -2,17 +2,12 @@
 
 import os
 import requests
-import chardet
 import yaml
 import json
-import tenacity
 import logging
-import subprocess
-import shlex
 import re
 import argparse
 import sys
-import string
 import getpass
 from pathlib import Path
 import multiprocessing
@@ -22,155 +17,10 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 from requests.exceptions import HTTPError, ConnectionError, Timeout
 from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
-import threading
-import waiting  # Ensure this library is installed: pip install waiting
 from common_file_utils import decode_full_file
 from cost_tracker import global_cost_tracker
+from icloud_sync import ICloudSync, ICloudSyncError
 
-# ==========================
-# ICloudSync Class Definition
-# ==========================
-
-class ICloudSyncError(Exception):
-    """Custom exception for iCloud synchronization errors."""
-    pass
-
-class ICloudSync:
-    def __init__(self, icloud_enabled: bool = True):
-        self.ICLOUD = icloud_enabled
-        if self.ICLOUD:
-            self.validate_commands()
-
-    def validate_commands(self):
-        """Ensure that required iCloud sync commands are available."""
-        import shutil
-        required_commands = ['downloadFolder', 'downloadFile']
-        missing = [cmd for cmd in required_commands if shutil.which(cmd) is None]
-        if missing:
-            logger.error(f"Missing required commands: {', '.join(missing)}. Please install them and ensure they are in the system's PATH.")
-            raise ICloudSyncError(f"Missing commands: {', '.join(missing)}")
-
-    def check_and_wait_for_sync(self, path: Path) -> Path:
-        """Check and wait for iCloud synchronization of the given path."""
-        if not self.ICLOUD:
-            return path
-
-        if path.is_dir():
-            self.force_sync_folder(path)
-            return path
-        elif path.is_file():
-            synced_file = self.force_sync_file(path)
-            return synced_file
-        else:
-            logger.warning(f"Path '{path}' is neither a file nor a directory. Skipping iCloud sync.")
-            return path
-
-    def force_sync_folder(self, folder_path: Path, recursive: bool = False, depth: int = 0) -> None:
-        """Force iCloud synchronization for a folder."""
-        if not self.ICLOUD:
-            return
-
-        if folder_path.is_dir():
-            logger.info(f"FORCING iCloud Sync for Folder: {folder_path}")
-            command = shlex.split(f'downloadFolder "{folder_path}"')
-            try:
-                subprocess.run(command, stdout=subprocess.PIPE, check=True)
-            except subprocess.CalledProcessError as e:
-                logger.error(f"Error executing command '{' '.join(command)}': {e}")
-                raise ICloudSyncError(f"Failed to sync folder: {folder_path}")
-
-            if not recursive and depth >= 1:
-                return
-            depth += 1
-            for file in folder_path.iterdir():
-                if file.is_dir():
-                    self.force_sync_folder(file, recursive, depth)
-                elif file.is_file():
-                    self.force_sync_file(file)
-
-            # Waiting for the folder to be free of dummy files
-            try:
-                waiting.wait(
-                    lambda: self.check_folder_is_free_of_dummy_files(folder_path),
-                    sleep_seconds=5,
-                    timeout_seconds=300,  # Max timeout
-                    waiting_for="iCloud folder to be free of dummy files"
-                )
-            except waiting.TimeoutExpired:
-                logger.error(f"Timeout while waiting for folder '{folder_path}' to be free of dummy files.")
-                raise ICloudSyncError(f"Timeout syncing folder: {folder_path}")
-        else:
-            raise ICloudSyncError(f"Path '{folder_path}' is not a directory.")
-
-    def check_folder_is_free_of_dummy_files(self, folder_path: Path) -> bool:
-        """Check if the folder is free of iCloud dummy files."""
-        if not self.ICLOUD:
-            return True
-
-        if folder_path.is_dir():
-            icloud_dummyfiles_exist = any(file.suffix == '.icloud' for file in folder_path.iterdir())
-            if not icloud_dummyfiles_exist:
-                return True
-            else:
-                logger.info("CHECK FOLDER FOR ICLOUD DUMMY FILES - DUMMY EXISTS - WAITING...")
-                return False
-        else:
-            return True
-
-    def force_sync_file(self, file_path: Path) -> Path:
-        """Force iCloud synchronization for a single file."""
-        if not self.ICLOUD:
-            return file_path
-
-        filename = file_path.name
-        if filename.endswith('.icloud'):
-            logger.info(f"FORCING iCloud Sync for File: {file_path}")
-            command = shlex.split(f'downloadFile "{file_path}"')
-            try:
-                subprocess.run(command, stdout=subprocess.PIPE, check=True)
-            except subprocess.CalledProcessError as e:
-                logger.error(f"Error executing command '{' '.join(command)}': {e}")
-                raise ICloudSyncError(f"Failed to sync file: {file_path}")
-
-            # Waiting for the file to be fully downloaded
-            try:
-                waiting.wait(
-                    lambda: self.check_if_not_icloud_dummyfile(file_path),
-                    sleep_seconds=5,
-                    timeout_seconds=300,  # Max timeout
-                    waiting_for="iCloud file to be fully downloaded"
-                )
-            except waiting.TimeoutExpired:
-                logger.error(f"Timeout while waiting for file '{file_path}' to be fully downloaded.")
-                raise ICloudSyncError(f"Timeout syncing file: {file_path}")
-
-            file_true_name = re.sub(r'\.icloud$', '', filename)
-            return file_path.parent / file_true_name
-        else:
-            file_dummy_name = f"{filename.strip()}.icloud"
-            dummy_file_path = file_path.parent / file_dummy_name
-            if dummy_file_path.is_file():
-                return self.force_sync_file(dummy_file_path)
-            else:
-                return file_path
-
-    def check_if_not_icloud_dummyfile(self, file_path: Path) -> bool:
-        """Check if the file is not an iCloud dummy file."""
-        if not self.ICLOUD:
-            return True
-
-        if file_path.name.endswith('.icloud'):
-            file_true_name = re.sub(r'\.icloud$', '', file_path.name)
-            true_file_path = file_path.parent / file_true_name
-            if true_file_path.is_file():
-                return True
-            else:
-                return False
-        return True
-
-# ==========================
-# End of ICloudSync Class
-# ==========================
 
 # Version constant
 VERSION = "1.3.1"
@@ -315,7 +165,7 @@ def find_text_files(folder_path: Path, recursive: bool) -> list:
 def decode_file_content(file_path: Path, kb_to_read: int, icloud_sync: ICloudSync) -> Optional[str]:
     """Decode file content using common_file_utils with size limit."""
     try:
-        synced_path = icloud_sync.check_and_wait_for_sync(file_path)
+        synced_path = icloud_sync.ensure_synced(file_path)
     except ICloudSyncError as e:
         logger.error(f"iCloud synchronization failed for '{file_path}': {e}")
         return None
@@ -351,7 +201,7 @@ def sanitize_filename(name: str) -> str:
     return sanitized or "Unnamed"
 
 # Function to rename the original file with novel information
-def rename_file(file_path: Path, data: dict):
+def rename_file(file_path: Path, data: dict) -> None:
     title_eng = sanitize_filename(data.get('novel_title_english', 'Unknown Title'))
     author_eng = sanitize_filename(data.get('author_name_english', 'Unknown Author'))
     author_roman = sanitize_filename(data.get('author_name_romanized', 'Unknown'))
@@ -413,7 +263,7 @@ def process_novel_file(file_path: Path, api_key: str, model: str = 'gpt-4o-mini'
         # Cost tracking is now handled by the unified cost_tracker module
         
         # Initialize iCloud sync
-        icloud_sync = ICloudSync(icloud_enabled=ICLOUD)
+        icloud_sync = ICloudSync(enabled=ICLOUD)
         
         # Use default kb_to_read
         kb_to_read = DEFAULT_KB_TO_READ
@@ -516,7 +366,7 @@ def process_novel_file(file_path: Path, api_key: str, model: str = 'gpt-4o-mini'
 
 
 # Helper function to process a single file (used by batch processing)
-def process_single_file(file_path: Path, kb_to_read: int, api_key: str, model: str, temperature: float, icloud_sync: ICloudSync):
+def process_single_file(file_path: Path, kb_to_read: int, api_key: str, model: str, temperature: float, icloud_sync: ICloudSync) -> None:
     content = decode_file_content(file_path, kb_to_read, icloud_sync)
     if content is None:
         logger.error(f"Skipping file {file_path} due to decoding errors or iCloud sync failure.")
@@ -586,7 +436,7 @@ def process_single_file(file_path: Path, kb_to_read: int, api_key: str, model: s
         logger.error(f"Unexpected error processing file {file_path}: {e}")
 
 # Function to process all files
-def process_files(folder_or_path: Path, recursive: bool, kb_to_read: int, api_key: str, model: str, temperature: float, max_workers: int, icloud_sync: ICloudSync):
+def process_files(folder_or_path: Path, recursive: bool, kb_to_read: int, api_key: str, model: str, temperature: float, max_workers: int, icloud_sync: ICloudSync) -> None:
     txt_files = find_text_files(folder_or_path, recursive=recursive)
     if not txt_files:
         logger.error("No eligible text files found to process. Please check the folder or file pattern and ensure files are not hidden or too small.")
@@ -622,7 +472,7 @@ def process_files(folder_or_path: Path, recursive: bool, kb_to_read: int, api_ke
     logger.info(f"Total cost for all transactions: ${summary['total_cost']:.6f}")
 
 # Argument parsing
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=f"Novel Auto Renamer v{VERSION}\nAutomatically rename text files based on extracted novel information.",
         epilog="Example usage:\n  python renamenovels.py /path/to/folder -r -k 50",
@@ -635,7 +485,7 @@ def parse_args():
     return parser.parse_args()
 
 # Entry point of the script
-def main():
+def main() -> None:
     try:
         args = parse_args()
         kb_to_read = args.kb
@@ -660,7 +510,7 @@ def main():
         # OpenRouter provides costs directly in the API response
 
         # Initialize ICloudSync
-        icloud_sync = ICloudSync(icloud_enabled=False)
+        icloud_sync = ICloudSync(enabled=False)
 
         # Process files
         process_files(

@@ -4,7 +4,6 @@
 Real API tests for translation_service.py - minimal mocking
 """
 
-import json
 import logging
 import threading
 import time
@@ -17,7 +16,7 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from translation_service import (
-    ChineseAITranslator, TranslationException, is_latin_char, 
+    ChineseAITranslator, is_latin_char, 
     is_latin_charset
 )
 

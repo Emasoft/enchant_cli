@@ -4,11 +4,8 @@
 icloud_sync.py - Module for handling iCloud synchronization on macOS and iOS
 """
 
-import os
-import sys
 import platform
 import subprocess
-import shlex
 import re
 import logging
 from pathlib import Path

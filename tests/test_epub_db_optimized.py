@@ -7,15 +7,12 @@ Tests for optimized database module
 
 import unittest
 import re
-from pathlib import Path
-from typing import List, Tuple, Optional
 
 from epub_db_optimized import (
     setup_database, close_database, import_text_optimized,
     find_chapters_two_stage, build_chapters_table, process_text_optimized,
     TextLine, Chapter, db
 )
-from peewee import fn
 
 
 class TestEpubDatabaseOptimized(unittest.TestCase):

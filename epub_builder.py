@@ -13,20 +13,18 @@ epub_builder.py - Module for building EPUB files from translated novel chapters
 
 import re
 import html
-import json
 import tempfile
 import zipfile
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
-import xml.etree.ElementTree as ET
 import logging
 
 # Import shared constants and utilities
 from epub_constants import (
     ENCODING, MIMETYPE, WORD_NUMS, FILENAME_RE,
-    roman_to_int, words_to_int, parse_num
+    roman_to_int, words_to_int
 )
 
 HEADING_RE = re.compile(

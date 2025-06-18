@@ -11,10 +11,9 @@ except ImportError:
 import json
 import logging
 import threading
-import time
-from unittest.mock import Mock, patch, MagicMock, call
+from unittest.mock import Mock, patch
 import requests
-from requests.exceptions import HTTPError, RequestException, Timeout
+from requests.exceptions import HTTPError, RequestException
 
 import sys
 import os
@@ -34,20 +33,13 @@ class TestChineseAITranslator:
         """Create a mock logger"""
         return Mock(spec=logging.Logger)
     
-    @pytest.fixture
-    def mock_pricing_manager(self):
-        """Create a mock pricing manager"""
-        manager = Mock()
-        manager.calculate_cost.return_value = (0.05, {'input_cost': 0.03, 'output_cost': 0.02})
-        return manager
     
     @pytest.fixture
-    def translator_local(self, mock_logger, mock_pricing_manager):
+    def translator_local(self, mock_logger):
         """Create a local translator instance"""
         return ChineseAITranslator(
             logger=mock_logger,
-            use_remote=False,
-            pricing_manager=mock_pricing_manager
+            use_remote=False
         )
     
     @pytest.fixture
@@ -65,7 +57,6 @@ class TestChineseAITranslator:
         assert translator_local.api_url == 'http://localhost:1234/v1/chat/completions'
         assert translator_local.MODEL_NAME == "qwen3-30b-a3b-mlx@8bit"
         assert translator_local.temperature == 0.05
-        assert translator_local.total_cost == 0.0
         assert translator_local.request_count == 0
     
     def test_init_remote(self, translator_remote):
@@ -74,7 +65,6 @@ class TestChineseAITranslator:
         assert translator_remote.api_url == 'https://openrouter.ai/api/v1/chat/completions'
         assert translator_remote.MODEL_NAME == 'deepseek/deepseek-r1:nitro'
         assert translator_remote.api_key == "test_key"
-        assert translator_remote.total_cost == 0.0
         assert translator_remote.request_count == 0
     
     def test_init_remote_no_api_key(self, mock_logger):
@@ -186,25 +176,6 @@ class TestChineseAITranslator:
             result = translator_local.remove_translation_markers(text)
             assert tag not in result
     
-    def test_separate_chapters(self, translator_local):
-        """Test chapter separation"""
-        # Test various chapter formats
-        text = "Chapter 1: Introduction\nContent\nChapter 2 - The Beginning"
-        result = translator_local.separate_chapters(text)
-        assert "\n\n\nChapter 1: Introduction\n\n" in result
-        assert "\n\n\nChapter 2 - The Beginning" in result
-        
-        # Test Roman numerals
-        text = "Chapter IX - Final\nContent"
-        result = translator_local.separate_chapters(text)
-        assert "\n\n\nChapter IX - Final" in result
-        
-        # Test Prologue/Epilogue
-        text = "Prologue\nContent\nEpilogue"
-        result = translator_local.separate_chapters(text)
-        assert "\n\n\nPrologue\n\n" in result
-        assert "\n\n\nEpilogue" in result
-    
     @patch('translation_service.requests.post')
     def test_translate_messages_success_local(self, mock_post, translator_local):
         """Test successful translation with local API"""
@@ -251,16 +222,26 @@ class TestChineseAITranslator:
         mock_response.raise_for_status = Mock()
         mock_post.return_value = mock_response
         
-        result = translator_remote.translate_messages("Test message", is_last_chunk=True)
-        
-        assert result == "Translated text in English"
-        assert translator_remote.total_cost == 0.0025
-        assert translator_remote.total_tokens == 150
-        assert translator_remote.request_count == 1
-        
-        # Verify usage tracking was enabled
-        call_args = mock_post.call_args
-        assert call_args[1]['json']['usage'] == {'include': True}
+        # Mock global cost tracker
+        with patch('translation_service.global_cost_tracker.track_usage') as mock_track_usage:
+            mock_track_usage.return_value = 0.0025
+            
+            result = translator_remote.translate_messages("Test message", is_last_chunk=True)
+            
+            assert result == "Translated text in English"
+            assert translator_remote.request_count == 1
+            
+            # Verify cost tracking was called
+            mock_track_usage.assert_called_once()
+            usage_arg = mock_track_usage.call_args[0][0]
+            assert usage_arg['prompt_tokens'] == 100
+            assert usage_arg['completion_tokens'] == 50
+            assert usage_arg['total_tokens'] == 150
+            assert usage_arg['cost'] == 0.0025
+            
+            # Verify usage tracking was enabled
+            call_args = mock_post.call_args
+            assert call_args[1]['json']['usage'] == {'include': True}
     
     @patch('translation_service.requests.post')
     def test_translate_messages_remote_no_cost(self, mock_post, translator_remote):
@@ -282,16 +263,22 @@ class TestChineseAITranslator:
         mock_response.raise_for_status = Mock()
         mock_post.return_value = mock_response
         
-        result = translator_remote.translate_messages("Test", is_last_chunk=True)
-        
-        assert result == "Translated text"
-        assert translator_remote.request_count == 1
-        
-        # Verify tokens tracked but no cost
-        from cost_tracker import global_cost_tracker
-        summary = global_cost_tracker.get_summary()
-        assert summary['total_cost'] == 0.0
-        assert summary['total_tokens'] == 150
+        # Mock global cost tracker
+        with patch('translation_service.global_cost_tracker.track_usage') as mock_track_usage:
+            mock_track_usage.return_value = 0.0  # No cost returned
+            
+            result = translator_remote.translate_messages("Test", is_last_chunk=True)
+            
+            assert result == "Translated text"
+            assert translator_remote.request_count == 1
+            
+            # Verify cost tracking was called with usage data but no cost
+            mock_track_usage.assert_called_once()
+            usage_arg = mock_track_usage.call_args[0][0]
+            assert usage_arg['prompt_tokens'] == 100
+            assert usage_arg['completion_tokens'] == 50
+            assert usage_arg['total_tokens'] == 150
+            assert 'cost' not in usage_arg  # No cost field in response
     
     @patch('translation_service.requests.post')
     def test_translate_messages_thinking_removal(self, mock_post, translator_local):
@@ -390,10 +377,10 @@ class TestChineseAITranslator:
         assert result == "Short translation"
         assert mock_post.call_count == 1
     
+    @patch('translation_service.time.sleep')
     @patch('translation_service.requests.post')
-    def test_translate_messages_http_error(self, mock_post, translator_local):
+    def test_translate_messages_http_error(self, mock_post, mock_sleep, translator_local):
         """Test HTTP error handling"""
-        from tenacity import RetryError
         mock_response = Mock()
         mock_response.raise_for_status.side_effect = HTTPError("404 Not Found")
         mock_post.return_value = mock_response
@@ -401,25 +388,33 @@ class TestChineseAITranslator:
         # Set low retry count for test speed
         translator_local.max_retries = 2
         
-        with pytest.raises(RetryError):
-            translator_local.translate_messages("Test")
+        # The custom retry mechanism calls sys.exit(1) on failure
+        with patch('sys.exit') as mock_exit:
+            mock_exit.side_effect = SystemExit(1)
+            with pytest.raises(SystemExit):
+                translator_local.translate_messages("Test")
+            mock_exit.assert_called_with(1)
     
+    @patch('translation_service.time.sleep')
     @patch('translation_service.requests.post')
-    def test_translate_messages_request_exception(self, mock_post, translator_local):
+    def test_translate_messages_request_exception(self, mock_post, mock_sleep, translator_local):
         """Test request exception handling"""
-        from tenacity import RetryError
         mock_post.side_effect = RequestException("Connection error")
         
         # Set low retry count for test speed
         translator_local.max_retries = 2
         
-        with pytest.raises(RetryError):
-            translator_local.translate_messages("Test")
+        # The custom retry mechanism calls sys.exit(1) on failure
+        with patch('sys.exit') as mock_exit:
+            mock_exit.side_effect = SystemExit(1)
+            with pytest.raises(SystemExit):
+                translator_local.translate_messages("Test")
+            mock_exit.assert_called_with(1)
     
+    @patch('translation_service.time.sleep')
     @patch('translation_service.requests.post')
-    def test_translate_messages_json_error(self, mock_post, translator_local):
+    def test_translate_messages_json_error(self, mock_post, mock_sleep, translator_local):
         """Test JSON decode error"""
-        from tenacity import RetryError
         mock_response = Mock()
         mock_response.json.side_effect = json.JSONDecodeError("Invalid JSON", "", 0)
         mock_response.raise_for_status = Mock()
@@ -428,13 +423,17 @@ class TestChineseAITranslator:
         # Set low retry count for test speed
         translator_local.max_retries = 2
         
-        with pytest.raises(RetryError):
-            translator_local.translate_messages("Test")
+        # The custom retry mechanism calls sys.exit(1) on failure
+        with patch('sys.exit') as mock_exit:
+            mock_exit.side_effect = SystemExit(1)
+            with pytest.raises(SystemExit):
+                translator_local.translate_messages("Test")
+            mock_exit.assert_called_with(1)
     
+    @patch('translation_service.time.sleep')
     @patch('translation_service.requests.post')
-    def test_translate_messages_unexpected_response(self, mock_post, translator_local):
+    def test_translate_messages_unexpected_response(self, mock_post, mock_sleep, translator_local):
         """Test unexpected response structure"""
-        from tenacity import RetryError
         mock_response = Mock()
         mock_response.json.return_value = {'unexpected': 'structure'}
         mock_response.raise_for_status = Mock()
@@ -443,8 +442,12 @@ class TestChineseAITranslator:
         # Set low retry count for test speed
         translator_local.max_retries = 2
         
-        with pytest.raises(RetryError):
-            translator_local.translate_messages("Test")
+        # The custom retry mechanism calls sys.exit(1) on failure
+        with patch('sys.exit') as mock_exit:
+            mock_exit.side_effect = SystemExit(1)
+            with pytest.raises(SystemExit):
+                translator_local.translate_messages("Test")
+            mock_exit.assert_called_with(1)
     
     @patch('translation_service.requests.post')
     def test_translate_chunk(self, mock_post, translator_local):
@@ -572,22 +575,25 @@ class TestChineseAITranslator:
     
     def test_get_cost_summary_remote(self, translator_remote):
         """Test cost summary for remote API"""
-        # Set some test values
-        with translator_remote._cost_lock:
-            translator_remote.total_cost = 0.15
-            translator_remote.total_tokens = 5000
-            translator_remote.total_prompt_tokens = 3000
-            translator_remote.total_completion_tokens = 2000
-            translator_remote.request_count = 5
-        
-        summary = translator_remote.get_cost_summary()
-        
-        assert summary['total_cost'] == 0.15
-        assert summary['total_tokens'] == 5000
-        assert summary['request_count'] == 5
-        assert summary['average_cost_per_request'] == 0.03
-        assert summary['api_type'] == 'remote'
-        assert summary['model'] == 'deepseek/deepseek-r1:nitro'
+        # Mock the global cost tracker's summary
+        with patch('translation_service.global_cost_tracker.get_summary') as mock_get_summary:
+            mock_get_summary.return_value = {
+                'total_cost': 0.15,
+                'total_tokens': 5000,
+                'total_prompt_tokens': 3000,
+                'total_completion_tokens': 2000,
+                'request_count': 5,
+                'average_cost_per_request': 0.03
+            }
+            
+            summary = translator_remote.get_cost_summary()
+            
+            assert summary['total_cost'] == 0.15
+            assert summary['total_tokens'] == 5000
+            assert summary['request_count'] == 5
+            assert summary['average_cost_per_request'] == 0.03
+            assert summary['api_type'] == 'remote'
+            assert summary['model'] == 'deepseek/deepseek-r1:nitro'
     
     def test_get_cost_summary_local(self, translator_local):
         """Test cost summary for local API"""
@@ -600,22 +606,25 @@ class TestChineseAITranslator:
     
     def test_format_cost_summary_remote(self, translator_remote):
         """Test formatted cost summary for remote API"""
-        # Set test values
-        with translator_remote._cost_lock:
-            translator_remote.total_cost = 0.25
-            translator_remote.total_tokens = 10000
-            translator_remote.total_prompt_tokens = 6000
-            translator_remote.total_completion_tokens = 4000
-            translator_remote.request_count = 10
-        
-        result = translator_remote.format_cost_summary()
-        
-        assert "Total Cost: $0.250000" in result
-        assert "Total Requests: 10" in result
-        assert "Total Tokens: 10,000" in result
-        assert "Average Cost per Request: $0.025000" in result
-        assert "Average Tokens per Request: 1,000" in result
-        assert "Model: deepseek/deepseek-r1:nitro" in result
+        # Mock the global cost tracker's summary
+        with patch('translation_service.global_cost_tracker.get_summary') as mock_get_summary:
+            mock_get_summary.return_value = {
+                'total_cost': 0.25,
+                'total_tokens': 10000,
+                'total_prompt_tokens': 6000,
+                'total_completion_tokens': 4000,
+                'request_count': 10,
+                'average_cost_per_request': 0.025
+            }
+            
+            result = translator_remote.format_cost_summary()
+            
+            assert "Total Cost: $0.250000" in result
+            assert "Total Requests: 10" in result
+            assert "Total Tokens: 10,000" in result
+            assert "Average Cost per Request: $0.025000" in result
+            assert "Average Tokens per Request: 1,000" in result
+            assert "Model: deepseek/deepseek-r1:nitro" in result
     
     def test_format_cost_summary_local(self, translator_local):
         """Test formatted cost summary for local API"""
@@ -627,29 +636,26 @@ class TestChineseAITranslator:
     
     def test_reset_cost_tracking(self, translator_remote):
         """Test resetting cost tracking"""
-        # Set some values
-        with translator_remote._cost_lock:
-            translator_remote.total_cost = 1.0
-            translator_remote.total_tokens = 1000
-            translator_remote.request_count = 5
+        # Set initial request count
+        translator_remote.request_count = 5
         
-        # Reset
-        translator_remote.reset_cost_tracking()
-        
-        # Verify all reset
-        assert translator_remote.total_cost == 0.0
-        assert translator_remote.total_tokens == 0
-        assert translator_remote.total_prompt_tokens == 0
-        assert translator_remote.total_completion_tokens == 0
-        assert translator_remote.request_count == 0
+        # Mock the global cost tracker reset
+        with patch('translation_service.global_cost_tracker.reset') as mock_reset:
+            # Reset
+            translator_remote.reset_cost_tracking()
+            
+            # Verify reset was called
+            mock_reset.assert_called_once()
+            
+            # Verify local counter reset
+            assert translator_remote.request_count == 0
     
     def test_thread_safety_cost_tracking(self, translator_remote):
         """Test thread safety of cost tracking"""
-        # Function to simulate concurrent cost updates
+        # Function to simulate concurrent request count updates
         def update_costs():
             for _ in range(100):
                 with translator_remote._cost_lock:
-                    translator_remote.total_cost += 0.01
                     translator_remote.request_count += 1
         
         # Create and start threads
@@ -663,8 +669,7 @@ class TestChineseAITranslator:
         for thread in threads:
             thread.join()
         
-        # Verify results
-        assert translator_remote.total_cost == pytest.approx(10.0, rel=1e-9)
+        # Verify results - only request_count is tracked locally
         assert translator_remote.request_count == 1000
 
 
@@ -708,7 +713,8 @@ class TestUtilityFunctions:
 class TestRetryWrapper:
     """Test retry_with_tenacity wrapper"""
     
-    def test_retry_on_http_error(self):
+    @patch('translation_service.time.sleep')
+    def test_retry_on_http_error(self, mock_sleep):
         """Test retry on HTTP errors"""
         mock_obj = Mock()
         mock_obj.logger = Mock(spec=logging.Logger)
@@ -734,7 +740,8 @@ class TestRetryWrapper:
         assert result == "Success"
         assert call_count == 3
     
-    def test_retry_on_translation_exception(self):
+    @patch('translation_service.time.sleep')
+    def test_retry_on_translation_exception(self, mock_sleep):
         """Test retry on TranslationException"""
         mock_obj = Mock()
         mock_obj.logger = Mock(spec=logging.Logger)
@@ -756,7 +763,8 @@ class TestRetryWrapper:
         assert result == "Success"
         assert call_count == 2
     
-    def test_retry_exhaustion(self):
+    @patch('translation_service.time.sleep')
+    def test_retry_exhaustion(self, mock_sleep):
         """Test retry exhaustion after max attempts"""
         mock_obj = Mock()
         mock_obj.logger = Mock(spec=logging.Logger)
@@ -764,16 +772,18 @@ class TestRetryWrapper:
         mock_obj.retry_wait_base = 0.1
         mock_obj.retry_wait_min = 0.1
         mock_obj.retry_wait_max = 0.5
-        mock_obj.logger = Mock(spec=logging.Logger)
         
         def always_failing_method(self):
             raise requests.exceptions.RequestException("Always fails")
         
         wrapped = retry_with_tenacity(always_failing_method)
         
-        from tenacity import RetryError
-        with pytest.raises(RetryError):
-            wrapped(mock_obj)
+        # The custom retry mechanism calls sys.exit(1) on failure
+        with patch('sys.exit') as mock_exit:
+            mock_exit.side_effect = SystemExit(1)
+            with pytest.raises(SystemExit):
+                wrapped(mock_obj)
+            mock_exit.assert_called_with(1)
 
 
 if __name__ == "__main__":

@@ -12,25 +12,23 @@ Tests ensure the complete pipeline from Chinese novels to English EPUBs.
 
 import pytest
 import tempfile
-import shutil
 from pathlib import Path
 import os
 import sys
 import yaml
 import zipfile
 import xml.etree.ElementTree as ET
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import json
 
 # Add project root to Python path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from enchant_cli import process_novel_unified, main as enchant_main
+from enchant_cli import process_novel_unified
 from renamenovels import process_novel_file
 from cli_translator import translate_novel
-from make_epub import create_epub_from_chapters, create_epub_from_directory
-from config_manager import ConfigManager
+from make_epub import create_epub_from_chapters
 
 
 class TestEnChANTOrchestrator:

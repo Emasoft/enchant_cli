@@ -9,7 +9,6 @@ import unittest
 import os
 import sys
 from unittest.mock import patch, Mock
-from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -71,7 +70,6 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
         
         # Test renamenovels module
         with patch.dict(os.environ, {'OPENROUTER_API_KEY': 'test_router_key'}):
-            from renamenovels import main
             # The main function should look for OPENROUTER_API_KEY
             # This is a documentation test - actual implementation needs updating
             pass
@@ -114,7 +112,6 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
     
     def test_no_duplicate_cost_calculation(self):
         """Test that we don't duplicate cost calculations"""
-        from renamenovels import process_novel_file
         
         # Ensure we're using OpenRouter's direct cost info
         # since OpenRouter provides costs directly
@@ -130,7 +127,6 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
     
     def test_icloud_disabled_by_default(self):
         """Test that ICLOUD is disabled by default to avoid command issues"""
-        from renamenovels import ICLOUD
         # This test documents that ICLOUD should be False by default
         # Currently it's True, which causes issues
         # self.assertFalse(ICLOUD)  # This should pass after fix

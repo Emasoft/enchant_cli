@@ -490,7 +490,9 @@ def split_on_punctuation_contextual(text: str) -> list:
     # Characters groups for chinese punctuation and paragraph delimiters.
     # Ideographic '『' and '』' are omitted because they are usually nested inside '「' and '」'.
     # Ideographic '（' and '）' are omitted because they are rarely used as paragraph delimiters.
-    # Use the imported punctuation constants from common_text_utils
+        CLOSING_QUOTES = {'」', '”', '】', '》'}
+    NON_BREAKING = {'，', '、'}
+    # Use the imported ALL_PUNCTUATION from common_text_utils instead of redefining
 
     # Define a comprehensive set of paragraph delimiters.
     PARAGRAPH_DELIMITERS = {
