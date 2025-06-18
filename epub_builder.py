@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+# HERE IS THE CHANGELOG FOR THIS VERSION OF THE CODE:
+# - Extracted shared constants and utilities to epub_constants.py to avoid duplication with make_epub.py
+# - Removed duplicated conversion tables and functions (roman_to_int, words_to_int, parse_num)
+# - Now imports shared utilities from epub_constants module
+# 
+
 """
 epub_builder.py - Module for building EPUB files from translated novel chapters
 """
@@ -16,20 +23,10 @@ from typing import Dict, List, Tuple, Optional
 import xml.etree.ElementTree as ET
 import logging
 
-# Constants
-ENCODING = "utf-8"
-MIMETYPE = "application/epub+zip"
-
-# Regex patterns for chapter detection
-FILENAME_RE = re.compile(
-    r"^(?P<title>.+?)\s+by\s+(?P<author>.+?)\s+-\s+Chapter\s+(?P<num>\d+)\.txt$",
-    re.IGNORECASE,
-)
-
-WORD_NUMS = (
-    "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
-    "thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|"
-    "twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand"
+# Import shared constants and utilities
+from epub_constants import (
+    ENCODING, MIMETYPE, WORD_NUMS, FILENAME_RE,
+    roman_to_int, words_to_int, parse_num
 )
 
 HEADING_RE = re.compile(
@@ -40,58 +37,6 @@ HEADING_RE = re.compile(
     re.IGNORECASE,
 )
 
-# Conversion tables
-_SINGLE = {
-    "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4,
-    "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
-    "ten": 10, "eleven": 11, "twelve": 12, "thirteen": 13,
-    "fourteen": 14, "fifteen": 15, "sixteen": 16,
-    "seventeen": 17, "eighteen": 18, "nineteen": 19,
-}
-_TENS = {
-    "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50,
-    "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90,
-}
-_SCALES = {"hundred": 100, "thousand": 1000}
-_ROMAN = {"i": 1, "v": 5, "x": 10, "l": 50, "c": 100, "d": 500, "m": 1000}
-
-def roman_to_int(s: str) -> int:
-    """Convert Roman numerals to integer."""
-    total = prev = 0
-    for ch in reversed(s.lower()):
-        val = _ROMAN[ch]
-        total = total - val if val < prev else total + val
-        prev = val
-    return total
-
-def words_to_int(text: str) -> int:
-    """Convert word numbers to integer."""
-    tokens = re.split(r"[ \t\-]+", text.lower())
-    total = curr = 0
-    for tok in tokens:
-        if tok in _SINGLE:
-            curr += _SINGLE[tok]
-        elif tok in _TENS:
-            curr += _TENS[tok]
-        elif tok in _SCALES:
-            curr = max(curr, 1) * _SCALES[tok]
-            if tok == "thousand":
-                total += curr
-                curr = 0
-        else:
-            raise ValueError
-    return total + curr
-
-def parse_num(raw: str) -> Optional[int]:
-    """Parse various number formats to integer."""
-    if raw.isdigit():
-        return int(raw)
-    if re.fullmatch(r"[ivxlcdm]+", raw, re.IGNORECASE):
-        return roman_to_int(raw)
-    try:
-        return words_to_int(raw)
-    except ValueError:
-        return None
 
 def detect_chapter_issues(seq: List[int]) -> List[Tuple[int, str]]:
     """
@@ -158,17 +103,18 @@ def detect_chapter_issues(seq: List[int]) -> List[Tuple[int, str]]:
     issues.sort(key=lambda x: x[0])
     return issues
 
-def split_text(text: str, detect_headings: bool = True) -> Tuple[List[Tuple[str, str]], List[int]]:
+def split_text(text: str, detect_headings: bool = True) -> Tuple[List[Tuple[str, str, str]], List[int]]:
     """
     Split text into chapters based on headings.
-    Returns: ([(chapter_title, chapter_text), ...], [chapter_numbers])
+    Returns: ([(toc_title, original_heading, chapter_text), ...], [chapter_numbers])
     """
     if not detect_headings:
-        return [("Full Text", text)], []
+        return [("Full Text", "", text)], []
 
     chapters = []
     chapter_nums = []
-    current_title = None
+    current_toc_title = None
+    current_original_heading = None
     current_text = []
     
     for line in text.split('\n'):
@@ -176,8 +122,8 @@ def split_text(text: str, detect_headings: bool = True) -> Tuple[List[Tuple[str,
         match = HEADING_RE.match(line.strip())
         if match:
             # Save previous chapter if exists
-            if current_title is not None:
-                chapters.append((current_title, '\n'.join(current_text)))
+            if current_toc_title is not None:
+                chapters.append((current_toc_title, current_original_heading, '\n'.join(current_text)))
             
             # Extract chapter number
             if match.group('num_d'):
@@ -192,8 +138,11 @@ def split_text(text: str, detect_headings: bool = True) -> Tuple[List[Tuple[str,
             if num is not None:
                 chapter_nums.append(num)
                 rest = match.group('rest').strip()
-                title = f"Chapter {num}" + (f": {rest}" if rest else "")
-                current_title = title
+                # Create formatted title for TOC only
+                toc_title = f"Chapter {num}" + (f": {rest}" if rest else "")
+                current_toc_title = toc_title
+                current_original_heading = line.strip()
+                # Start new chapter text (without the heading)
                 current_text = []
             else:
                 # Not a valid chapter heading, add to current text
@@ -205,11 +154,11 @@ def split_text(text: str, detect_headings: bool = True) -> Tuple[List[Tuple[str,
                 current_text.append(line)
     
     # Save last chapter
-    if current_title is not None:
-        chapters.append((current_title, '\n'.join(current_text)))
+    if current_toc_title is not None:
+        chapters.append((current_toc_title, current_original_heading, '\n'.join(current_text)))
     elif current_text:
         # No chapters detected, return full text
-        chapters.append(("Full Text", '\n'.join(current_text)))
+        chapters.append(("Full Text", "", '\n'.join(current_text)))
     
     return chapters, chapter_nums
 
@@ -244,14 +193,14 @@ def collect_chapter_files(input_dir: Path) -> Dict[int, Path]:
     return chapters
 
 def create_epub_from_chapters(
-    chapters: List[Tuple[str, str]],
+    chapters: List[Tuple[str, str, str]],
     output_path: Path,
     title: str,
     author: str,
     cover_path: Optional[Path] = None,
     language: str = "en"
 ) -> None:
-    """Create EPUB file from chapter list."""
+    """Create EPUB file from chapter list with (toc_title, original_heading, html_content)."""
     book_id = str(uuid.uuid4())
     
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -303,17 +252,20 @@ def create_epub_from_chapters(
         
         # Write chapters
         toc_items = []
-        for i, (chap_title, chap_html) in enumerate(chapters):
+        for i, (toc_title, original_heading, chap_html) in enumerate(chapters):
             chap_id = f"chapter{i+1}"
             chap_file = f"{chap_id}.xhtml"
+            
+            # Use original heading if available, otherwise use TOC title
+            display_heading = original_heading if original_heading else toc_title
             
             chap_content = f'''<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>{html.escape(chap_title)}</title>
+    <title>{html.escape(toc_title)}</title>
 </head>
 <body>
-    <h1>{html.escape(chap_title)}</h1>
+    <h1>{html.escape(display_heading)}</h1>
     {chap_html}
 </body>
 </html>'''
@@ -321,7 +273,7 @@ def create_epub_from_chapters(
             
             manifest_items.append(f'<item id="{chap_id}" href="{chap_file}" media-type="application/xhtml+xml"/>')
             spine_items.append(f'<itemref idref="{chap_id}"/>')
-            toc_items.append((chap_id, chap_title))
+            toc_items.append((chap_id, toc_title))
         
         # Write NCX (table of contents)
         ncx_content = f'''<?xml version="1.0" encoding="UTF-8"?>
@@ -418,7 +370,7 @@ def build_epub_from_directory(
     
     # Split text and detect chapters
     chapter_blocks, chapter_nums = split_text(full_text, detect_toc)
-    chapters = [(title, paragraphize(text)) for title, text in chapter_blocks]
+    chapters = [(toc_title, original_heading, paragraphize(text)) for toc_title, original_heading, text in chapter_blocks]
     
     # Detect issues
     issues = []

@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# HERE IS THE CHANGELOG FOR THIS VERSION OF THE CODE:
+# - Fixed missing import of epub_db module (removed fallback to non-existent module)
+# - Removed unused variables: has_parts (line 494) and has_letter_suffix (lines 497-500)
+# - Extracted shared constants and utilities to epub_constants.py to avoid duplication
+# - Added DB_OPTIMIZATION_THRESHOLD constant instead of magic number
+# - Simplified database fallback logic
+# 
+
 """
 make_epub.py – build or extend an EPUB from numbered plain-text “chunk” files
 ============================================================================
@@ -42,17 +52,18 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 import xml.etree.ElementTree as ET
 
+# Import shared constants and utilities
+from epub_constants import (
+    ENCODING, MIMETYPE, WORD_NUMS, FILENAME_RE,
+    roman_to_int, words_to_int, parse_num as parse_num_shared
+)
+
 # Import database module for fast chapter indexing
 try:
     from epub_db_optimized import process_text_optimized
     DB_OPTIMIZED = True
 except ImportError:
-    # Fallback to original database module
-    from epub_db import (
-        setup_database, close_database, import_text_to_db,
-        find_and_mark_chapters, get_chapters_with_content,
-        BookLine, LineVariation
-    )
+    # Database optimization not available
     DB_OPTIMIZED = False
 
 # Import enhanced TOC builder
@@ -64,17 +75,6 @@ except ImportError:
 
 
 # ────────────────────────── regexes & tables ────────────────────────── #
-
-FILENAME_RE = re.compile(
-    r"^(?P<title>.+?)\s+by\s+(?P<author>.+?)\s+-\s+Chapter\s+(?P<num>\d+)\.txt$",
-    re.IGNORECASE,
-)
-
-WORD_NUMS = (
-    "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
-    "thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|"
-    "twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand"
-)
 
 # Enhanced regex for various English chapter heading patterns
 HEADING_RE = re.compile(
@@ -130,22 +130,10 @@ def has_part_notation(title: str) -> bool:
     return any(pattern.search(title) for pattern in PART_PATTERNS)
 
 
-_SINGLE = {
-    "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4,
-    "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
-    "ten": 10, "eleven": 11, "twelve": 12, "thirteen": 13,
-    "fourteen": 14, "fifteen": 15, "sixteen": 16,
-    "seventeen": 17, "eighteen": 18, "nineteen": 19,
-}
-_TENS = {
-    "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50,
-    "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90,
-}
-_SCALES = {"hundred": 100, "thousand": 1000}
-_ROMAN = {"i": 1, "v": 5, "x": 10, "l": 50, "c": 100, "d": 500, "m": 1000}
-
-ENCODING = "utf-8"
-MIMETYPE = "application/epub+zip"
+# Use parse_num wrapper to maintain compatibility with existing code
+def parse_num(raw: str) -> Optional[int]:
+    """Wrapper for shared parse_num function."""
+    return parse_num_shared(raw)
 
 
 # ──────────────────────────── logging ──────────────────────────── #
@@ -169,52 +157,6 @@ def log_issue(msg: str, obj: Optional[Dict[str, Any]] = None) -> None:
             jf.write(json.dumps(obj, ensure_ascii=False) + "\n")
 
 
-# ─────────────────── numeral conversion helpers ─────────────────── #
-
-def roman_to_int(s: str) -> int:
-    total = prev = 0
-    for ch in reversed(s.lower()):
-        if ch not in _ROMAN:
-            raise ValueError(f"Invalid Roman numeral character: {ch}")
-        val = _ROMAN[ch]
-        total = total - val if val < prev else total + val
-        prev = val
-    return total
-
-def words_to_int(text: str) -> int:
-    tokens = re.split(r"[ \t\-]+", text.lower())
-    total = curr = 0
-    for tok in tokens:
-        if tok in _SINGLE:
-            curr += _SINGLE[tok]
-        elif tok in _TENS:
-            curr += _TENS[tok]
-        elif tok in _SCALES:
-            curr = max(curr, 1) * _SCALES[tok]
-            if tok == "thousand":
-                total += curr
-                curr = 0
-        else:
-            raise ValueError
-    return total + curr
-
-
-def parse_num(raw: str) -> Optional[int]:
-    # Handle letter suffixes like "14a", "14b"
-    if raw and raw[0].isdigit():
-        # Extract just the numeric part
-        num_part = ''.join(c for c in raw if c.isdigit())
-        if num_part:
-            return int(num_part)
-    
-    if raw.isdigit():
-        return int(raw)
-    if re.fullmatch(r"[ivxlcdm]+", raw, re.IGNORECASE):
-        return roman_to_int(raw)
-    try:
-        return words_to_int(raw)
-    except ValueError:
-        return None
 
 
 # ─────────────────── anomaly detector (updated) ─────────────────── #
@@ -342,21 +284,13 @@ def split_text_db(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str
             # Use new optimized approach with two-stage search
             return process_text_optimized(text, HEADING_RE, parse_num, is_valid_chapter_line)
         else:
-            # Use original database approach
-            setup_database()
-            import_text_to_db(text)
-            find_and_mark_chapters(HEADING_RE, parse_num, is_valid_chapter_line)
-            chapters, seq = get_chapters_with_content()
-            return chapters, seq
+            # Database optimization not available, fallback to regular processing
+            return split_text(text, detect_headings, force_no_db=True)
         
     except Exception as e:
         # Log error and fallback to non-database method
         log_issue(f"Database processing failed: {e}")
         return split_text(text, detect_headings, force_no_db=True)
-    finally:
-        # Always close database if using original approach
-        if not DB_OPTIMIZED:
-            close_database()
 
 
 def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> Tuple[List[Tuple[str, str]], List[int]]:
@@ -374,8 +308,9 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
         force_no_db: Force non-database processing (used for fallback)
     """
     # Use database optimization for large files (unless forced not to)
+    DB_OPTIMIZATION_THRESHOLD = 100000  # Number of lines before using database
     lines = text.splitlines()
-    if not force_no_db and len(lines) > 100000:
+    if not force_no_db and len(lines) > DB_OPTIMIZATION_THRESHOLD:
         try:
             return split_text_db(text, detect_headings)
         except Exception:
@@ -490,16 +425,7 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
     
     for num, group in chapter_groups.items():
         if len(group) > 1:
-            # Multiple chapters with same number - check if they have part notation
-            has_parts = any(has_part_notation(title) for title, _, _ in group)
-            
-            # Also check if it's a letter suffix case (14a, 14b, 14c)
-            has_letter_suffix = any(
-                re.search(rf'\b{num}[a-z]\b', title, re.IGNORECASE) 
-                for title, _, _ in group
-            )
-            
-            # Need sub-numbering if multiple chapters share a number
+            # Multiple chapters with same number - need sub-numbering
             needs_subnumbering[num] = True
         else:
             # Single chapter with this number - check if it's part of a sequence
