@@ -60,7 +60,8 @@ import argparse
 # Import enhanced functionality modules
 from icloud_sync import ICloudSync, ensure_synced, prepare_for_write
 from config_manager import ConfigManager, get_config
-from model_pricing import ModelPricingManager, get_pricing_manager
+# Note: model_pricing module is deprecated - using global_cost_tracker instead
+from cost_tracker import global_cost_tracker
 from common_utils import sanitize_filename, extract_book_info_from_path
 
 # Import modules for the three phases
@@ -85,7 +86,7 @@ except ImportError:
 # Global variables - will be initialized in main()
 tolog = None
 icloud_sync = None
-pricing_manager = None
+# Cost tracking is now handled by global_cost_tracker from cost_tracker module
 
 ### ORCHESTRATION FUNCTIONS #####
 
@@ -526,10 +527,10 @@ def setup_logging(config):
             # Continue without file logging
 
 def setup_global_services(config):
-    """Initialize global services like iCloud sync and pricing manager."""
-    global icloud_sync, pricing_manager, MAXCHARS
+    """Initialize global services like iCloud sync."""
+    global icloud_sync, MAXCHARS
     icloud_sync = ICloudSync(enabled=config['icloud']['enabled'])
-    pricing_manager = get_pricing_manager()
+    # Cost tracking is now handled by global_cost_tracker
     
     # Update MAXCHARS from config
     MAXCHARS = config['text_processing']['max_chars_per_chunk']

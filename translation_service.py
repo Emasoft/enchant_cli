@@ -363,7 +363,7 @@ class ChineseAITranslator:
                  api_key: Optional[str] = None, endpoint: Optional[str] = None,
                  model: Optional[str] = None, temperature: float = 0.05,
                  max_tokens: Optional[int] = None, timeout: Optional[int] = None,
-                 pricing_manager: Optional[Any] = None, config: Optional[Dict[str, Any]] = None,
+                 config: Optional[Dict[str, Any]] = None,
                  max_retries: Optional[int] = None, retry_wait_base: Optional[float] = None,
                  retry_wait_min: Optional[float] = None, retry_wait_max: Optional[float] = None,
                  connection_timeout: Optional[int] = None, double_pass: Optional[bool] = None,
@@ -374,7 +374,7 @@ class ChineseAITranslator:
         self.is_remote = use_remote
         self.temperature = temperature
         self.max_tokens = max_tokens or DEFAULT_MAX_TOKENS
-        self.pricing_manager = pricing_manager
+        # pricing_manager parameter deprecated - cost tracking handled by global_cost_tracker
         self.config = config or {}
         
         # Retry settings
@@ -647,21 +647,13 @@ class ChineseAITranslator:
                     summary = global_cost_tracker.get_summary()
                     self.log(f"Cumulative cost: ${summary['total_cost']:.6f}")
                     self.log(f"Total requests so far: {summary['request_count']}")
-                elif self.pricing_manager:
-                    # For local API, use pricing manager for statistics only
-                    try:
-                        prompt_tokens = usage.get('prompt_tokens', 0)
-                        completion_tokens = usage.get('completion_tokens', 0)
-                        if prompt_tokens > 0 or completion_tokens > 0:
-                            cost, breakdown = self.pricing_manager.calculate_cost(
-                                model=self.MODEL_NAME,
-                                prompt_tokens=prompt_tokens,
-                                completion_tokens=completion_tokens
-                            )
-                            if cost > 0:
-                                self.log(f"Estimated cost (if using paid API): ${cost:.6f}")
-                    except Exception as e:
-                        self.log(f"Could not calculate pricing: {e}", "debug")
+                else:
+                    # For local API, just log token usage
+                    self.log("\n=== Token Usage (Local API) ===")
+                    self.log(f"Prompt tokens: {usage.get('prompt_tokens', 0)}")
+                    self.log(f"Completion tokens: {usage.get('completion_tokens', 0)}")
+                    self.log(f"Total tokens: {usage.get('total_tokens', 0)}")
+                    self.log("Local API - no costs incurred")
             if 'choices' in result and len(result['choices']) > 0:
                 content = str(result['choices'][0]['message']['content'])
                 content = self.remove_thinking_block(content)

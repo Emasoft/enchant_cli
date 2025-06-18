@@ -2,6 +2,13 @@
 # -*- coding: utf-8 -*-
 """
 model_pricing.py - Model pricing calculation and tracking
+
+DEPRECATED: This module is no longer used. The project now uses the unified 
+cost_tracker.py module which gets cost information directly from OpenRouter API 
+responses instead of fetching pricing data from BerriAI/litellm.
+
+This file is kept for reference only and will be removed in a future version.
+All cost tracking should use global_cost_tracker from cost_tracker.py instead.
 """
 
 import json

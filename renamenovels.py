@@ -241,23 +241,8 @@ def load_config() -> dict:
             logger.error(f"Unexpected error loading config file: {e}")
             return default_config
 
-# Load model pricing info with retry
-@retry(stop=stop_after_attempt(10), wait=wait_exponential(multiplier=1, min=4, max=30))
-def load_model_pricing() -> Optional[dict]:
-    pricing_urls = [
-        'https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json',
-        'https://cdn.jsdelivr.net/gh/BerriAI/litellm@main/model_prices_and_context_window.json',
-        'https://raw.fastgit.org/BerriAI/litellm/main/model_prices_and_context_window.json'
-    ]
-    for pricing_url in pricing_urls:
-        try:
-            response = requests.get(pricing_url, timeout=10)
-            response.raise_for_status()
-            logger.info(f"Successfully fetched model pricing information from {pricing_url}")
-            return response.json()
-        except requests.RequestException as e:
-            logger.warning(f"Error fetching model pricing information from {pricing_url}: {e}")
-    raise RuntimeError("Failed to fetch model pricing information from all available mirrors.")
+# Note: Cost tracking is now handled by the unified cost_tracker module using OpenRouter API's
+# direct cost information. The old model pricing fetch from BerriAI/litellm is no longer needed.
 
 # Model name mapping for OpenRouter
 OPENROUTER_MODEL_MAPPING = {
@@ -425,12 +410,7 @@ def process_novel_file(file_path: Path, api_key: str, model: str = 'gpt-4o-mini'
         tuple: (success: bool, new_path: Path, metadata: dict)
     """
     try:
-        # Load pricing info
-        try:
-            pricing_info = load_model_pricing()
-        except Exception as e:
-            logger.warning(f"Could not load pricing info: {e}")
-            pricing_info = {}
+        # Cost tracking is now handled by the unified cost_tracker module
         
         # Initialize iCloud sync
         icloud_sync = ICloudSync(icloud_enabled=ICLOUD)
@@ -536,7 +516,7 @@ def process_novel_file(file_path: Path, api_key: str, model: str = 'gpt-4o-mini'
 
 
 # Helper function to process a single file (used by batch processing)
-def process_single_file(file_path: Path, kb_to_read: int, api_key: str, model: str, temperature: float, pricing_info: dict, icloud_sync: ICloudSync):
+def process_single_file(file_path: Path, kb_to_read: int, api_key: str, model: str, temperature: float, icloud_sync: ICloudSync):
     content = decode_file_content(file_path, kb_to_read, icloud_sync)
     if content is None:
         logger.error(f"Skipping file {file_path} due to decoding errors or iCloud sync failure.")
@@ -606,7 +586,7 @@ def process_single_file(file_path: Path, kb_to_read: int, api_key: str, model: s
         logger.error(f"Unexpected error processing file {file_path}: {e}")
 
 # Function to process all files
-def process_files(folder_or_path: Path, recursive: bool, kb_to_read: int, api_key: str, model: str, temperature: float, pricing_info: dict, max_workers: int, icloud_sync: ICloudSync):
+def process_files(folder_or_path: Path, recursive: bool, kb_to_read: int, api_key: str, model: str, temperature: float, max_workers: int, icloud_sync: ICloudSync):
     txt_files = find_text_files(folder_or_path, recursive=recursive)
     if not txt_files:
         logger.error("No eligible text files found to process. Please check the folder or file pattern and ensure files are not hidden or too small.")
@@ -623,7 +603,6 @@ def process_files(folder_or_path: Path, recursive: bool, kb_to_read: int, api_ke
                 api_key, 
                 model, 
                 temperature, 
-                pricing_info,  # Pass pricing_info to the processing function
                 icloud_sync
             ) 
             for file_path in txt_files
@@ -677,12 +656,8 @@ def main():
             logger.error("OpenRouter API key is required. Please provide it via config file, environment variable (OPENROUTER_API_KEY), or input prompt.")
             sys.exit(1)
 
-        # Load model pricing information (optional - OpenRouter provides costs directly)
-        try:
-            pricing_info = load_model_pricing()
-        except Exception as e:
-            logger.warning(f"Could not load pricing info (not needed for OpenRouter): {e}")
-            pricing_info = {}
+        # Cost tracking is now handled by the unified cost_tracker module
+        # OpenRouter provides costs directly in the API response
 
         # Initialize ICloudSync
         icloud_sync = ICloudSync(icloud_enabled=False)
@@ -695,7 +670,6 @@ def main():
             api_key=api_key, 
             model=model, 
             temperature=temperature, 
-            pricing_info=pricing_info,
             max_workers=max_workers,
             icloud_sync=icloud_sync
         )

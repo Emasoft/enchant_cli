@@ -105,7 +105,7 @@ import filelock
 # Import new modules for enhanced functionality
 from icloud_sync import ICloudSync, ensure_synced, prepare_for_write
 from config_manager import ConfigManager, get_config
-from model_pricing import ModelPricingManager, get_pricing_manager
+# Note: model_pricing module is deprecated - using global_cost_tracker instead
 
 # Import common text processing utilities
 from common_text_utils import (
@@ -121,7 +121,7 @@ translator = None
 tolog = None
 icloud_sync = None
 _module_config = None
-pricing_manager = None
+# Cost tracking is now handled by global_cost_tracker from cost_tracker module
 
 MAXCHARS = 11999  # Default value, will be updated from config in main()
 
@@ -1269,9 +1269,9 @@ def translate_novel(file_path: str, encoding: str = 'utf-8', max_chars: int = 12
             # Continue without file logging
     
     # Initialize global services
-    global icloud_sync, pricing_manager, MAXCHARS
+    global icloud_sync, MAXCHARS
     icloud_sync = ICloudSync(enabled=config['icloud']['enabled'])
-    pricing_manager = get_pricing_manager()
+    # Cost tracking is now handled by global_cost_tracker
     
     # Update MAXCHARS from config
     MAXCHARS = config['text_processing']['max_chars_per_chunk']
@@ -1308,7 +1308,7 @@ def translate_novel(file_path: str, encoding: str = 'utf-8', max_chars: int = 12
             temperature=config['translation']['temperature'],
             max_tokens=config['translation']['max_tokens'],
             timeout=config['translation']['remote']['timeout'],
-            pricing_manager=pricing_manager
+            pricing_manager=None  # Deprecated - cost tracking handled by global_cost_tracker
         )
     else:
         translator = ChineseAITranslator(
@@ -1319,7 +1319,7 @@ def translate_novel(file_path: str, encoding: str = 'utf-8', max_chars: int = 12
             temperature=config['translation']['temperature'],
             max_tokens=config['translation']['max_tokens'],
             timeout=config['translation']['local']['timeout'],
-            pricing_manager=pricing_manager
+            pricing_manager=None  # Deprecated - cost tracking handled by global_cost_tracker
         )
     
     # Note: batch processing is handled by the orchestrator, not here
@@ -1345,12 +1345,10 @@ def translate_novel(file_path: str, encoding: str = 'utf-8', max_chars: int = 12
         if use_remote and translator:
             cost_summary = translator.format_cost_summary()
             tolog.info("Cost Summary:\n" + cost_summary)
-        elif config['pricing']['enabled'] and pricing_manager:
-            cost_summary = pricing_manager.format_cost_summary()
-            tolog.info("Cost Summary:\n" + cost_summary)
-            
-            if config.get('pricing', {}).get('save_report', False):
-                pricing_manager.save_session_report()
+        elif config['pricing']['enabled']:
+            # Cost tracking is now handled by global_cost_tracker
+            summary = global_cost_tracker.get_summary()
+            tolog.info(f"Cost Summary: Total cost: ${summary['total_cost']:.6f}, Total requests: {summary['request_count']}")
         
         return True
     except Exception as e:
@@ -1398,9 +1396,9 @@ def main() -> None:
             # Continue without file logging
     
     # Initialize global services
-    global icloud_sync, pricing_manager, MAXCHARS
+    global icloud_sync, MAXCHARS
     icloud_sync = ICloudSync(enabled=config['icloud']['enabled'])
-    pricing_manager = get_pricing_manager()
+    # Cost tracking is now handled by global_cost_tracker
     
     # Update MAXCHARS from config
     MAXCHARS = config['text_processing']['max_chars_per_chunk']

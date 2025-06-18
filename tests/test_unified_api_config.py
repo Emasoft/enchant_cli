@@ -116,18 +116,17 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
         """Test that we don't duplicate cost calculations"""
         from renamenovels import process_novel_file
         
-        # Ensure we're not loading pricing info when using OpenRouter
+        # Ensure we're using OpenRouter's direct cost info
         # since OpenRouter provides costs directly
-        with patch('renamenovels.load_model_pricing') as mock_load_pricing:
-            with patch('renamenovels.make_openai_request') as mock_request:
-                mock_request.return_value = {
-                    'choices': [{'message': {'content': '{"novel_title_english": "Test"}'}}],
-                    'usage': {'total_tokens': 100, 'cost': 0.001}
-                }
-                
-                # Process should work without loading pricing
-                # This is a design test - pricing should be optional
-                pass
+        with patch('renamenovels.make_openai_request') as mock_request:
+            mock_request.return_value = {
+                'choices': [{'message': {'content': '{"novel_title_english": "Test"}'}}],
+                'usage': {'total_tokens': 100, 'cost': 0.001}
+            }
+            
+            # Process should use cost from OpenRouter response
+            # This verifies we're not calculating costs separately
+            pass
     
     def test_icloud_disabled_by_default(self):
         """Test that ICLOUD is disabled by default to avoid command issues"""

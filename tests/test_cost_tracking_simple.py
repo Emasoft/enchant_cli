@@ -120,8 +120,7 @@ def test_local_api_no_cost():
     print("\nTesting local API (no cost tracking)...")
     
     translator = ChineseAITranslator(
-        use_remote=False,
-        pricing_manager=Mock()
+        use_remote=False
     )
     
     with patch('requests.post') as mock_post, \

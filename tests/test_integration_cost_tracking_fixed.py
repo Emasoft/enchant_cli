@@ -18,8 +18,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # We need to mock these before importing cli_translator
 with patch('cli_translator.ConfigManager'):
     with patch('cli_translator.ICloudSync'):
-        with patch('cli_translator.get_pricing_manager'):
-            from cli_translator import ChineseAITranslator
+        from cli_translator import ChineseAITranslator
+        from cost_tracker import global_cost_tracker
 
 
 class TestCostTrackingIntegration:
@@ -89,11 +89,13 @@ class TestCostTrackingIntegration:
             # Make translation request
             result = translator.translate("中文文本")
             
-            # Verify cost tracking
-            assert translator.total_cost == 0.0015
-            assert translator.total_tokens == 150
-            assert translator.total_prompt_tokens == 100
-            assert translator.total_completion_tokens == 50
+            # Verify cost tracking through global_cost_tracker
+            summary = global_cost_tracker.get_summary()
+            assert summary['total_cost'] == 0.0015
+            assert summary['total_tokens'] == 150
+            assert summary['total_prompt_tokens'] == 100
+            assert summary['total_completion_tokens'] == 50
+            assert summary['request_count'] == 1
             assert translator.request_count == 1
             
             # Verify usage tracking was enabled
@@ -154,11 +156,13 @@ class TestCostTrackingIntegration:
             translator.translate("Text 2")
             translator.translate("Text 3")
             
-            # Verify cumulative tracking
-            assert translator.total_cost == 0.00675  # Sum of all costs
-            assert translator.total_tokens == 675    # Sum of all tokens
-            assert translator.total_prompt_tokens == 450
-            assert translator.total_completion_tokens == 225
+            # Verify cumulative tracking through global_cost_tracker
+            summary = global_cost_tracker.get_summary()
+            assert summary['total_cost'] == 0.00675  # Sum of all costs
+            assert summary['total_tokens'] == 675    # Sum of all tokens
+            assert summary['total_prompt_tokens'] == 450
+            assert summary['total_completion_tokens'] == 225
+            assert summary['request_count'] == 3
             assert translator.request_count == 3
     
     def test_cost_summary_formatting(self):
@@ -169,14 +173,17 @@ class TestCostTrackingIntegration:
             temperature=0.05  # Production value
         )
         
-        # Set test values
-        with translator._cost_lock:
-            translator.total_cost = 0.12345
-            translator.total_tokens = 50000
-            translator.total_prompt_tokens = 30000
-            translator.total_completion_tokens = 20000
+        # Mock global_cost_tracker summary
+        with patch('cost_tracker.global_cost_tracker.get_summary') as mock_summary:
+            mock_summary.return_value = {
+                'total_cost': 0.12345,
+                'total_tokens': 50000,
+                'total_prompt_tokens': 30000,
+                'total_completion_tokens': 20000,
+                'request_count': 25,
+                'average_cost_per_request': 0.004938
+            }
             translator.request_count = 25
-            translator.MODEL_NAME = "deepseek/deepseek-r1:nitro"  # Production model
         
         # Get formatted summary
         summary = translator.format_cost_summary()
@@ -219,8 +226,10 @@ class TestCostTrackingIntegration:
             result = translator.translate("Text")
             
             # Cost should remain 0, but tokens should be tracked
-            assert translator.total_cost == 0.0
-            assert translator.total_tokens == 150
+            summary = global_cost_tracker.get_summary()
+            assert summary['total_cost'] == 0.0
+            assert summary['total_tokens'] == 150
+            assert summary['request_count'] == 1
             assert translator.request_count == 1
     
     def test_cost_tracking_thread_safety(self):
@@ -263,8 +272,10 @@ class TestCostTrackingIntegration:
             thread.join()
         
         # Verify thread-safe accumulation (allowing small floating point differences)
-        assert abs(translator.total_cost - 0.01) < 1e-9  # 10 * 0.001
-        assert translator.total_tokens == 1500  # 10 * 150
+        summary = global_cost_tracker.get_summary()
+        assert abs(summary['total_cost'] - 0.01) < 1e-9  # 10 * 0.001
+        assert summary['total_tokens'] == 1500  # 10 * 150
+        assert summary['request_count'] == 10
         assert translator.request_count == 10
     
     def test_cost_reset_functionality(self):
@@ -275,29 +286,33 @@ class TestCostTrackingIntegration:
             temperature=0.05  # Production value
         )
         
-        # Set some values
-        with translator._cost_lock:
-            translator.total_cost = 1.0
-            translator.total_tokens = 10000
-            translator.total_prompt_tokens = 6000
-            translator.total_completion_tokens = 4000
+        # Simulate some usage by mocking global_cost_tracker
+        with patch('cost_tracker.global_cost_tracker.get_summary') as mock_summary:
+            mock_summary.return_value = {
+                'total_cost': 1.0,
+                'total_tokens': 10000,
+                'total_prompt_tokens': 6000,
+                'total_completion_tokens': 4000,
+                'request_count': 50
+            }
             translator.request_count = 50
         
         # Reset
         translator.reset_cost_tracking()
         
-        # Verify all values reset
-        assert translator.total_cost == 0.0
-        assert translator.total_tokens == 0
-        assert translator.total_prompt_tokens == 0
-        assert translator.total_completion_tokens == 0
+        # Verify values reset
+        summary = global_cost_tracker.get_summary()
+        assert summary['total_cost'] == 0.0
+        assert summary['total_tokens'] == 0
+        assert summary['total_prompt_tokens'] == 0
+        assert summary['total_completion_tokens'] == 0
+        assert summary['request_count'] == 0
         assert translator.request_count == 0
     
     def test_local_api_no_cost_tracking(self):
         """Test that local API doesn't track costs"""
         translator = ChineseAITranslator(
             use_remote=False,
-            pricing_manager=Mock(),
             temperature=0.05  # Production value
         )
         
@@ -316,9 +331,11 @@ class TestCostTrackingIntegration:
             
             result = translator.translate("Text")
             
-            # No cost tracking for local API
-            assert translator.total_cost == 0.0
-            assert translator.request_count == 0
+            # For local API, global tracker shouldn't show cost
+            summary = translator.get_cost_summary()
+            assert summary['total_cost'] == 0.0
+            assert summary['api_type'] == 'local'
+            assert summary['message'] == 'Local API - no costs incurred'
             
             # Verify usage was NOT requested
             call_args = mock_post.call_args
@@ -338,12 +355,19 @@ class TestCostTrackingIntegration:
         assert "Total Cost: $0.000000" in summary
         
         # Test with very small cost
-        with translator._cost_lock:
-            translator.total_cost = 0.000001
+        with patch('cost_tracker.global_cost_tracker.get_summary') as mock_summary:
+            mock_summary.return_value = {
+                'total_cost': 0.000001,
+                'total_tokens': 10,
+                'total_prompt_tokens': 5,
+                'total_completion_tokens': 5,
+                'request_count': 1,
+                'average_cost_per_request': 0.000001
+            }
             translator.request_count = 1
-        
-        summary = translator.format_cost_summary()
-        assert "$0.000001" in summary
+            
+            summary = translator.format_cost_summary()
+            assert "$0.000001" in summary
     
     def test_configuration_values_production_match(self):
         """Test that we're using the exact production configuration values"""

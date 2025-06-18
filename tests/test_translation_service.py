@@ -229,7 +229,6 @@ class TestChineseAITranslator:
         
         assert result == "Translated text in English"
         assert mock_post.called
-        assert translator_local.pricing_manager.calculate_cost.called
     
     @patch('translation_service.requests.post')
     def test_translate_messages_success_remote(self, mock_post, translator_remote):
@@ -286,9 +285,13 @@ class TestChineseAITranslator:
         result = translator_remote.translate_messages("Test", is_last_chunk=True)
         
         assert result == "Translated text"
-        assert translator_remote.total_cost == 0.0
-        assert translator_remote.total_tokens == 150
         assert translator_remote.request_count == 1
+        
+        # Verify tokens tracked but no cost
+        from cost_tracker import global_cost_tracker
+        summary = global_cost_tracker.get_summary()
+        assert summary['total_cost'] == 0.0
+        assert summary['total_tokens'] == 150
     
     @patch('translation_service.requests.post')
     def test_translate_messages_thinking_removal(self, mock_post, translator_local):
