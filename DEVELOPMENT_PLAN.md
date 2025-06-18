@@ -51,8 +51,10 @@ Examine the codebase for errors, potential issues, duplicated code, antipatterns
 
 ### Priority 1: Add Missing Docstrings (CONSERVATIVE APPROACH)
 1. [x] Add docstrings to functions in cli_translator.py - COMPLETED
-2. [ ] Add docstrings to functions in translation_service.py
-3. [ ] Add docstrings to other files
+2. [x] Add docstrings to functions in translation_service.py - COMPLETED
+3. [x] Add docstrings to functions in renamenovels.py - COMPLETED
+4. [x] Add docstrings to functions in make_epub.py - COMPLETED
+5. [ ] Add docstrings to remaining files (enchant_cli.py, cost_tracker.py, epub_db_optimized.py)
 
 ### Priority 2: Fix Duplicate Code (DEFERRED)
 - Many duplications are actually methods vs functions or have slight variations
@@ -91,10 +93,10 @@ Examine the codebase for errors, potential issues, duplicated code, antipatterns
 - Created common utility modules (common_constants.py, common_yaml_utils.py, common_text_utils.py)
 
 ### Next Steps:
-- Add docstrings to translation_service.py (11 functions)
-- Add docstrings to renamenovels.py (8 functions)
-- Add docstrings to make_epub.py (8 functions)
-- Add docstrings to remaining files
+- Add docstrings to enchant_cli.py (2 functions)
+- Add docstrings to cost_tracker.py (1 function)
+- Add docstrings to epub_db_optimized.py (2 classes)
 - Add missing return type annotations
-- Make localhost URL configurable
-- Run all tests
+- Make localhost URL configurable in translation_service.py
+- Run all tests to ensure no regressions
+- Update tests if needed
