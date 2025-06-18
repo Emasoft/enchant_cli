@@ -148,35 +148,51 @@ class TranslationState(enum.Enum):
     
 
 def load_text_file(txt_file_name: Union[str, Path]) -> Optional[str]:
-        contents = None
-        txt_file_name = Path.joinpath(Path.cwd(), Path(txt_file_name))
-        if Path.is_file(txt_file_name):
-                try:
-                    with open(txt_file_name, encoding='utf8') as f:
-                            contents = f.read()
-                            if tolog is not None:
-                                tolog.debug(contents)
-                    return contents
-                except (IOError, OSError, PermissionError) as e:
-                    if tolog is not None:
-                        tolog.error(f"Error reading file {txt_file_name}: {e}")
-                    return None
-        else:
-                if tolog is not None:
-                    tolog.debug("Error : "+str(txt_file_name)+" is not a valid file!")
-                return None
-
-def save_text_file(text: str, filename: Union[str, Path]) -> None:
-        file_path = Path(Path.joinpath(Path.cwd(), Path(filename)))
+    """
+    Load text file contents.
+    
+    Args:
+        txt_file_name: Path to the text file
+        
+    Returns:
+        File contents as string, or None if file cannot be read
+    """
+    contents = None
+    txt_file_name = Path.joinpath(Path.cwd(), Path(txt_file_name))
+    if Path.is_file(txt_file_name):
         try:
-            with open(file_path, "wt", encoding="utf-8") as f:
-                    f.write(clean(text))
-            if tolog is not None:
-                tolog.debug("Saved text file in: "+str(file_path))
+            with open(txt_file_name, encoding='utf8') as f:
+                contents = f.read()
+                if tolog is not None:
+                    tolog.debug(contents)
+            return contents
         except (IOError, OSError, PermissionError) as e:
             if tolog is not None:
-                tolog.error(f"Error saving file {file_path}: {e}")
-            raise
+                tolog.error(f"Error reading file {txt_file_name}: {e}")
+            return None
+    else:
+        if tolog is not None:
+            tolog.debug("Error : "+str(txt_file_name)+" is not a valid file!")
+        return None
+
+def save_text_file(text: str, filename: Union[str, Path]) -> None:
+    """
+    Save text to a file.
+    
+    Args:
+        text: Text content to save
+        filename: Path where to save the file
+    """
+    file_path = Path(Path.joinpath(Path.cwd(), Path(filename)))
+    try:
+        with open(file_path, "wt", encoding="utf-8") as f:
+            f.write(clean(text))
+        if tolog is not None:
+            tolog.debug("Saved text file in: "+str(file_path))
+    except (IOError, OSError, PermissionError) as e:
+        if tolog is not None:
+            tolog.error(f"Error saving file {file_path}: {e}")
+        raise
         
 
 def remove_excess_empty_lines(txt: str) -> str:
@@ -185,6 +201,15 @@ def remove_excess_empty_lines(txt: str) -> str:
     return re.sub(r'\n{4,}', '\n\n\n', txt)
 
 def normalize_spaces(text: str) -> str:
+    """
+    Normalize spaces in text by stripping whitespace and collapsing multiple spaces.
+    
+    Args:
+        text: The input text to normalize
+        
+    Returns:
+        Text with normalized spaces
+    """
     # Split the text into lines
     lines = text.split('\n')
     normalized_lines = []
@@ -208,6 +233,19 @@ def normalize_spaces(text: str) -> str:
 # HELPER FUNCTION TO GET VALUE OR NONE FROM A LIST ENTRY
 # an equivalent of dict.get(key, default) for lists
 def get_val(myList: List[Any], idx: int, default: Any = None) -> Any:
+    """
+    Get value from list at index, returning default if index is out of bounds.
+    
+    An equivalent of dict.get(key, default) for lists.
+    
+    Args:
+        myList: The list to get value from
+        idx: The index to access
+        default: Default value if index is out of bounds
+        
+    Returns:
+        Value at index or default if index is invalid
+    """
     try:
         return myList[idx]
     except IndexError:
@@ -218,7 +256,15 @@ _email_re = re.compile(r"[a-zA-Z0-9_\.\+\-]+\@[a-zA-Z0-9_\.\-]+\.[a-zA-Z]+")
 _url_re = re.compile(r"https?://(-\.)?([^\s/?\.#]+\.?)+(/[^\s]*)?")
 
 def strip_urls(input_text: str) -> str:
-    """Strip URLs and emails from a string"""
+    """
+    Strip URLs and emails from a string.
+    
+    Args:
+        input_text: Text containing URLs and/or emails
+        
+    Returns:
+        Text with URLs and emails removed
+    """
     input_text = _url_re.sub("", input_text)
     input_text = _email_re.sub("", input_text)
     return input_text
@@ -233,7 +279,15 @@ _markdown_re = re.compile(r".*("
 
 
 def is_markdown(input_text: str) -> bool:
-    """Check if a string is actually markdown"""
+    """
+    Check if a string contains markdown formatting.
+    
+    Args:
+        input_text: Text to check for markdown
+        
+    Returns:
+        True if text contains markdown formatting, False otherwise
+    """
     #input_text = input_text[:1000]  # check only first 1000 chars
     # Don't mark part of URLs or email addresses as Markdown
     input_text = strip_urls(input_text)
@@ -242,6 +296,18 @@ def is_markdown(input_text: str) -> bool:
     
     
 def decode_input_file_content(input_file: Path) -> str:
+    """
+    Decode file content with automatic encoding detection.
+    
+    Tries to detect encoding and read file, with fallback to GB18030.
+    Ensures file is synced from iCloud if needed.
+    
+    Args:
+        input_file: Path to the file to decode
+        
+    Returns:
+        Decoded file content as string
+    """
     # Ensure file is synced from iCloud if needed
     input_file = ensure_synced(input_file)
     
@@ -274,6 +340,15 @@ def decode_input_file_content(input_file: Path) -> str:
     
 # try to detect the encoding of chinese text files 
 def detect_file_encoding(file_path: Path) -> str:
+    """
+    Detect the encoding of a file using chardet.
+    
+    Args:
+        file_path: Path to the file to analyze
+        
+    Returns:
+        Detected encoding name (defaults to 'utf-8' on error)
+    """
     # Ensure file is synced from iCloud if needed
     file_path = ensure_synced(file_path)
     
@@ -298,6 +373,18 @@ def detect_file_encoding(file_path: Path) -> str:
 
 # Function to extract title and author info from foreign novels filenames (chinese, japanese, etc.)
 def foreign_book_title_splitter(filename: Union[str, Path]) -> Tuple[str, str, str, str, str, str]:
+    """
+    Extract title and author info from foreign novel filenames.
+    
+    Expected format: translated_title by translated_author - original_title by original_author.txt
+    
+    Args:
+        filename: The filename to parse
+        
+    Returns:
+        Tuple of (original_title, translated_title, transliterated_title,
+                 original_author, translated_author, transliterated_author)
+    """
     # FILE NAME STRUCTURE - SPLIT THE STRING TO EXTRACT THE INFORMATIONS ABOUT TITLE AND AUTUOR NAMES
     # EXAMPLE:
     # translated_title by translated_author - original_title by original_author.txt
@@ -339,6 +426,17 @@ def foreign_book_title_splitter(filename: Union[str, Path]) -> Tuple[str, str, s
 
 # Import the original language novel txt file and split it in chunks of max MAXCHARS characters
 def import_book_from_txt(file_path: Union[str, Path], encoding: str = 'utf-8', max_chars: int = MAXCHARS) -> str:
+    """
+    Import a book from text file and split into chunks.
+    
+    Args:
+        file_path: Path to the book text file
+        encoding: File encoding (unused, auto-detected)
+        max_chars: Maximum characters per chunk
+        
+    Returns:
+        The book_id of the imported book
+    """
     if tolog is not None:
         tolog.debug(" -> import_book_from_text()")
 
@@ -427,6 +525,18 @@ def import_book_from_txt(file_path: Union[str, Path], encoding: str = 'utf-8', m
 
 
 def quick_replace(text_content: str, original: str, substitution: str, case_insensitive=True) -> str:
+    """
+    Replace all occurrences of a string with another string.
+    
+    Args:
+        text_content: The text to modify
+        original: String to find
+        substitution: String to replace with
+        case_insensitive: Whether to ignore case when matching
+        
+    Returns:
+        Modified text with replacements made
+    """
     # case insensitive substitution or not
     if case_insensitive:
         return re.sub("(?i)" + re.escape(original), lambda m: f"{substitution}", text_content)
@@ -596,6 +706,18 @@ def split_text_by_actual_paragraphs(text: str) -> list:
     
 ## Function to split a chinese novel in parts of max n characters keeping the paragraphs intact
 def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS) -> List[str]:
+    """
+    Split Chinese novel text into chunks of maximum character length.
+    
+    Keeps paragraphs intact when splitting.
+    
+    Args:
+        text: The Chinese text to split
+        max_chars: Maximum characters per chunk
+        
+    Returns:
+        List of text chunks
+    """
     # Choose splitting method based on parameter
     # Always use paragraph splitting method
     if False:  # Legacy punctuation method disabled
@@ -658,6 +780,11 @@ chunk_DB = {}
 VARIATION_DB = {}
 
 class Field:
+    """
+    Simple descriptor class for field access in in-memory database.
+    
+    Allows attribute-style access and comparison operations.
+    """
     def __init__(self, name):
         self.name = name
     def __get__(self, instance, owner):
@@ -672,6 +799,11 @@ class Field:
         return lambda instance: getattr(instance, self.name, None) == other
 
 class Book:
+    """
+    Represents a book in the translation system.
+    
+    Stores metadata about the book including titles, authors, and source file info.
+    """
     # Using Field descriptor for source_file to support query comparisons
     source_file = Field('source_file')
     
@@ -692,6 +824,15 @@ class Book:
 
     @classmethod
     def create(cls, **kwargs):
+        """
+        Create a new Book instance and add it to the database.
+        
+        Args:
+            **kwargs: Book attributes (book_id, title, authors, etc.)
+            
+        Returns:
+            The created Book instance
+        """
         book = cls(
             book_id=kwargs.get("book_id"),
             title=kwargs.get("title"),
@@ -710,6 +851,15 @@ class Book:
 
     @classmethod
     def get_or_none(cls, condition):
+        """
+        Find a book matching the given condition.
+        
+        Args:
+            condition: A callable that returns True for matching books
+            
+        Returns:
+            The first matching Book instance or None
+        """
         for book in BOOK_DB.values():
             if condition(book):
                 return book
@@ -717,9 +867,23 @@ class Book:
 
     @classmethod
     def get_by_id(cls, book_id):
+        """
+        Get a book by its ID.
+        
+        Args:
+            book_id: The book's unique identifier
+            
+        Returns:
+            The Book instance or None if not found
+        """
         return BOOK_DB.get(book_id)
 
 class chunk:
+    """
+    Represents a text chunk of a book for translation.
+    
+    Books are split into chunks for manageable translation.
+    """
     def __init__(self, chunk_id, book_id, chunk_number, original_variation_id):
         self.chunk_id = chunk_id
         self.book_id = book_id
@@ -728,6 +892,18 @@ class chunk:
 
     @classmethod
     def create(cls, chunk_id, book_id, chunk_number, original_variation_id):
+        """
+        Create a new chunk and add it to the database.
+        
+        Args:
+            chunk_id: Unique identifier for the chunk
+            book_id: ID of the book this chunk belongs to
+            chunk_number: Sequential number of this chunk
+            original_variation_id: ID of the original text variation
+            
+        Returns:
+            The created chunk instance
+        """
         chunk = cls(chunk_id, book_id, chunk_number, original_variation_id)
         chunk_DB[chunk_id] = chunk
         # Also add the chunk to the corresponding Book's chunks list
@@ -737,6 +913,11 @@ class chunk:
         return chunk
 
 class Variation:
+    """
+    Represents a text variation (original or translated) of a chunk.
+    
+    Stores the actual text content and metadata about language and category.
+    """
     def __init__(self, variation_id, book_id, chunk_id, chunk_number, language, category, text_content):
         self.variation_id = variation_id
         self.book_id = book_id
@@ -748,6 +929,15 @@ class Variation:
 
     @classmethod
     def create(cls, **kwargs):
+        """
+        Create a new Variation instance and add it to the database.
+        
+        Args:
+            **kwargs: Variation attributes (variation_id, text_content, etc.)
+            
+        Returns:
+            The created Variation instance
+        """
         variation = cls(
             variation_id=kwargs.get("variation_id"),
             book_id=kwargs.get("book_id"),
@@ -761,6 +951,9 @@ class Variation:
         return variation
 
 def manual_commit() -> None:
+    """
+    Simulate a database commit (no-op for in-memory storage).
+    """
     # Simulate a database commit. In this simple implementation, changes are already in memory.
     # tolog.debug("Manual commit executed.")
     pass

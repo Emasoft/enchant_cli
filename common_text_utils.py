@@ -292,6 +292,71 @@ def remove_html_markup(html_str: str) -> str:
     return html_modified
 
 
+def remove_excess_empty_lines(text: str, max_empty_lines: int = 2) -> str:
+    """
+    Remove excessive empty lines from text.
+    
+    Args:
+        text: The input text
+        max_empty_lines: Maximum number of consecutive empty lines to keep
+        
+    Returns:
+        Text with excessive empty lines removed
+    """
+    # Replace multiple newlines with the maximum allowed
+    pattern = r'\n{' + str(max_empty_lines + 1) + ',}'
+    replacement = '\n' * max_empty_lines
+    return re.sub(pattern, replacement, text)
+
+
+def normalize_spaces(text: str) -> str:
+    """
+    Normalize various types of spaces and whitespace characters.
+    
+    This function:
+    1. Converts various Unicode spaces to regular spaces
+    2. Removes zero-width spaces
+    3. Normalizes whitespace around punctuation
+    4. Removes trailing spaces from lines
+    
+    Args:
+        text: The input text
+        
+    Returns:
+        Text with normalized spaces
+    """
+    # Replace various Unicode spaces with regular space
+    space_chars = [
+        '\u00A0',  # Non-breaking space
+        '\u1680',  # Ogham space mark
+        '\u2000', '\u2001', '\u2002', '\u2003', '\u2004', '\u2005',  # En/em spaces
+        '\u2006', '\u2007', '\u2008', '\u2009', '\u200A',  # Various spaces
+        '\u202F',  # Narrow no-break space
+        '\u205F',  # Medium mathematical space
+        '\u3000',  # Ideographic space
+    ]
+    
+    for space_char in space_chars:
+        text = text.replace(space_char, ' ')
+    
+    # Remove zero-width spaces
+    zero_width = ['\u200B', '\u200C', '\u200D', '\uFEFF']
+    for zw in zero_width:
+        text = text.replace(zw, '')
+    
+    # Normalize multiple spaces to single space (not at line boundaries)
+    lines = text.split('\n')
+    normalized_lines = []
+    for line in lines:
+        # Replace multiple spaces with single space
+        line = re.sub(r' {2,}', ' ', line)
+        # Remove trailing spaces
+        line = line.rstrip()
+        normalized_lines.append(line)
+    
+    return '\n'.join(normalized_lines)
+
+
 def clean_adverts(text_content: str) -> str:
     """
     Clean advertisement text from Chinese novel content.

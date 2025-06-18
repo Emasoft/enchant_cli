@@ -47,6 +47,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - do not use mockup tests or mocked behaviours unless it is absolutely impossible to do otherwise. If you need to use a service, local or remote, do not mock it, just ask the user to activate it for the duration of the tests. Results of mocked tests are completely useless. Only real tests can discover issues with the codebase.
 - always use a **Test-Driven Development (TDD)** methodology (write tests first, the implementation later) when implementing new features or change the existing ones. But first check that the existing tests are written correctly.
 - always plan in advance your actions, and break down your plan into very small tasks. Save a file named `DEVELOPMENT_PLAN.md` and write all tasks inside it. Update it with the status of each tasks after any changes.
+- Plan all the changes in detail first. Identify potential issues before starting, and revise the plan until it will not create issues before starting.
+- When making changes, identify all files that would need import updates first
+- After each change, check all type annotations for consistency
+- Make all changes in a single, well-planned operation with surgical edits
+- Always lint the file after making all the changes to it, but not before
+- Always run the tests relevant to the changed files after making all the changes planned, but not before
+- Do one comprehensive commit at the end of each operation if the code passes the tests
+- If you make errors while implementing the changes, examine you errors, ultrathink about them and write the lessons learned from them into CLAUDE.md for future references, so you won't repeat the same errors in the future.
 - Use Prefect for all scripted processing ( https://github.com/PrefectHQ/prefect/ ), with max_concurrency=1 for max safety.
 - do not create prototypes or sketched/abridged versions of the features you need to develop. That is only a waste of time. Instead break down the new features in its elemental components and functions, subdivide it in small autonomous modules with a specific function, and develop one module at time. When each module will be completed (passing the test for the module), then you will be able to implement the original feature easily just combining the modules. The modules can be helper functions, data structures, external librries, anything that is focused and reusable. Prefer functions at classes, but you can create small classes as specialized handlers for certain data and tasks, then also classes can be used as pieces for building the final feature.
 - When commit, never mention Claude as the author of the commits or as a Co-author.
