@@ -20,13 +20,45 @@
 
 from __future__ import annotations
 
-import sys
+import codecs
+import datetime as dt
+import enum
+import errno
+import logging
 import re
-from .common_print_utils import safe_print, rich_available
+import signal
+import sys
+import time
+import uuid
+from pathlib import Path
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 
-APP_NAME = "cli-translator"
-APP_VERSION = "0.1.0"  # Semantic version (major.minor.patch)
-MIN_PYTHON_VERSION_REQUIRED = "3.8"
+import filelock
+import yaml
+from chardet.universaldetector import UniversalDetector
+
+from .common_print_utils import safe_print
+from .common_text_utils import (
+    ALL_PUNCTUATION,
+    CLOSING_QUOTES,
+    NON_BREAKING,
+    SENTENCE_ENDING,
+    clean,
+    clean_adverts,
+    replace_repeated_chars,
+)
+from .config_manager import ConfigManager
+from .cost_tracker import global_cost_tracker
+from .icloud_sync import ICloudSync, ensure_synced, prepare_for_write
+from .translation_service import ChineseAITranslator
 
 try:
     import colorama as cr
@@ -34,47 +66,11 @@ except ImportError:
     cr = None
     # tolog is not yet defined here, so we will log warning later in main if needed
 
-
-import logging
-import signal
-import time
-
-from pathlib import Path 
-import uuid
-from .translation_service import ChineseAITranslator
-
-import enum
-
-import codecs
-from chardet.universaldetector import UniversalDetector
-
-from typing import (
-    Optional,
-    List,
-    Dict,
-    Any,
-    Union,
-    Tuple,
-    Set,
-)
+APP_NAME = "cli-translator"
+APP_VERSION = "0.1.0"  # Semantic version (major.minor.patch)
+MIN_PYTHON_VERSION_REQUIRED = "3.8"
 # EPUB imports removed - EPUB generation is handled by enchant_cli.py orchestrator
-
-import errno
-import yaml
-import datetime as dt
-import filelock
-
-# Import new modules for enhanced functionality
-from .icloud_sync import ICloudSync, ensure_synced, prepare_for_write
-from .config_manager import ConfigManager
-from .cost_tracker import global_cost_tracker
 # Note: model_pricing module is deprecated - using global_cost_tracker instead
-
-# Import common text processing utilities
-from .common_text_utils import (
-    clean, replace_repeated_chars, clean_adverts,
-    ALL_PUNCTUATION, SENTENCE_ENDING, CLOSING_QUOTES, NON_BREAKING
-)
 
 # Global variables - will be initialized in main()
 translator = None
@@ -87,7 +83,7 @@ MAXCHARS = 11999  # Default value, will be updated from config in main()
 
 # Chunk retry constants
 DEFAULT_MAX_CHUNK_RETRIES = 10
-MAX_RETRY_WAIT_SECONDS = 60 
+MAX_RETRY_WAIT_SECONDS = 60
 
 
 # All punctuation constants are imported from common_text_utils:
@@ -96,20 +92,55 @@ MAX_RETRY_WAIT_SECONDS = 60
 
 # PARAGRAPH DELIMITERS (characters that denote new paragraphs)
 PARAGRAPH_DELIMITERS = {
-    "\n", "\v", "\f", "\x1c", "\x1d", "\x1e", "\x85", "\u2028", "\u2029"
+    "\n",
+    "\v",
+    "\f",
+    "\x1c",
+    "\x1d",
+    "\x1e",
+    "\x85",
+    "\u2028",
+    "\u2029",
 }
 
 # Characters that are allowed unlimited repetition by default.
 # These include whitespace, control characters, some punctuation, symbols, and paragraph delimiters.
 PRESERVE_UNLIMITED = {
-    ' ', '.', '\n', '\r', '\t', '(', ')', '[', ']',
-    '+', '-', '_', '=', '/', '|', '\\', '*', '%', '#', '@',
-    '~', '<', '>', '^', '&', '°', '…',
-    '—', '•', '$'
+    " ",
+    ".",
+    "\n",
+    "\r",
+    "\t",
+    "(",
+    ")",
+    "[",
+    "]",
+    "+",
+    "-",
+    "_",
+    "=",
+    "/",
+    "|",
+    "\\",
+    "*",
+    "%",
+    "#",
+    "@",
+    "~",
+    "<",
+    ">",
+    "^",
+    "&",
+    "°",
+    "…",
+    "—",
+    "•",
+    "$",
 }.union(PARAGRAPH_DELIMITERS)
 
 # Precompile the regular expression pattern for matching repeated characters.
-_repeated_chars = re.compile(r'(.)\1+')
+_repeated_chars = re.compile(r"(.)\1+")
+
 
 def sanitize_filename(filename: str) -> str:
     """
@@ -120,21 +151,24 @@ def sanitize_filename(filename: str) -> str:
     """
     # Remove problematic characters
     filename = re.sub(r'[\\/*?:"<>|]', "", filename)
-    
+
     # Replace repeated characters that could cause filesystem issues
-    unsafe_chars = {'-', '_', '.', ' '}
+    unsafe_chars = {"-", "_", ".", " "}
     for char in unsafe_chars:
-        pattern = re.escape(char) + r'{2,}'
+        pattern = re.escape(char) + r"{2,}"
         filename = re.sub(pattern, char, filename)
-    
+
     # Trim excess whitespace and limit length
-    filename = re.sub(r'\s+', ' ', filename).strip()
+    filename = re.sub(r"\s+", " ", filename).strip()
     return filename[:100]
+
 
 ### HELPER CLASSES #####
 
+
 class TranslationState(enum.Enum):
     """A description of the worker's current state."""
+
     PENDING = 1
     """Translation task is initialized, but not running."""
     RUNNING = 2
@@ -145,15 +179,15 @@ class TranslationState(enum.Enum):
     """Translation task is not running, and exited with an error."""
     SUCCESS = 5
     """Translation task is not running, and completed successfully."""
-    
+
 
 def load_text_file(txt_file_name: Union[str, Path]) -> Optional[str]:
     """
     Load text file contents.
-    
+
     Args:
         txt_file_name: Path to the text file
-        
+
     Returns:
         File contents as string, or None if file cannot be read
     """
@@ -161,7 +195,7 @@ def load_text_file(txt_file_name: Union[str, Path]) -> Optional[str]:
     txt_file_name = Path.joinpath(Path.cwd(), Path(txt_file_name))
     if Path.is_file(txt_file_name):
         try:
-            with open(txt_file_name, encoding='utf8') as f:
+            with open(txt_file_name, encoding="utf8") as f:
                 contents = f.read()
                 if tolog is not None:
                     tolog.debug(contents)
@@ -172,13 +206,14 @@ def load_text_file(txt_file_name: Union[str, Path]) -> Optional[str]:
             return None
     else:
         if tolog is not None:
-            tolog.debug("Error : "+str(txt_file_name)+" is not a valid file!")
+            tolog.debug("Error : " + str(txt_file_name) + " is not a valid file!")
         return None
+
 
 def save_text_file(text: str, filename: Union[str, Path]) -> None:
     """
     Save text to a file.
-    
+
     Args:
         text: Text content to save
         filename: Path where to save the file
@@ -188,61 +223,62 @@ def save_text_file(text: str, filename: Union[str, Path]) -> None:
         with open(file_path, "wt", encoding="utf-8") as f:
             f.write(clean(text))
         if tolog is not None:
-            tolog.debug("Saved text file in: "+str(file_path))
+            tolog.debug("Saved text file in: " + str(file_path))
     except (IOError, OSError, PermissionError) as e:
         if tolog is not None:
             tolog.error(f"Error saving file {file_path}: {e}")
         raise
-        
+
 
 def remove_excess_empty_lines(txt: str) -> str:
     """Reduce consecutive empty lines to a maximum of 3 (4 newlines)."""
     # Match 4 or more newline characters and replace with exactly 3 newlines
-    return re.sub(r'\n{4,}', '\n\n\n', txt)
+    return re.sub(r"\n{4,}", "\n\n\n", txt)
+
 
 def normalize_spaces(text: str) -> str:
     """
     Normalize spaces in text by stripping whitespace and collapsing multiple spaces.
-    
+
     Args:
         text: The input text to normalize
-        
+
     Returns:
         Text with normalized spaces
     """
     # Split the text into lines
-    lines = text.split('\n')
+    lines = text.split("\n")
     normalized_lines = []
-    
+
     for line in lines:
         # Strip leading/trailing whitespace from the line
         stripped_line = line.strip()
-        
+
         if stripped_line:  # If the line is not empty (contains actual content)
             # Replace multiple spaces with a single space
-            normalized_line = ' '.join(stripped_line.split())
+            normalized_line = " ".join(stripped_line.split())
             normalized_lines.append(normalized_line)
         else:
             # For empty lines, add only a newline (no spaces)
-            normalized_lines.append('')
-    
+            normalized_lines.append("")
+
     # Join lines back with newlines
-    return '\n'.join(normalized_lines)
-    
-        
+    return "\n".join(normalized_lines)
+
+
 # HELPER FUNCTION TO GET VALUE OR NONE FROM A LIST ENTRY
 # an equivalent of dict.get(key, default) for lists
 def get_val(myList: List[Any], idx: int, default: Any = None) -> Any:
     """
     Get value from list at index, returning default if index is out of bounds.
-    
+
     An equivalent of dict.get(key, default) for lists.
-    
+
     Args:
         myList: The list to get value from
         idx: The index to access
         default: Default value if index is out of bounds
-        
+
     Returns:
         Value at index or default if index is invalid
     """
@@ -250,18 +286,19 @@ def get_val(myList: List[Any], idx: int, default: Any = None) -> Any:
         return myList[idx]
     except IndexError:
         return default
-            
-        
+
+
 _email_re = re.compile(r"[a-zA-Z0-9_\.\+\-]+\@[a-zA-Z0-9_\.\-]+\.[a-zA-Z]+")
 _url_re = re.compile(r"https?://(-\.)?([^\s/?\.#]+\.?)+(/[^\s]*)?")
+
 
 def strip_urls(input_text: str) -> str:
     """
     Strip URLs and emails from a string.
-    
+
     Args:
         input_text: Text containing URLs and/or emails
-        
+
     Returns:
         Text with URLs and emails removed
     """
@@ -269,118 +306,117 @@ def strip_urls(input_text: str) -> str:
     input_text = _email_re.sub("", input_text)
     return input_text
 
-_markdown_re = re.compile(r".*("
-                          r"\*(.*)\*|"
-                          r"_(.*)_|"
-                          r"\[(.*)\]\((.*)\)|"
-                          r"`(.*)`|"
-                          r"```(.*)```"
-                          r").*")
+
+_markdown_re = re.compile(
+    r".*(" r"\*(.*)\*|" r"_(.*)_|" r"\[(.*)\]\((.*)\)|" r"`(.*)`|" r"```(.*)```" r").*"
+)
 
 
 def is_markdown(input_text: str) -> bool:
     """
     Check if a string contains markdown formatting.
-    
+
     Args:
         input_text: Text to check for markdown
-        
+
     Returns:
         True if text contains markdown formatting, False otherwise
     """
-    #input_text = input_text[:1000]  # check only first 1000 chars
+    # input_text = input_text[:1000]  # check only first 1000 chars
     # Don't mark part of URLs or email addresses as Markdown
     input_text = strip_urls(input_text)
     return bool(_markdown_re.match(input_text.replace("\n", "")))
 
-    
-    
+
 def decode_input_file_content(input_file: Path) -> str:
     """
     Decode file content with automatic encoding detection.
-    
+
     Tries to detect encoding and read file, with fallback to GB18030.
     Ensures file is synced from iCloud if needed.
-    
+
     Args:
         input_file: Path to the file to decode
-        
+
     Returns:
         Decoded file content as string
     """
     # Ensure file is synced from iCloud if needed
     input_file = ensure_synced(input_file)
-    
+
     encoding = detect_file_encoding(input_file)
     if tolog is not None:
         tolog.debug(f"\nDetected encoding: {encoding}")
-    
+
     try:
-        with codecs.open(input_file, 'r', encoding=encoding) as f:
+        with codecs.open(input_file, "r", encoding=encoding) as f:
             content = f.read()
     except Exception as e:
         if tolog is not None:
             tolog.debug(f"\nAn error occurred processing file '{str(input_file)}': {e}")
             tolog.debug("Defaulting to GB18030 encoding.")
-        encoding = 'GB18030'
+        encoding = "GB18030"
         try:
-            with codecs.open(input_file, 'r', encoding=encoding) as f:
+            with codecs.open(input_file, "r", encoding=encoding) as f:
                 content = f.read()
         except Exception as e:
             if tolog is not None:
-                tolog.debug(f"\nAn error occurred processing file '{str(input_file)}': {e}")
-                tolog.debug("Attempt to decode using the detected encoding, replacing errors with the error character.")
-            with open(input_file, 'rb') as file:
+                tolog.debug(
+                    f"\nAn error occurred processing file '{str(input_file)}': {e}"
+                )
+                tolog.debug(
+                    "Attempt to decode using the detected encoding, replacing errors with the error character."
+                )
+            with open(input_file, "rb") as file:
                 content_bytes = file.read()
                 # Attempt to decode using the detected encoding, replacing errors with the error character
-                content = content_bytes.decode(encoding, errors='replace')
-            
+                content = content_bytes.decode(encoding, errors="replace")
+
     return content
-    
-    
-# try to detect the encoding of chinese text files 
+
+
+# try to detect the encoding of chinese text files
 def detect_file_encoding(file_path: Path) -> str:
     """
     Detect the encoding of a file using chardet.
-    
+
     Args:
         file_path: Path to the file to analyze
-        
+
     Returns:
         Detected encoding name (defaults to 'utf-8' on error)
     """
     # Ensure file is synced from iCloud if needed
     file_path = ensure_synced(file_path)
-    
+
     detector = UniversalDetector()
     try:
-        with file_path.open('rb') as f:
+        with file_path.open("rb") as f:
             for line in f:
                 detector.feed(line)
                 if detector.done:
                     break
             detector.close()
-            return detector.result['encoding']
+            return detector.result["encoding"]
     except (IOError, OSError, PermissionError) as e:
         if tolog is not None:
             tolog.error(f"Error detecting encoding for {file_path}: {e}")
         # Default to UTF-8 if detection fails
-        return 'utf-8'
-        
-        
-        
-    
+        return "utf-8"
+
 
 # Function to extract title and author info from foreign novels filenames (chinese, japanese, etc.)
-def foreign_book_title_splitter(filename: Union[str, Path]) -> Tuple[str, str, str, str, str, str]:
+def foreign_book_title_splitter(
+    filename: Union[str, Path],
+) -> Tuple[str, str, str, str, str, str]:
     """
     Extract title and author info from foreign novel filenames.
-    
+
     Expected format: translated_title by translated_author - original_title by original_author.txt
-    
+
     Args:
         filename: The filename to parse
-        
+
     Returns:
         Tuple of (original_title, translated_title, transliterated_title,
                  original_author, translated_author, transliterated_author)
@@ -388,52 +424,61 @@ def foreign_book_title_splitter(filename: Union[str, Path]) -> Tuple[str, str, s
     # FILE NAME STRUCTURE - SPLIT THE STRING TO EXTRACT THE INFORMATIONS ABOUT TITLE AND AUTUOR NAMES
     # EXAMPLE:
     # translated_title by translated_author - original_title by original_author.txt
-    # 
-    
+    #
+
     # Get the parts into variables and return them
-    original_title = ' n.d. '
-    translated_title = ' n.d. '
-    transliterated_title = ' n.d. '
-    original_author = ' n.d. '
-    translated_author = ' n.d. '
-    transliterated_author = ' n.d. '
-    
+    original_title = " n.d. "
+    translated_title = " n.d. "
+    transliterated_title = " n.d. "
+    original_author = " n.d. "
+    translated_author = " n.d. "
+    transliterated_author = " n.d. "
+
     # Remove the extension
     base_filename = Path(filename).stem
     # Split the main string sections
-    if ' - ' in base_filename:
-        translated_part, original_part = base_filename.split(' - ')
+    if " - " in base_filename:
+        translated_part, original_part = base_filename.split(" - ")
     else:
-        if ' by ' in base_filename:
-            original_title, original_author = base_filename.split(' by ')
+        if " by " in base_filename:
+            original_title, original_author = base_filename.split(" by ")
         else:
             original_title = base_filename
-        translated_part = ''
+        translated_part = ""
         original_part = base_filename
     # Extract translated title and author
-    if translated_part and ' by ' in translated_part:
-        translated_title, translated_author = translated_part.split(' by ')
+    if translated_part and " by " in translated_part:
+        translated_title, translated_author = translated_part.split(" by ")
     else:
         translated_title = translated_part
     # Extract original title and author
-    if original_part and ' by ' in original_part:
-        original_title, original_author = original_part.split(' by ')
+    if original_part and " by " in original_part:
+        original_title, original_author = original_part.split(" by ")
     else:
         original_title = original_part
 
-    return original_title, translated_title, transliterated_title, original_author, translated_author, transliterated_author
+    return (
+        original_title,
+        translated_title,
+        transliterated_title,
+        original_author,
+        translated_author,
+        transliterated_author,
+    )
 
 
 # Import the original language novel txt file and split it in chunks of max MAXCHARS characters
-def import_book_from_txt(file_path: Union[str, Path], encoding: str = 'utf-8', max_chars: int = MAXCHARS) -> str:
+def import_book_from_txt(
+    file_path: Union[str, Path], encoding: str = "utf-8", max_chars: int = MAXCHARS
+) -> str:
     """
     Import a book from text file and split into chunks.
-    
+
     Args:
         file_path: Path to the book text file
         encoding: File encoding (unused, auto-detected)
         max_chars: Maximum characters per chunk
-        
+
     Returns:
         The book_id of the imported book
     """
@@ -444,34 +489,41 @@ def import_book_from_txt(file_path: Union[str, Path], encoding: str = 'utf-8', m
     duplicate_book = Book.get_or_none(Book.source_file == filename)
     if duplicate_book is not None:
         if tolog is not None:
-            tolog.debug("ERROR - Book with filename '{filename}' was already imported in db!")
+            tolog.debug(
+                "ERROR - Book with filename '{filename}' was already imported in db!"
+            )
         return str(duplicate_book.book_id)
 
     # LOAD FILE CONTENT
     book_content = decode_input_file_content(Path(file_path))
-    
+
     # CLEAN UP THE TEXT CONTENT
-    #book_content = remove_html_markup(book_content)
-    #book_content = normalize_spaces(book_content)
+    # book_content = remove_html_markup(book_content)
+    # book_content = normalize_spaces(book_content)
     book_content = remove_excess_empty_lines(book_content)
-    
+
     # COUNT THE NUMBER OF CHARACTERS
     total_book_characters = len(book_content)
 
-    
     # SPLIT THE BOOK IN CHUNKS
     splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
 
-        
     # Create new book entry in database
     new_book_id = str(uuid.uuid4())
-    original_title, translated_title, transliterated_title, original_author, translated_author, transliterated_author = foreign_book_title_splitter(file_path)
+    (
+        original_title,
+        translated_title,
+        transliterated_title,
+        original_author,
+        translated_author,
+        transliterated_author,
+    ) = foreign_book_title_splitter(file_path)
     book_title = translated_title
     book_author = translated_author
 
     try:
         Book.create(
-            book_id=new_book_id, 
+            book_id=new_book_id,
             title=book_title,
             original_title=original_title,
             translated_title=translated_title,
@@ -481,27 +533,36 @@ def import_book_from_txt(file_path: Union[str, Path], encoding: str = 'utf-8', m
             translated_author=translated_author,
             transliterated_author=transliterated_author,
             source_file=filename,
-            total_characters = total_book_characters,
-            )
+            total_characters=total_book_characters,
+        )
     except Exception as e:
         if tolog is not None:
-            tolog.debug("An exception happened when creating a new variation original for a chunk:")
-            tolog.debug("ERROR: "+ str(e))
+            tolog.debug(
+                "An exception happened when creating a new variation original for a chunk:"
+            )
+            tolog.debug("ERROR: " + str(e))
     finally:
-        manual_commit()            
-    
+        manual_commit()
+
     book = Book.get_by_id(new_book_id)
-    
+
     # for each chunk create a new chunk entry and a new orig variation in database
     for index, chunk_content in enumerate(splitted_chunks, start=1):
         new_chunk_id = str(uuid.uuid4())
         new_variation_id = str(uuid.uuid4())
         try:
-            chunk.create(chunk_id=new_chunk_id, book_id=new_book_id, chunk_number=index, original_variation_id=new_variation_id)
+            chunk.create(
+                chunk_id=new_chunk_id,
+                book_id=new_book_id,
+                chunk_number=index,
+                original_variation_id=new_variation_id,
+            )
         except Exception as e:
             if tolog is not None:
-                tolog.debug(f"An exception happened when creating chunk n.{index} with ID {new_variation_id}. ")
-                tolog.debug("ERROR: "+ str(e))
+                tolog.debug(
+                    f"An exception happened when creating chunk n.{index} with ID {new_variation_id}. "
+                )
+                tolog.debug("ERROR: " + str(e))
         else:
             try:
                 Variation.create(
@@ -511,39 +572,45 @@ def import_book_from_txt(file_path: Union[str, Path], encoding: str = 'utf-8', m
                     chunk_number=index,
                     language="original",
                     category="original",
-                    text_content=chunk_content
+                    text_content=chunk_content,
                 )
             except Exception as e:
-                chunk_number = index if 'index' in locals() else 'unknown'
+                chunk_number = index if "index" in locals() else "unknown"
                 if tolog is not None:
-                    tolog.debug(f"An exception happened when creating a new variation original for chunk n.{chunk_number}:")
-                    tolog.debug("ERROR: "+ str(e))
+                    tolog.debug(
+                        f"An exception happened when creating a new variation original for chunk n.{chunk_number}:"
+                    )
+                    tolog.debug("ERROR: " + str(e))
         finally:
-            manual_commit() 
-            
+            manual_commit()
+
     return new_book_id
 
 
-def quick_replace(text_content: str, original: str, substitution: str, case_insensitive=True) -> str:
+def quick_replace(
+    text_content: str, original: str, substitution: str, case_insensitive=True
+) -> str:
     """
     Replace all occurrences of a string with another string.
-    
+
     Args:
         text_content: The text to modify
         original: String to find
         substitution: String to replace with
         case_insensitive: Whether to ignore case when matching
-        
+
     Returns:
         Modified text with replacements made
     """
     # case insensitive substitution or not
     if case_insensitive:
-        return re.sub("(?i)" + re.escape(original), lambda m: f"{substitution}", text_content)
+        return re.sub(
+            "(?i)" + re.escape(original), lambda m: f"{substitution}", text_content
+        )
     else:
         return re.sub(re.escape(original), lambda m: f"{substitution}", text_content)
-    
-    
+
+
 def flush_buffer(buffer: str, paragraphs: list) -> str:
     """
     If the buffer contains text, normalize spaces and append it as a new paragraph.
@@ -551,9 +618,10 @@ def flush_buffer(buffer: str, paragraphs: list) -> str:
     """
     buffer = clean(buffer)
     if buffer:
-        buffer = re.sub(' +', ' ', buffer)
+        buffer = re.sub(" +", " ", buffer)
         paragraphs.append(buffer + "\n\n")
     return ""
+
 
 def split_on_punctuation_contextual(text: str) -> list:
     """
@@ -572,7 +640,6 @@ def split_on_punctuation_contextual(text: str) -> list:
     """
     if not isinstance(text, str):
         raise TypeError("Input text must be a string")
-        
 
     # CHINESE PUNCTUATION
     # Characters groups for chinese punctuation and paragraph delimiters.
@@ -582,19 +649,19 @@ def split_on_punctuation_contextual(text: str) -> list:
 
     # Define a comprehensive set of paragraph delimiters.
     PARAGRAPH_DELIMITERS = {
-        "\n",      # Line Feed
-        "\v",      # Vertical Tab
-        "\f",      # Form Feed
-        "\x1c",    # File Separator
-        "\x1d",    # Group Separator
-        "\x1e",    # Record Separator
-        "\x85",    # Next Line (C1 Control Code)
+        "\n",  # Line Feed
+        "\v",  # Vertical Tab
+        "\f",  # Form Feed
+        "\x1c",  # File Separator
+        "\x1d",  # Group Separator
+        "\x1e",  # Record Separator
+        "\x85",  # Next Line (C1 Control Code)
         "\u2028",  # Line Separator
-        "\u2029"   # Paragraph Separator
+        "\u2029",  # Paragraph Separator
     }
-    
+
     # Define characters that trigger a new paragraph when following punctuation.
-    PARAGRAPH_START_TRIGGERS = {'\n', '“', '【', '《', '「'}
+    PARAGRAPH_START_TRIGGERS = {"\n", "“", "【", "《", "「"}
 
     # Preprocess text:
     # 1. Clean and normalize newlines.
@@ -603,43 +670,47 @@ def split_on_punctuation_contextual(text: str) -> list:
     text = clean_adverts(text)
     text = clean(text)
     text = text.replace("\r\n", "\n").replace("\r", "\n")
-    text = re.sub(' +', ' ', text)
+    text = re.sub(" +", " ", text)
     text = replace_repeated_chars(text, ALL_PUNCTUATION)
     text = replace_repeated_chars(text, PARAGRAPH_DELIMITERS)
-    
+
     paragraphs = []
     buffer = ""
     length = len(text)
     i = 0
     while i < length:
         char = text[i]
-        next_char = text[i+1] if i+1 < length else None
-        next_next_char = text[i+2] if i+2 < length else None
-        
+        next_char = text[i + 1] if i + 1 < length else None
+        next_next_char = text[i + 2] if i + 2 < length else None
+
         # If the character is a paragraph delimiter, flush the buffer.
         if char in PARAGRAPH_DELIMITERS:
             buffer += char
             buffer = flush_buffer(buffer, paragraphs)
             i += 1
             continue
-        
+
         # If the character is a sentence-ending punctuation, add it.
         if char in SENTENCE_ENDING:
             buffer += char
             # Lookahead: If the next character indicates the start of a new paragraph
-            if (next_char in PARAGRAPH_START_TRIGGERS) or (next_char == ' ' and next_next_char in PARAGRAPH_START_TRIGGERS):
+            if (next_char in PARAGRAPH_START_TRIGGERS) or (
+                next_char == " " and next_next_char in PARAGRAPH_START_TRIGGERS
+            ):
                 buffer = flush_buffer(buffer, paragraphs)
                 i += 1
                 continue
             i += 1
             continue
-        
+
         # If the character is a closing quote,
         # flush only if it directly follows sentence-ending punctuation.
         if char in CLOSING_QUOTES:
             if buffer and buffer[-1] in SENTENCE_ENDING:
                 buffer += char
-                if (next_char in PARAGRAPH_START_TRIGGERS) or (next_char == ' ' and next_next_char in PARAGRAPH_START_TRIGGERS):
+                if (next_char in PARAGRAPH_START_TRIGGERS) or (
+                    next_char == " " and next_next_char in PARAGRAPH_START_TRIGGERS
+                ):
                     buffer = flush_buffer(buffer, paragraphs)
                     i += 1
                     continue
@@ -650,21 +721,21 @@ def split_on_punctuation_contextual(text: str) -> list:
                 buffer += char
                 i += 1
                 continue
-        
+
         # For non-breaking punctuation, simply add the character.
         if char in NON_BREAKING:
             buffer += char
             i += 1
             continue
-        
+
         # Otherwise, append the current character.
         buffer += char
         i += 1
-    
+
     # Flush any residual text in the buffer as the last paragraph.
     if clean(buffer):
-        paragraphs.append(re.sub(' +', ' ', clean(buffer)) + "\n\n")
-    
+        paragraphs.append(re.sub(" +", " ", clean(buffer)) + "\n\n")
+
     return paragraphs
 
 
@@ -675,46 +746,45 @@ def split_text_by_actual_paragraphs(text: str) -> list:
     """
     if not isinstance(text, str):
         raise TypeError("Input text must be a string")
-    
+
     # Preprocess text
     text = clean_adverts(text)
     text = clean(text)
-    
+
     # Normalize newlines
     text = text.replace("\r\n", "\n").replace("\r", "\n")
-    
+
     # Split on double newlines (actual paragraph breaks)
     # Also handle other Unicode paragraph separators
     text = text.replace("\u2029", "\n\n")  # Paragraph Separator
-    text = text.replace("\u2028", "\n")    # Line Separator
-    
+    text = text.replace("\u2028", "\n")  # Line Separator
+
     # Split on double newlines
-    raw_paragraphs = re.split(r'\n\s*\n', text)
-    
+    raw_paragraphs = re.split(r"\n\s*\n", text)
+
     paragraphs = []
     for para in raw_paragraphs:
         para = para.strip()
         if para:
             # Clean up extra spaces
-            para = re.sub(' +', ' ', para)
+            para = re.sub(" +", " ", para)
             # Add back the double newline for consistency
             paragraphs.append(para + "\n\n")
-    
+
     return paragraphs
-    
-    
-    
+
+
 ## Function to split a chinese novel in parts of max n characters keeping the paragraphs intact
 def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS) -> List[str]:
     """
     Split Chinese novel text into chunks of maximum character length.
-    
+
     Keeps paragraphs intact when splitting.
-    
+
     Args:
         text: The Chinese text to split
         max_chars: Maximum characters per chunk
-        
+
     Returns:
         List of text chunks
     """
@@ -731,13 +801,12 @@ def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS) -> List[st
     current_char_count = 0
     paragraphs_buffer = []
     paragraph_index = 0
-    total_chars = sum(len(para) for para in paragraphs)
     chars_processed = 0
-    
+
     # Handle empty text
     if not paragraphs or all(not p.strip() for p in paragraphs):
         return [""]
-            
+
     for i, para in enumerate(paragraphs):
         # CHECK IF THE CURRENT PARAGRAPHS BUFFER HAS REACHED
         # THE CHARACTERS LIMIT AND IN SUCH CASE SAVE AND EMPTY THE PARAGRAPHS BUFFER
@@ -750,7 +819,7 @@ def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS) -> List[st
                 chunks_counter += 1
                 current_char_count = 0
                 paragraphs_buffer = []
-        
+
         paragraphs_buffer.append(para)
         chars_processed += len(para)
         current_char_count += len(para)
@@ -762,11 +831,14 @@ def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS) -> List[st
         chunk = "".join(paragraphs_buffer)
         chunks.append(chunk)
         chunks_counter += 1
-                
+
     if tolog is not None:
-        tolog.debug(f"\n -> Import COMPLETE.\n  Total number of paragraphs: {str(paragraph_index)}\n  Total number of chunks: {str(chunks_counter)}\n")
-    
+        tolog.debug(
+            f"\n -> Import COMPLETE.\n  Total number of paragraphs: {str(paragraph_index)}\n  Total number of chunks: {str(chunks_counter)}\n"
+        )
+
     return chunks
+
 
 # Main function is at the end of this file
 
@@ -779,36 +851,55 @@ BOOK_DB = {}
 chunk_DB = {}
 VARIATION_DB = {}
 
+
 class Field:
     """
     Simple descriptor class for field access in in-memory database.
-    
+
     Allows attribute-style access and comparison operations.
     """
+
     def __init__(self, name):
         self.name = name
+
     def __get__(self, instance, owner):
         if instance is None:
             return self
         return instance.__dict__.get(self.name)
+
     def __set__(self, instance, value):
         instance.__dict__[self.name] = value
+
     def __eq__(self, other):
         # When used in a class-level comparison (e.g., Book.source_file == filename),
         # return a lambda that checks whether the instance's attribute equals 'other'.
         return lambda instance: getattr(instance, self.name, None) == other
 
+
 class Book:
     """
     Represents a book in the translation system.
-    
+
     Stores metadata about the book including titles, authors, and source file info.
     """
+
     # Using Field descriptor for source_file to support query comparisons
-    source_file = Field('source_file')
-    
-    def __init__(self, book_id, title, original_title, translated_title, transliterated_title,
-                 author, original_author, translated_author, transliterated_author, source_file, total_characters):
+    source_file = Field("source_file")
+
+    def __init__(
+        self,
+        book_id,
+        title,
+        original_title,
+        translated_title,
+        transliterated_title,
+        author,
+        original_author,
+        translated_author,
+        transliterated_author,
+        source_file,
+        total_characters,
+    ):
         self.book_id = book_id
         self.title = title
         self.original_title = original_title
@@ -826,10 +917,10 @@ class Book:
     def create(cls, **kwargs):
         """
         Create a new Book instance and add it to the database.
-        
+
         Args:
             **kwargs: Book attributes (book_id, title, authors, etc.)
-            
+
         Returns:
             The created Book instance
         """
@@ -844,7 +935,7 @@ class Book:
             translated_author=kwargs.get("translated_author"),
             transliterated_author=kwargs.get("transliterated_author"),
             source_file=kwargs.get("source_file"),
-            total_characters=kwargs.get("total_characters")
+            total_characters=kwargs.get("total_characters"),
         )
         BOOK_DB[book.book_id] = book
         return book
@@ -853,10 +944,10 @@ class Book:
     def get_or_none(cls, condition):
         """
         Find a book matching the given condition.
-        
+
         Args:
             condition: A callable that returns True for matching books
-            
+
         Returns:
             The first matching Book instance or None
         """
@@ -869,21 +960,23 @@ class Book:
     def get_by_id(cls, book_id):
         """
         Get a book by its ID.
-        
+
         Args:
             book_id: The book's unique identifier
-            
+
         Returns:
             The Book instance or None if not found
         """
         return BOOK_DB.get(book_id)
 
+
 class chunk:
     """
     Represents a text chunk of a book for translation.
-    
+
     Books are split into chunks for manageable translation.
     """
+
     def __init__(self, chunk_id, book_id, chunk_number, original_variation_id):
         self.chunk_id = chunk_id
         self.book_id = book_id
@@ -894,13 +987,13 @@ class chunk:
     def create(cls, chunk_id, book_id, chunk_number, original_variation_id):
         """
         Create a new chunk and add it to the database.
-        
+
         Args:
             chunk_id: Unique identifier for the chunk
             book_id: ID of the book this chunk belongs to
             chunk_number: Sequential number of this chunk
             original_variation_id: ID of the original text variation
-            
+
         Returns:
             The created chunk instance
         """
@@ -912,13 +1005,24 @@ class chunk:
             book.chunks.append(chunk)
         return chunk
 
+
 class Variation:
     """
     Represents a text variation (original or translated) of a chunk.
-    
+
     Stores the actual text content and metadata about language and category.
     """
-    def __init__(self, variation_id, book_id, chunk_id, chunk_number, language, category, text_content):
+
+    def __init__(
+        self,
+        variation_id,
+        book_id,
+        chunk_id,
+        chunk_number,
+        language,
+        category,
+        text_content,
+    ):
         self.variation_id = variation_id
         self.book_id = book_id
         self.chunk_id = chunk_id
@@ -931,10 +1035,10 @@ class Variation:
     def create(cls, **kwargs):
         """
         Create a new Variation instance and add it to the database.
-        
+
         Args:
             **kwargs: Variation attributes (variation_id, text_content, etc.)
-            
+
         Returns:
             The created Variation instance
         """
@@ -945,10 +1049,11 @@ class Variation:
             chunk_number=kwargs.get("chunk_number"),
             language=kwargs.get("language"),
             category=kwargs.get("category"),
-            text_content=kwargs.get("text_content")
+            text_content=kwargs.get("text_content"),
         )
         VARIATION_DB[variation.variation_id] = variation
         return variation
+
 
 def manual_commit() -> None:
     """
@@ -959,11 +1064,17 @@ def manual_commit() -> None:
     pass
 
 
-def format_chunk_error_message(chunk_number: int, max_retries: int, last_error: str, 
-                              book_title: str, book_author: str, output_path: str) -> str:
+def format_chunk_error_message(
+    chunk_number: int,
+    max_retries: int,
+    last_error: str,
+    book_title: str,
+    book_author: str,
+    output_path: str,
+) -> str:
     """
     Format a comprehensive error message for chunk translation failures.
-    
+
     Args:
         chunk_number: The chunk number that failed
         max_retries: Number of retry attempts made
@@ -971,7 +1082,7 @@ def format_chunk_error_message(chunk_number: int, max_retries: int, last_error: 
         book_title: Title of the book being translated
         book_author: Author of the book
         output_path: Path where the chunk would have been saved
-        
+
     Returns:
         Formatted error message with troubleshooting information
     """
@@ -991,32 +1102,38 @@ def format_chunk_error_message(chunk_number: int, max_retries: int, last_error: 
     )
 
 
-def save_translated_book(book_id: str, resume: bool = False, create_epub: bool = False) -> None:
+def save_translated_book(
+    book_id: str, resume: bool = False, create_epub: bool = False
+) -> None:
     """
     Simulate translation of the book and save the translated text to a file.
     For each chunk, use the translator to translate the original text.
-    
+
     Note: The create_epub parameter is kept for backward compatibility but is ignored.
     EPUB generation is handled by enchant_cli.py orchestrator.
     """
     # Get max chunk retry attempts from config or use default
     max_chunk_retries = DEFAULT_MAX_CHUNK_RETRIES
     if _module_config:
-        max_chunk_retries = _module_config.get('translation', {}).get('max_chunk_retries', DEFAULT_MAX_CHUNK_RETRIES)
-    
+        max_chunk_retries = _module_config.get("translation", {}).get(
+            "max_chunk_retries", DEFAULT_MAX_CHUNK_RETRIES
+        )
+
     book = Book.get_by_id(book_id)
     if not book:
         raise ValueError("Book not found")
     # Create book folder
     try:
-        folder_name = sanitize_filename(f"{book.translated_title} by {book.translated_author}")
+        folder_name = sanitize_filename(
+            f"{book.translated_title} by {book.translated_author}"
+        )
         book_dir = Path(folder_name)
         book_dir.mkdir(exist_ok=True)
     except OSError as e:
         if e.errno != errno.EEXIST:
             tolog.error(f"Error creating directory: {e}")
             book_dir = Path.cwd()
-    
+
     # Prepare autoresume data
     existing_chunk_nums: Set[int] = set()
     if resume:
@@ -1026,7 +1143,9 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
             if match:
                 existing_chunk_nums.add(int(match.group(1)))
         if existing_chunk_nums:
-            tolog.info(f"Autoresume active: existing translated chunks detected: {sorted(existing_chunk_nums)}")
+            tolog.info(
+                f"Autoresume active: existing translated chunks detected: {sorted(existing_chunk_nums)}"
+            )
         else:
             tolog.info("Autoresume active but no existing chunk files found.")
 
@@ -1038,56 +1157,76 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
         variation = VARIATION_DB.get(chunk.original_variation_id)
         if variation:
             if resume and chunk.chunk_number in existing_chunk_nums:
-                p_existing = book_dir / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
+                p_existing = (
+                    book_dir
+                    / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
+                )
                 try:
                     translated_text = p_existing.read_text(encoding="utf-8")
-                    tolog.info(f"Skipping translation for chunk {chunk.chunk_number}; using existing translation.")
+                    tolog.info(
+                        f"Skipping translation for chunk {chunk.chunk_number}; using existing translation."
+                    )
                 except FileNotFoundError:
-                    tolog.warning(f"Expected file {p_existing.name} not found; re-translating.")
+                    tolog.warning(
+                        f"Expected file {p_existing.name} not found; re-translating."
+                    )
                 else:
                     translated_contents.append(f"\n{translated_text}\n")
                     continue
             original_text = variation.text_content
-            
+
             # Use the max_chunk_retries loaded above
             chunk_translated = False
             last_error = None
-            output_filename_chunk = book_dir / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
-            
+            output_filename_chunk = (
+                book_dir
+                / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
+            )
+
             for chunk_attempt in range(1, max_chunk_retries + 1):
                 try:
-                    tolog.info(f"TRANSLATING CHUNK {chunk.chunk_number:06d} of {len(sorted_chunks)} (Attempt {chunk_attempt}/{max_chunk_retries})")
-                    is_last_chunk = (chunk.chunk_number == len(sorted_chunks))
+                    tolog.info(
+                        f"TRANSLATING CHUNK {chunk.chunk_number:06d} of {len(sorted_chunks)} (Attempt {chunk_attempt}/{max_chunk_retries})"
+                    )
+                    is_last_chunk = chunk.chunk_number == len(sorted_chunks)
                     translated_text = translator.translate(original_text, is_last_chunk)
-                    
+
                     # Validate translated text
                     if not translated_text or len(translated_text.strip()) == 0:
-                        raise ValueError("Translation returned empty or whitespace-only text")
-                    
+                        raise ValueError(
+                            "Translation returned empty or whitespace-only text"
+                        )
+
                     # Save chunk to file
                     p = output_filename_chunk
                     try:
                         p.write_text(translated_text)
                     except (IOError, OSError, PermissionError) as e:
                         if tolog is not None:
-                            tolog.error(f"Error saving chunk {chunk.chunk_number:06d} to {p}: {e}")
+                            tolog.error(
+                                f"Error saving chunk {chunk.chunk_number:06d} to {p}: {e}"
+                            )
                         raise
-                    
+
                     # Success! Mark as translated and break out of retry loop
                     chunk_translated = True
-                    tolog.info(f"Successfully translated chunk {chunk.chunk_number:06d} on attempt {chunk_attempt}")
+                    tolog.info(
+                        f"Successfully translated chunk {chunk.chunk_number:06d} on attempt {chunk_attempt}"
+                    )
                     break
-                    
+
                 except Exception as e:
                     last_error = e
-                    tolog.error(f"ERROR: Translation failed for chunk {chunk.chunk_number:06d} on attempt {chunk_attempt}/{max_chunk_retries}: {str(e)}")
-                    
+                    tolog.error(
+                        f"ERROR: Translation failed for chunk {chunk.chunk_number:06d} on attempt {chunk_attempt}/{max_chunk_retries}: {str(e)}"
+                    )
+
                     if chunk_attempt < max_chunk_retries:
                         # Calculate wait time with exponential backoff
-                        wait_time = min(2 ** chunk_attempt, MAX_RETRY_WAIT_SECONDS)
+                        wait_time = min(2**chunk_attempt, MAX_RETRY_WAIT_SECONDS)
                         tolog.info(f"Waiting {wait_time} seconds before retry...")
                         time.sleep(wait_time)
-            
+
             # Check if translation succeeded after all attempts
             if not chunk_translated:
                 # All attempts failed - exit with error
@@ -1097,7 +1236,7 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
                     last_error=str(last_error),
                     book_title=book.translated_title,
                     book_author=book.translated_author,
-                    output_path=str(output_filename_chunk)
+                    output_path=str(output_filename_chunk),
                 )
                 tolog.error(error_message)
                 print(error_message)
@@ -1110,7 +1249,9 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
     full_translated_text = "\n".join(translated_contents)
     full_translated_text = remove_excess_empty_lines(full_translated_text)
     # Save to a file named with the book_id
-    output_filename = book_dir / f"translated_{book.translated_title} by {book.translated_author}.txt"
+    output_filename = (
+        book_dir / f"translated_{book.translated_title} by {book.translated_author}.txt"
+    )
     # Prepare path for writing (ensures parent directory is synced)
     output_filename = prepare_for_write(output_filename)
     try:
@@ -1122,40 +1263,48 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
         if tolog is not None:
             tolog.error(f"Error saving translated book to {output_filename}: {e}")
         raise
-    
+
     # Save cost log for remote translations
     if translator and translator.is_remote and translator.request_count > 0:
-        cost_log_filename = output_filename.with_suffix('').name + "_AI_COSTS.log"
+        cost_log_filename = output_filename.with_suffix("").name + "_AI_COSTS.log"
         cost_log_path = book_dir / cost_log_filename
         cost_log_path = prepare_for_write(cost_log_path)
-        
+
         try:
             with open(cost_log_path, "w", encoding="utf-8") as f:
                 f.write("AI Translation Cost Log\n")
                 f.write("======================\n\n")
                 f.write(f"Novel: {book.translated_title} by {book.translated_author}\n")
-                f.write(f"Translation Date: {dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(
+                    f"Translation Date: {dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                )
                 f.write("API Service: OpenRouter (Remote)\n")
                 f.write(f"Model: {translator.MODEL_NAME}\n")
                 f.write(f"\n{translator.format_cost_summary()}\n")
-        
+
                 # Add per-request breakdown if needed
                 f.write("\n\nDetailed Breakdown:\n")
                 f.write("-------------------\n")
                 f.write(f"Total Chunks Translated: {len(sorted_chunks)}\n")
                 if translator.request_count > 0 and len(sorted_chunks) > 0:
-                    f.write(f"Average Cost per chunk: ${translator.total_cost / len(sorted_chunks):.6f}\n")
-                    f.write(f"Average Tokens per chunk: {translator.total_tokens // len(sorted_chunks):,}\n")
-        
+                    f.write(
+                        f"Average Cost per chunk: ${translator.total_cost / len(sorted_chunks):.6f}\n"
+                    )
+                    f.write(
+                        f"Average Tokens per chunk: {translator.total_tokens // len(sorted_chunks):,}\n"
+                    )
+
                 # Save raw data for potential future analysis
                 f.write("\n\nRaw Data:\n")
                 f.write("---------\n")
                 f.write(f"total_cost: {translator.total_cost}\n")
                 f.write(f"total_tokens: {translator.total_tokens}\n")
                 f.write(f"total_prompt_tokens: {translator.total_prompt_tokens}\n")
-                f.write(f"total_completion_tokens: {translator.total_completion_tokens}\n")
+                f.write(
+                    f"total_completion_tokens: {translator.total_completion_tokens}\n"
+                )
                 f.write(f"request_count: {translator.request_count}\n")
-            
+
         except (IOError, OSError, PermissionError) as e:
             if tolog is not None:
                 tolog.error(f"Error saving cost log to {cost_log_path}: {e}")
@@ -1164,21 +1313,24 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
     # EPUB generation removed - this is handled by enchant_cli.py orchestrator
     # The create_epub parameter is kept for backward compatibility but ignored
 
+
 ###############################################
 #               MAIN FUNCTION               #
 ###############################################
+
 
 def load_safe_yaml(path: Path) -> Optional[Dict[str, Any]]:
     """Safely load YAML file"""
     try:
         if path.exists():
-            with path.open('r') as f:
+            with path.open("r") as f:
                 return yaml.safe_load(f)
         return None
     except Exception as e:
         if tolog is not None:
             tolog.error(f"Error loading YAML from {path}: {e}")
         return None
+
 
 def process_batch(args) -> None:
     """Process batch of novel files"""
@@ -1193,42 +1345,46 @@ def process_batch(args) -> None:
         # Load or create batch progress
         progress_file = Path("translation_batch_progress.yml")
         history_file = Path("translations_chronology.yml")
-        
+
         if progress_file.exists():
             progress = load_safe_yaml(progress_file) or {}
         else:
             progress = {
-                'created': dt.datetime.now().isoformat(),
-                'input_folder': str(input_path.resolve()),
-                'files': []
+                "created": dt.datetime.now().isoformat(),
+                "input_folder": str(input_path.resolve()),
+                "files": [],
             }
 
         # Populate file list if not resuming
-        if not progress.get('files'):
-            files_sorted = sorted(input_path.glob('*.txt'), key=lambda x: x.name)
+        if not progress.get("files"):
+            files_sorted = sorted(input_path.glob("*.txt"), key=lambda x: x.name)
             for file in files_sorted:
-                progress['files'].append({
-                    'path': str(file.resolve()),
-                    'status': 'planned',
-                    'end_time': None,
-                    'retry_count': 0
-                })
+                progress["files"].append(
+                    {
+                        "path": str(file.resolve()),
+                        "status": "planned",
+                        "end_time": None,
+                        "retry_count": 0,
+                    }
+                )
 
         MAX_RETRIES = 3
 
         # Process files
-        for item in progress['files']:
-            if item['status'] == 'completed':
+        for item in progress["files"]:
+            if item["status"] == "completed":
                 continue
-            if item.get('retry_count', 0) >= MAX_RETRIES:
-                tolog.warning(f"Skipping {item['path']} after {MAX_RETRIES} failed attempts.")
-                item['status'] = 'failed/skipped'
+            if item.get("retry_count", 0) >= MAX_RETRIES:
+                tolog.warning(
+                    f"Skipping {item['path']} after {MAX_RETRIES} failed attempts."
+                )
+                item["status"] = "failed/skipped"
                 continue
-                
-            item['status'] = 'processing'
-            item['start_time'] = dt.datetime.now().isoformat()
+
+            item["status"] = "processing"
+            item["start_time"] = dt.datetime.now().isoformat()
             try:
-                with progress_file.open('w') as f:
+                with progress_file.open("w") as f:
                     yaml.safe_dump(progress, f)
             except (IOError, OSError, yaml.YAMLError) as e:
                 if tolog is not None:
@@ -1237,60 +1393,68 @@ def process_batch(args) -> None:
 
             try:
                 tolog.info(f"Processing: {Path(item['path']).name}")
-                book_id = import_book_from_txt(item['path'], 
-                                     encoding=args.encoding,
-                                     max_chars=args.max_chars)
+                book_id = import_book_from_txt(
+                    item["path"], encoding=args.encoding, max_chars=args.max_chars
+                )
                 save_translated_book(book_id, resume=args.resume, create_epub=args.epub)
-                item['status'] = 'completed'
+                item["status"] = "completed"
             except Exception as e:
                 tolog.error(f"Failed to translate {item['path']}: {str(e)}")
-                item['status'] = 'failed/skipped'
-                item['error'] = str(e)
-                item['retry_count'] = item.get('retry_count', 0) + 1
+                item["status"] = "failed/skipped"
+                item["error"] = str(e)
+                item["retry_count"] = item.get("retry_count", 0) + 1
             finally:
-                item['end_time'] = dt.datetime.now().isoformat()
+                item["end_time"] = dt.datetime.now().isoformat()
                 try:
-                    with progress_file.open('w') as f:
+                    with progress_file.open("w") as f:
                         yaml.safe_dump(progress, f)
                 except (IOError, OSError, yaml.YAMLError) as e:
                     if tolog is not None:
                         tolog.error(f"Error saving progress file in finally block: {e}")
                     # Don't re-raise in finally block to avoid masking original exception
-                
+
                 # Move completed batch to history
-                if all(file['status'] in ('completed', 'failed/skipped') 
-                      for file in progress['files']):
+                if all(
+                    file["status"] in ("completed", "failed/skipped")
+                    for file in progress["files"]
+                ):
                     try:
-                        with history_file.open('a', encoding="utf-8") as f:
+                        with history_file.open("a", encoding="utf-8") as f:
                             f.write("---\n")
                             yaml.safe_dump(progress, f, allow_unicode=True)
                     except (IOError, OSError, yaml.YAMLError) as e:
                         if tolog is not None:
                             tolog.error(f"Error writing to history file: {e}")
                         # Continue anyway - don't fail the whole batch for history logging
-                    
+
                     try:
                         progress_file.unlink()
                     except (FileNotFoundError, PermissionError) as e:
                         if tolog is not None:
                             tolog.error(f"Error deleting progress file: {e}")
                         # Continue anyway - file will be overwritten next time
-    
+
     # Save batch cost summary for remote translations
     global translator
     if translator and translator.is_remote and translator.request_count > 0:
         batch_cost_log_path = input_path / "BATCH_AI_COSTS.log"
         batch_cost_log_path = prepare_for_write(batch_cost_log_path)
-        
-        completed_count = sum(1 for file in progress['files'] if file['status'] == 'completed')
-        failed_count = sum(1 for file in progress['files'] if file['status'] == 'failed/skipped')
-        
+
+        completed_count = sum(
+            1 for file in progress["files"] if file["status"] == "completed"
+        )
+        failed_count = sum(
+            1 for file in progress["files"] if file["status"] == "failed/skipped"
+        )
+
         try:
             with open(batch_cost_log_path, "w", encoding="utf-8") as f:
                 f.write("Batch Translation Cost Summary\n")
                 f.write("==============================\n\n")
                 f.write(f"Batch Directory: {input_path}\n")
-                f.write(f"Translation Date: {dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write(
+                    f"Translation Date: {dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+                )
                 f.write("API Service: OpenRouter (Remote)\n")
                 f.write(f"Model: {translator.MODEL_NAME}\n")
                 f.write("\nFiles Processed:\n")
@@ -1299,54 +1463,69 @@ def process_batch(args) -> None:
                 f.write(f"Completed: {completed_count}\n")
                 f.write(f"Failed/Skipped: {failed_count}\n")
                 f.write(f"\n{translator.format_cost_summary()}\n")
-                
+
                 # List individual files and their status
                 f.write("\n\nFile Details:\n")
                 f.write("-------------\n")
-                for file in progress['files']:
-                    filename = Path(file['path']).name
-                    status = file['status']
+                for file in progress["files"]:
+                    filename = Path(file["path"]).name
+                    status = file["status"]
                     f.write(f"- {filename}: {status}\n")
-                    if 'error' in file:
+                    if "error" in file:
                         f.write(f"  Error: {file['error']}\n")
-                
+
                 # Save raw data
                 f.write("\n\nRaw Cost Data:\n")
                 f.write("-------------\n")
                 f.write(f"total_cost: {translator.total_cost}\n")
                 f.write(f"total_tokens: {translator.total_tokens}\n")
                 f.write(f"total_prompt_tokens: {translator.total_prompt_tokens}\n")
-                f.write(f"total_completion_tokens: {translator.total_completion_tokens}\n")
+                f.write(
+                    f"total_completion_tokens: {translator.total_completion_tokens}\n"
+                )
                 f.write(f"request_count: {translator.request_count}\n")
                 if completed_count > 0:
-                    f.write(f"average_cost_per_novel: ${translator.total_cost / completed_count:.6f}\n")
-                    f.write(f"average_tokens_per_novel: {translator.total_tokens // completed_count:,}\n")
+                    f.write(
+                        f"average_cost_per_novel: ${translator.total_cost / completed_count:.6f}\n"
+                    )
+                    f.write(
+                        f"average_tokens_per_novel: {translator.total_tokens // completed_count:,}\n"
+                    )
         except (IOError, OSError, PermissionError) as e:
             if tolog is not None:
-                tolog.error(f"Error saving batch cost log to {batch_cost_log_path}: {e}")
+                tolog.error(
+                    f"Error saving batch cost log to {batch_cost_log_path}: {e}"
+                )
             # Don't re-raise, just log the error
         else:
             tolog.info(f"Batch cost summary saved to {batch_cost_log_path}")
 
-def translate_novel(file_path: str, encoding: str = 'utf-8', max_chars: int = 12000, 
-                   resume: bool = False, create_epub: bool = False, remote: bool = False) -> bool:
+
+def translate_novel(
+    file_path: str,
+    encoding: str = "utf-8",
+    max_chars: int = 12000,
+    resume: bool = False,
+    create_epub: bool = False,
+    remote: bool = False,
+) -> bool:
     """
     Translate a Chinese novel to English.
-    
+
     Args:
         file_path: Path to the Chinese novel text file
         encoding: File encoding (default: utf-8)
         max_chars: Maximum characters per translation chunk (default: 12000)
         resume: Resume interrupted translation
-        create_epub: (Deprecated) Kept for backward compatibility, ignored. 
+        create_epub: (Deprecated) Kept for backward compatibility, ignored.
                      EPUB generation is handled by enchant_cli.py orchestrator
         remote: Use remote API instead of local
-        
+
     Returns:
         bool: True if translation completed successfully, False otherwise
     """
     global tolog, translator, _module_config
-    
+
     # Load configuration
     try:
         config_manager = ConfigManager(config_path=Path("enchant_config.yml"))
@@ -1356,123 +1535,134 @@ def translate_novel(file_path: str, encoding: str = 'utf-8', max_chars: int = 12
     except ValueError as e:
         tolog.error(f"Configuration error: {e}")
         return False
-    
+
     # Set up logging based on config
-    log_level = getattr(logging, config['logging']['level'], logging.INFO)
-    log_format = config['logging']['format']
-    
-    logging.basicConfig(
-        level=log_level,
-        format=log_format
-    )
+    log_level = getattr(logging, config["logging"]["level"], logging.INFO)
+    log_format = config["logging"]["format"]
+
+    logging.basicConfig(level=log_level, format=log_format)
     tolog = logging.getLogger(__name__)
-    
+
     # Set up file logging if enabled
-    if config['logging']['file_enabled']:
+    if config["logging"]["file_enabled"]:
         try:
-            file_handler = logging.FileHandler(config['logging']['file_path'])
+            file_handler = logging.FileHandler(config["logging"]["file_path"])
             file_handler.setLevel(log_level)
             file_handler.setFormatter(logging.Formatter(log_format))
             tolog.addHandler(file_handler)
         except (IOError, OSError, PermissionError) as e:
-            tolog.error(f"Failed to set up file logging to {config['logging']['file_path']}: {e}")
+            tolog.error(
+                f"Failed to set up file logging to {config['logging']['file_path']}: {e}"
+            )
             # Continue without file logging
-    
+
     # Initialize global services
     global icloud_sync, MAXCHARS
-    icloud_sync = ICloudSync(enabled=config['icloud']['enabled'])
+    icloud_sync = ICloudSync(enabled=config["icloud"]["enabled"])
     # Cost tracking is now handled by global_cost_tracker
-    
+
     # Update MAXCHARS from config
-    MAXCHARS = config['text_processing']['max_chars_per_chunk']
-    
+    MAXCHARS = config["text_processing"]["max_chars_per_chunk"]
+
     # Warn if colorama is missing
     if cr is None:
-        tolog.warning("colorama package not installed. Colored text may not work properly.")
-    
+        tolog.warning(
+            "colorama package not installed. Colored text may not work properly."
+        )
+
     # Set up signal handling for graceful termination
     def signal_handler(sig, frame):
         tolog.info("Interrupt received. Exiting gracefully.")
         sys.exit(0)
-    
+
     signal.signal(signal.SIGINT, signal_handler)
-    
+
     # Use the provided parameters
     use_remote = remote
-    
+
     # Initialize translator with configuration
     global translator
     if use_remote:
         # Get API key from config or environment
-        api_key = config_manager.get_api_key('openrouter')
+        api_key = config_manager.get_api_key("openrouter")
         if not api_key:
-            tolog.error("OpenRouter API key required. Set OPENROUTER_API_KEY or configure in enchant_config.yml")
+            tolog.error(
+                "OpenRouter API key required. Set OPENROUTER_API_KEY or configure in enchant_config.yml"
+            )
             sys.exit(1)
-        
+
         translator = ChineseAITranslator(
             logger=tolog,
             use_remote=True,
             api_key=api_key,
-            endpoint=config['translation']['remote']['endpoint'],
-            model=config['translation']['remote']['model'],
-            temperature=config['translation']['temperature'],
-            max_tokens=config['translation']['max_tokens'],
-            timeout=config['translation']['remote']['timeout']
+            endpoint=config["translation"]["remote"]["endpoint"],
+            model=config["translation"]["remote"]["model"],
+            temperature=config["translation"]["temperature"],
+            max_tokens=config["translation"]["max_tokens"],
+            timeout=config["translation"]["remote"]["timeout"],
         )
     else:
         translator = ChineseAITranslator(
             logger=tolog,
             use_remote=False,
-            endpoint=config['translation']['local']['endpoint'],
-            model=config['translation']['local']['model'],
-            temperature=config['translation']['temperature'],
-            max_tokens=config['translation']['max_tokens'],
-            timeout=config['translation']['local']['timeout']
+            endpoint=config["translation"]["local"]["endpoint"],
+            model=config["translation"]["local"]["model"],
+            temperature=config["translation"]["temperature"],
+            max_tokens=config["translation"]["max_tokens"],
+            timeout=config["translation"]["local"]["timeout"],
         )
-    
+
     # Note: batch processing is handled by the orchestrator, not here
-    
+
     tolog.info(f"Starting book import for file: {file_path}")
-    
+
     try:
         # Call the import_book_from_txt function to process the text file
-        new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+        new_book_id = import_book_from_txt(
+            file_path, encoding=encoding, max_chars=max_chars
+        )
         tolog.info(f"Book imported successfully. Book ID: {new_book_id}")
-        safe_print(f"[bold green]Book imported successfully. Book ID: {new_book_id}[/bold green]")
-    except Exception as e:
+        safe_print(
+            f"[bold green]Book imported successfully. Book ID: {new_book_id}[/bold green]"
+        )
+    except Exception:
         tolog.exception("An error occurred during book import.")
         return False
-    
+
     # Save the translated book after import
     try:
         save_translated_book(new_book_id, resume=resume, create_epub=create_epub)
         tolog.info("Translated book saved successfully.")
         safe_print("[bold green]Translated book saved successfully.[/bold green]")
-        
+
         # Log cost summary (don't print to console when called from orchestrator)
         if use_remote and translator:
             cost_summary = translator.format_cost_summary()
             tolog.info("Cost Summary:\n" + cost_summary)
-        elif config['pricing']['enabled']:
+        elif config["pricing"]["enabled"]:
             # Cost tracking is now handled by global_cost_tracker
             summary = global_cost_tracker.get_summary()
-            tolog.info(f"Cost Summary: Total cost: ${summary['total_cost']:.6f}, Total requests: {summary['request_count']}")
-        
+            tolog.info(
+                f"Cost Summary: Total cost: ${summary['total_cost']:.6f}, Total requests: {summary['request_count']}"
+            )
+
         return True
-    except Exception as e:
+    except Exception:
         tolog.exception("Error saving translated book.")
         return False
+
 
 def main() -> None:
     """CLI entry point for backwards compatibility"""
     global tolog
-    
+
     # Pre-parse to get config file path
     import argparse
+
     pre_parser = argparse.ArgumentParser(add_help=False)
     pre_parser.add_argument("--config", type=str, default="enchant_config.yml")
     pre_args, _ = pre_parser.parse_known_args()
-    
+
     # Load configuration
     try:
         config_manager = ConfigManager(config_path=Path(pre_args.config))
@@ -1481,47 +1671,48 @@ def main() -> None:
         print(f"Configuration error: {e}")
         print("Please fix the configuration file or delete it to regenerate defaults.")
         sys.exit(1)
-    
+
     # Set up logging based on config
-    log_level = getattr(logging, config['logging']['level'], logging.INFO)
-    log_format = config['logging']['format']
-    
-    logging.basicConfig(
-        level=log_level,
-        format=log_format
-    )
+    log_level = getattr(logging, config["logging"]["level"], logging.INFO)
+    log_format = config["logging"]["format"]
+
+    logging.basicConfig(level=log_level, format=log_format)
     tolog = logging.getLogger(__name__)
-    
+
     # Set up file logging if enabled
-    if config['logging']['file_enabled']:
+    if config["logging"]["file_enabled"]:
         try:
-            file_handler = logging.FileHandler(config['logging']['file_path'])
+            file_handler = logging.FileHandler(config["logging"]["file_path"])
             file_handler.setLevel(log_level)
             file_handler.setFormatter(logging.Formatter(log_format))
             tolog.addHandler(file_handler)
         except (IOError, OSError, PermissionError) as e:
-            tolog.error(f"Failed to set up file logging to {config['logging']['file_path']}: {e}")
+            tolog.error(
+                f"Failed to set up file logging to {config['logging']['file_path']}: {e}"
+            )
             # Continue without file logging
-    
+
     # Initialize global services
     global icloud_sync, MAXCHARS
-    icloud_sync = ICloudSync(enabled=config['icloud']['enabled'])
+    icloud_sync = ICloudSync(enabled=config["icloud"]["enabled"])
     # Cost tracking is now handled by global_cost_tracker
-    
+
     # Update MAXCHARS from config
-    MAXCHARS = config['text_processing']['max_chars_per_chunk']
-    
+    MAXCHARS = config["text_processing"]["max_chars_per_chunk"]
+
     # Warn if colorama is missing
     if cr is None:
-        tolog.warning("colorama package not installed. Colored text may not work properly.")
-    
+        tolog.warning(
+            "colorama package not installed. Colored text may not work properly."
+        )
+
     # Set up signal handling for graceful termination
     def signal_handler(sig, frame):
         tolog.info("Interrupt received. Exiting gracefully.")
         sys.exit(0)
-    
+
     signal.signal(signal.SIGINT, signal_handler)
-    
+
     # Parse command-line arguments
     parser = argparse.ArgumentParser(
         description="CLI tool for translating Chinese novels to English using AI translation services",
@@ -1550,43 +1741,68 @@ USAGE EXAMPLES:
     $ python cli_translator.py novel.txt --epub
 
 ====================================================================================
-"""
+""",
     )
-    parser.add_argument("filepath", type=str, 
-                        help="Path to Chinese novel text file (single mode) or directory containing novels (batch mode)")
-    
-    parser.add_argument("--config", type=str, default="enchant_config.yml",
-                        help="Path to configuration file (default: enchant_config.yml)")
-    
-    parser.add_argument("--encoding", type=str, default=config['text_processing']['default_encoding'], 
-                        help=f"Character encoding of input files. Common: utf-8, gb2312, gb18030, big5 (default: {config['text_processing']['default_encoding']})")
-    
-    parser.add_argument("--max_chars", type=int, default=config['text_processing']['max_chars_per_chunk'], 
-                        help=f"Maximum characters per translation chunk. Affects API usage and memory (default: {config['text_processing']['max_chars_per_chunk']})")
-    
-    parser.add_argument("--resume", action="store_true", 
-                        help="Resume interrupted translation. Single: continues from last chunk. Batch: uses progress file")
-    
-    parser.add_argument("--epub", action="store_true", 
-                        help="Generate EPUB file after translation completes. Creates formatted e-book with table of contents")
-    
-    
-    parser.add_argument("--batch", action="store_true", 
-                        help="Batch mode: process all .txt files in the specified directory. Tracks progress automatically")
-    
-    parser.add_argument("--remote", action='store_true', 
-                        help="Use remote OpenRouter API instead of local LM Studio. Requires OPENROUTER_API_KEY environment variable")
-    
-    
+    parser.add_argument(
+        "filepath",
+        type=str,
+        help="Path to Chinese novel text file (single mode) or directory containing novels (batch mode)",
+    )
+
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="enchant_config.yml",
+        help="Path to configuration file (default: enchant_config.yml)",
+    )
+
+    parser.add_argument(
+        "--encoding",
+        type=str,
+        default=config["text_processing"]["default_encoding"],
+        help=f"Character encoding of input files. Common: utf-8, gb2312, gb18030, big5 (default: {config['text_processing']['default_encoding']})",
+    )
+
+    parser.add_argument(
+        "--max_chars",
+        type=int,
+        default=config["text_processing"]["max_chars_per_chunk"],
+        help=f"Maximum characters per translation chunk. Affects API usage and memory (default: {config['text_processing']['max_chars_per_chunk']})",
+    )
+
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume interrupted translation. Single: continues from last chunk. Batch: uses progress file",
+    )
+
+    parser.add_argument(
+        "--epub",
+        action="store_true",
+        help="Generate EPUB file after translation completes. Creates formatted e-book with table of contents",
+    )
+
+    parser.add_argument(
+        "--batch",
+        action="store_true",
+        help="Batch mode: process all .txt files in the specified directory. Tracks progress automatically",
+    )
+
+    parser.add_argument(
+        "--remote",
+        action="store_true",
+        help="Use remote OpenRouter API instead of local LM Studio. Requires OPENROUTER_API_KEY environment variable",
+    )
+
     args = parser.parse_args()
-    
+
     # Update config with command-line arguments
     config = config_manager.update_with_args(args)
-    
+
     if args.batch:
         process_batch(args)
         return
-    
+
     # Call the translate_novel function
     success = translate_novel(
         file_path=args.filepath,
@@ -1594,9 +1810,9 @@ USAGE EXAMPLES:
         max_chars=args.max_chars,
         resume=args.resume,
         create_epub=args.epub,
-        remote=args.remote
+        remote=args.remote,
     )
-    
+
     if success:
         safe_print("[bold green]Translation completed successfully![/bold green]")
     else:

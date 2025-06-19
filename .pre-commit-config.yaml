@@ -1,0 +1,57 @@
+repos:
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-json
+      - id: debug-statements
+
+  # Use uv for dependency management
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.5.11
+    hooks:
+      # Ensure uv.lock is up-to-date
+      - id: uv-lock
+
+  # Ruff for linting and formatting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.5
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  # Local hooks that use uv run
+  - repo: local
+    hooks:
+      # Type checking with mypy
+      - id: mypy
+        name: mypy
+        entry: uv run --frozen mypy
+        language: system
+        types: [python]
+        require_serial: true
+        args: [--strict, --ignore-missing-imports]
+
+      # Dependency checking with deptry
+      - id: deptry
+        name: deptry
+        entry: uv run --frozen deptry
+        language: system
+        always_run: true
+        pass_filenames: false
+        args: [.]
+
+      # Security audit with pip-audit
+      - id: pip-audit
+        name: pip-audit
+        entry: uv run --frozen pip-audit
+        language: system
+        always_run: true
+        pass_filenames: false

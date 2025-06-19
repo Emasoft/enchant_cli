@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write  # Required for PyPI trusted publishing
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/enchant-book-manager
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
+
+    - name: Set up Python environment
+      run: |
+        uv python install 3.12
+        uv sync --all-extras
+
+    - name: Run all quality checks
+      run: |
+        # Lint checks
+        uv run ruff check src tests
+        uv run ruff format --check src tests
+
+        # Type checking
+        uv run mypy src --strict --ignore-missing-imports
+
+        # Dependency checking
+        uv run deptry .
+
+        # Security audit
+        uv run pip-audit
+
+    - name: Run tests
+      run: |
+        uv run pytest tests --cov=src/enchant_book_manager --cov-report=xml
+
+    - name: Build distributions
+      run: |
+        uv build
+
+        # Verify the distributions
+        ls -la dist/
+        uv run python -m twine check dist/*
+
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        skip-existing: true
+        verbose: true

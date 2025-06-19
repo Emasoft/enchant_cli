@@ -54,13 +54,14 @@ dependencies = [
     "transformers[sentencepiece]>=4.52.3",
     "vllm==0.8.5.post1",
     "xxhash>=3.5.0",
+    "filelock>=3.16.1",
 ]
 
 [project.scripts]
-enchant = "enchant_cli:main"
-enchant-translate = "cli_translator:main"
-enchant-rename = "renamenovels:main"
-enchant-epub = "make_epub:main"
+enchant = "enchant_book_manager.enchant_cli:main"
+enchant-translate = "enchant_book_manager.cli_translator:main"
+enchant-rename = "enchant_book_manager.renamenovels:main"
+enchant-epub = "enchant_book_manager.make_epub:main"
 
 [project.urls]
 Homepage = "https://github.com/Emasoft/enchant-book-manager"
@@ -68,10 +69,6 @@ Repository = "https://github.com/Emasoft/enchant-book-manager"
 Issues = "https://github.com/Emasoft/enchant-book-manager/issues"
 
 [tool.hatch.build]
-include = [
-    "src/**/*.py",
-    "README.md",
-]
 exclude = [
     "*.bak",
     "*.bak2",
@@ -94,7 +91,18 @@ exclude = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src"]
+packages = ["src/enchant_book_manager"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.deptry]
+known_first_party = ["enchant_book_manager"]
+ignore_notebooks = true
+ignore = ["DEP001", "DEP002"]  # Ignore missing/unused optional dependencies
 
 [dependency-groups]
 dev = [
@@ -106,5 +114,6 @@ dev = [
     "ruff>=0.8.7",
     "black>=24.10.0",
     "pre-commit>=4.0.1",
-    "filelock>=3.16.1"
+    "deptry>=0.23.0",
+    "pip-audit>=2.7.3",
 ]

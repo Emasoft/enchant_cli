@@ -11,7 +11,7 @@ pip install -r tests/requirements-test.txt
 # Run all tests with coverage
 python tests/run_tests.py
 
-# Run quick tests only (skip slow/integration tests)  
+# Run quick tests only (skip slow/integration tests)
 python tests/run_tests.py --quick
 
 # Generate HTML coverage report
@@ -27,7 +27,7 @@ python tests/run_tests.py --module translation_service
 - `test_translation_service.py` - Tests for the translation service module
 - `test_common_text_utils.py` - Tests for text processing utilities
 
-### Integration Tests  
+### Integration Tests
 - `test_integration_cost_tracking.py` - Tests for OpenRouter cost tracking integration
 
 ### Test Utilities
@@ -121,7 +121,7 @@ class TestNewFeature:
         # Setup code
         yield feature_instance
         # Teardown code
-    
+
     def test_feature_behavior(self, setup_feature):
         # Test implementation
         assert setup_feature.method() == expected_result
@@ -138,7 +138,7 @@ The test suite is designed to work with CI/CD pipelines:
     pip install -r requirements.txt
     pip install -r tests/requirements-test.txt
     python tests/run_tests.py --html
-    
+
 - name: Upload coverage
   uses: actions/upload-artifact@v3
   with:

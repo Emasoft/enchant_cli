@@ -13,7 +13,9 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 # Add src directory to path so we can import our modules
-src_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src')
+src_dir = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"
+)
 sys.path.insert(0, src_dir)
 
 
@@ -41,13 +43,13 @@ def mock_logger():
 def sample_chinese_text():
     """Sample Chinese text for testing"""
     return """第一章 开始
-    
+
     这是一段中文文本。包含各种标点符号！！！还有问号？？？
-    
+
     "对话内容，" 他说道。
-    
+
     第二章 继续
-    
+
     更多内容。。。。。。
     """
 
@@ -56,14 +58,14 @@ def sample_chinese_text():
 def sample_english_text():
     """Sample English text for testing"""
     return """Chapter 1: The Beginning
-    
+
     This is some English text. With various punctuation!!!
     And questions???
-    
+
     "Dialogue content," he said.
-    
+
     Chapter 2: Continuing
-    
+
     More content......
     """
 
@@ -86,7 +88,7 @@ def sample_html():
     <body>
         <!-- This is a comment -->
         <h1>Title</h1>
-        <p>This is a paragraph with <code>inline code</code> and 
+        <p>This is a paragraph with <code>inline code</code> and
            <a href="#">a link</a>.</p>
         <pre>
         This is preformatted text
@@ -104,17 +106,13 @@ def sample_html():
 def mock_api_response():
     """Mock API response for translation tests"""
     return {
-        'choices': [{
-            'message': {
-                'content': 'This is the translated English text.'
-            }
-        }],
-        'usage': {
-            'prompt_tokens': 150,
-            'completion_tokens': 75,
-            'total_tokens': 225,
-            'cost': 0.00225
-        }
+        "choices": [{"message": {"content": "This is the translated English text."}}],
+        "usage": {
+            "prompt_tokens": 150,
+            "completion_tokens": 75,
+            "total_tokens": 225,
+            "cost": 0.00225,
+        },
     }
 
 
@@ -130,7 +128,7 @@ def reset_environment():
 @pytest.fixture
 def mock_requests_post():
     """Mock requests.post for API tests"""
-    with patch('requests.post') as mock_post:
+    with patch("requests.post") as mock_post:
         yield mock_post
 
 
@@ -138,13 +136,9 @@ def mock_requests_post():
 def pytest_configure(config):
     """Configure pytest with custom markers"""
     config.addinivalue_line(
-        "markers", 
-        "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
-    config.addinivalue_line(
-        "markers",
-        "integration: marks tests as integration tests"
-    )
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
 
 
 # Coverage configuration
@@ -154,7 +148,7 @@ def pytest_collection_modifyitems(config, items):
         # Mark integration tests
         if "integration" in item.nodeid:
             item.add_marker(pytest.mark.integration)
-        
+
         # Mark slow tests
         if "slow" in item.nodeid or "stress" in item.nodeid:
             item.add_marker(pytest.mark.slow)

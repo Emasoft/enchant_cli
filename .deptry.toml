@@ -1,0 +1,20 @@
+# Deptry configuration file
+# https://deptry.com/configuration/
+
+[tool.deptry]
+# Ignore specific error codes globally
+ignore = ["DEP001", "DEP002"]
+
+# Known first-party modules
+known_first_party = ["enchant_book_manager"]
+
+# Ignore Jupyter notebooks
+ignore_notebooks = true
+
+# Per-rule ignores for specific packages
+[tool.deptry.per_rule_ignores]
+# Example: DEP001 = ["matplotlib", "seaborn"]
+
+# Package module mappings for packages with different import names
+[tool.deptry.package_module_name_map]
+# Example: scikit-learn = "sklearn"

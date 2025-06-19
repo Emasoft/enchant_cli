@@ -35,7 +35,7 @@ from . import epub_utils
 
 __all__ = [
     "cli_translator",
-    "translation_service", 
+    "translation_service",
     "renamenovels",
     "make_epub",
     "enchant_cli",

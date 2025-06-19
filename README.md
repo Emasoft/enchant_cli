@@ -1,5 +1,9 @@
 # EnChANT - English-Chinese Automatic Novel Translator
 
+[![CI](https://github.com/Emasoft/enchant-book-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/Emasoft/enchant-book-manager/actions/workflows/ci.yml)
+[![Dependency Check](https://github.com/Emasoft/enchant-book-manager/actions/workflows/dependency-check.yml/badge.svg)](https://github.com/Emasoft/enchant-book-manager/actions/workflows/dependency-check.yml)
+[![Pre-commit](https://github.com/Emasoft/enchant-book-manager/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/Emasoft/enchant-book-manager/actions/workflows/pre-commit.yml)
+
 A unified tool for processing Chinese novels through three phases:
 1. **Renaming** - AI-powered metadata extraction and file renaming
 2. **Translation** - Chinese to English translation using AI
@@ -37,7 +41,7 @@ pip install -r requirements.txt
 
 ### Skip Phases
 - `--skip-renaming` - Skip the file renaming phase
-- `--skip-translating` - Skip the translation phase  
+- `--skip-translating` - Skip the translation phase
 - `--skip-epub` - Skip the EPUB generation phase
 
 ### Configuration
@@ -119,10 +123,31 @@ input_dir/
 
 ## Requirements
 
-- Python 3.8+
+- Python 3.12+
 - For local translation: LM Studio running on localhost:1234
 - For renaming: OpenAI API key
 - For remote translation: OpenRouter API key
+
+## Development
+
+This project uses:
+- **uv** for package management
+- **deptry** for dependency checking (runs automatically on commits)
+- **ruff** for linting and formatting
+- **mypy** for type checking
+- **pytest** for testing
+
+To set up development environment:
+```bash
+# Install uv
+pip install uv
+
+# Install dependencies
+uv sync --all-extras
+
+# Install pre-commit hooks
+uv run pre-commit install
+```
 
 ## Notes
 

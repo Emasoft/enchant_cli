@@ -11,6 +11,7 @@ The actual CLI entry points are:
 This file is kept for potential future use or package structure requirements.
 """
 
+
 def main() -> None:
     """Placeholder main function."""
     print("Hello from enchant-book-manager!")

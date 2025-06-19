@@ -20,6 +20,9 @@ htmlcov/
 .idea/
 errors_*.log
 
+# GitHub Actions are tracked
+!.github/
+
 # Test temporary directories
 temp_test_chapter_parsing/
 

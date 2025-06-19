@@ -15,22 +15,22 @@ import cli_translator
 
 class TestChunkRetryConstants:
     """Test cases for chunk retry constants"""
-    
+
     def test_default_constants_exist(self):
         """Test that default constants are defined"""
-        assert hasattr(cli_translator, 'DEFAULT_MAX_CHUNK_RETRIES')
-        assert hasattr(cli_translator, 'MAX_RETRY_WAIT_SECONDS')
-        
+        assert hasattr(cli_translator, "DEFAULT_MAX_CHUNK_RETRIES")
+        assert hasattr(cli_translator, "MAX_RETRY_WAIT_SECONDS")
+
     def test_default_values(self):
         """Test default constant values"""
         assert cli_translator.DEFAULT_MAX_CHUNK_RETRIES == 10
         assert cli_translator.MAX_RETRY_WAIT_SECONDS == 60
-        
+
     def test_format_chunk_error_message_exists(self):
         """Test that error message formatter exists"""
-        assert hasattr(cli_translator, 'format_chunk_error_message')
+        assert hasattr(cli_translator, "format_chunk_error_message")
         assert callable(cli_translator.format_chunk_error_message)
-        
+
     def test_format_chunk_error_message(self):
         """Test error message formatting"""
         msg = cli_translator.format_chunk_error_message(
@@ -39,9 +39,9 @@ class TestChunkRetryConstants:
             last_error="Connection refused",
             book_title="Test Book",
             book_author="Test Author",
-            output_path="test/path.txt"
+            output_path="test/path.txt",
         )
-        
+
         assert "Failed to translate chunk 000005" in msg
         assert "10 attempts" in msg
         assert "Connection refused" in msg

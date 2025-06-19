@@ -28,16 +28,37 @@ FILENAME_RE = re.compile(
 
 # Conversion tables
 _SINGLE = {
-    "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4,
-    "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
-    "ten": 10, "eleven": 11, "twelve": 12, "thirteen": 13,
-    "fourteen": 14, "fifteen": 15, "sixteen": 16,
-    "seventeen": 17, "eighteen": 18, "nineteen": 19,
+    "zero": 0,
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+    "eleven": 11,
+    "twelve": 12,
+    "thirteen": 13,
+    "fourteen": 14,
+    "fifteen": 15,
+    "sixteen": 16,
+    "seventeen": 17,
+    "eighteen": 18,
+    "nineteen": 19,
 }
 
 _TENS = {
-    "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50,
-    "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90,
+    "twenty": 20,
+    "thirty": 30,
+    "forty": 40,
+    "fifty": 50,
+    "sixty": 60,
+    "seventy": 70,
+    "eighty": 80,
+    "ninety": 90,
 }
 
 _SCALES = {"hundred": 100, "thousand": 1000}
@@ -80,10 +101,10 @@ def parse_num(raw: str) -> Optional[int]:
     # Handle letter suffixes like "14a", "14b"
     if raw and raw[0].isdigit():
         # Extract just the numeric part
-        num_part = ''.join(c for c in raw if c.isdigit())
+        num_part = "".join(c for c in raw if c.isdigit())
         if num_part:
             return int(num_part)
-    
+
     if raw.isdigit():
         return int(raw)
     if re.fullmatch(r"[ivxlcdm]+", raw, re.IGNORECASE):

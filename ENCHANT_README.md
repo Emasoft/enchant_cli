@@ -37,7 +37,7 @@ pip install -r requirements.txt
 
 ### Skip Phases
 - `--skip-renaming` - Skip the file renaming phase
-- `--skip-translating` - Skip the translation phase  
+- `--skip-translating` - Skip the translation phase
 - `--skip-epub` - Skip the EPUB generation phase
 
 ### Configuration

@@ -4,7 +4,7 @@
 """
 Integration tests for EnChANT orchestrator - Testing the full 3-phase process:
 1. Renaming (Chinese filename -> English metadata extraction)
-2. Translation (Chinese text -> English)  
+2. Translation (Chinese text -> English)
 3. EPUB Generation (English chapters -> EPUB with TOC)
 
 Tests ensure the complete pipeline from Chinese novels to English EPUBs.
@@ -33,13 +33,13 @@ from make_epub import create_epub_from_chapters
 
 class TestEnChANTOrchestrator:
     """Test suite for the complete EnChANT 3-phase orchestration process"""
-    
+
     @pytest.fixture
     def temp_dir(self):
         """Create temporary directory for test files"""
         with tempfile.TemporaryDirectory() as temp_dir:
             yield Path(temp_dir)
-    
+
     @pytest.fixture
     def chinese_test_novel(self, temp_dir):
         """Create a test Chinese novel file"""
@@ -62,84 +62,85 @@ class TestEnChANTOrchestrator:
         "这就是武功的真正威力！"李明兴奋地说道。
 
         从此，他的人生彻底改变了。"""
-        
+
         novel_file = temp_dir / "修炼高手.txt"
-        novel_file.write_text(chinese_content, encoding='utf-8')
+        novel_file.write_text(chinese_content, encoding="utf-8")
         return novel_file
-    
+
     @pytest.fixture
     def config_file(self, temp_dir):
         """Create test configuration file"""
         config_path = temp_dir / "test_enchant_config.yml"
         config_data = {
-            'text_processing': {
-                'max_chars_per_chunk': 2000,
-                'default_encoding': 'utf-8',
+            "text_processing": {
+                "max_chars_per_chunk": 2000,
+                "default_encoding": "utf-8",
             },
-            'translation': {
-                'temperature': 0.0,
-                'max_tokens': 4000,
-                'local': {
-                    'endpoint': 'http://localhost:1234/v1/chat/completions',
-                    'model': 'qwen2.5:32b',
-                    'timeout': 30
+            "translation": {
+                "temperature": 0.0,
+                "max_tokens": 4000,
+                "local": {
+                    "endpoint": "http://localhost:1234/v1/chat/completions",
+                    "model": "qwen2.5:32b",
+                    "timeout": 30,
                 },
-                'remote': {
-                    'endpoint': 'https://openrouter.ai/api/v1/chat/completions', 
-                    'model': 'deepseek/deepseek-chat',
-                    'timeout': 60
-                }
+                "remote": {
+                    "endpoint": "https://openrouter.ai/api/v1/chat/completions",
+                    "model": "deepseek/deepseek-chat",
+                    "timeout": 60,
+                },
             },
-            'icloud': {
-                'enabled': False
+            "icloud": {"enabled": False},
+            "logging": {
+                "level": "INFO",
+                "format": "%(asctime)s - %(levelname)s - %(message)s",
+                "file_enabled": False,
+                "file_path": "enchant.log",
             },
-            'logging': {
-                'level': 'INFO',
-                'format': '%(asctime)s - %(levelname)s - %(message)s',
-                'file_enabled': False,
-                'file_path': 'enchant.log'
-            },
-            'pricing': {
-                'enabled': True,
-                'save_report': False
-            }
+            "pricing": {"enabled": True, "save_report": False},
         }
-        
-        with open(config_path, 'w', encoding='utf-8') as f:
+
+        with open(config_path, "w", encoding="utf-8") as f:
             yaml.dump(config_data, f, default_flow_style=False, allow_unicode=True)
-        
+
         return config_path
-    
+
     @pytest.fixture
     def mock_openai_response(self):
         """Mock OpenAI API response for renaming"""
         return {
-            'choices': [{
-                'message': {
-                    'content': json.dumps({
-                        'detected_language': 'Chinese',
-                        'novel_title_original': '修炼高手',
-                        'author_name_original': '未知作者',
-                        'novel_title_english': 'Cultivation Master',
-                        'author_name_english': 'Unknown Author',
-                        'author_name_romanized': 'Weizhi Zuozhe'
-                    }, ensure_ascii=False)
+            "choices": [
+                {
+                    "message": {
+                        "content": json.dumps(
+                            {
+                                "detected_language": "Chinese",
+                                "novel_title_original": "修炼高手",
+                                "author_name_original": "未知作者",
+                                "novel_title_english": "Cultivation Master",
+                                "author_name_english": "Unknown Author",
+                                "author_name_romanized": "Weizhi Zuozhe",
+                            },
+                            ensure_ascii=False,
+                        )
+                    }
                 }
-            }],
-            'usage': {
-                'prompt_tokens': 150,
-                'completion_tokens': 50,
-                'total_tokens': 200
-            }
+            ],
+            "usage": {
+                "prompt_tokens": 150,
+                "completion_tokens": 50,
+                "total_tokens": 200,
+            },
         }
-    
-    @pytest.fixture  
+
+    @pytest.fixture
     def mock_translation_response(self):
         """Mock translation API response"""
         return {
-            'choices': [{
-                'message': {
-                    'content': """Chapter 1: The Path of Cultivation
+            "choices": [
+                {
+                    "message": {
+                        "content": """Chapter 1: The Path of Cultivation
 
                     Li Ming was an ordinary student, but he had a secret. He could practice martial arts.
 
@@ -158,203 +159,240 @@ class TestEnChANTOrchestrator:
                     "This is the true power of martial arts!" Li Ming said excitedly.
 
                     From then on, his life completely changed."""
+                    }
                 }
-            }],
-            'usage': {
-                'prompt_tokens': 300,
-                'completion_tokens': 150,
-                'total_tokens': 450,
-                'cost': 0.002
-            }
+            ],
+            "usage": {
+                "prompt_tokens": 300,
+                "completion_tokens": 150,
+                "total_tokens": 450,
+                "cost": 0.002,
+            },
         }
 
-    def test_phase1_renaming_success(self, temp_dir, chinese_test_novel, mock_openai_response):
+    def test_phase1_renaming_success(
+        self, temp_dir, chinese_test_novel, mock_openai_response
+    ):
         """Test Phase 1: Novel renaming with metadata extraction"""
-        
+
         # Mock make_openai_request directly to avoid API calls
-        with patch('renamenovels.make_openai_request') as mock_openai_request:
+        with patch("renamenovels.make_openai_request") as mock_openai_request:
             mock_openai_request.return_value = mock_openai_response
-            
+
             # Test renaming
             success, new_path, metadata = process_novel_file(
                 chinese_test_novel,
                 api_key="test_key",
                 model="gpt-4o-mini",
                 temperature=0.0,
-                dry_run=False
+                dry_run=False,
             )
-            
+
             assert success is True
             assert new_path.exists()
-            assert new_path.name == "Cultivation Master by Unknown Author (Weizhi Zuozhe) - 修炼高手 by 未知作者.txt"
-            assert metadata['novel_title_english'] == "Cultivation Master"
-            assert metadata['author_name_english'] == "Unknown Author"
+            assert (
+                new_path.name
+                == "Cultivation Master by Unknown Author (Weizhi Zuozhe) - 修炼高手 by 未知作者.txt"
+            )
+            assert metadata["novel_title_english"] == "Cultivation Master"
+            assert metadata["author_name_english"] == "Unknown Author"
 
-    def test_phase2_translation_success(self, temp_dir, config_file, mock_translation_response):
+    def test_phase2_translation_success(
+        self, temp_dir, config_file, mock_translation_response
+    ):
         """Test Phase 2: Translation from Chinese to English"""
-        
+
         # Create renamed file (as would result from Phase 1)
-        renamed_file = temp_dir / "Cultivation Master by Unknown Author (Weizhi Zuozhe) - 修炼高手 by 未知作者.txt"
+        renamed_file = (
+            temp_dir
+            / "Cultivation Master by Unknown Author (Weizhi Zuozhe) - 修炼高手 by 未知作者.txt"
+        )
         chinese_content = """第一章 修炼之路
-        
+
         李明是一个普通的学生，但是他有一个秘密。他能够修炼武功。"""
-        
-        renamed_file.write_text(chinese_content, encoding='utf-8')
-        
+
+        renamed_file.write_text(chinese_content, encoding="utf-8")
+
         # Mock requests to avoid actual API calls
-        with patch('requests.post') as mock_post:
+        with patch("requests.post") as mock_post:
             # Mock response for local translation
             mock_response = Mock()
             mock_response.json.return_value = mock_translation_response
             mock_response.raise_for_status = Mock()
             mock_post.return_value = mock_response
-            
+
             # Test translation
             success = translate_novel(
                 str(renamed_file),
-                encoding='utf-8',
+                encoding="utf-8",
                 max_chars=2000,
                 resume=False,
                 create_epub=False,
-                remote=False
+                remote=False,
             )
-            
+
             # Verify translation succeeded
             assert success is True
 
     def test_phase3_epub_generation_success(self, temp_dir):
         """Test Phase 3: EPUB generation from translated chapters"""
-        
+
         # Create mock translated chapters directory (as would result from Phase 2)
         book_dir = temp_dir / "Cultivation Master by Unknown Author"
         book_dir.mkdir()
-        
+
         # Create chapter files
         chapters = [
-            ("Chapter 1", "Chapter 1: The Path of Cultivation\n\nLi Ming was an ordinary student..."),
-            ("Chapter 2", "Chapter 2: The Mysterious Mentor\n\nOne day, Li Ming met a mysterious old man..."),
-            ("Chapter 3", "Chapter 3: Breaking Through Realms\n\nAfter several months of training...")
+            (
+                "Chapter 1",
+                "Chapter 1: The Path of Cultivation\n\nLi Ming was an ordinary student...",
+            ),
+            (
+                "Chapter 2",
+                "Chapter 2: The Mysterious Mentor\n\nOne day, Li Ming met a mysterious old man...",
+            ),
+            (
+                "Chapter 3",
+                "Chapter 3: Breaking Through Realms\n\nAfter several months of training...",
+            ),
         ]
-        
+
         for i, (title, content) in enumerate(chapters, 1):
-            chapter_file = book_dir / f"Cultivation Master by Unknown Author - Chapter {i}.txt"
-            chapter_file.write_text(content, encoding='utf-8')
-        
+            chapter_file = (
+                book_dir / f"Cultivation Master by Unknown Author - Chapter {i}.txt"
+            )
+            chapter_file.write_text(content, encoding="utf-8")
+
         # Test EPUB creation
         epub_path = temp_dir / "Cultivation_Master.epub"
-        
+
         create_epub_from_chapters(
             chapters=chapters,
             output_path=epub_path,
             title="Cultivation Master",
             author="Unknown Author",
-            cover_path=None
+            cover_path=None,
         )
-        
-        assert epub_path.exists()
-        
-        # Verify EPUB structure
-        with zipfile.ZipFile(epub_path, 'r') as epub_zip:
-            files = epub_zip.namelist()
-            
-            # Check required EPUB files
-            assert 'mimetype' in files
-            assert 'META-INF/container.xml' in files
-            assert 'OEBPS/content.opf' in files
-            assert 'OEBPS/toc.ncx' in files
-            
-            # Check chapter files
-            chapter_files = [f for f in files if f.startswith('OEBPS/Text/chapter')]
-            assert len(chapter_files) == 3
-            
-            # Verify content.opf contains proper metadata
-            content_opf = epub_zip.read('OEBPS/content.opf').decode('utf-8')
-            assert 'Cultivation Master' in content_opf
-            assert 'Unknown Author' in content_opf
-            
-            # Verify TOC structure
-            toc_ncx = epub_zip.read('OEBPS/toc.ncx').decode('utf-8')
-            assert 'Chapter 1' in toc_ncx
-            assert 'Chapter 2' in toc_ncx
-            assert 'Chapter 3' in toc_ncx
 
-    def test_full_orchestration_success(self, temp_dir, chinese_test_novel, config_file, 
-                                       mock_openai_response, mock_translation_response):
+        assert epub_path.exists()
+
+        # Verify EPUB structure
+        with zipfile.ZipFile(epub_path, "r") as epub_zip:
+            files = epub_zip.namelist()
+
+            # Check required EPUB files
+            assert "mimetype" in files
+            assert "META-INF/container.xml" in files
+            assert "OEBPS/content.opf" in files
+            assert "OEBPS/toc.ncx" in files
+
+            # Check chapter files
+            chapter_files = [f for f in files if f.startswith("OEBPS/Text/chapter")]
+            assert len(chapter_files) == 3
+
+            # Verify content.opf contains proper metadata
+            content_opf = epub_zip.read("OEBPS/content.opf").decode("utf-8")
+            assert "Cultivation Master" in content_opf
+            assert "Unknown Author" in content_opf
+
+            # Verify TOC structure
+            toc_ncx = epub_zip.read("OEBPS/toc.ncx").decode("utf-8")
+            assert "Chapter 1" in toc_ncx
+            assert "Chapter 2" in toc_ncx
+            assert "Chapter 3" in toc_ncx
+
+    def test_full_orchestration_success(
+        self,
+        temp_dir,
+        chinese_test_novel,
+        config_file,
+        mock_openai_response,
+        mock_translation_response,
+    ):
         """Test complete 3-phase orchestration process"""
-        
+
         # Initialize logger to avoid NoneType error
         import logging
         import enchant_cli
+
         enchant_cli.tolog = logging.getLogger(__name__)
-        
+
         # Create mock args object
         args = Mock()
         args.skip_renaming = False
-        args.skip_translating = False  
+        args.skip_translating = False
         args.skip_epub = False
         args.resume = False
         args.openai_api_key = "test_openai_key"
-        args.encoding = 'utf-8'
+        args.encoding = "utf-8"
         args.max_chars = 2000
         args.remote = False
-        
+
         # Create a mock translate_novel function that creates expected output
         def mock_translate_novel(input_file, **kwargs):
             from common_utils import sanitize_filename, extract_book_info_from_path
-            
+
             # Get the renamed file path
             input_path = Path(input_file)
-            
+
             # Extract book info to get proper title and author
             book_info = extract_book_info_from_path(input_path)
-            book_title = book_info.get('title_english', 'Cultivation Master')
-            book_author = book_info.get('author_english', 'Unknown Author')
-            
+            book_title = book_info.get("title_english", "Cultivation Master")
+            book_author = book_info.get("author_english", "Unknown Author")
+
             # Create translation directory structure matching what enchant_cli expects
             safe_folder_name = sanitize_filename(f"{book_title} by {book_author}")
             translation_dir = input_path.parent / safe_folder_name
             translation_dir.mkdir(exist_ok=True)
-            
+
             # Create translated file with exact expected name
             translated_file_name = f"translated_{book_title} by {book_author}.txt"
             translated_file = translation_dir / translated_file_name
-            translated_content = mock_translation_response['choices'][0]['message']['content']
-            translated_file.write_text(translated_content, encoding='utf-8')
-            
+            translated_content = mock_translation_response["choices"][0]["message"][
+                "content"
+            ]
+            translated_file.write_text(translated_content, encoding="utf-8")
+
             # Also create chapter files for test verification
             for i in range(1, 4):
                 chapter_file = translation_dir / f"Chapter {i}.txt"
-                chapter_file.write_text(f"Chapter {i} content", encoding='utf-8')
-            
+                chapter_file.write_text(f"Chapter {i} content", encoding="utf-8")
+
             return True
-        
-        with patch('requests.post') as mock_post, \
-             patch('enchant_cli.translate_novel', side_effect=mock_translate_novel) as mock_translate:
+
+        with (
+            patch("requests.post") as mock_post,
+            patch(
+                "enchant_cli.translate_novel", side_effect=mock_translate_novel
+            ) as mock_translate,
+        ):
             # Setup mock responses for renaming
             mock_post.return_value.json.return_value = mock_openai_response
             mock_post.return_value.raise_for_status.return_value = None
-            
+
             # Mock config loading
-            with patch.dict(os.environ, {'ENCHANT_CONFIG': str(config_file)}):
+            with patch.dict(os.environ, {"ENCHANT_CONFIG": str(config_file)}):
                 # Test full orchestration
                 success = process_novel_unified(chinese_test_novel, args)
-                
+
                 assert success is True
-                
+
                 # Verify Phase 1: File was renamed
-                renamed_files = list(temp_dir.glob("Cultivation Master by Unknown Author*.txt"))
+                renamed_files = list(
+                    temp_dir.glob("Cultivation Master by Unknown Author*.txt")
+                )
                 assert len(renamed_files) == 1
                 renamed_file = renamed_files[0]
                 assert "Cultivation Master" in renamed_file.name
-                
+
                 # Verify Phase 2: Translation directory was created
                 translation_dir = temp_dir / "Cultivation Master by Unknown Author"
                 assert translation_dir.exists()
-                
+
                 # Verify chapter files exist
                 chapter_files = list(translation_dir.glob("*Chapter*.txt"))
                 assert len(chapter_files) > 0
-                
+
                 # Verify Phase 3: EPUB was created
                 epub_files = list(temp_dir.glob("*.epub"))
                 assert len(epub_files) == 1
@@ -363,134 +401,143 @@ class TestEnChANTOrchestrator:
 
     def test_orchestration_with_skip_flags(self, temp_dir, chinese_test_novel):
         """Test orchestration with different skip flags"""
-        
+
         # Initialize logger to avoid NoneType error
         import logging
         import enchant_cli
+
         enchant_cli.tolog = logging.getLogger(__name__)
-        
+
         # Test skip renaming
         args = Mock()
         args.skip_renaming = True
         args.skip_translating = False
         args.skip_epub = False
         args.resume = False
-        args.encoding = 'utf-8'
+        args.encoding = "utf-8"
         args.max_chars = 2000
         args.remote = False
-        
-        with patch('enchant_cli.translate_novel') as mock_translate:
+
+        with patch("enchant_cli.translate_novel") as mock_translate:
             mock_translate.return_value = True
-            
+
             success = process_novel_unified(chinese_test_novel, args)
-            
+
             # Should proceed with original filename
             assert success is True
-            
+
         # Test skip translation
         args.skip_renaming = False
         args.skip_translating = True
         args.skip_epub = False
-        
-        with patch('renamenovels.process_novel_file') as mock_rename:
+
+        with patch("renamenovels.process_novel_file") as mock_rename:
             mock_rename.return_value = (True, chinese_test_novel, {})
-            
+
             success = process_novel_unified(chinese_test_novel, args)
             assert success is True
-            
+
         # Test skip EPUB
-        args.skip_renaming = False  
+        args.skip_renaming = False
         args.skip_translating = False
         args.skip_epub = True
-        
-        with patch('renamenovels.process_novel_file') as mock_rename, \
-             patch('cli_translator.translate_novel') as mock_translate:
+
+        with (
+            patch("renamenovels.process_novel_file") as mock_rename,
+            patch("cli_translator.translate_novel") as mock_translate,
+        ):
             mock_rename.return_value = (True, chinese_test_novel, {})
             mock_translate.return_value = True
-            
+
             success = process_novel_unified(chinese_test_novel, args)
             assert success is True
 
     def test_orchestration_resume_functionality(self, temp_dir, chinese_test_novel):
         """Test resume functionality across phases"""
-        
+
         # Initialize logger to avoid NoneType error
         import logging
         import enchant_cli
+
         enchant_cli.tolog = logging.getLogger(__name__)
-        
+
         # Create progress file
         progress_file = temp_dir / f".{chinese_test_novel.stem}_progress.yml"
         progress_data = {
-            'original_file': str(chinese_test_novel),
-            'phases': {
-                'renaming': {'status': 'completed', 'result': str(chinese_test_novel)},
-                'translation': {'status': 'pending', 'result': None},
-                'epub': {'status': 'pending', 'result': None}
-            }
+            "original_file": str(chinese_test_novel),
+            "phases": {
+                "renaming": {"status": "completed", "result": str(chinese_test_novel)},
+                "translation": {"status": "pending", "result": None},
+                "epub": {"status": "pending", "result": None},
+            },
         }
-        
-        with open(progress_file, 'w') as f:
+
+        with open(progress_file, "w") as f:
             yaml.dump(progress_data, f)
-        
+
         args = Mock()
         args.skip_renaming = False
         args.skip_translating = False
         args.skip_epub = False
         args.resume = True
-        args.encoding = 'utf-8'
+        args.encoding = "utf-8"
         args.max_chars = 2000
         args.remote = False
-        
-        with patch('enchant_cli.translate_novel') as mock_translate:
+
+        with patch("enchant_cli.translate_novel") as mock_translate:
             mock_translate.return_value = True
-            
+
             success = process_novel_unified(chinese_test_novel, args)
-            
+
             # Should skip completed renaming phase
             assert success is True
 
     def test_error_handling_during_phases(self, temp_dir, chinese_test_novel):
         """Test error handling and recovery during different phases"""
-        
+
         # Initialize logger to avoid NoneType error
         import logging
         import enchant_cli
+
         enchant_cli.tolog = logging.getLogger(__name__)
-        
+
         args = Mock()
         args.skip_renaming = False
         args.skip_translating = False
         args.skip_epub = False
         args.resume = False
         args.openai_api_key = "test_key"
-        
+
         # Test renaming failure
-        with patch('renamenovels.process_novel_file') as mock_rename:
+        with patch("renamenovels.process_novel_file") as mock_rename:
             mock_rename.side_effect = Exception("Renaming failed")
-            
+
             success = process_novel_unified(chinese_test_novel, args)
             assert success is False
-            
+
         # Test translation failure
-        with patch('renamenovels.process_novel_file') as mock_rename, \
-             patch('cli_translator.translate_novel') as mock_translate:
+        with (
+            patch("renamenovels.process_novel_file") as mock_rename,
+            patch("cli_translator.translate_novel") as mock_translate,
+        ):
             mock_rename.return_value = (True, chinese_test_novel, {})
             mock_translate.side_effect = Exception("Translation failed")
-            
+
             success = process_novel_unified(chinese_test_novel, args)
             assert success is False
 
     def test_batch_processing(self, temp_dir, config_file):
         """Test batch processing of multiple novels"""
-        
+
         # Create multiple Chinese novels
         novels = []
         for i in range(3):
             novel_file = temp_dir / f"测试小说{i+1}.txt"
-            novel_file.write_text(f"第一章 测试内容{i+1}\n\n这是测试小说{i+1}的内容。", encoding='utf-8')
+            novel_file.write_text(
+                f"第一章 测试内容{i+1}\n\n这是测试小说{i+1}的内容。", encoding="utf-8"
+            )
             novels.append(novel_file)
-        
+
         # Mock args for batch processing
         args = Mock()
         args.filepath = str(temp_dir)
@@ -499,13 +546,13 @@ class TestEnChANTOrchestrator:
         args.skip_renaming = True  # Skip renaming to simplify test
         args.skip_translating = False
         args.skip_epub = False
-        args.encoding = 'utf-8'
+        args.encoding = "utf-8"
         args.max_chars = 2000
         args.remote = False
-        
-        with patch('cli_translator.translate_novel') as mock_translate:
+
+        with patch("cli_translator.translate_novel") as mock_translate:
             mock_translate.return_value = True
-            
+
             # This would normally be called by enchant_cli.process_batch()
             # For this test, we verify the batch functionality works
             assert len(novels) == 3
@@ -514,45 +561,54 @@ class TestEnChANTOrchestrator:
 
     def test_epub_content_verification(self, temp_dir):
         """Test that generated EPUB contains proper English content and TOC"""
-        
+
         # Create test chapters with English content
         chapters = [
-            ("Chapter 1: The Beginning", 
-             "Chapter 1: The Beginning\n\nOnce upon a time, in a distant land, there lived a young cultivator named Li Ming. He possessed extraordinary talents that set him apart from his peers."),
-            ("Chapter 2: The Discovery",
-             "Chapter 2: The Discovery\n\nLi Ming discovered an ancient technique that would change his destiny forever. The technique was called 'Heaven Defying Art'."),
-            ("Chapter 3: The Breakthrough", 
-             "Chapter 3: The Breakthrough\n\nAfter months of rigorous training, Li Ming finally achieved his first breakthrough. His power increased dramatically.")
+            (
+                "Chapter 1: The Beginning",
+                "Chapter 1: The Beginning\n\nOnce upon a time, in a distant land, there lived a young cultivator named Li Ming. He possessed extraordinary talents that set him apart from his peers.",
+            ),
+            (
+                "Chapter 2: The Discovery",
+                "Chapter 2: The Discovery\n\nLi Ming discovered an ancient technique that would change his destiny forever. The technique was called 'Heaven Defying Art'.",
+            ),
+            (
+                "Chapter 3: The Breakthrough",
+                "Chapter 3: The Breakthrough\n\nAfter months of rigorous training, Li Ming finally achieved his first breakthrough. His power increased dramatically.",
+            ),
         ]
-        
+
         epub_path = temp_dir / "Test_Novel.epub"
-        
+
         # Create EPUB
         create_epub_from_chapters(
             chapters=chapters,
             output_path=epub_path,
             title="Test Novel",
             author="Test Author",
-            cover_path=None
+            cover_path=None,
         )
-        
+
         # Verify EPUB content
-        with zipfile.ZipFile(epub_path, 'r') as epub_zip:
+        with zipfile.ZipFile(epub_path, "r") as epub_zip:
             # Check chapter content
-            chapter1_content = epub_zip.read('OEBPS/Text/chapter1.xhtml').decode('utf-8')
-            assert 'Li Ming' in chapter1_content
-            assert 'cultivator' in chapter1_content
-            assert 'Chapter 1: The Beginning' in chapter1_content
-            
+            chapter1_content = epub_zip.read("OEBPS/Text/chapter1.xhtml").decode(
+                "utf-8"
+            )
+            assert "Li Ming" in chapter1_content
+            assert "cultivator" in chapter1_content
+            assert "Chapter 1: The Beginning" in chapter1_content
+
             # Check TOC
-            toc_content = epub_zip.read('OEBPS/toc.ncx').decode('utf-8')
-            assert 'Chapter 1: The Beginning' in toc_content
-            assert 'Chapter 2: The Discovery' in toc_content
-            assert 'Chapter 3: The Breakthrough' in toc_content
-            
+            toc_content = epub_zip.read("OEBPS/toc.ncx").decode("utf-8")
+            assert "Chapter 1: The Beginning" in toc_content
+            assert "Chapter 2: The Discovery" in toc_content
+            assert "Chapter 3: The Breakthrough" in toc_content
+
             # Verify proper XML structure
             tree = ET.fromstring(chapter1_content)
-            assert tree.tag.endswith('html')
+            assert tree.tag.endswith("html")
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

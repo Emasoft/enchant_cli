@@ -21,7 +21,7 @@ Examine the codebase for errors, potential issues, duplicated code, antipatterns
 
 ### 1. Missing Docstrings (High Priority)
 - cli_translator.py: 16+ functions/classes missing docstrings
-- translation_service.py: 11+ functions/classes missing docstrings  
+- translation_service.py: 11+ functions/classes missing docstrings
 - renamenovels.py: 8 functions missing docstrings
 - make_epub.py: 8 functions missing docstrings
 - enchant_cli.py: 2 functions missing docstrings

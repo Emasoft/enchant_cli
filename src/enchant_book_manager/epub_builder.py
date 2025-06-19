@@ -5,7 +5,7 @@
 # - Extracted shared constants and utilities to epub_constants.py to avoid duplication with make_epub.py
 # - Removed duplicated conversion tables and functions (roman_to_int, words_to_int, parse_num)
 # - Now imports shared utilities from epub_constants module
-# 
+#
 
 """
 epub_builder.py - Module for building EPUB files from translated novel chapters
@@ -23,8 +23,12 @@ import logging
 
 # Import shared constants and utilities
 from .epub_constants import (
-    ENCODING, MIMETYPE, WORD_NUMS, FILENAME_RE,
-    roman_to_int, words_to_int
+    ENCODING,
+    MIMETYPE,
+    WORD_NUMS,
+    FILENAME_RE,
+    roman_to_int,
+    words_to_int,
 )
 
 HEADING_RE = re.compile(
@@ -44,7 +48,7 @@ def detect_chapter_issues(seq: List[int]) -> List[Tuple[int, str]]:
     issues: List[Tuple[int, str]] = []
     if not seq:
         return issues
-        
+
     start, end = seq[0], seq[-1]
     prev_expected = start
     seen = set()
@@ -67,7 +71,9 @@ def detect_chapter_issues(seq: List[int]) -> List[Tuple[int, str]]:
                     run_len += 1
                     j += 1
                 t = "times" if run_len > 1 else "time"
-                issues.append((idx, f"Chapter {v} is repeated {run_len} {t} after Chapter {pred}"))
+                issues.append(
+                    (idx, f"Chapter {v} is repeated {run_len} {t} after Chapter {pred}")
+                )
         else:
             seen.add(v)
 
@@ -87,10 +93,16 @@ def detect_chapter_issues(seq: List[int]) -> List[Tuple[int, str]]:
         else:  # v < prev_expected
             if idx > 0 and abs(seq[idx - 1] - v) == 1 and v < seq[idx - 1]:
                 a, b = min(v, seq[idx - 1]), max(v, seq[idx - 1])
-                issues.append((idx, f"Chapter {a} is switched in place with Chapter {b}"))
-                issues.append((idx, f"Chapter {b} is switched in place with Chapter {a}"))
+                issues.append(
+                    (idx, f"Chapter {a} is switched in place with Chapter {b}")
+                )
+                issues.append(
+                    (idx, f"Chapter {b} is switched in place with Chapter {a}")
+                )
             else:
-                issues.append((idx, f"Chapter {v} is out of place after Chapter {seq[idx - 1]}"))
+                issues.append(
+                    (idx, f"Chapter {v} is out of place after Chapter {seq[idx - 1]}")
+                )
             prev_expected = v + 1
 
     # Check for missing chapters at the end
@@ -101,7 +113,10 @@ def detect_chapter_issues(seq: List[int]) -> List[Tuple[int, str]]:
     issues.sort(key=lambda x: x[0])
     return issues
 
-def split_text(text: str, detect_headings: bool = True) -> Tuple[List[Tuple[str, str, str]], List[int]]:
+
+def split_text(
+    text: str, detect_headings: bool = True
+) -> Tuple[List[Tuple[str, str, str]], List[int]]:
     """
     Split text into chapters based on headings.
     Returns: ([(toc_title, original_heading, chapter_text), ...], [chapter_numbers])
@@ -114,28 +129,34 @@ def split_text(text: str, detect_headings: bool = True) -> Tuple[List[Tuple[str,
     current_toc_title = None
     current_original_heading = ""
     current_text: List[str] = []
-    
-    for line in text.split('\n'):
+
+    for line in text.split("\n"):
         # Check if line is a chapter heading
         match = HEADING_RE.match(line.strip())
         if match:
             # Save previous chapter if exists
             if current_toc_title is not None:
-                chapters.append((current_toc_title, current_original_heading, '\n'.join(current_text)))
-            
+                chapters.append(
+                    (
+                        current_toc_title,
+                        current_original_heading,
+                        "\n".join(current_text),
+                    )
+                )
+
             # Extract chapter number
-            if match.group('num_d'):
-                num = int(match.group('num_d'))
-            elif match.group('num_r'):
-                num = roman_to_int(match.group('num_r'))
-            elif match.group('num_w'):
-                num = words_to_int(match.group('num_w'))
+            if match.group("num_d"):
+                num = int(match.group("num_d"))
+            elif match.group("num_r"):
+                num = roman_to_int(match.group("num_r"))
+            elif match.group("num_w"):
+                num = words_to_int(match.group("num_w"))
             else:
                 num = None
-            
+
             if num is not None:
                 chapter_nums.append(num)
-                rest = match.group('rest').strip()
+                rest = match.group("rest").strip()
                 # Create formatted title for TOC only
                 toc_title = f"Chapter {num}" + (f": {rest}" if rest else "")
                 current_toc_title = toc_title
@@ -150,45 +171,50 @@ def split_text(text: str, detect_headings: bool = True) -> Tuple[List[Tuple[str,
             # Regular text line
             if current_text or line.strip():
                 current_text.append(line)
-    
+
     # Save last chapter
     if current_toc_title is not None:
-        chapters.append((current_toc_title, current_original_heading, '\n'.join(current_text)))
+        chapters.append(
+            (current_toc_title, current_original_heading, "\n".join(current_text))
+        )
     elif current_text:
         # No chapters detected, return full text
-        chapters.append(("Full Text", "", '\n'.join(current_text)))
-    
+        chapters.append(("Full Text", "", "\n".join(current_text)))
+
     return chapters, chapter_nums
+
 
 def paragraphize(text: str) -> str:
     """Convert plain text to HTML paragraphs."""
     paragraphs = []
     current = []
-    
-    for line in text.split('\n'):
+
+    for line in text.split("\n"):
         line = line.strip()
         if line:
             current.append(html.escape(line))
         elif current:
-            paragraphs.append('<p>' + ' '.join(current) + '</p>')
+            paragraphs.append("<p>" + " ".join(current) + "</p>")
             current = []
-    
+
     if current:
-        paragraphs.append('<p>' + ' '.join(current) + '</p>')
-    
-    return '\n'.join(paragraphs)
+        paragraphs.append("<p>" + " ".join(current) + "</p>")
+
+    return "\n".join(paragraphs)
+
 
 def collect_chapter_files(input_dir: Path) -> Dict[int, Path]:
     """Collect chapter files from directory, return {chapter_num: file_path}."""
     chapters = {}
-    
+
     for file_path in input_dir.glob("*.txt"):
         match = FILENAME_RE.match(file_path.name)
         if match:
             num = int(match.group("num"))
             chapters[num] = file_path
-    
+
     return chapters
+
 
 def create_epub_from_chapters(
     chapters: List[Tuple[str, str, str]],
@@ -196,43 +222,47 @@ def create_epub_from_chapters(
     title: str,
     author: str,
     cover_path: Optional[Path] = None,
-    language: str = "en"
+    language: str = "en",
 ) -> None:
     """Create EPUB file from chapter list with (toc_title, original_heading, html_content)."""
     book_id = str(uuid.uuid4())
-    
+
     with tempfile.TemporaryDirectory() as tmpdir:
         tmppath = Path(tmpdir)
-        
+
         # Create directory structure
         (tmppath / "META-INF").mkdir()
         (tmppath / "OEBPS").mkdir()
-        
+
         # Write mimetype
         (tmppath / "mimetype").write_text(MIMETYPE, encoding="ascii")
-        
+
         # Write container.xml
-        container_xml = '''<?xml version="1.0" encoding="UTF-8"?>
+        container_xml = """<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
     <rootfiles>
         <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
     </rootfiles>
-</container>'''
-        (tmppath / "META-INF" / "container.xml").write_text(container_xml, encoding=ENCODING)
-        
+</container>"""
+        (tmppath / "META-INF" / "container.xml").write_text(
+            container_xml, encoding=ENCODING
+        )
+
         # Generate spine and manifest items
         manifest_items = []
         spine_items = []
-        
+
         # Add cover if provided
         if cover_path and cover_path.exists():
             ext = cover_path.suffix.lower()
             mime = "image/jpeg" if ext in [".jpg", ".jpeg"] else "image/png"
             (tmppath / "OEBPS" / "cover.jpg").write_bytes(cover_path.read_bytes())
-            manifest_items.append(f'<item id="cover-image" href="cover.jpg" media-type="{mime}"/>')
-            
+            manifest_items.append(
+                f'<item id="cover-image" href="cover.jpg" media-type="{mime}"/>'
+            )
+
             # Create cover HTML
-            cover_html = '''<!DOCTYPE html>
+            cover_html = """<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>Cover</title>
@@ -243,21 +273,25 @@ def create_epub_from_chapters(
 <body>
     <div><img src="cover.jpg" alt="Cover"/></div>
 </body>
-</html>'''
-            (tmppath / "OEBPS" / "cover.xhtml").write_text(cover_html, encoding=ENCODING)
-            manifest_items.append('<item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>')
+</html>"""
+            (tmppath / "OEBPS" / "cover.xhtml").write_text(
+                cover_html, encoding=ENCODING
+            )
+            manifest_items.append(
+                '<item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>'
+            )
             spine_items.append('<itemref idref="cover"/>')
-        
+
         # Write chapters
         toc_items = []
         for i, (toc_title, original_heading, chap_html) in enumerate(chapters):
             chap_id = f"chapter{i+1}"
             chap_file = f"{chap_id}.xhtml"
-            
+
             # Use original heading if available, otherwise use TOC title
             display_heading = original_heading if original_heading else toc_title
-            
-            chap_content = f'''<!DOCTYPE html>
+
+            chap_content = f"""<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>{html.escape(toc_title)}</title>
@@ -266,15 +300,17 @@ def create_epub_from_chapters(
     <h1>{html.escape(display_heading)}</h1>
     {chap_html}
 </body>
-</html>'''
+</html>"""
             (tmppath / "OEBPS" / chap_file).write_text(chap_content, encoding=ENCODING)
-            
-            manifest_items.append(f'<item id="{chap_id}" href="{chap_file}" media-type="application/xhtml+xml"/>')
+
+            manifest_items.append(
+                f'<item id="{chap_id}" href="{chap_file}" media-type="application/xhtml+xml"/>'
+            )
             spine_items.append(f'<itemref idref="{chap_id}"/>')
             toc_items.append((chap_id, toc_title))
-        
+
         # Write NCX (table of contents)
-        ncx_content = f'''<?xml version="1.0" encoding="UTF-8"?>
+        ncx_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
     <head>
         <meta name="dtb:uid" content="{book_id}"/>
@@ -285,25 +321,27 @@ def create_epub_from_chapters(
     <docTitle>
         <text>{html.escape(title)}</text>
     </docTitle>
-    <navMap>'''
-        
+    <navMap>"""
+
         for i, (chap_id, chap_title) in enumerate(toc_items):
-            ncx_content += f'''
+            ncx_content += f"""
         <navPoint id="navPoint-{i+1}" playOrder="{i+1}">
             <navLabel>
                 <text>{html.escape(chap_title)}</text>
             </navLabel>
             <content src="{chap_id}.xhtml"/>
-        </navPoint>'''
-        
-        ncx_content += '''
+        </navPoint>"""
+
+        ncx_content += """
     </navMap>
-</ncx>'''
+</ncx>"""
         (tmppath / "OEBPS" / "toc.ncx").write_text(ncx_content, encoding=ENCODING)
-        manifest_items.append('<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>')
-        
+        manifest_items.append(
+            '<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>'
+        )
+
         # Write content.opf
-        opf_content = f'''<?xml version="1.0" encoding="UTF-8"?>
+        opf_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookId" version="2.0">
     <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
         <dc:identifier id="BookId">{book_id}</dc:identifier>
@@ -319,19 +357,20 @@ def create_epub_from_chapters(
     <spine toc="ncx">
         {" ".join(spine_items)}
     </spine>
-</package>'''
+</package>"""
         (tmppath / "OEBPS" / "content.opf").write_text(opf_content, encoding=ENCODING)
-        
+
         # Create EPUB zip
-        with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+        with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zf:
             # mimetype must be first and uncompressed
             zf.write(tmppath / "mimetype", "mimetype", compress_type=zipfile.ZIP_STORED)
-            
+
             # Add all other files
             for file_path in tmppath.rglob("*"):
                 if file_path.is_file() and file_path.name != "mimetype":
                     arc_name = str(file_path.relative_to(tmppath))
                     zf.write(file_path, arc_name)
+
 
 def build_epub_from_directory(
     input_dir: Path,
@@ -341,7 +380,7 @@ def build_epub_from_directory(
     cover_path: Optional[Path] = None,
     detect_toc: bool = True,
     strict: bool = True,
-    logger: Optional[logging.Logger] = None
+    logger: Optional[logging.Logger] = None,
 ) -> Tuple[bool, List[str]]:
     """
     Build EPUB from directory of chapter files.
@@ -349,12 +388,12 @@ def build_epub_from_directory(
     """
     if logger is None:
         logger = logging.getLogger(__name__)
-    
+
     # Collect chapter files
     chapters_dict = collect_chapter_files(input_dir)
     if not chapters_dict:
         return False, ["No chapter files found in directory"]
-    
+
     # Read and combine chapters
     full_text = ""
     for num in sorted(chapters_dict.keys()):
@@ -365,24 +404,27 @@ def build_epub_from_directory(
             logger.error(f"Error reading chapter {num}: {e}")
             if strict:
                 return False, [f"Error reading chapter {num}: {e}"]
-    
+
     # Split text and detect chapters
     chapter_blocks, chapter_nums = split_text(full_text, detect_toc)
-    chapters = [(toc_title, original_heading, paragraphize(text)) for toc_title, original_heading, text in chapter_blocks]
-    
+    chapters = [
+        (toc_title, original_heading, paragraphize(text))
+        for toc_title, original_heading, text in chapter_blocks
+    ]
+
     # Detect issues
     issues = []
     if chapter_nums:
         issue_list = detect_chapter_issues(chapter_nums)
         issues = [msg for _, msg in issue_list]
-        
+
         if issues:
             for issue in issues:
                 logger.warning(f"Chapter issue: {issue}")
-            
+
             if strict:
                 return False, issues
-    
+
     # Extract default title/author from first file if not provided
     if not title or not author:
         first_file = chapters_dict[min(chapters_dict.keys())]
@@ -393,7 +435,7 @@ def build_epub_from_directory(
         else:
             title = title or "Unknown Title"
             author = author or "Unknown Author"
-    
+
     # Create EPUB
     try:
         create_epub_from_chapters(chapters, output_path, title, author, cover_path)
