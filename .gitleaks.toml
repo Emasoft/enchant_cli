@@ -1,0 +1,97 @@
+# Gitleaks configuration for ENCHANT Book Manager
+# This file configures gitleaks to allow only specific information
+# and block API keys, secrets, passwords, etc.
+
+title = "ENCHANT Book Manager Gitleaks Configuration"
+
+[extend]
+# Extend the base configuration
+useDefault = true
+
+[allowlist]
+# Global allowlist
+description = "Global allowed patterns"
+regexes = [
+    '''713559\+Emasoft@users\.noreply\.github\.com''',
+    '''Emasoft''',
+    '''test_api_key''',
+    '''test_openai_key''',
+    '''mock_key''',
+    '''dummy_key''',
+    '''YOUR_KEY''',
+    '''your_key_here''',
+    '''<your_.*_here>''',
+]
+
+paths = [
+    '''tests/.*\.py''',
+    '''.*test.*\.py''',
+    '''\.gitleaks\.toml''',
+    '''pyproject\.toml''',
+    '''README\.md''',
+    '''CLAUDE\.md''',
+    '''docs/.*''',
+    '''enchant_cli\.py''',
+]
+
+# Files to completely ignore
+files = [
+    '''\.git/.*''',
+    '''\.venv/.*''',
+    '''__pycache__/.*''',
+    '''.*\.pyc''',
+    '''.*\.pyo''',
+    '''.*\.log''',
+]
+
+# Custom rules to detect secrets (in addition to default rules)
+[[rules]]
+description = "OpenRouter API Key"
+id = "openrouter-api-key"
+regex = '''(?i)openrouter[_\s-]?api[_\s-]?key[_\s-]?[:=]\s*['"]{0,1}[a-zA-Z0-9_\-]{20,}['"]{0,1}'''
+tags = ["key", "openrouter"]
+[rules.allowlist]
+regexes = [
+    '''test_openai_key''',
+    '''YOUR_KEY''',
+    '''your_key_here''',
+]
+paths = [
+    '''tests/.*''',
+    '''README\.md''',
+    '''.*\.md''',
+]
+
+[[rules]]
+description = "Hard-coded OpenAI API Key"
+id = "hardcoded-openai-key"
+regex = '''sk-[a-zA-Z0-9]{48}'''
+tags = ["key", "openai"]
+
+[[rules]]
+description = "Hard-coded Secret in Code"
+id = "hardcoded-secret"
+regex = '''(?i)(secret|password|passwd|pwd|token|api_key|apikey)\s*=\s*['"]{1}[a-zA-Z0-9_\-!@#$%^&*()]{8,}['"]{1}'''
+tags = ["secret", "hardcoded"]
+[rules.allowlist]
+regexes = [
+    '''test_.*''',
+    '''mock_.*''',
+    '''dummy_.*''',
+    '''example_.*''',
+]
+paths = [
+    '''tests/.*''',
+]
+
+[[rules]]
+description = "Base64 Encoded Potential Secret"
+id = "base64-potential-secret"
+regex = '''[A-Za-z0-9+/]{40,}={0,2}'''
+tags = ["secret", "base64"]
+[rules.allowlist]
+paths = [
+    '''tests/.*''',
+    '''.*\.lock''',
+    '''.*\.sum''',
+]

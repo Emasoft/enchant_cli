@@ -79,6 +79,29 @@ CLAUDE.md
 CODE_QUALITY_REVIEW.md
 DEVELOPMENT_PLAN.md
 ENCHANT_README.md
+tasks_checklist.md
+MYPY_*.txt
+enchant_book_manager.log
+requests_responses.log
+log.txt
+*.log
+!tests/**/*.log
+
+# Sample novels and test data
+tests/sample_novel/
+sample_*.txt
+test_*.txt
+!tests/**/*.txt
+
+# Translation outputs
+translated_*.txt
+*_translated.txt
+translation_progress.txt
+
+# Temporary files
+temp_*
+tmp_*
+*.tmp
 
 # Backup files
 *.backup
