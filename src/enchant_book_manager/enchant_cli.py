@@ -26,6 +26,7 @@ import yaml
 
 from .common_print_utils import safe_print
 from .common_utils import extract_book_info_from_path, sanitize_filename
+from .common_yaml_utils import load_safe_yaml as load_yaml_safe
 from .config_manager import ConfigManager, get_config
 from .icloud_sync import ICloudSync
 
@@ -72,15 +73,16 @@ icloud_sync = None
 
 
 def load_safe_yaml(path: Path) -> Optional[Dict[str, Any]]:
-    """Safely load YAML file"""
+    """Safely load YAML file - wrapper for common utility with exception handling"""
     try:
-        if path.exists():
-            with path.open("r", encoding="utf-8") as f:
-                return yaml.safe_load(f)
+        return load_yaml_safe(path)
+    except ValueError as e:
+        if tolog is not None:
+            tolog.error(f"Error loading YAML from {path}: {e}")
         return None
     except Exception as e:
         if tolog is not None:
-            tolog.error(f"Error loading YAML from {path}: {e}")
+            tolog.error(f"Unexpected error loading YAML from {path}: {e}")
         return None
 
 

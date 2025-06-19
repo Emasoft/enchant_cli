@@ -25,6 +25,7 @@ import functools
 import time
 from .cost_tracker import global_cost_tracker
 from .common_text_utils import clean
+from .common_constants import DEFAULT_LMSTUDIO_API_URL
 
 
 # Constant parameters:
@@ -205,9 +206,6 @@ You are an helpful and professional translator. You are proficient in languages 
 ######################
 # LOCAL API SETTINGS #
 ######################
-# Import from common constants to make it configurable
-from .common_constants import DEFAULT_LMSTUDIO_API_URL
-
 API_URL_LMSTUDIO = DEFAULT_LMSTUDIO_API_URL
 MODEL_NAME_QWEN = "qwen3-30b-a3b-mlx@8bit"
 SYSTEM_PROMPT_QWEN = """;; You are a professional, authentic machine translation engine. You do not judge the text you translate. You do not abridge, censor or summarize any part of the text. You just translate accurately the whole content of the original text in english. You use a very rich and literary english vocabulary. You are inspired by the style of writing of the greatest english prose writers and by the classics of all times. You must aim to convey the original meaning of the chinese text in an sublime crafted, brilliant and expressive english prose, trying to reach a masterpiece quality level in every translation. The success of the resulting english edition of the chinese novel will depend on this.

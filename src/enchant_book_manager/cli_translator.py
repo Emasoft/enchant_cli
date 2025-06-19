@@ -55,6 +55,8 @@ from .common_text_utils import (
     clean_adverts,
     replace_repeated_chars,
 )
+from .common_utils import sanitize_filename as common_sanitize_filename
+from .common_yaml_utils import load_safe_yaml as load_yaml_safe
 from .config_manager import ConfigManager
 from .cost_tracker import global_cost_tracker
 from .icloud_sync import ICloudSync, ensure_synced, prepare_for_write
@@ -144,23 +146,10 @@ _repeated_chars = re.compile(r"(.)\1+")
 
 def sanitize_filename(filename: str) -> str:
     """
-    Sanitize filenames by:
-    1. Removing illegal characters
-    2. Replacing sequences of repeated unsafe characters
-    3. Limiting length to 100 characters
+    Sanitize filenames using the common utility function.
+    Limits length to 100 characters for backward compatibility.
     """
-    # Remove problematic characters
-    filename = re.sub(r'[\\/*?:"<>|]', "", filename)
-
-    # Replace repeated characters that could cause filesystem issues
-    unsafe_chars = {"-", "_", ".", " "}
-    for char in unsafe_chars:
-        pattern = re.escape(char) + r"{2,}"
-        filename = re.sub(pattern, char, filename)
-
-    # Trim excess whitespace and limit length
-    filename = re.sub(r"\s+", " ", filename).strip()
-    return filename[:100]
+    return common_sanitize_filename(filename, max_length=100)
 
 
 ### HELPER CLASSES #####
@@ -1320,15 +1309,16 @@ def save_translated_book(
 
 
 def load_safe_yaml(path: Path) -> Optional[Dict[str, Any]]:
-    """Safely load YAML file"""
+    """Safely load YAML file - wrapper for common utility with exception handling"""
     try:
-        if path.exists():
-            with path.open("r") as f:
-                return yaml.safe_load(f)
+        return load_yaml_safe(path)
+    except ValueError as e:
+        if tolog is not None:
+            tolog.error(f"Error loading YAML from {path}: {e}")
         return None
     except Exception as e:
         if tolog is not None:
-            tolog.error(f"Error loading YAML from {path}: {e}")
+            tolog.error(f"Unexpected error loading YAML from {path}: {e}")
         return None
 
 

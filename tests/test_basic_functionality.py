@@ -12,16 +12,24 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # Disable retries for testing
 import tenacity
 
+# Import modules before modifying them
+from enchant_book_manager.translation_service import (
+    ChineseAITranslator,
+    is_latin_charset,
+)
+from enchant_book_manager.common_text_utils import (
+    clean,
+    limit_repeated_chars,
+    remove_html_markup,
+)
+from enchant_book_manager.cost_tracker import global_cost_tracker
+
 
 def no_retry_call(self, fn, *args, **kwargs):
     return fn(*args, **kwargs)
 
 
 tenacity.Retrying.__call__ = no_retry_call
-
-from translation_service import ChineseAITranslator, is_latin_charset
-from common_text_utils import clean, limit_repeated_chars, remove_html_markup
-from cost_tracker import global_cost_tracker
 
 
 def test_basic_initialization():
@@ -62,9 +70,9 @@ def test_text_processing():
     print("✓ limit_repeated_chars() function works correctly")
 
     # Test is_latin_charset
-    assert is_latin_charset("Hello World") == True
-    assert is_latin_charset("你好世界") == False
-    assert is_latin_charset("Hello 世界") == False
+    assert is_latin_charset("Hello World") is True
+    assert is_latin_charset("你好世界") is False
+    assert is_latin_charset("Hello 世界") is False
     print("✓ is_latin_charset() function works correctly")
 
 

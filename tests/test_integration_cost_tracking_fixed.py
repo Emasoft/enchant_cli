@@ -88,7 +88,7 @@ class TestCostTrackingIntegration:
             mock_post.return_value = mock_response
 
             # Make translation request
-            result = translator.translate("中文文本")
+            translator.translate("中文文本")
 
             # Verify cost tracking through global_cost_tracker
             summary = global_cost_tracker.get_summary()
@@ -251,7 +251,7 @@ class TestCostTrackingIntegration:
             mock_post.return_value = mock_response
 
             # Should not raise error
-            result = translator.translate("Text")
+            translator.translate("Text")
 
             # Cost should remain 0, but tokens should be tracked
             summary = global_cost_tracker.get_summary()
@@ -371,7 +371,7 @@ class TestCostTrackingIntegration:
             mock_response.raise_for_status = Mock()
             mock_post.return_value = mock_response
 
-            result = translator.translate("Text")
+            translator.translate("Text")
 
             # For local API, global tracker shouldn't show cost
             summary = translator.get_cost_summary()

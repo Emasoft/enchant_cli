@@ -362,9 +362,7 @@ class TestEnChANTOrchestrator:
 
         with (
             patch("requests.post") as mock_post,
-            patch(
-                "enchant_cli.translate_novel", side_effect=mock_translate_novel
-            ) as mock_translate,
+            patch("enchant_cli.translate_novel", side_effect=mock_translate_novel),
         ):
             # Setup mock responses for renaming
             mock_post.return_value.json.return_value = mock_openai_response

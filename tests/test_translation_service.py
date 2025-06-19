@@ -73,9 +73,7 @@ class TestChineseAITranslator:
             with pytest.raises(
                 ValueError, match="OPENROUTER_API_KEY not set in environment variables"
             ):
-                translator = ChineseAITranslator(
-                    logger=mock_logger, use_remote=True, api_key=None
-                )
+                ChineseAITranslator(logger=mock_logger, use_remote=True, api_key=None)
 
     def test_log_method(self, translator_local):
         """Test logging method"""
@@ -677,36 +675,36 @@ class TestUtilityFunctions:
 
     def test_is_latin_char(self):
         """Test Latin character detection"""
-        assert is_latin_char("A") == True
-        assert is_latin_char("é") == True
-        assert is_latin_char("ñ") == True
-        assert is_latin_char("中") == False
-        assert is_latin_char("あ") == False
-        assert is_latin_char("🙂") == False
+        assert is_latin_char("A") is True
+        assert is_latin_char("é") is True
+        assert is_latin_char("ñ") is True
+        assert is_latin_char("中") is False
+        assert is_latin_char("あ") is False
+        assert is_latin_char("🙂") is False
 
     def test_is_latin_charset(self):
         """Test Latin charset detection"""
         # Pure Latin text
-        assert is_latin_charset("Hello World!") == True
-        assert is_latin_charset("Café résumé naïve") == True
+        assert is_latin_charset("Hello World!") is True
+        assert is_latin_charset("Café résumé naïve") is True
 
         # Mixed with some non-Latin
-        assert is_latin_charset("Hello 世界") == False
-        assert is_latin_charset("99% English 中") == False
+        assert is_latin_charset("Hello 世界") is False
+        assert is_latin_charset("99% English 中") is False
 
         # Pure non-Latin
-        assert is_latin_charset("你好世界") == False
-        assert is_latin_charset("こんにちは") == False
+        assert is_latin_charset("你好世界") is False
+        assert is_latin_charset("こんにちは") is False
 
         # Edge cases
-        assert is_latin_charset("") == True  # Empty string
-        assert is_latin_charset("   ") == True  # Only spaces
-        assert is_latin_charset("123") == True  # Numbers
+        assert is_latin_charset("") is True  # Empty string
+        assert is_latin_charset("   ") is True  # Only spaces
+        assert is_latin_charset("123") is True  # Numbers
 
         # Test threshold
         text = "A" * 99 + "中"  # 1% non-Latin
-        assert is_latin_charset(text, threshold=0.02) == True
-        assert is_latin_charset(text, threshold=0.005) == False
+        assert is_latin_charset(text, threshold=0.02) is True
+        assert is_latin_charset(text, threshold=0.005) is False
 
 
 class TestRetryWrapper:

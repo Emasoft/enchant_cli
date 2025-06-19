@@ -45,7 +45,7 @@ class TestXMLGenerationElementTree:
 
         # Convert to string
         ET.register_namespace("", "http://www.w3.org/1999/xhtml")
-        tree = ET.ElementTree(html)
+        ET.ElementTree(html)
 
         # Verify structure
         assert html.tag == "html"

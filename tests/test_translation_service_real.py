@@ -187,9 +187,6 @@ class TestChineseAITranslatorReal:
             print(f"Double pass: {double}")
 
             # Check if double pass removed Chinese
-            single_has_chinese = (
-                any("\u4e00" <= c <= "\u9fff" for c in single) if single else True
-            )
             double_has_chinese = (
                 any("\u4e00" <= c <= "\u9fff" for c in double) if double else True
             )
@@ -220,7 +217,7 @@ class TestChineseAITranslatorReal:
 
             try:
                 # Translate file
-                result = translator.translate_file(
+                translator.translate_file(
                     str(input_file), str(output_file), is_last_chunk=True
                 )
 

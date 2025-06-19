@@ -23,6 +23,7 @@ from requests.exceptions import HTTPError, ConnectionError, Timeout
 from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
 from .common_file_utils import decode_full_file
+from .common_utils import sanitize_filename as common_sanitize_filename
 from .cost_tracker import global_cost_tracker
 from .icloud_sync import ICloudSync, ICloudSyncError
 
@@ -295,14 +296,8 @@ def decode_file_content(
 
 # Helper function to sanitize filenames
 def sanitize_filename(name: str) -> str:
-    """Sanitize the filename by replacing invalid characters with underscores."""
-    # Remove any characters not allowed in filenames
-    sanitized = re.sub(r'[<>:"/\\|?*\n\r\t]', "_", name)
-    # Replace multiple underscores with a single one
-    sanitized = re.sub(r"_+", "_", sanitized)
-    # Strip leading and trailing underscores or spaces
-    sanitized = sanitized.strip(" _")
-    return sanitized or "Unnamed"
+    """Sanitize the filename using the common utility function."""
+    return common_sanitize_filename(name)
 
 
 # Function to rename the original file with novel information

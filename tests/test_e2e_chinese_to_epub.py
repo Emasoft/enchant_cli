@@ -454,10 +454,8 @@ They needed to venture deep into the forest and clear out the magical beasts the
             # Patch make_openai_request directly to avoid any issues
             with (
                 patch("renamenovels.make_openai_request") as mock_openai_request,
-                patch("requests.post", side_effect=mock_requests_post) as mock_post,
-                patch(
-                    "enchant_cli.translate_novel", side_effect=mock_translate_novel
-                ) as mock_translate,
+                patch("requests.post", side_effect=mock_requests_post),
+                patch("enchant_cli.translate_novel", side_effect=mock_translate_novel),
             ):
                 # Set the return value for make_openai_request
                 mock_openai_request.return_value = mock_openai_responses["修炼至尊.txt"]
@@ -581,7 +579,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
 
             with (
                 patch("renamenovels.make_openai_request", side_effect=mock_make_openai),
-                patch("requests.post", side_effect=mock_requests_post) as mock_post,
+                patch("requests.post", side_effect=mock_requests_post),
             ):
                 # Test batch processing
                 cmd = [
@@ -990,7 +988,6 @@ They needed to venture deep into the forest and clear out the magical beasts the
         assert (
             len(combined_files) >= 1
         ), f"No combined translation file found in: {translation_dir}. Files found: {list(translation_dir.iterdir())}"
-        combined_file = combined_files[0]
 
         # 5. Verify EPUB file exists (might not exist due to directory name mismatch issue)
         epub_pattern = f"{safe_title}*.epub"

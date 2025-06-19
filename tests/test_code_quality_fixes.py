@@ -14,8 +14,17 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from make_epub import parse_num, split_text
-from epub_constants import roman_to_int, words_to_int, parse_num as parse_num_shared
+# Add src directory to path
+src_dir = project_root / "src"
+if src_dir.exists():
+    sys.path.insert(0, str(src_dir))
+
+from enchant_book_manager.make_epub import parse_num, split_text
+from enchant_book_manager.epub_constants import (
+    roman_to_int,
+    words_to_int,
+    parse_num as parse_num_shared,
+)
 
 
 class TestCodeQualityFixes(unittest.TestCase):
@@ -86,7 +95,12 @@ class TestCodeQualityFixes(unittest.TestCase):
 
     def test_constants_consistency(self):
         """Test that constants are consistent across modules"""
-        from epub_constants import ENCODING, MIMETYPE, WORD_NUMS, FILENAME_RE
+        from enchant_book_manager.epub_constants import (
+            ENCODING,
+            MIMETYPE,
+            WORD_NUMS,
+            FILENAME_RE,
+        )
 
         # Test constants are defined
         self.assertEqual(ENCODING, "utf-8")
@@ -107,27 +121,36 @@ class TestModuleIntegrity(unittest.TestCase):
 
     def test_imports_work(self):
         """Test that all imports work correctly"""
-        # These imports should not raise errors
-        try:
-            import make_epub
-            import epub_constants
-            import epub_toc_enhanced
-            import epub_db_optimized
-            import epub_builder  # Even though unused, it should still import
+        import importlib.util
 
-            self.assertTrue(True)  # All imports successful
-        except ImportError as e:
-            self.fail(f"Import failed: {e}")
+        # Test that modules can be found and imported
+        modules_to_test = [
+            "enchant_book_manager.make_epub",
+            "enchant_book_manager.epub_constants",
+            "enchant_book_manager.epub_toc_enhanced",
+            "enchant_book_manager.epub_db_optimized",
+            "enchant_book_manager.epub_builder",
+        ]
+
+        for module_name in modules_to_test:
+            spec = importlib.util.find_spec(module_name)
+            if spec is None:
+                self.fail(f"Module {module_name} not found")
+            # Try to actually import it
+            try:
+                importlib.import_module(module_name)
+            except ImportError as e:
+                self.fail(f"Import failed for {module_name}: {e}")
 
     def test_no_circular_imports(self):
         """Test that there are no circular import issues"""
         # Import in different order
-        import epub_constants
-        import make_epub
+        import enchant_book_manager.epub_constants
+        import enchant_book_manager.make_epub
 
         # Should be able to use functions from both
-        self.assertTrue(callable(make_epub.parse_num))
-        self.assertTrue(callable(epub_constants.parse_num))
+        self.assertTrue(callable(enchant_book_manager.make_epub.parse_num))
+        self.assertTrue(callable(enchant_book_manager.epub_constants.parse_num))
 
 
 if __name__ == "__main__":

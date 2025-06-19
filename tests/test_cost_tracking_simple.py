@@ -50,7 +50,7 @@ def test_remote_cost_tracking():
         mock_post.return_value = mock_response
 
         # Make translation request
-        result = translator.translate("中文文本")
+        translator.translate("中文文本")
 
         # Verify cost tracking through global tracker
         summary = global_cost_tracker.get_summary()
@@ -148,7 +148,7 @@ def test_local_api_no_cost():
         mock_response.raise_for_status = Mock()
         mock_post.return_value = mock_response
 
-        result = translator.translate("Text")
+        translator.translate("Text")
 
         # For local API, cost should remain 0
         summary = translator.get_cost_summary()

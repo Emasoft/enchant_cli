@@ -244,7 +244,7 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
             errors = [Exception("Test error")] * 9
             self.mock_translator.translate.side_effect = errors + ["Translated"] * 3
 
-            with patch("sys.exit") as mock_exit:
+            with patch("sys.exit"):
                 save_translated_book(self.book_id)
 
                 # Check that no sleep call exceeds MAX_RETRY_WAIT_SECONDS
