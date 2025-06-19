@@ -14,8 +14,8 @@ import shutil
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from cli_translator import save_translated_book
-from cli_translator import Book, chunk
+from src.enchant_book_manager.cli_translator import save_translated_book
+from src.enchant_book_manager.cli_translator import Book, chunk
 
 
 class TestChunkRetryMechanism:
@@ -54,10 +54,10 @@ class TestChunkRetryMechanism:
         """Clean up test fixtures"""
         shutil.rmtree(self.test_dir, ignore_errors=True)
 
-    @patch("cli_translator.Book.get_by_id")
-    @patch("cli_translator.VARIATION_DB")
-    @patch("cli_translator.translator")
-    @patch("cli_translator.tolog")
+    @patch("src.enchant_book_manager.cli_translator.Book.get_by_id")
+    @patch("src.enchant_book_manager.cli_translator.VARIATION_DB")
+    @patch("src.enchant_book_manager.cli_translator.translator")
+    @patch("src.enchant_book_manager.cli_translator.tolog")
     def test_successful_translation_first_attempt(
         self, mock_tolog, mock_translator, mock_var_db, mock_get_book
     ):
@@ -72,7 +72,10 @@ class TestChunkRetryMechanism:
         )
 
         # Change to test directory
-        with patch("cli_translator.Path.cwd", return_value=Path(self.test_dir)):
+        with patch(
+            "src.enchant_book_manager.cli_translator.Path.cwd",
+            return_value=Path(self.test_dir),
+        ):
             with patch("sys.exit") as mock_exit:
                 save_translated_book(self.book_id)
 
@@ -90,11 +93,11 @@ class TestChunkRetryMechanism:
                 ]
                 assert len(success_logs) == 3
 
-    @patch("cli_translator.Book.get_by_id")
-    @patch("cli_translator.VARIATION_DB")
-    @patch("cli_translator.translator")
-    @patch("cli_translator.tolog")
-    @patch("cli_translator.time.sleep")
+    @patch("src.enchant_book_manager.cli_translator.Book.get_by_id")
+    @patch("src.enchant_book_manager.cli_translator.VARIATION_DB")
+    @patch("src.enchant_book_manager.cli_translator.translator")
+    @patch("src.enchant_book_manager.cli_translator.tolog")
+    @patch("src.enchant_book_manager.cli_translator.time.sleep")
     def test_translation_retry_on_failure(
         self, mock_sleep, mock_tolog, mock_translator, mock_var_db, mock_get_book
     ):
@@ -117,7 +120,10 @@ class TestChunkRetryMechanism:
         )
 
         # Change to test directory
-        with patch("cli_translator.Path.cwd", return_value=Path(self.test_dir)):
+        with patch(
+            "src.enchant_book_manager.cli_translator.Path.cwd",
+            return_value=Path(self.test_dir),
+        ):
             with patch("sys.exit") as mock_exit:
                 save_translated_book(self.book_id)
 
@@ -132,12 +138,15 @@ class TestChunkRetryMechanism:
                 mock_sleep.assert_any_call(2)  # First retry
                 mock_sleep.assert_any_call(4)  # Second retry
 
-    @patch("cli_translator.Book.get_by_id")
-    @patch("cli_translator.VARIATION_DB")
-    @patch("cli_translator.translator")
-    @patch("cli_translator.tolog")
-    @patch("cli_translator.time.sleep")
-    @patch("cli_translator._module_config", {"translation": {"max_chunk_retries": 3}})
+    @patch("src.enchant_book_manager.cli_translator.Book.get_by_id")
+    @patch("src.enchant_book_manager.cli_translator.VARIATION_DB")
+    @patch("src.enchant_book_manager.cli_translator.translator")
+    @patch("src.enchant_book_manager.cli_translator.tolog")
+    @patch("src.enchant_book_manager.cli_translator.time.sleep")
+    @patch(
+        "src.enchant_book_manager.cli_translator._module_config",
+        {"translation": {"max_chunk_retries": 3}},
+    )
     def test_translation_fails_after_max_retries(
         self, mock_sleep, mock_tolog, mock_translator, mock_var_db, mock_get_book
     ):
@@ -155,7 +164,10 @@ class TestChunkRetryMechanism:
         )
 
         # Change to test directory
-        with patch("cli_translator.Path.cwd", return_value=Path(self.test_dir)):
+        with patch(
+            "src.enchant_book_manager.cli_translator.Path.cwd",
+            return_value=Path(self.test_dir),
+        ):
             with patch("sys.exit") as mock_exit:
                 # Since sys.exit will be called, we need to catch it to verify
                 mock_exit.side_effect = SystemExit(1)
@@ -183,11 +195,11 @@ class TestChunkRetryMechanism:
                 # Check sleep was called correctly
                 assert mock_sleep.call_count == 2  # No sleep after last attempt
 
-    @patch("cli_translator.Book.get_by_id")
-    @patch("cli_translator.VARIATION_DB")
-    @patch("cli_translator.translator")
-    @patch("cli_translator.tolog")
-    @patch("cli_translator.time.sleep")
+    @patch("src.enchant_book_manager.cli_translator.Book.get_by_id")
+    @patch("src.enchant_book_manager.cli_translator.VARIATION_DB")
+    @patch("src.enchant_book_manager.cli_translator.translator")
+    @patch("src.enchant_book_manager.cli_translator.tolog")
+    @patch("src.enchant_book_manager.cli_translator.time.sleep")
     def test_empty_translation_triggers_retry(
         self, mock_sleep, mock_tolog, mock_translator, mock_var_db, mock_get_book
     ):
@@ -210,7 +222,10 @@ class TestChunkRetryMechanism:
         )
 
         # Change to test directory
-        with patch("cli_translator.Path.cwd", return_value=Path(self.test_dir)):
+        with patch(
+            "src.enchant_book_manager.cli_translator.Path.cwd",
+            return_value=Path(self.test_dir),
+        ):
             with patch("sys.exit") as mock_exit:
                 save_translated_book(self.book_id)
 
@@ -220,11 +235,11 @@ class TestChunkRetryMechanism:
                 # Should have retried
                 assert mock_translator.translate.call_count == 5
 
-    @patch("cli_translator.Book.get_by_id")
-    @patch("cli_translator.VARIATION_DB")
-    @patch("cli_translator.translator")
-    @patch("cli_translator.tolog")
-    @patch("cli_translator.time.sleep")
+    @patch("src.enchant_book_manager.cli_translator.Book.get_by_id")
+    @patch("src.enchant_book_manager.cli_translator.VARIATION_DB")
+    @patch("src.enchant_book_manager.cli_translator.translator")
+    @patch("src.enchant_book_manager.cli_translator.tolog")
+    @patch("src.enchant_book_manager.cli_translator.time.sleep")
     def test_file_write_error_triggers_retry(
         self, mock_sleep, mock_tolog, mock_translator, mock_var_db, mock_get_book
     ):
@@ -248,15 +263,21 @@ class TestChunkRetryMechanism:
             # Succeed on subsequent attempts
 
         # Change to test directory
-        with patch("cli_translator.Path.cwd", return_value=Path(self.test_dir)):
-            with patch("cli_translator.Path.write_text", side_effect=mock_write_text):
+        with patch(
+            "src.enchant_book_manager.cli_translator.Path.cwd",
+            return_value=Path(self.test_dir),
+        ):
+            with patch(
+                "src.enchant_book_manager.cli_translator.Path.write_text",
+                side_effect=mock_write_text,
+            ):
                 with patch("sys.exit") as mock_exit:
                     save_translated_book(self.book_id)
 
                     # Should not exit (recovers from write error)
                     mock_exit.assert_not_called()
 
-    @patch("cli_translator.Book.get_by_id")
+    @patch("src.enchant_book_manager.cli_translator.Book.get_by_id")
     def test_book_not_found_raises_error(self, mock_get_book):
         """Test that missing book raises ValueError"""
         mock_get_book.return_value = None

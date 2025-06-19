@@ -13,10 +13,10 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # We need to mock these before importing cli_translator
-with patch("cli_translator.ConfigManager"):
-    with patch("cli_translator.ICloudSync"):
-        from cli_translator import ChineseAITranslator
-        from cost_tracker import global_cost_tracker
+with patch("src.enchant_book_manager.cli_translator.ConfigManager"):
+    with patch("src.enchant_book_manager.cli_translator.ICloudSync"):
+        from src.enchant_book_manager.cli_translator import ChineseAITranslator
+        from src.enchant_book_manager.cost_tracker import global_cost_tracker
 
 
 class TestCostTrackingIntegration:
@@ -195,7 +195,9 @@ class TestCostTrackingIntegration:
         )
 
         # Mock global_cost_tracker summary
-        with patch("cost_tracker.global_cost_tracker.get_summary") as mock_summary:
+        with patch(
+            "src.enchant_book_manager.cost_tracker.global_cost_tracker.get_summary"
+        ) as mock_summary:
             mock_summary.return_value = {
                 "total_cost": 0.12345,
                 "total_tokens": 50000,
@@ -323,7 +325,9 @@ class TestCostTrackingIntegration:
         )
 
         # Simulate some usage by mocking global_cost_tracker
-        with patch("cost_tracker.global_cost_tracker.get_summary") as mock_summary:
+        with patch(
+            "src.enchant_book_manager.cost_tracker.global_cost_tracker.get_summary"
+        ) as mock_summary:
             mock_summary.return_value = {
                 "total_cost": 1.0,
                 "total_tokens": 10000,
@@ -398,7 +402,9 @@ class TestCostTrackingIntegration:
         assert "Total Cost: $0.000000" in summary
 
         # Test with very small cost
-        with patch("cost_tracker.global_cost_tracker.get_summary") as mock_summary:
+        with patch(
+            "src.enchant_book_manager.cost_tracker.global_cost_tracker.get_summary"
+        ) as mock_summary:
             mock_summary.return_value = {
                 "total_cost": 0.000001,
                 "total_tokens": 10,

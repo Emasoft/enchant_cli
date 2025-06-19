@@ -24,6 +24,7 @@ from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
 from .common_file_utils import decode_full_file
 from .common_utils import sanitize_filename as common_sanitize_filename
+from .common_yaml_utils import load_safe_yaml
 from .cost_tracker import global_cost_tracker
 from .icloud_sync import ICloudSync, ICloudSyncError
 
@@ -129,15 +130,14 @@ def load_config() -> dict:
         return default_config
     else:
         try:
-            with open(config_path, "r") as config_file:
-                config = yaml.safe_load(config_file)
-                if config is None:
-                    logger.warning(
-                        f"Config file '{config_path}' is empty. Using default configurations."
-                    )
-                    return default_config
-                return config
-        except yaml.YAMLError as e:
+            config = load_safe_yaml(config_path)
+            if not config:  # load_safe_yaml returns {} for empty files
+                logger.warning(
+                    f"Config file '{config_path}' is empty. Using default configurations."
+                )
+                return default_config
+            return config
+        except ValueError as e:
             logger.error(f"Error loading config file: {e}")
             return default_config
         except Exception as e:

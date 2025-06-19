@@ -12,7 +12,7 @@ import tempfile
 import shutil
 
 # Future imports - these don't exist yet but will be implemented
-# from epub_utils import EPUBGenerator, EPUBConfig, ChapterDetector
+# from src.enchant_book_manager.epub_utils import EPUBGenerator, EPUBConfig, ChapterDetector
 # from common_utils import create_epub_with_config
 
 

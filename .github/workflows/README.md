@@ -36,6 +36,18 @@ Dedicated release workflow that runs when a release is published:
 - Builds and verifies distributions
 - Publishes to PyPI using trusted publishing
 
+### super-linter.yml
+Comprehensive linting using GitHub Super-Linter for all file types:
+- **Python**: ruff and mypy with project-specific configurations
+- **YAML**: yamllint for all YAML files
+- **Markdown**: markdown-lint for documentation
+- **Shell**: shellcheck for shell scripts
+- **GitHub Actions**: actionlint for workflow files
+- **JSON**: JSON syntax validation
+- **XML**: XML validation (useful for EPUB internals)
+- Runs on pushes and pull requests
+- Only validates changed files in PRs for efficiency
+
 ## Required Secrets
 
 - `PYPI_API_TOKEN`: Required for publishing to PyPI (used in ci.yml for legacy publishing)
@@ -71,7 +83,22 @@ uv run pytest tests --cov=src/enchant_book_manager
 
 # Test GitHub Actions locally with act
 ./test-github-actions.sh
+
+# Test Super-Linter locally (requires Docker)
+docker run -e RUN_LOCAL=true -e USE_FIND_ALGORITHM=true \
+  -v $PWD:/tmp/lint github/super-linter:v5
 ```
+
+## Linter Configuration
+
+Custom linter configurations are stored in:
+- `.github/linters/` - Super-Linter specific configurations
+  - `.ruff.toml` - Python linting rules
+  - `.mypy.ini` - Type checking configuration
+  - `.markdown-lint.yml` - Markdown style guide
+  - `.shellcheckrc` - Shell script linting rules
+- `.yamllint.yml` - YAML linting rules (repository root)
+- `pyproject.toml` - Main Python project configuration
 
 ## Key Features
 

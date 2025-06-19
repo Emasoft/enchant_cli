@@ -14,7 +14,7 @@ import shutil
 
 # Try to import waiting, but make it optional
 try:
-    import waiting
+    import waiting  # type: ignore[import-not-found]
 
     HAS_WAITING = True
 except ImportError:

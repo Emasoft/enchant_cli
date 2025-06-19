@@ -10,8 +10,8 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from unittest.mock import Mock, patch
-from translation_service import ChineseAITranslator
-from cost_tracker import global_cost_tracker
+from src.enchant_book_manager.translation_service import ChineseAITranslator
+from src.enchant_book_manager.cost_tracker import global_cost_tracker
 
 
 def test_remote_cost_tracking():

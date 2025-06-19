@@ -18,10 +18,10 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
 
     def test_renamenovels_uses_openrouter_endpoint(self):
         """Test that renamenovels uses OpenRouter API endpoint"""
-        from renamenovels import make_openai_request
+        from src.enchant_book_manager.renamenovels import make_openai_request
 
         # Mock the requests.post to capture the URL
-        with patch("renamenovels.requests.post") as mock_post:
+        with patch("src.enchant_book_manager.renamenovels.requests.post") as mock_post:
             mock_response = Mock()
             mock_response.json.return_value = {
                 "choices": [{"message": {"content": '{"test": "data"}'}}],
@@ -44,7 +44,7 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
 
     def test_translation_service_uses_openrouter_endpoint(self):
         """Test that translation service uses OpenRouter API endpoint"""
-        from translation_service import ChineseAITranslator
+        from src.enchant_book_manager.translation_service import ChineseAITranslator
 
         translator = ChineseAITranslator(use_remote=True, api_key="test_key")
 
@@ -55,7 +55,7 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
 
     def test_model_name_mapping(self):
         """Test that OpenAI model names are mapped correctly"""
-        from renamenovels import OPENROUTER_MODEL_MAPPING
+        from src.enchant_book_manager.renamenovels import OPENROUTER_MODEL_MAPPING
 
         # Test known mappings
         self.assertEqual(OPENROUTER_MODEL_MAPPING["gpt-4o-mini"], "openai/gpt-4o-mini")
@@ -77,7 +77,7 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
 
     def test_cost_tracking_unified(self):
         """Test that cost tracking uses OpenRouter's response format"""
-        from translation_service import ChineseAITranslator
+        from src.enchant_book_manager.translation_service import ChineseAITranslator
 
         translator = ChineseAITranslator(use_remote=True, api_key="test_key")
 
@@ -113,7 +113,9 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
 
         # Ensure we're using OpenRouter's direct cost info
         # since OpenRouter provides costs directly
-        with patch("renamenovels.make_openai_request") as mock_request:
+        with patch(
+            "src.enchant_book_manager.renamenovels.make_openai_request"
+        ) as mock_request:
             mock_request.return_value = {
                 "choices": [
                     {"message": {"content": '{"novel_title_english": "Test"}'}}

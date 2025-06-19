@@ -256,7 +256,7 @@ def extract_code_blocks(html_str: str) -> Tuple[str, List[str]]:
     code_blocks = []
     counter = 0
 
-    def replace_code(match):
+    def replace_code(match: re.Match[str]) -> str:
         nonlocal counter
         code_blocks.append(match.group(0))
         placeholder = f"__CODE_BLOCK_{counter}__"
@@ -289,7 +289,7 @@ def extract_inline_code(text: str) -> Tuple[str, List[str]]:
     code_snippets = []
     counter = 0
 
-    def replace_inline(match):
+    def replace_inline(match: re.Match[str]) -> str:
         nonlocal counter
         code_snippets.append(match.group(0))
         placeholder = f"__INLINE_CODE_{counter}__"

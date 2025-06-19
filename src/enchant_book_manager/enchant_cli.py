@@ -65,8 +65,8 @@ except ImportError:
     epub_available = False
 
 # Global variables - will be initialized in main()
-tolog = None
-icloud_sync = None
+tolog: Optional[logging.Logger] = None
+icloud_sync: Optional[ICloudSync] = None
 # Cost tracking is now handled by global_cost_tracker from cost_tracker module
 
 ### ORCHESTRATION FUNCTIONS #####
@@ -120,7 +120,8 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
     ):
         current_path = Path(progress["phases"]["renaming"]["result"])
         if current_path.exists():
-            tolog.info(f"Resuming with renamed file: {current_path.name}")
+            if tolog:
+                tolog.info(f"Resuming with renamed file: {current_path.name}")
         else:
             current_path = file_path
 
@@ -517,7 +518,10 @@ def setup_configuration() -> Tuple[ConfigManager, Dict[str, Any]]:
 
         # Apply preset if specified
         if preset_args.preset:
-            config = config_manager.apply_preset(preset_args.preset)
+            if not config_manager.apply_preset(preset_args.preset):
+                print(f"Failed to apply preset: {preset_args.preset}")
+                sys.exit(1)
+            config = config_manager.config
 
         return config_manager, config
     except ValueError as e:
@@ -549,15 +553,16 @@ def setup_logging(config: Dict[str, Any]) -> logging.Logger:
                 )
             # Continue without file logging
 
+    return tolog
+
 
 def setup_global_services(config: Dict[str, Any]) -> None:
     """Initialize global services like iCloud sync."""
-    global icloud_sync, MAXCHARS
+    global icloud_sync
     icloud_sync = ICloudSync(enabled=config["icloud"]["enabled"])
     # Cost tracking is now handled by global_cost_tracker
 
-    # Update MAXCHARS from config
-    MAXCHARS = config["text_processing"]["max_chars_per_chunk"]
+    # Note: MAXCHARS is handled by cli_translator module separately
 
 
 def main() -> None:
@@ -579,8 +584,9 @@ def main() -> None:
         )
 
     # Set up signal handling for graceful termination
-    def signal_handler(sig, frame):
-        tolog.info("Interrupt received. Exiting gracefully.")
+    def signal_handler(sig: int, frame: Any) -> None:
+        if tolog:
+            tolog.info("Interrupt received. Exiting gracefully.")
         sys.exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)

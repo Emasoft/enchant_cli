@@ -404,7 +404,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
         translation_response.raise_for_status = Mock()
 
         # Patch ICLOUD first to avoid iCloud sync errors
-        import renamenovels
+        from src.enchant_book_manager import renamenovels
 
         original_icloud = renamenovels.ICLOUD
         renamenovels.ICLOUD = False
@@ -453,9 +453,14 @@ They needed to venture deep into the forest and clear out the magical beasts the
 
             # Patch make_openai_request directly to avoid any issues
             with (
-                patch("renamenovels.make_openai_request") as mock_openai_request,
+                patch(
+                    "src.enchant_book_manager.renamenovels.make_openai_request"
+                ) as mock_openai_request,
                 patch("requests.post", side_effect=mock_requests_post),
-                patch("enchant_cli.translate_novel", side_effect=mock_translate_novel),
+                patch(
+                    "src.enchant_book_manager.enchant_cli.translate_novel",
+                    side_effect=mock_translate_novel,
+                ),
             ):
                 # Set the return value for make_openai_request
                 mock_openai_request.return_value = mock_openai_responses["修炼至尊.txt"]
@@ -485,7 +490,9 @@ They needed to venture deep into the forest and clear out the magical beasts the
                         os.chdir(temp_workspace)
 
                         # Import and test after patching
-                        from enchant_cli import main as enchant_main
+                        from src.enchant_book_manager.enchant_cli import (
+                            main as enchant_main,
+                        )
 
                         try:
                             enchant_main()
@@ -514,7 +521,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
         config_file = temp_workspace / "test_config.yml"
 
         # Patch ICLOUD first to avoid iCloud sync errors
-        import renamenovels
+        from src.enchant_book_manager import renamenovels
 
         original_icloud = renamenovels.ICLOUD
         renamenovels.ICLOUD = False
@@ -578,7 +585,10 @@ They needed to venture deep into the forest and clear out the magical beasts the
                 return mock_openai_responses[novel]
 
             with (
-                patch("renamenovels.make_openai_request", side_effect=mock_make_openai),
+                patch(
+                    "src.enchant_book_manager.renamenovels.make_openai_request",
+                    side_effect=mock_make_openai,
+                ),
                 patch("requests.post", side_effect=mock_requests_post),
             ):
                 # Test batch processing
@@ -602,7 +612,9 @@ They needed to venture deep into the forest and clear out the magical beasts the
                     try:
                         os.chdir(temp_workspace)
 
-                        from enchant_cli import main as enchant_main
+                        from src.enchant_book_manager.enchant_cli import (
+                            main as enchant_main,
+                        )
 
                         try:
                             enchant_main()
@@ -705,7 +717,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             yaml.dump(config_data, f, default_flow_style=False, allow_unicode=True)
 
         # Patch ICLOUD first to avoid iCloud sync errors
-        import renamenovels
+        from src.enchant_book_manager import renamenovels
 
         original_icloud = renamenovels.ICLOUD
         renamenovels.ICLOUD = False
@@ -728,7 +740,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             ]
 
             with patch("sys.argv", cmd[1:]):
-                from enchant_cli import main as enchant_main
+                from src.enchant_book_manager.enchant_cli import main as enchant_main
 
                 try:
                     enchant_main()
@@ -764,7 +776,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             ]
 
             with patch("sys.argv", cmd[1:]):
-                from enchant_cli import main as enchant_main
+                from src.enchant_book_manager.enchant_cli import main as enchant_main
 
                 try:
                     enchant_main()
@@ -820,7 +832,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
         ]
 
         # Patch ICLOUD first to avoid iCloud sync errors
-        import renamenovels
+        from src.enchant_book_manager import renamenovels
 
         original_icloud = renamenovels.ICLOUD
         renamenovels.ICLOUD = False
@@ -840,7 +852,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
                 ]
 
             with patch("sys.argv", cmd[1:]):
-                from enchant_cli import main as enchant_main
+                from src.enchant_book_manager.enchant_cli import main as enchant_main
 
                 try:
                     enchant_main()
@@ -905,7 +917,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
         config_file = temp_workspace / "test_config.yml"
 
         # Patch ICLOUD first to avoid iCloud sync errors
-        import renamenovels
+        from src.enchant_book_manager import renamenovels
 
         original_icloud = renamenovels.ICLOUD
         renamenovels.ICLOUD = False
@@ -926,7 +938,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             ]
 
             with patch("sys.argv", cmd[1:]):
-                from enchant_cli import main as enchant_main
+                from src.enchant_book_manager.enchant_cli import main as enchant_main
 
                 try:
                     enchant_main()

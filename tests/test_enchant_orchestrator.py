@@ -25,10 +25,10 @@ import json
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from enchant_cli import process_novel_unified  # noqa: E402
-from renamenovels import process_novel_file  # noqa: E402
-from cli_translator import translate_novel  # noqa: E402
-from make_epub import create_epub_from_chapters  # noqa: E402
+from src.enchant_book_manager.enchant_cli import process_novel_unified  # noqa: E402
+from src.enchant_book_manager.renamenovels import process_novel_file  # noqa: E402
+from src.enchant_book_manager.cli_translator import translate_novel  # noqa: E402
+from src.enchant_book_manager.make_epub import create_epub_from_chapters  # noqa: E402
 
 
 class TestEnChANTOrchestrator:
@@ -176,7 +176,9 @@ class TestEnChANTOrchestrator:
         """Test Phase 1: Novel renaming with metadata extraction"""
 
         # Mock make_openai_request directly to avoid API calls
-        with patch("renamenovels.make_openai_request") as mock_openai_request:
+        with patch(
+            "src.enchant_book_manager.renamenovels.make_openai_request"
+        ) as mock_openai_request:
             mock_openai_request.return_value = mock_openai_response
 
             # Test renaming
@@ -362,7 +364,10 @@ class TestEnChANTOrchestrator:
 
         with (
             patch("requests.post") as mock_post,
-            patch("enchant_cli.translate_novel", side_effect=mock_translate_novel),
+            patch(
+                "src.enchant_book_manager.enchant_cli.translate_novel",
+                side_effect=mock_translate_novel,
+            ),
         ):
             # Setup mock responses for renaming
             mock_post.return_value.json.return_value = mock_openai_response
@@ -416,7 +421,9 @@ class TestEnChANTOrchestrator:
         args.max_chars = 2000
         args.remote = False
 
-        with patch("enchant_cli.translate_novel") as mock_translate:
+        with patch(
+            "src.enchant_book_manager.enchant_cli.translate_novel"
+        ) as mock_translate:
             mock_translate.return_value = True
 
             success = process_novel_unified(chinese_test_novel, args)
@@ -429,7 +436,9 @@ class TestEnChANTOrchestrator:
         args.skip_translating = True
         args.skip_epub = False
 
-        with patch("renamenovels.process_novel_file") as mock_rename:
+        with patch(
+            "src.enchant_book_manager.renamenovels.process_novel_file"
+        ) as mock_rename:
             mock_rename.return_value = (True, chinese_test_novel, {})
 
             success = process_novel_unified(chinese_test_novel, args)
@@ -441,8 +450,12 @@ class TestEnChANTOrchestrator:
         args.skip_epub = True
 
         with (
-            patch("renamenovels.process_novel_file") as mock_rename,
-            patch("cli_translator.translate_novel") as mock_translate,
+            patch(
+                "src.enchant_book_manager.renamenovels.process_novel_file"
+            ) as mock_rename,
+            patch(
+                "src.enchant_book_manager.cli_translator.translate_novel"
+            ) as mock_translate,
         ):
             mock_rename.return_value = (True, chinese_test_novel, {})
             mock_translate.return_value = True
@@ -482,7 +495,9 @@ class TestEnChANTOrchestrator:
         args.max_chars = 2000
         args.remote = False
 
-        with patch("enchant_cli.translate_novel") as mock_translate:
+        with patch(
+            "src.enchant_book_manager.enchant_cli.translate_novel"
+        ) as mock_translate:
             mock_translate.return_value = True
 
             success = process_novel_unified(chinese_test_novel, args)
@@ -507,7 +522,9 @@ class TestEnChANTOrchestrator:
         args.openai_api_key = "test_key"
 
         # Test renaming failure
-        with patch("renamenovels.process_novel_file") as mock_rename:
+        with patch(
+            "src.enchant_book_manager.renamenovels.process_novel_file"
+        ) as mock_rename:
             mock_rename.side_effect = Exception("Renaming failed")
 
             success = process_novel_unified(chinese_test_novel, args)
@@ -515,8 +532,12 @@ class TestEnChANTOrchestrator:
 
         # Test translation failure
         with (
-            patch("renamenovels.process_novel_file") as mock_rename,
-            patch("cli_translator.translate_novel") as mock_translate,
+            patch(
+                "src.enchant_book_manager.renamenovels.process_novel_file"
+            ) as mock_rename,
+            patch(
+                "src.enchant_book_manager.cli_translator.translate_novel"
+            ) as mock_translate,
         ):
             mock_rename.return_value = (True, chinese_test_novel, {})
             mock_translate.side_effect = Exception("Translation failed")
@@ -548,7 +569,9 @@ class TestEnChANTOrchestrator:
         args.max_chars = 2000
         args.remote = False
 
-        with patch("cli_translator.translate_novel") as mock_translate:
+        with patch(
+            "src.enchant_book_manager.cli_translator.translate_novel"
+        ) as mock_translate:
             mock_translate.return_value = True
 
             # This would normally be called by enchant_cli.process_batch()

@@ -13,7 +13,7 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from translation_service import ChineseAITranslator
+from src.enchant_book_manager.translation_service import ChineseAITranslator
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

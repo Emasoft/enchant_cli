@@ -1,0 +1,15 @@
+2025-06-19 14:31:31,406 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpqy6fyld_/修炼高手.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpqy6fyld_/Cultivation Master by Unknown Author (Weizhi Zuozhe) - 修炼高手 by 未知作者.txt'
+2025-06-19 14:31:37,774 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-19 14:31:37,774 - INFO - OpenRouter API request successful.
+2025-06-19 16:17:08,000 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpw11q6ibq/修炼高手.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpw11q6ibq/Cultivation Master by Unknown Author (Weizhi Zuozhe) - 修炼高手 by 未知作者.txt'
+2025-06-19 16:17:14,386 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-19 16:17:14,386 - INFO - OpenRouter API request successful.
+2025-06-19 17:04:52,733 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpomqnc9ra/修炼至尊.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpomqnc9ra/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-19 17:04:52,790 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp95z65_ds/修炼至尊.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp95z65_ds/Cultivation Supreme by Unknown Author (Weizhi Zuozhe) - 修炼至尊 by 未知作者.txt'
+2025-06-19 17:04:52,814 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp95z65_ds/都市异能王.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp95z65_ds/Urban Ability King by Unknown Author (Weizhi Zuozhe) - 都市异能王 by 未知作者.txt'
+2025-06-19 17:04:52,838 - INFO - Renaming '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp95z65_ds/魔法学院.txt' to '/private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp95z65_ds/Magic Academy by Unknown Author (Weizhi Zuozhe) - 魔法学院 by 未知作者.txt'
+2025-06-19 17:04:52,883 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-19 17:04:53,008 - ERROR - Error processing novel file /var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmp3lynnc01/魔法学院.txt: 401 Client Error: Unauthorized for url: https://openrouter.ai/api/v1/chat/completions
+2025-06-19 17:05:32,360 - INFO - Renaming '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpock88knj/修炼高手.txt' to '/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/tmpock88knj/Cultivation Master by Unknown Author (Weizhi Zuozhe) - 修炼高手 by 未知作者.txt'
+2025-06-19 17:05:38,771 - INFO - Mapped model 'gpt-4o-mini' to OpenRouter model 'openai/gpt-4o-mini'
+2025-06-19 17:05:38,771 - INFO - OpenRouter API request successful.

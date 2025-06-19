@@ -8,7 +8,7 @@ Tests for optimized database module
 import unittest
 import re
 
-from epub_db_optimized import (
+from src.enchant_book_manager.epub_db_optimized import (
     setup_database,
     close_database,
     import_text_optimized,

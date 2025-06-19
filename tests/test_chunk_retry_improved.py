@@ -14,12 +14,12 @@ import shutil
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from cli_translator import (
+from src.enchant_book_manager.cli_translator import (
     save_translated_book,
     DEFAULT_MAX_CHUNK_RETRIES,
     MAX_RETRY_WAIT_SECONDS,
 )
-from cli_translator import Book, chunk
+from src.enchant_book_manager.cli_translator import Book, chunk
 
 
 class BaseChunkRetryTest:
@@ -76,13 +76,13 @@ class BaseChunkRetryTest:
     def _setup_patches(self):
         """Setup common patches for all tests"""
         # Book.get_by_id
-        book_patch = patch("cli_translator.Book.get_by_id")
+        book_patch = patch("src.enchant_book_manager.cli_translator.Book.get_by_id")
         self.mock_get_book = book_patch.start()
         self.mock_get_book.return_value = self.mock_book
         self.patches.append(book_patch)
 
         # VARIATION_DB
-        var_patch = patch("cli_translator.VARIATION_DB")
+        var_patch = patch("src.enchant_book_manager.cli_translator.VARIATION_DB")
         self.mock_var_db = var_patch.start()
         self.mock_var_db.get.side_effect = lambda var_id: self.mock_variations.get(
             var_id
@@ -90,7 +90,7 @@ class BaseChunkRetryTest:
         self.patches.append(var_patch)
 
         # translator
-        trans_patch = patch("cli_translator.translator")
+        trans_patch = patch("src.enchant_book_manager.cli_translator.translator")
         self.mock_translator = trans_patch.start()
         # Configure attributes properly to avoid MagicMock comparison issues
         self.mock_translator.configure_mock(
@@ -99,12 +99,15 @@ class BaseChunkRetryTest:
         self.patches.append(trans_patch)
 
         # tolog
-        log_patch = patch("cli_translator.tolog")
+        log_patch = patch("src.enchant_book_manager.cli_translator.tolog")
         self.mock_tolog = log_patch.start()
         self.patches.append(log_patch)
 
         # Path.cwd
-        cwd_patch = patch("cli_translator.Path.cwd", return_value=Path(self.test_dir))
+        cwd_patch = patch(
+            "src.enchant_book_manager.cli_translator.Path.cwd",
+            return_value=Path(self.test_dir),
+        )
         cwd_patch.start()
         self.patches.append(cwd_patch)
 
@@ -133,7 +136,7 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
             ]
             assert len(success_logs) == 3
 
-    @patch("cli_translator.time.sleep")
+    @patch("src.enchant_book_manager.cli_translator.time.sleep")
     def test_translation_retry_on_failure(self, mock_sleep):
         """Test translation retries on failure and succeeds"""
         # First chunk fails twice then succeeds
@@ -159,8 +162,11 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
             mock_sleep.assert_any_call(2)  # First retry
             mock_sleep.assert_any_call(4)  # Second retry
 
-    @patch("cli_translator.time.sleep")
-    @patch("cli_translator._module_config", {"translation": {"max_chunk_retries": 3}})
+    @patch("src.enchant_book_manager.cli_translator.time.sleep")
+    @patch(
+        "src.enchant_book_manager.cli_translator._module_config",
+        {"translation": {"max_chunk_retries": 3}},
+    )
     def test_translation_fails_after_max_retries(self, mock_sleep):
         """Test program exits when all retry attempts fail"""
         # All attempts fail
@@ -192,7 +198,7 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
             # Check sleep was called correctly
             assert mock_sleep.call_count == 2  # No sleep after last attempt
 
-    @patch("cli_translator.time.sleep")
+    @patch("src.enchant_book_manager.cli_translator.time.sleep")
     def test_empty_translation_triggers_retry(self, mock_sleep):
         """Test that empty or whitespace-only translations trigger retry"""
         # Return empty/whitespace translations then valid ones
@@ -213,11 +219,11 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
             # Should have retried
             assert self.mock_translator.translate.call_count == 5
 
-    @patch("cli_translator.time.sleep")
+    @patch("src.enchant_book_manager.cli_translator.time.sleep")
     def test_constants_used_correctly(self, mock_sleep):
         """Test that constants are used instead of magic numbers"""
         # Check that DEFAULT_MAX_CHUNK_RETRIES is used when no config
-        with patch("cli_translator._module_config", None):
+        with patch("src.enchant_book_manager.cli_translator._module_config", None):
             # All attempts fail to trigger the retry logic
             self.mock_translator.translate.side_effect = Exception("Test error")
 
@@ -233,12 +239,13 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
                     == DEFAULT_MAX_CHUNK_RETRIES
                 )
 
-    @patch("cli_translator.time.sleep")
+    @patch("src.enchant_book_manager.cli_translator.time.sleep")
     def test_max_wait_time_respected(self, mock_sleep):
         """Test that exponential backoff respects MAX_RETRY_WAIT_SECONDS"""
         # Need many retries to test max wait time
         with patch(
-            "cli_translator._module_config", {"translation": {"max_chunk_retries": 10}}
+            "src.enchant_book_manager.cli_translator._module_config",
+            {"translation": {"max_chunk_retries": 10}},
         ):
             # Fail 9 times then succeed
             errors = [Exception("Test error")] * 9

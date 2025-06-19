@@ -22,12 +22,12 @@ from typing import List, Tuple, Optional, Callable, Pattern, TYPE_CHECKING
 if TYPE_CHECKING:
     pass
 
-from peewee import Model, IntegerField, TextField, BooleanField, AutoField, fn, chunked
-from playhouse.sqlite_ext import SqliteExtDatabase
+from peewee import Model, IntegerField, TextField, BooleanField, AutoField, fn, chunked  # type: ignore[import-untyped]
+from playhouse.sqlite_ext import SqliteExtDatabase  # type: ignore[import-untyped]
 
 
 # Database instance - in-memory for maximum speed
-db = SqliteExtDatabase(
+db = SqliteExtDatabase(  # type: ignore[no-untyped-call]
     ":memory:",
     pragmas={
         "journal_mode": "memory",

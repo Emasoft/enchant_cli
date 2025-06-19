@@ -20,7 +20,6 @@
 
 from __future__ import annotations
 
-import codecs
 import datetime as dt
 import enum
 import errno
@@ -43,7 +42,6 @@ from typing import (
 
 import filelock
 import yaml
-from chardet.universaldetector import UniversalDetector
 
 from .common_print_utils import safe_print
 from .common_text_utils import (
@@ -57,6 +55,10 @@ from .common_text_utils import (
 )
 from .common_utils import sanitize_filename as common_sanitize_filename
 from .common_yaml_utils import load_safe_yaml as load_yaml_safe
+from .common_file_utils import (
+    decode_full_file,
+    detect_file_encoding as common_detect_encoding,
+)
 from .config_manager import ConfigManager
 from .cost_tracker import global_cost_tracker
 from .icloud_sync import ICloudSync, ensure_synced, prepare_for_write
@@ -321,7 +323,7 @@ def decode_input_file_content(input_file: Path) -> str:
     """
     Decode file content with automatic encoding detection.
 
-    Tries to detect encoding and read file, with fallback to GB18030.
+    Uses common file utilities for consistent encoding detection across modules.
     Ensures file is synced from iCloud if needed.
 
     Args:
@@ -333,41 +335,16 @@ def decode_input_file_content(input_file: Path) -> str:
     # Ensure file is synced from iCloud if needed
     input_file = ensure_synced(input_file)
 
-    encoding = detect_file_encoding(input_file)
-    if tolog is not None:
-        tolog.debug(f"\nDetected encoding: {encoding}")
-
-    try:
-        with codecs.open(input_file, "r", encoding=encoding) as f:
-            content = f.read()
-    except Exception as e:
-        if tolog is not None:
-            tolog.debug(f"\nAn error occurred processing file '{str(input_file)}': {e}")
-            tolog.debug("Defaulting to GB18030 encoding.")
-        encoding = "GB18030"
-        try:
-            with codecs.open(input_file, "r", encoding=encoding) as f:
-                content = f.read()
-        except Exception as e:
-            if tolog is not None:
-                tolog.debug(
-                    f"\nAn error occurred processing file '{str(input_file)}': {e}"
-                )
-                tolog.debug(
-                    "Attempt to decode using the detected encoding, replacing errors with the error character."
-                )
-            with open(input_file, "rb") as file:
-                content_bytes = file.read()
-                # Attempt to decode using the detected encoding, replacing errors with the error character
-                content = content_bytes.decode(encoding, errors="replace")
-
-    return content
+    # Use common file utility for decoding
+    return decode_full_file(input_file, logger=tolog)
 
 
-# try to detect the encoding of chinese text files
+# Wrapper for common encoding detection for backward compatibility
 def detect_file_encoding(file_path: Path) -> str:
     """
-    Detect the encoding of a file using chardet.
+    Detect the encoding of a file.
+
+    Uses common file utilities for consistent encoding detection.
 
     Args:
         file_path: Path to the file to analyze
@@ -378,20 +355,9 @@ def detect_file_encoding(file_path: Path) -> str:
     # Ensure file is synced from iCloud if needed
     file_path = ensure_synced(file_path)
 
-    detector = UniversalDetector()
-    try:
-        with file_path.open("rb") as f:
-            for line in f:
-                detector.feed(line)
-                if detector.done:
-                    break
-            detector.close()
-            return detector.result["encoding"]
-    except (IOError, OSError, PermissionError) as e:
-        if tolog is not None:
-            tolog.error(f"Error detecting encoding for {file_path}: {e}")
-        # Default to UTF-8 if detection fails
-        return "utf-8"
+    # Use common detection with universal method for compatibility
+    encoding, _ = common_detect_encoding(file_path, method="universal", logger=tolog)
+    return encoding
 
 
 # Function to extract title and author info from foreign novels filenames (chinese, japanese, etc.)

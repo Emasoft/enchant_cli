@@ -9,6 +9,8 @@ on:
     types: [created]
 
 jobs:
+  # Note: Comprehensive linting is also performed by Super-Linter in super-linter.yml
+  # This job focuses on Python-specific linting with our project's exact configuration
   lint:
     runs-on: ubuntu-latest
 

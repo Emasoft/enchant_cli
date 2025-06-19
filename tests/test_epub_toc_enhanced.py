@@ -10,7 +10,11 @@ import sys
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from epub_toc_enhanced import EnhancedTocBuilder, TocEntry, build_enhanced_toc_ncx
+from src.enchant_book_manager.epub_toc_enhanced import (
+    EnhancedTocBuilder,
+    TocEntry,
+    build_enhanced_toc_ncx,
+)
 
 
 class TestEnhancedTocBuilder(unittest.TestCase):

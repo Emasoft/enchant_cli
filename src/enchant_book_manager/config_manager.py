@@ -12,6 +12,8 @@ from typing import Dict, Any, Optional, List
 import re
 import copy
 
+from .common_yaml_utils import load_safe_yaml
+
 # Default configuration template with extensive comments
 DEFAULT_CONFIG_TEMPLATE = """# ENCHANT Configuration File
 # ========================
@@ -391,7 +393,7 @@ class ConfigManager:
         """
         self.logger = logger or logging.getLogger(__name__)
         self.config_path = config_path or Path("enchant_config.yml")
-        self._config_lines = []  # Store file lines for error reporting
+        self._config_lines: List[str] = []  # Store file lines for error reporting
         self.config = self._load_config()
         self.active_preset = None
 
@@ -407,7 +409,9 @@ class ConfigManager:
             # First, try to load and parse the YAML
             with open(self.config_path, "r", encoding="utf-8") as f:
                 file_content = f.read()
-                config = yaml.safe_load(file_content)
+
+            # Use common YAML loading utility
+            config = load_safe_yaml(self.config_path)
 
             if config is None:
                 self.logger.warning("Configuration file is empty. Using defaults.")

@@ -13,16 +13,16 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import tenacity
 
 # Import modules before modifying them
-from enchant_book_manager.translation_service import (
+from src.enchant_book_manager.translation_service import (
     ChineseAITranslator,
     is_latin_charset,
 )
-from enchant_book_manager.common_text_utils import (
+from src.enchant_book_manager.common_text_utils import (
     clean,
     limit_repeated_chars,
     remove_html_markup,
 )
-from enchant_book_manager.cost_tracker import global_cost_tracker
+from src.enchant_book_manager.cost_tracker import global_cost_tracker
 
 
 def no_retry_call(self, fn, *args, **kwargs):

@@ -13,7 +13,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from common_text_utils import (
+from src.enchant_book_manager.common_text_utils import (
     clean,
     replace_repeated_chars,
     limit_repeated_chars,

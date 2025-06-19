@@ -1,0 +1,29 @@
+# Ruff configuration for Super-Linter
+# This extends the main pyproject.toml configuration
+
+extend = "../../pyproject.toml"
+
+[lint]
+# Additional ignores for CI environment
+extend-ignore = [
+    "E203",  # Whitespace before ':'
+    "E402",  # Module level import not at top of file
+    "E501",  # Line too long (handled by formatter)
+    "E266",  # Too many leading '#' for block comment
+    "W505",  # Doc line too long
+    "F841",  # Local variable assigned but never used
+    "F842",  # Local variable annotated but never used
+    "F401",  # Module imported but unused
+    "W293",  # Blank line contains whitespace
+    "I001",  # Import block is un-sorted or un-formatted
+    "UP015", # Unnecessary open mode parameters
+    "C901",  # Function is too complex
+    "W291",  # Trailing whitespace
+]
+
+[format]
+# Ensure consistent formatting
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

@@ -13,7 +13,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from make_epub import (
+from src.enchant_book_manager.make_epub import (
     ensure_dir_readable,
     ensure_output_ok,
     ensure_cover_ok,

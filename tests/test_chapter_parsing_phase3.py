@@ -115,7 +115,8 @@ class TestChapterParsingPhase3:
             # Using simplified syntax where --translated implies skip flags
             cmd = [
                 sys.executable,
-                str(project_root / "enchant_cli.py"),
+                "-m",
+                "enchant_book_manager.enchant_cli",
                 "--translated",
                 str(sample_novel_path),
             ]

@@ -37,10 +37,10 @@ class CostTracker:
         """
         with self._lock:
             # OpenRouter provides cost directly
-            cost = usage.get("cost", 0.0)
-            prompt_tokens = usage.get("prompt_tokens", 0)
-            completion_tokens = usage.get("completion_tokens", 0)
-            total_tokens = usage.get("total_tokens", 0)
+            cost = float(usage.get("cost", 0.0))
+            prompt_tokens = int(usage.get("prompt_tokens", 0))
+            completion_tokens = int(usage.get("completion_tokens", 0))
+            total_tokens = int(usage.get("total_tokens", 0))
 
             if cost > 0:
                 self.total_cost += cost
