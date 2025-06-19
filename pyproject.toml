@@ -116,4 +116,5 @@ dev = [
     "pre-commit>=4.0.1",
     "deptry>=0.23.0",
     "pip-audit>=2.7.3",
+    "yamllint>=1.35.1",
 ]

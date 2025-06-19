@@ -16,48 +16,60 @@ jobs:
       url: https://pypi.org/p/enchant-book-manager
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        enable-cache: true
-        cache-dependency-glob: "uv.lock"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-    - name: Set up Python environment
-      run: |
-        uv python install 3.12
-        uv sync --all-extras
+      - name: Set up Python environment
+        run: |
+          uv python install 3.12
+          uv sync --all-extras
 
-    - name: Run all quality checks
-      run: |
-        # Lint checks
-        uv run ruff check src tests
-        uv run ruff format --check src tests
+      - name: Install actionlint
+        run: |
+          mkdir -p ~/.local/bin
+          curl -L "https://github.com/rhysd/actionlint/releases/latest/download/actionlint_$(uname -s | tr '[:upper:]' '[:lower:]')_amd64.tar.gz" | tar xz -C ~/.local/bin
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-        # Type checking
-        uv run mypy src --strict --ignore-missing-imports
+      - name: Run all quality checks
+        run: |
+          # Lint checks
+          uv run ruff check src tests
+          uv run ruff format --check src tests
 
-        # Dependency checking
-        uv run deptry .
+          # Type checking
+          uv run mypy src --strict --ignore-missing-imports
 
-        # Security audit
-        uv run pip-audit
+          # Dependency checking
+          uv run deptry .
 
-    - name: Run tests
-      run: |
-        uv run pytest tests --cov=src/enchant_book_manager --cov-report=xml
+          # Security audit
+          uv run pip-audit
 
-    - name: Build distributions
-      run: |
-        uv build
+          # YAML linting
+          uv run yamllint . --strict
 
-        # Verify the distributions
-        ls -la dist/
-        uv run python -m twine check dist/*
+          # GitHub Actions linting
+          actionlint
 
-    - name: Publish to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        skip-existing: true
-        verbose: true
+      - name: Run tests
+        run: |
+          uv run pytest tests --cov=src/enchant_book_manager --cov-report=xml
+
+      - name: Build distributions
+        run: |
+          uv build
+
+          # Verify the distributions
+          ls -la dist/
+          uv run python -m twine check dist/*
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+          verbose: true

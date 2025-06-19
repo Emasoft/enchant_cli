@@ -26,10 +26,12 @@ Runs all pre-commit hooks on pull requests and pushes to main:
 - Mypy for type checking
 - Deptry for dependency checking
 - Pip-audit for security vulnerability scanning
+- Yamllint for YAML file validation
+- Actionlint for GitHub Actions workflow validation
 
 ### release.yml
 Dedicated release workflow that runs when a release is published:
-- Runs all quality checks (lint, type check, dependency check, security audit)
+- Runs all quality checks (lint, type check, dependency check, security audit, YAML lint, actionlint)
 - Executes full test suite with coverage
 - Builds and verifies distributions
 - Publishes to PyPI using trusted publishing
@@ -61,9 +63,14 @@ uv run deptry .
 uv run mypy src --strict
 uv run ruff check src tests
 uv run pip-audit
+uv run yamllint .
+actionlint
 
 # Run tests with coverage
 uv run pytest tests --cov=src/enchant_book_manager
+
+# Test GitHub Actions locally with act
+./test-github-actions.sh
 ```
 
 ## Key Features

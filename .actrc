@@ -1,0 +1,24 @@
+# Act configuration for local GitHub Actions testing
+# Uses the official GitHub Actions runner images
+
+# Use the medium-sized runner image which includes most tools
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+-P ubuntu-22.04=catthehacker/ubuntu:act-22.04
+-P ubuntu-20.04=catthehacker/ubuntu:act-20.04
+
+# Enable verbose logging for debugging
+--verbose
+
+# Use Docker to match GitHub Actions environment
+--container-architecture linux/amd64
+
+# Set environment variables for uv
+--env UV_CACHE_DIR=/tmp/.uv-cache
+--env UV_TOOL_DIR=/tmp/.uv-tools
+--env UV_PYTHON_INSTALL_DIR=/tmp/.uv-python
+
+# Mount the current directory
+--bind
+
+# Reuse containers between runs for faster execution
+--reuse

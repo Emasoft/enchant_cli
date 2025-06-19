@@ -55,3 +55,19 @@ repos:
         language: system
         always_run: true
         pass_filenames: false
+
+      # YAML linting with yamllint
+      - id: yamllint
+        name: yamllint
+        entry: uv run --frozen yamllint
+        language: system
+        types: [yaml]
+        args: [-c, .yamllint]
+
+      # GitHub Actions linting with actionlint
+      - id: actionlint
+        name: actionlint
+        entry: actionlint
+        language: system
+        files: ^\.github/workflows/.*\.ya?ml$
+        pass_filenames: true

@@ -2,40 +2,40 @@ name: Dependency Check
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   deptry:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        enable-cache: true
-        cache-dependency-glob: "uv.lock"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-    - name: Set up Python environment
-      run: |
-        uv python install 3.12
-        uv sync --all-extras
+      - name: Set up Python environment
+        run: |
+          uv python install 3.12
+          uv sync --all-extras
 
-    - name: Run deptry
-      run: uv run deptry .
+      - name: Run deptry
+        run: uv run deptry .
 
-    - name: Generate deptry report
-      if: always()
-      run: |
-        uv run deptry . --json-output .deptry.json || true
+      - name: Generate deptry report
+        if: always()
+        run: |
+          uv run deptry . --json-output .deptry.json || true
 
-    - name: Upload deptry report
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: deptry-report
-        path: .deptry.json
-        retention-days: 7
+      - name: Upload deptry report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deptry-report
+          path: .deptry.json
+          retention-days: 7

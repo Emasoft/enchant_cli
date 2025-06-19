@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   release:
     types: [created]
 
@@ -13,72 +13,84 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        enable-cache: true
-        cache-dependency-glob: "uv.lock"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-    - name: Set up Python environment
-      run: |
-        uv python install 3.12
-        uv sync --all-extras
+      - name: Set up Python environment
+        run: |
+          uv python install 3.12
+          uv sync --all-extras
 
-    - name: Run ruff
-      run: uv run ruff check src tests
+      - name: Run ruff
+        run: uv run ruff check src tests
 
-    - name: Run ruff format check
-      run: uv run ruff format --check src tests
+      - name: Run ruff format check
+        run: uv run ruff format --check src tests
 
-    - name: Run mypy
-      run: uv run mypy src --strict --ignore-missing-imports
+      - name: Run mypy
+        run: uv run mypy src --strict --ignore-missing-imports
+
+      - name: Run yamllint
+        run: uv run yamllint . --strict
+
+      - name: Install actionlint
+        run: |
+          mkdir -p ~/.local/bin
+          curl -L "https://github.com/rhysd/actionlint/releases/latest/download/actionlint_$(uname -s | tr '[:upper:]' '[:lower:]')_amd64.tar.gz" | tar xz -C ~/.local/bin
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Run actionlint
+        run: actionlint
 
   dependency-check:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        enable-cache: true
-        cache-dependency-glob: "uv.lock"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-    - name: Set up Python
-      run: uv python install 3.12
+      - name: Set up Python
+        run: uv python install 3.12
 
-    - name: Install dependencies
-      run: uv sync --all-extras
+      - name: Install dependencies
+        run: uv sync --all-extras
 
-    - name: Run deptry
-      run: uv run deptry .
+      - name: Run deptry
+        run: uv run deptry .
 
-    - name: Check for security vulnerabilities
-      run: |
-        uv pip install pip-audit
-        uv run pip-audit
+      - name: Check for security vulnerabilities
+        run: |
+          uv pip install pip-audit
+          uv run pip-audit
 
-    - name: Generate dependency reports
-      if: always()
-      run: |
-        # Generate deptry JSON report
-        uv run deptry . --json-output .deptry.json || true
+      - name: Generate dependency reports
+        if: always()
+        run: |
+          # Generate deptry JSON report
+          uv run deptry . --json-output .deptry.json || true
 
-        # Generate pip-audit report
-        uv run pip-audit --format json --output pip-audit.json || true
+          # Generate pip-audit report
+          uv run pip-audit --format json --output pip-audit.json || true
 
-    - name: Upload dependency reports
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: dependency-reports
-        path: |
-          .deptry.json
-          pip-audit.json
-        retention-days: 7
+      - name: Upload dependency reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-reports
+          path: |
+            .deptry.json
+            pip-audit.json
+          retention-days: 7
 
   test:
     runs-on: ubuntu-latest
@@ -87,57 +99,57 @@ jobs:
         python-version: ['3.12']
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        enable-cache: true
-        cache-dependency-glob: "uv.lock"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-    - name: Set up Python environment
-      run: |
-        uv python install ${{ matrix.python-version }}
-        uv sync --all-extras
+      - name: Set up Python environment
+        run: |
+          uv python install ${{ matrix.python-version }}
+          uv sync --all-extras
 
-    - name: Run tests with coverage
-      run: uv run pytest tests --cov=src/enchant_book_manager --cov-report=xml --cov-report=html
+      - name: Run tests with coverage
+        run: uv run pytest tests --cov=src/enchant_book_manager --cov-report=xml --cov-report=html
 
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
 
   build:
     needs: [lint, dependency-check, test]
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
-      with:
-        enable-cache: true
-        cache-dependency-glob: "uv.lock"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
 
-    - name: Set up Python environment
-      run: uv python install 3.12
+      - name: Set up Python environment
+        run: uv python install 3.12
 
-    - name: Build package
-      run: uv build
+      - name: Build package
+        run: uv build
 
-    - name: Check wheel contents
-      run: |
-        unzip -l dist/*.whl | head -50
+      - name: Check wheel contents
+        run: |
+          unzip -l dist/*.whl | head -50
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: dist
-        path: dist/
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
 
   publish:
     if: github.event_name == 'release'
@@ -145,23 +157,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
 
-    - name: Set up Python environment
-      run: uv python install 3.12
+      - name: Set up Python environment
+        run: uv python install 3.12
 
-    - name: Download artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: dist
-        path: dist/
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
 
-    - name: Publish to PyPI
-      env:
-        UV_PUBLISH_USERNAME: __token__
-        UV_PUBLISH_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-      run: |
-        uv publish
+      - name: Publish to PyPI
+        env:
+          UV_PUBLISH_USERNAME: __token__
+          UV_PUBLISH_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: |
+          uv publish
