@@ -59,7 +59,7 @@ class BaseChunkRetryTest:
         for i in range(3):
             chapter = Mock(spec=chunk)
             chapter.chunk_number = i + 1
-            chapter.original_variation_id = f"var-{i+1}"
+            chapter.original_variation_id = f"var-{i + 1}"
             mock_chapters.append(chapter)
 
         mock_book.chunks = mock_chapters

@@ -38,7 +38,7 @@ class TestChunkRetryMechanism:
         for i in range(3):
             chapter = Mock(spec=chunk)
             chapter.chunk_number = i + 1
-            chapter.original_variation_id = f"var-{i+1}"
+            chapter.original_variation_id = f"var-{i + 1}"
             self.mock_chapters.append(chapter)
 
         self.mock_book.chunks = self.mock_chapters

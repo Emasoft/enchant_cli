@@ -285,7 +285,7 @@ def create_epub_from_chapters(
         # Write chapters
         toc_items = []
         for i, (toc_title, original_heading, chap_html) in enumerate(chapters):
-            chap_id = f"chapter{i+1}"
+            chap_id = f"chapter{i + 1}"
             chap_file = f"{chap_id}.xhtml"
 
             # Use original heading if available, otherwise use TOC title
@@ -325,7 +325,7 @@ def create_epub_from_chapters(
 
         for i, (chap_id, chap_title) in enumerate(toc_items):
             ncx_content += f"""
-        <navPoint id="navPoint-{i+1}" playOrder="{i+1}">
+        <navPoint id="navPoint-{i + 1}" playOrder="{i + 1}">
             <navLabel>
                 <text>{html.escape(chap_title)}</text>
             </navLabel>

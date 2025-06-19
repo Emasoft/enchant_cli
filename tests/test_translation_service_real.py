@@ -63,9 +63,9 @@ class TestChineseAITranslatorReal:
             # Verify result
             assert result is not None, "Translation returned None"
             assert len(result) > 0, "Translation is empty"
-            assert not any(
-                "\u4e00" <= c <= "\u9fff" for c in result
-            ), "Result contains Chinese"
+            assert not any("\u4e00" <= c <= "\u9fff" for c in result), (
+                "Result contains Chinese"
+            )
 
             print(f"✓ Real translation: '{test_text}' -> '{result}'")
             return True
@@ -337,9 +337,9 @@ class TestChineseAITranslatorReal:
             print(f"✓ All {len(test_texts)} concurrent translations completed")
         else:
             print(f"✗ Only {len(results)}/{len(test_texts)} translations completed")
-            assert (
-                False
-            ), f"Only {len(results)}/{len(test_texts)} translations completed"
+            assert False, (
+                f"Only {len(results)}/{len(test_texts)} translations completed"
+            )
 
 
 class TestUtilityFunctionsReal:
@@ -455,7 +455,7 @@ def run_all_real_tests():
     results = []
 
     for test_name, test_func in tests:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Running: {test_name}")
         print("=" * 60)
 
@@ -486,7 +486,7 @@ def run_all_real_tests():
         print(f"{test_name:<30} {status}")
 
     print("-" * 40)
-    print(f"Total: {passed}/{total} passed ({passed/total*100:.1f}%)")
+    print(f"Total: {passed}/{total} passed ({passed / total * 100:.1f}%)")
     print("=" * 80)
 
 

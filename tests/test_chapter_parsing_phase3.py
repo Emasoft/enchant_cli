@@ -140,9 +140,9 @@ class TestChapterParsingPhase3:
             if not epub_files:
                 epub_files = list(temp_dir.glob("*.epub"))
 
-            assert (
-                len(epub_files) > 0
-            ), f"No EPUB file created. stdout: {result.stdout}\nstderr: {result.stderr}"
+            assert len(epub_files) > 0, (
+                f"No EPUB file created. stdout: {result.stdout}\nstderr: {result.stderr}"
+            )
 
             epub_file = epub_files[0]
             print(
@@ -185,13 +185,13 @@ class TestChapterParsingPhase3:
                 mismatches = []
                 for i, expected in enumerate(expected_chapters[:chapters_to_check]):
                     if i >= len(actual_chapters):
-                        mismatches.append(f"Chapter {i+1}: Missing in TOC")
+                        mismatches.append(f"Chapter {i + 1}: Missing in TOC")
                         continue
 
                     actual = actual_chapters[i]
                     if actual != expected["text"]:
                         mismatches.append(
-                            f"Chapter {i+1}:\n"
+                            f"Chapter {i + 1}:\n"
                             f"  Expected: '{expected['text']}'\n"
                             f"  Actual:   '{actual}'"
                         )
@@ -213,7 +213,7 @@ class TestChapterParsingPhase3:
                 duplicates = []
                 for i, chapter in enumerate(actual_chapters):
                     if chapter in seen_chapters:
-                        duplicates.append(f"Duplicate at position {i+1}: '{chapter}'")
+                        duplicates.append(f"Duplicate at position {i + 1}: '{chapter}'")
                     seen_chapters.add(chapter)
 
                 if len(duplicates) > 0:

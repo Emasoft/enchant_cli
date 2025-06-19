@@ -77,7 +77,7 @@ def retry_with_tenacity(method: Callable[..., Any]) -> Callable[..., Any]:
             # Check if we've exceeded total time limit
             if elapsed_time >= total_time_limit:
                 error_msg = (
-                    f"Translation failed: Exceeded total time limit of {total_time_limit/60:.1f} minutes "
+                    f"Translation failed: Exceeded total time limit of {total_time_limit / 60:.1f} minutes "
                     f"after {attempts} attempts. Last error: {last_exception}"
                 )
                 self.logger.error(error_msg)
@@ -120,7 +120,7 @@ def retry_with_tenacity(method: Callable[..., Any]) -> Callable[..., Any]:
                 elapsed_time = time.time() - start_time
                 if elapsed_time >= total_time_limit:
                     error_msg = (
-                        f"Translation failed: Exceeded total time limit of {total_time_limit/60:.1f} minutes "
+                        f"Translation failed: Exceeded total time limit of {total_time_limit / 60:.1f} minutes "
                         f"after {attempts} attempts. Last error: {e}"
                     )
                     self.logger.error(error_msg)

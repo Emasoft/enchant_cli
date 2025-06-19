@@ -196,7 +196,7 @@ Content"""
 
         # No chapters should have sub-numbers
         for i, (title, _) in enumerate(chapters):
-            self.assertNotIn(".", title, f"Chapter {i+1} incorrectly has sub-number")
+            self.assertNotIn(".", title, f"Chapter {i + 1} incorrectly has sub-number")
 
 
 if __name__ == "__main__":

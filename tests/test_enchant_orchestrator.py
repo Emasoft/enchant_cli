@@ -551,9 +551,10 @@ class TestEnChANTOrchestrator:
         # Create multiple Chinese novels
         novels = []
         for i in range(3):
-            novel_file = temp_dir / f"测试小说{i+1}.txt"
+            novel_file = temp_dir / f"测试小说{i + 1}.txt"
             novel_file.write_text(
-                f"第一章 测试内容{i+1}\n\n这是测试小说{i+1}的内容。", encoding="utf-8"
+                f"第一章 测试内容{i + 1}\n\n这是测试小说{i + 1}的内容。",
+                encoding="utf-8",
             )
             novels.append(novel_file)
 

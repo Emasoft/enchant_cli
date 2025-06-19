@@ -324,7 +324,7 @@ class RealIntegrationTests:
                 print(f"Input length: {len(test_text)} chars")
                 print(f"Output length: {len(result)} chars")
                 print(f"Translation time: {elapsed:.2f} seconds")
-                print(f"Speed: {len(test_text)/elapsed:.1f} chars/second")
+                print(f"Speed: {len(test_text) / elapsed:.1f} chars/second")
 
                 if elapsed < 30:  # Should be much faster than timeout
                     print("  ✓ Good performance")
@@ -422,7 +422,7 @@ def run_all_tests():
         print(f"{test_name:<30} {status:<10}")
 
     print("-" * 40)
-    print(f"Total: {passed}/{total} passed ({passed/total*100:.1f}%)")
+    print(f"Total: {passed}/{total} passed ({passed / total * 100:.1f}%)")
     print("=" * 80)
 
 

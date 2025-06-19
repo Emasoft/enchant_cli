@@ -335,7 +335,7 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                     else:
                         progress["phases"]["epub"]["status"] = "failed"
                         progress["phases"]["epub"]["error"] = (
-                            f'EPUB creation failed: {"; ".join(issues[:3])}'
+                            f"EPUB creation failed: {'; '.join(issues[:3])}"
                         )
                         tolog.error(f"EPUB creation failed with {len(issues)} errors")
                 else:
