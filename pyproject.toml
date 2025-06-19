@@ -52,7 +52,7 @@ dependencies = [
     "torch>=2.6.0",
     "tqdm>=4.67.1",
     "transformers[sentencepiece]>=4.52.3",
-    "vllm==0.8.5.post1",
+    "vllm==0.9.0",
     "xxhash>=3.5.0",
     "filelock>=3.16.1",
 ]
