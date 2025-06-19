@@ -76,7 +76,7 @@ def _detect_with_universal(
             encoding = result.get("encoding", "utf-8")
             confidence = result.get("confidence", 0.0)
             logger.debug(f"UniversalDetector: {encoding} (confidence: {confidence})")
-            return encoding, confidence
+            return encoding or "utf-8", confidence
     except Exception as e:
         logger.error(f"Error detecting encoding with UniversalDetector: {e}")
         return "utf-8", 0.0
@@ -97,7 +97,7 @@ def _detect_with_chardet(
         encoding = result.get("encoding", "utf-8")
         confidence = result.get("confidence", 0.0)
         logger.debug(f"chardet.detect: {encoding} (confidence: {confidence})")
-        return encoding, confidence
+        return encoding or "utf-8", confidence
     except Exception as e:
         logger.error(f"Error detecting encoding with chardet: {e}")
         return "utf-8", 0.0
@@ -110,7 +110,7 @@ def decode_file_content(
     min_file_size_kb: Optional[int] = None,
     encoding_detector: str = "auto",  # 'universal', 'chardet', 'auto'
     confidence_threshold: float = 0.7,
-    fallback_encodings: list = None,
+    fallback_encodings: Optional[list[str]] = None,
     truncate_chars: Optional[int] = None,
     logger: Optional[logging.Logger] = None,
     raise_on_error: bool = True,
@@ -228,13 +228,14 @@ def decode_full_file(file_path: Path, logger: Optional[logging.Logger] = None) -
     Read and decode entire file content (cli_translator.py style).
     Always returns content (with replacement chars if needed).
     """
-    return decode_file_content(
+    result = decode_file_content(
         file_path,
         mode="full",
         encoding_detector="universal",
         logger=logger,
         raise_on_error=True,
     )
+    return result or ""
 
 
 def decode_file_preview(

@@ -101,7 +101,7 @@ def exponential_backoff_retry(
     base_wait: float = 1.0,
     max_wait: float = 60.0,
     min_wait: float = 1.0,
-    exception_types: tuple = (Exception,),
+    exception_types: tuple[type[Exception], ...] = (Exception,),
     logger: Optional[logging.Logger] = None,
     on_retry: Optional[Callable[[int, Exception, float], None]] = None,
     time_limit: Optional[float] = None,

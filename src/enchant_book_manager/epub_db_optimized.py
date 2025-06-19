@@ -27,7 +27,7 @@ from playhouse.sqlite_ext import SqliteExtDatabase  # type: ignore[import-untype
 
 
 # Database instance - in-memory for maximum speed
-db = SqliteExtDatabase(  # type: ignore[no-untyped-call]
+db = SqliteExtDatabase(
     ":memory:",
     pragmas={
         "journal_mode": "memory",
@@ -38,7 +38,7 @@ db = SqliteExtDatabase(  # type: ignore[no-untyped-call]
 )
 
 
-class TextLine(Model):
+class TextLine(Model):  # type: ignore[misc]
     """Simplified single table for all text lines"""
 
     line_id = AutoField()
@@ -55,7 +55,7 @@ class TextLine(Model):
         )
 
 
-class Chapter(Model):
+class Chapter(Model):  # type: ignore[misc]
     """Table for chapter information"""
 
     chapter_id = AutoField()

@@ -866,7 +866,7 @@ class ChineseAITranslator:
             self.log(f"Translation failed: {str(e)}", "error")
             return None
 
-    def translate(self, input_string: str, is_last_chunk: bool = False) -> str:
+    def translate(self, input_string: str, is_last_chunk: bool = False) -> Optional[str]:
         """
         Translate a string from Chinese to English.
 

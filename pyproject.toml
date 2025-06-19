@@ -119,4 +119,32 @@ dev = [
     "deptry>=0.23.0",
     "pip-audit>=2.7.3",
     "yamllint>=1.35.1",
+    "types-pyyaml>=6.0.12.20250516",
+    "types-requests>=2.32.4.20250611",
 ]
+
+[tool.ruff]
+line-length = 400
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "I", "N", "UP", "C90"]
+ignore = ["E501", "E203", "E402", "W505", "F841", "F842", "F401", "W293", "I001", "UP015", "C901", "W291"]
+
+[tool.black]
+line-length = 400
+target-version = ['py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''

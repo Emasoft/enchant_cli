@@ -395,7 +395,7 @@ class ConfigManager:
         self.config_path = config_path or Path("enchant_config.yml")
         self._config_lines: List[str] = []  # Store file lines for error reporting
         self.config = self._load_config()
-        self.active_preset = None
+        self.active_preset: Optional[str] = None
 
     def _load_config(self) -> Dict[str, Any]:
         """Load configuration from file or create default."""
@@ -473,7 +473,8 @@ class ConfigManager:
 
     def _get_default_config(self) -> Dict[str, Any]:
         """Get default configuration as dictionary."""
-        return yaml.safe_load(DEFAULT_CONFIG_TEMPLATE)
+        result = yaml.safe_load(DEFAULT_CONFIG_TEMPLATE)
+        return result if isinstance(result, dict) else {}
 
     def _validate_config_first_error(
         self, config: Dict[str, Any]
@@ -560,7 +561,7 @@ class ConfigManager:
         default_presets = defaults.get("presets", {})
 
         # Get all valid preset keys from default presets
-        valid_preset_keys = set()
+        valid_preset_keys: set[str] = set()
         for preset in default_presets.values():
             if isinstance(preset, dict):
                 valid_preset_keys.update(preset.keys())
@@ -653,7 +654,7 @@ class ConfigManager:
                         key_line = self._find_line_number(
                             f"presets.{preset_name}.{existing_key}"
                         )
-                        if key_line and key_line > last_key_line:
+                        if key_line is not None and key_line > last_key_line:
                             last_key_line = key_line
 
                     return {
@@ -1122,9 +1123,11 @@ class ConfigManager:
 
         # Then check config
         if service == "openrouter":
-            return self.get("translation.remote.api_key")
+            api_key = self.get("translation.remote.api_key")
+            return str(api_key) if api_key is not None else None
         elif service == "openai":
-            return self.get("novel_renaming.openai.api_key")
+            api_key = self.get("novel_renaming.openai.api_key")
+            return str(api_key) if api_key is not None else None
 
         return None
 
