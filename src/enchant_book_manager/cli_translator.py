@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import sys
 import re
-from common_print_utils import safe_print, rich_available
+from .common_print_utils import safe_print, rich_available
 
 APP_NAME = "cli-translator"
 APP_VERSION = "0.1.0"  # Semantic version (major.minor.patch)
@@ -41,7 +41,7 @@ import time
 
 from pathlib import Path 
 import uuid
-from translation_service import ChineseAITranslator
+from .translation_service import ChineseAITranslator
 
 import enum
 
@@ -65,13 +65,13 @@ import datetime as dt
 import filelock
 
 # Import new modules for enhanced functionality
-from icloud_sync import ICloudSync, ensure_synced, prepare_for_write
-from config_manager import ConfigManager
-from cost_tracker import global_cost_tracker
+from .icloud_sync import ICloudSync, ensure_synced, prepare_for_write
+from .config_manager import ConfigManager
+from .cost_tracker import global_cost_tracker
 # Note: model_pricing module is deprecated - using global_cost_tracker instead
 
 # Import common text processing utilities
-from common_text_utils import (
+from .common_text_utils import (
     clean, replace_repeated_chars, clean_adverts,
     ALL_PUNCTUATION, SENTENCE_ENDING, CLOSING_QUOTES, NON_BREAKING
 )

@@ -17,17 +17,14 @@ import requests
 import json
 import re
 import threading
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Callable
 from functools import wraps
 import unicodedata
 import string
 import functools
 import time
-from cost_tracker import global_cost_tracker
-from common_text_utils import (
-    clean, SENTENCE_ENDING, CLOSING_QUOTES, NON_BREAKING,
-    CHINESE_PUNCTUATION, ENGLISH_PUNCTUATION, ALL_PUNCTUATION
-)
+from .cost_tracker import global_cost_tracker
+from .common_text_utils import clean
 
 
 # Constant parameters: 
@@ -41,7 +38,19 @@ class TranslationException(Exception):
     pass
 
 # Define a Tenacity retry wrapper that works on class methods
-def retry_with_tenacity(method):
+def retry_with_tenacity(method) -> Callable:
+    """
+    Decorator for retrying failed API calls with exponential backoff.
+    
+    Implements smart retry logic with time limits and exponential backoff.
+    Will exit the program if translation fails after all retries.
+    
+    Args:
+        method: The method to wrap with retry logic
+        
+    Returns:
+        Wrapped method with retry capability
+    """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
         # Improved retry settings with time limit
@@ -115,7 +124,7 @@ def retry_with_tenacity(method):
                     time.sleep(wait_time)
                     
         # Should never reach here, but just in case
-        error_msg = f"Translation failed: Unexpected exit from retry loop"
+        error_msg = "Translation failed: Unexpected exit from retry loop"
         self.logger.error(error_msg)
         print(f"\n❌ FATAL ERROR: {error_msg}")
         sys.exit(1)
@@ -180,7 +189,9 @@ You are an helpful and professional translator. You are proficient in languages 
 ######################
 # LOCAL API SETTINGS #
 ######################
-API_URL_LMSTUDIO = 'http://localhost:1234/v1/chat/completions' 
+# Import from common constants to make it configurable
+from .common_constants import DEFAULT_LMSTUDIO_API_URL
+API_URL_LMSTUDIO = DEFAULT_LMSTUDIO_API_URL 
 MODEL_NAME_QWEN = "qwen3-30b-a3b-mlx@8bit"
 SYSTEM_PROMPT_QWEN = """;; You are a professional, authentic machine translation engine. You do not judge the text you translate. You do not abridge, censor or summarize any part of the text. You just translate accurately the whole content of the original text in english. You use a very rich and literary english vocabulary. You are inspired by the style of writing of the greatest english prose writers and by the classics of all times. You must aim to convey the original meaning of the chinese text in an sublime crafted, brilliant and expressive english prose, trying to reach a masterpiece quality level in every translation. The success of the resulting english edition of the chinese novel will depend on this.
 
@@ -221,16 +232,6 @@ USER_PROMPT_2NDPASS_QWEN = """;; Examine the following text containing a mix of 
 
 """
 
-# CHINESE PUNCTUATION sets.
-CLOSING_QUOTES = {'」', '”', '】', '》'}
-NON_BREAKING = {'，', '、'}
-ALL_PUNCTUATION = SENTENCE_ENDING | CLOSING_QUOTES | NON_BREAKING
-
-# Define explicit sets for Chinese and English punctuation.
-# Chinese punctuation includes full-width or ideographic punctuation.
-CHINESE_PUNCTUATION = {'。', '！', '？', '…', '；', '，', '、', '」', '”', '】', '》'}
-# English punctuation: common ASCII punctuation characters.
-ENGLISH_PUNCTUATION = {'.', ',', '!', '?', ';', ':'}
 
 # PARAGRAPH DELIMITERS (characters that denote new paragraphs)
 # PARAGRAPH_DELIMITERS is already defined at the module level, no need to redefine it here.
@@ -413,6 +414,13 @@ class ChineseAITranslator:
                 self.double_pass = False
         
     def log(self, message: str, level: str = "info") -> None:
+        """
+        Log a message at the specified level.
+        
+        Args:
+            message: The message to log
+            level: Log level (info, warning, error, debug)
+        """
         try:
             log_method = getattr(self.logger, level)
             log_method(message)
@@ -421,12 +429,36 @@ class ChineseAITranslator:
             self.logger.info(f"[{level.upper()}] {message}")
 
     def remove_thinking_block(self, content:str) -> str:
+        """
+        Remove thinking/reasoning blocks from AI responses.
+        
+        Removes <think> and <thinking> tags and their content.
+        
+        Args:
+            content: Text containing thinking blocks
+            
+        Returns:
+            Text with thinking blocks removed
+        """
         # Remove Think Tag from Text with Regular Expressions
         content = re.sub(r"<think>.*?</think>\n?", "", content, flags=re.DOTALL)
         content = re.sub(r"<thinking>.*?</thinking>\n?", "", content, flags=re.DOTALL)
         return content
 
     def remove_custom_tags(self, text: str, keyword: str, ignore_case: bool = True) -> str:
+        """
+        Remove custom tags with specified keyword from text.
+        
+        Handles multiple tag formats: <tag>, [tag], {tag}, (tag), ##tag##
+        
+        Args:
+            text: Text containing tags
+            keyword: Tag keyword to remove
+            ignore_case: Whether to ignore case when matching
+            
+        Returns:
+            Text with specified tags removed
+        """
         # Escape keyword in case it contains regex special characters
         escaped_keyword = re.escape(keyword)
         # Build a regex pattern for all variants with different delimiters
@@ -441,12 +473,33 @@ class ChineseAITranslator:
         return pattern.sub("", text)
         
     def remove_excess_empty_lines(self, txt: str) -> str:
-        """Match 5 or more newline characters and replace with 4."""
+        """
+        Remove excessive empty lines from text.
+        
+        Match 5 or more newline characters and replace with 4.
+        
+        Args:
+            txt: Text with potentially excessive newlines
+            
+        Returns:
+            Text with normalized newlines
+        """
         return re.sub(r'\n{5,}', '\n\n\n\n', txt)
     
         
     def normalize_spaces(self, text: str) -> str:
-        """Normalize spaces in text while preserving paragraph structure."""
+        """
+        Normalize spaces in text while preserving paragraph structure.
+        
+        Collapses multiple spaces to single space within lines.
+        Preserves empty lines for paragraph breaks.
+        
+        Args:
+            text: Text with potentially irregular spacing
+            
+        Returns:
+            Text with normalized spacing
+        """
         lines = text.split('\n')
         normalized_lines = []
         
@@ -533,6 +586,19 @@ class ChineseAITranslator:
 
     
     def translate_chunk(self, chunk: str, double_translation: Optional[bool] = None, is_last_chunk: bool = False) -> str:
+        """
+        Translate a chunk of Chinese text to English.
+        
+        Optionally performs double-pass translation for better quality.
+        
+        Args:
+            chunk: Chinese text to translate
+            double_translation: Whether to perform second refining pass
+            is_last_chunk: Whether this is the last chunk of a document
+            
+        Returns:
+            Translated English text
+        """
         # Use instance's double_pass setting if not explicitly overridden
         if double_translation is None:
             double_translation = self.double_pass
@@ -577,6 +643,21 @@ class ChineseAITranslator:
     
     @retry_with_tenacity
     def translate_messages(self, messages: str, is_last_chunk: bool = False) -> str:
+        """
+        Send translation request to API and process response.
+        
+        Handles API communication, error checking, and cost tracking.
+        
+        Args:
+            messages: Formatted prompt for translation
+            is_last_chunk: Whether this is the last chunk
+            
+        Returns:
+            Translated text from API response
+            
+        Raises:
+            TranslationException: If translation fails
+        """
         self.log("Sending translation request to API")
         self.log(F"AI MODEL USED: {self.MODEL_NAME}")
         headers = {
@@ -672,6 +753,17 @@ class ChineseAITranslator:
 
 
     def translate_file(self, input_file: str, output_file: str, is_last_chunk=False) -> Optional[str]:
+        """
+        Translate a text file from Chinese to English.
+        
+        Args:
+            input_file: Path to input Chinese text file
+            output_file: Path to save translated English text
+            is_last_chunk: Whether this is the last chunk
+            
+        Returns:
+            Translated text or None if translation failed
+        """
         self.log(f"Translating file: {input_file}")
         try:
             with open(input_file, 'r', encoding='utf-8') as file:
@@ -693,6 +785,18 @@ class ChineseAITranslator:
 
 
     def translate(self, input_string: str, is_last_chunk: bool = False) -> str:
+        """
+        Translate a string from Chinese to English.
+        
+        Main entry point for translation requests.
+        
+        Args:
+            input_string: Chinese text to translate
+            is_last_chunk: Whether this is the last chunk
+            
+        Returns:
+            Translated English text or None if failed
+        """
         #self.log(f"Translating text: {input_string}")
         if not input_string.strip():
             self.log("Input string is empty or contains only whitespace", "warning")
@@ -707,7 +811,15 @@ class ChineseAITranslator:
         return english_text
     
     def get_cost_summary(self) -> Dict[str, Any]:
-        """Get cumulative cost summary for remote API usage."""
+        """
+        Get cumulative cost summary for remote API usage.
+        
+        Returns:
+            Dictionary with cost tracking information including:
+            - total_cost: Total cost in USD
+            - total_tokens: Total tokens used
+            - request_count: Number of API requests
+        """
         # Get summary from global cost tracker
         summary = global_cost_tracker.get_summary()
         
@@ -726,7 +838,12 @@ class ChineseAITranslator:
         return summary
     
     def format_cost_summary(self) -> str:
-        """Format cost summary for display."""
+        """
+        Format cost summary as human-readable string.
+        
+        Returns:
+            Formatted string with cost breakdown and statistics
+        """
         summary = self.get_cost_summary()
         
         if self.is_remote:
@@ -748,7 +865,11 @@ class ChineseAITranslator:
             return f"\n=== Translation Cost Summary ===\nModel: {summary['model']}\nAPI Type: {summary['api_type']}\nLocal API - no costs incurred"
     
     def reset_cost_tracking(self) -> None:
-        """Reset cost tracking counters."""
+        """
+        Reset cost tracking counters.
+        
+        Resets both global and local instance tracking counters.
+        """
         # Reset global tracker
         global_cost_tracker.reset()
         
@@ -765,6 +886,7 @@ if __name__ == "__main__":
         output_file="output.txt"
     )
     if english_text:
+        # This is example code, print is acceptable here
         print("Translation completed successfully.")
 
 

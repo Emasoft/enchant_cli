@@ -52,14 +52,14 @@ from typing import Dict, List, Tuple, Optional, Any
 import xml.etree.ElementTree as ET
 
 # Import shared constants and utilities
-from epub_constants import (
+from .epub_constants import (
     ENCODING, MIMETYPE, WORD_NUMS, FILENAME_RE,
     parse_num as parse_num_shared
 )
 
 # Import database module for fast chapter indexing
 try:
-    from epub_db_optimized import process_text_optimized
+    from .epub_db_optimized import process_text_optimized
     DB_OPTIMIZED = True
 except ImportError:
     # Database optimization not available
@@ -67,7 +67,7 @@ except ImportError:
 
 # Import enhanced TOC builder
 try:
-    from epub_toc_enhanced import build_enhanced_toc_ncx
+    from .epub_toc_enhanced import build_enhanced_toc_ncx
     TOC_ENHANCED = True
 except ImportError:
     TOC_ENHANCED = False

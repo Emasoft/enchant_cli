@@ -20,7 +20,7 @@ import signal
 import yaml
 import datetime as dt
 from typing import Dict, Any, Optional, Tuple
-from common_print_utils import safe_print, rich_available
+from .common_print_utils import safe_print, rich_available
 
 APP_NAME = "EnChANT - English-Chinese Automatic Novel Translator"
 APP_VERSION = "1.0.0"  # Semantic version (major.minor.patch)
@@ -37,26 +37,26 @@ import filelock
 import argparse
 
 # Import enhanced functionality modules
-from icloud_sync import ICloudSync
-from config_manager import ConfigManager, get_config
+from .icloud_sync import ICloudSync
+from .config_manager import ConfigManager, get_config
 # Note: model_pricing module is deprecated - using global_cost_tracker instead
-from common_utils import sanitize_filename, extract_book_info_from_path
+from .common_utils import sanitize_filename, extract_book_info_from_path
 
 # Import modules for the three phases
 try:
-    from renamenovels import process_novel_file as rename_novel
+    from .renamenovels import process_novel_file as rename_novel
     renaming_available = True
 except ImportError:
     renaming_available = False
 
 try:
-    from cli_translator import translate_novel
+    from .cli_translator import translate_novel
     translation_available = True
 except ImportError:
     translation_available = False
 
 try:
-    from epub_utils import create_epub_with_config, get_epub_config_from_book_info
+    from .epub_utils import create_epub_with_config, get_epub_config_from_book_info
     epub_available = True
 except ImportError:
     epub_available = False

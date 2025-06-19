@@ -61,6 +61,9 @@ Test*Novel*
 translated_*.epub
 *.epub
 
+# Configuration files (contains API keys)
+enchant_config.yml
+
 # Reports and logs
 *_report.md
 *_summary.md
@@ -68,11 +71,18 @@ mypy*.txt
 mypy*.json
 *_output.log
 
+# Development documentation (kept in root but ignored)
+CLAUDE.md
+CODE_QUALITY_REVIEW.md
+DEVELOPMENT_PLAN.md
+ENCHANT_README.md
+
 # Backup files
 *.backup
 *_backup.py
 BACKUPS/
 *_BAK/
+old_backup/
 
 # Lock files
 *.lock

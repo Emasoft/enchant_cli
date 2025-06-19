@@ -7,7 +7,8 @@ from pathlib import Path
 setup(
     name='enchant-book-manager',
     version='0.1.0',
-    packages=find_packages(),
+    package_dir={'': 'src'},
+    packages=find_packages(where='src'),
     install_requires=[
         'beautifulsoup4>=4.13.4',
         'chardet>=5.2.0',

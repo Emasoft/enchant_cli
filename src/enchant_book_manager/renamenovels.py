@@ -17,9 +17,9 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 from requests.exceptions import HTTPError, ConnectionError, Timeout
 from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
-from common_file_utils import decode_full_file
-from cost_tracker import global_cost_tracker
-from icloud_sync import ICloudSync, ICloudSyncError
+from .common_file_utils import decode_full_file
+from .cost_tracker import global_cost_tracker
+from .icloud_sync import ICloudSync, ICloudSyncError
 
 
 # Version constant

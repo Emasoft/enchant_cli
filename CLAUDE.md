@@ -133,6 +133,177 @@ uv build                  # Build with uv
 uv run python -m build    # Build wheel only
 uv run pnpm run build     # Build frontend with pnpm
 
+## UV Build Process - Complete Guide
+
+### Prerequisites for Building with UV
+1. **Project Structure Requirements**:
+   - Valid `pyproject.toml` with build-system configuration
+   - Package source files properly organized
+   - `__init__.py` files in all package directories
+   - README.md or README.rst for long description
+   - Clean working directory (no test artifacts)
+
+2. **Build System Configuration**:
+   ```toml
+   [build-system]
+   requires = ["hatchling"]  # or other build backend
+   build-backend = "hatchling.build"
+   ```
+
+### Step-by-Step UV Build Process
+
+#### 1. Prepare the Project Environment
+```bash
+# Ensure you have a virtual environment
+uv venv
+
+# Sync all dependencies including dev dependencies
+uv sync --all-extras
+
+# Verify Python version matches project requirements
+uv python find
+```
+
+#### 2. Clean Previous Build Artifacts
+```bash
+# Remove any existing build directories
+rm -rf dist/ build/ *.egg-info/
+
+# Clean pytest cache and coverage files
+rm -rf .pytest_cache/ .coverage htmlcov/
+
+# Remove __pycache__ directories
+find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+```
+
+#### 3. Validate Project Configuration
+```bash
+# Check pyproject.toml is valid
+cat pyproject.toml | python -m tomllib
+
+# Ensure all required fields are present
+# Required: name, version, description, authors, requires-python
+```
+
+#### 4. Build the Package
+```bash
+# Build both source distribution (sdist) and wheel
+uv build
+
+# Build only source distribution
+uv build --sdist
+
+# Build only wheel
+uv build --wheel
+
+# Build with specific output directory
+uv build -o dist/
+
+# Build with verbose output to debug issues
+uv build -v
+```
+
+#### 5. Post-Build Verification
+```bash
+# List built artifacts
+ls -la dist/
+
+# Check wheel contents
+unzip -l dist/*.whl | head -20
+
+# Verify sdist contents
+tar tzf dist/*.tar.gz | head -20
+
+# Test installation in a fresh environment
+uv venv test_env
+source test_env/bin/activate  # or test_env\Scripts\activate on Windows
+uv pip install dist/*.whl
+python -c "import enchant_book_manager; print(enchant_book_manager.__version__)"
+deactivate
+rm -rf test_env
+```
+
+### Common Build Issues and Solutions
+
+1. **Missing pyproject.toml fields**:
+   - Ensure all required metadata fields are present
+   - Use `uv init --lib` to generate a template if needed
+
+2. **Import errors during build**:
+   - Verify all `__init__.py` files are present
+   - Check relative imports are correct
+   - Ensure no circular dependencies
+
+3. **Build backend not found**:
+   - Install the build backend: `uv add --dev hatchling`
+   - Or use setuptools: `requires = ["setuptools>=61.0"]`
+
+4. **Version conflicts**:
+   - Use `uv sync --refresh` to update locked dependencies
+   - Check `requires-python` matches your environment
+
+### Build Configuration Options
+
+```toml
+# pyproject.toml build configuration examples
+
+[tool.hatch.build]
+include = [
+    "*.py",
+    "*.txt",
+    "*.md",
+]
+exclude = [
+    "tests/",
+    "docs/",
+    ".git/",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["enchant_book_manager"]
+
+[tool.hatch.version]
+path = "__init__.py"
+```
+
+### Publishing Packages (Optional)
+
+```bash
+# Install twine for uploading
+uv add --dev twine
+
+# Upload to PyPI (requires PyPI account)
+uv run twine upload dist/*
+
+# Upload to test PyPI first
+uv run twine upload --repository testpypi dist/*
+```
+
+### Integration with CI/CD
+
+```yaml
+# Example GitHub Actions workflow
+- name: Set up Python
+  uses: actions/setup-python@v4
+  with:
+    python-version: '3.10'
+
+- name: Install uv
+  run: pip install uv
+
+- name: Build package
+  run: |
+    uv venv
+    uv sync
+    uv build
+
+- name: Upload artifacts
+  uses: actions/upload-artifact@v3
+  with:
+    name: dist
+    path: dist/
+```
+
 # What uv init generates:
 ```
 .

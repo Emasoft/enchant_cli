@@ -12,7 +12,7 @@ import logging
 
 # Import the make_epub module functions
 try:
-    from make_epub import create_epub_from_txt_file
+    from .make_epub import create_epub_from_txt_file
     epub_available = True
 except ImportError:
     epub_available = False

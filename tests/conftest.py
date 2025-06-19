@@ -12,8 +12,9 @@ import shutil
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-# Add parent directory to path so we can import our modules
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add src directory to path so we can import our modules
+src_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src')
+sys.path.insert(0, src_dir)
 
 
 @pytest.fixture

@@ -1,9 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "enchant-book-manager"
-version = "0.1.0"
-description = "Add your description here"
+version = "1.0.0"
+description = "EnChANT - English-Chinese Automatic Novel Translator"
 readme = "README.md"
-requires-python = ">=3.12.9"
+authors = [
+    {name = "Emasoft", email = "713559+Emasoft@users.noreply.github.com"}
+]
+license = {text = "Apache-2.0"}
+requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Text Processing :: Linguistic",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+keywords = ["chinese", "translation", "epub", "novel", "ai"]
 dependencies = [
     "beautifulsoup4>=4.13.4",
     "chardet>=5.2.0",
@@ -17,10 +35,10 @@ dependencies = [
     "mlx-lm>=0.24.1",
     "mlx-vlm>=0.0.15",
     "multiexit>=1.5.0",
-    "numpy>=2.2.6",
+    "numpy>=1.22,<2.1",
     "outlines>=0.1.11",
     "peewee>=3.18.1",
-    "pillow>=11.2.1",
+    "pillow>=8.0,<11.0",
     "prompt-toolkit>=3.0.51",
     "pyyaml>=6.0.2",
     "regex>=2024.11.6",
@@ -38,7 +56,55 @@ dependencies = [
     "xxhash>=3.5.0",
 ]
 
+[project.scripts]
+enchant = "enchant_cli:main"
+enchant-translate = "cli_translator:main"
+enchant-rename = "renamenovels:main"
+enchant-epub = "make_epub:main"
+
+[project.urls]
+Homepage = "https://github.com/Emasoft/enchant-book-manager"
+Repository = "https://github.com/Emasoft/enchant-book-manager"
+Issues = "https://github.com/Emasoft/enchant-book-manager/issues"
+
+[tool.hatch.build]
+include = [
+    "src/**/*.py",
+    "README.md",
+]
+exclude = [
+    "*.bak",
+    "*.bak2",
+    "*.log",
+    "*.yml",
+    "CLAUDE.md",
+    "DEVELOPMENT_PLAN.md",
+    "CODE_QUALITY_REVIEW.md",
+    "ENCHANT_README.md",
+    ".gitignore",
+    ".python-version",
+    "tests/",
+    "__pycache__/",
+    ".pytest_cache/",
+    ".coverage",
+    "htmlcov/",
+    "dist/",
+    "build/",
+    "*.egg-info/",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
 [dependency-groups]
 dev = [
+    "pytest>=8.4.0",
     "pytest-timeout>=2.4.0",
+    "pytest-cov>=6.2.1",
+    "pytest-mock>=3.14.1",
+    "mypy>=1.11.2",
+    "ruff>=0.8.7",
+    "black>=24.10.0",
+    "pre-commit>=4.0.1",
+    "filelock>=3.16.1"
 ]

@@ -22,7 +22,7 @@ from typing import Dict, List, Tuple, Optional
 import logging
 
 # Import shared constants and utilities
-from epub_constants import (
+from .epub_constants import (
     ENCODING, MIMETYPE, WORD_NUMS, FILENAME_RE,
     roman_to_int, words_to_int
 )
