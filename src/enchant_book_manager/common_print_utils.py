@@ -6,6 +6,7 @@ Common print utilities for console output with rich formatting support.
 
 import builtins
 import re
+from typing import Any
 
 # Try to import rich for enhanced printing
 try:
@@ -18,7 +19,7 @@ except ImportError:
     rich_available = False
 
 
-def safe_print(*args, **kwargs) -> None:
+def safe_print(*args: Any, **kwargs: Any) -> None:
     """Print with rich if available, else strip markup tags.
 
     This function provides a consistent interface for printing

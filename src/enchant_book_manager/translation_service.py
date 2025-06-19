@@ -43,7 +43,7 @@ class TranslationException(Exception):
 
 
 # Define a Tenacity retry wrapper that works on class methods
-def retry_with_tenacity(method) -> Callable:
+def retry_with_tenacity(method: Callable[..., Any]) -> Callable[..., Any]:
     """
     Decorator for retrying failed API calls with exponential backoff.
 
@@ -58,7 +58,7 @@ def retry_with_tenacity(method) -> Callable:
     """
 
     @wraps(method)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
         # Improved retry settings with time limit
         max_retries = 10  # Maximum 10 retries
         total_time_limit = 18 * 60  # 18 minutes total time limit
@@ -832,7 +832,7 @@ class ChineseAITranslator:
             raise TranslationException(f"Unexpected error: {e}") from e
 
     def translate_file(
-        self, input_file: str, output_file: str, is_last_chunk=False
+        self, input_file: str, output_file: str, is_last_chunk: bool = False
     ) -> Optional[str]:
         """
         Translate a text file from Chinese to English.

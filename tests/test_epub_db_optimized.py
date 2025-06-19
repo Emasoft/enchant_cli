@@ -74,8 +74,12 @@ CHAPTER 3: UPPERCASE"""
         heading_re = re.compile(
             r"^Chapter\s+(?P<num_d>\d+)(?:\s*:\s*(?P<rest>.+))?", re.IGNORECASE
         )
-        parse_num = lambda s: int(s) if s and s.isdigit() else None
-        is_valid = lambda line: True  # Simple validation
+
+        def parse_num(s):
+            return int(s) if s and s.isdigit() else None
+
+        def is_valid(line):
+            return True  # Simple validation
 
         # Run two-stage search
         chapters = find_chapters_two_stage(heading_re, parse_num, is_valid)
@@ -136,8 +140,12 @@ This is the final chapter."""
         heading_re = re.compile(
             r"^Chapter\s+(?P<num_d>\d+)(?:\s*:\s*(?P<rest>.+))?", re.IGNORECASE
         )
-        parse_num = lambda s: int(s) if s and s.isdigit() else None
-        is_valid = lambda line: True
+
+        def parse_num(s):
+            return int(s) if s and s.isdigit() else None
+
+        def is_valid(line):
+            return True
 
         chapters, seq = process_text_optimized(text, heading_re, parse_num, is_valid)
 
@@ -165,8 +173,12 @@ This is the final chapter."""
         heading_re = re.compile(
             r"^Chapter\s+(?P<num_d>\d+)(?:\s*:\s*(?P<rest>.+))?", re.IGNORECASE
         )
-        parse_num = lambda s: int(s) if s and s.isdigit() else None
-        is_valid = lambda line: True
+
+        def parse_num(s):
+            return int(s) if s and s.isdigit() else None
+
+        def is_valid(line):
+            return True
 
         import time
 

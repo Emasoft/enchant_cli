@@ -7,6 +7,7 @@ common_utils.py - Shared utility functions for EnChANT modules
 import re
 import unicodedata
 from pathlib import Path
+from typing import Dict, Any
 
 
 def sanitize_filename(filename: str, max_length: int = 255) -> str:
@@ -46,7 +47,7 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     return filename
 
 
-def extract_book_info_from_path(file_path: Path) -> dict:
+def extract_book_info_from_path(file_path: Path) -> Dict[str, Any]:
     """
     Extract book information from file path or directory name.
     Handles both the standard naming format and fallbacks.

@@ -164,7 +164,7 @@ def clean(text: str) -> str:
     return text.lstrip(" ").rstrip(" ")
 
 
-def replace_repeated_chars(text: str, chars) -> str:
+def replace_repeated_chars(text: str, chars: str) -> str:
     """
     Replace any sequence of repeated occurrences of each character in `chars`
     with a single occurrence. For example, "！！！！" becomes "！".

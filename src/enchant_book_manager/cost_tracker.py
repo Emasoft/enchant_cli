@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 class CostTracker:
     """Thread-safe cost tracking for API usage"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._lock = threading.Lock()
         self.total_cost = 0.0
         self.total_tokens = 0

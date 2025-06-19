@@ -19,8 +19,8 @@ src_dir = project_root / "src"
 if src_dir.exists():
     sys.path.insert(0, str(src_dir))
 
-from enchant_book_manager.make_epub import parse_num, split_text
-from enchant_book_manager.epub_constants import (
+from enchant_book_manager.make_epub import parse_num, split_text  # noqa: E402
+from enchant_book_manager.epub_constants import (  # noqa: E402
     roman_to_int,
     words_to_int,
     parse_num as parse_num_shared,

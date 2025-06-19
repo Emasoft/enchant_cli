@@ -25,10 +25,10 @@ import json
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from enchant_cli import process_novel_unified
-from renamenovels import process_novel_file
-from cli_translator import translate_novel
-from make_epub import create_epub_from_chapters
+from enchant_cli import process_novel_unified  # noqa: E402
+from renamenovels import process_novel_file  # noqa: E402
+from cli_translator import translate_novel  # noqa: E402
+from make_epub import create_epub_from_chapters  # noqa: E402
 
 
 class TestEnChANTOrchestrator:

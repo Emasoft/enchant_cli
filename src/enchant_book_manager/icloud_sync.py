@@ -100,7 +100,7 @@ class ICloudSync:
 
         return False
 
-    def _validate_commands(self):
+    def _validate_commands(self) -> None:
         """Ensure required iCloud sync commands are available."""
         # Check for iOS-specific commands first (a-Shell, etc.)
         ios_commands = ["icloud", "brctl"]  # Common iOS terminal commands

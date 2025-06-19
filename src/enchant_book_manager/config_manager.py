@@ -457,7 +457,7 @@ class ConfigManager:
             self.logger.error(f"Error loading configuration: {e}")
             raise
 
-    def _create_default_config(self):
+    def _create_default_config(self) -> None:
         """Create default configuration file."""
         try:
             with open(self.config_path, "w", encoding="utf-8") as f:
@@ -880,7 +880,9 @@ class ConfigManager:
         defaults = self._get_default_config()
         return self._deep_merge(defaults, config)
 
-    def _deep_merge(self, base: Dict, update: Dict) -> Dict:
+    def _deep_merge(
+        self, base: Dict[str, Any], update: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Deep merge two dictionaries."""
         result = base.copy()
 
@@ -978,7 +980,7 @@ class ConfigManager:
         """Get list of available presets."""
         return list(self.config.get("presets", {}).keys())
 
-    def update_with_args(self, args) -> Dict[str, Any]:
+    def update_with_args(self, args: Any) -> Dict[str, Any]:
         """
         Update configuration with command-line arguments.
         Command-line args take precedence over config file and presets.
@@ -1087,7 +1089,7 @@ class ConfigManager:
 
         return config
 
-    def _set_config_value(self, config: Dict, path: str, value: Any):
+    def _set_config_value(self, config: Dict[str, Any], path: str, value: Any) -> None:
         """Set a value in the config dictionary using dot notation."""
         keys = path.split(".")
         target = config
