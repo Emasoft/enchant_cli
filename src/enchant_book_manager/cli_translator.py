@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2025 Emasoft
 #
@@ -146,14 +145,6 @@ PRESERVE_UNLIMITED = {
 _repeated_chars = re.compile(r"(.)\1+")
 
 
-def sanitize_filename(filename: str) -> str:
-    """
-    Sanitize filenames using the common utility function.
-    Limits length to 100 characters for backward compatibility.
-    """
-    return common_sanitize_filename(filename, max_length=100)
-
-
 ### HELPER CLASSES #####
 
 
@@ -172,7 +163,7 @@ class TranslationState(enum.Enum):
     """Translation task is not running, and completed successfully."""
 
 
-def load_text_file(txt_file_name: Union[str, Path]) -> Optional[str]:
+def load_text_file(txt_file_name: str | Path) -> str | None:
     """
     Load text file contents.
 
@@ -191,7 +182,7 @@ def load_text_file(txt_file_name: Union[str, Path]) -> Optional[str]:
                 if tolog is not None:
                     tolog.debug(contents)
             return contents
-        except (IOError, OSError, PermissionError) as e:
+        except (OSError, PermissionError) as e:
             if tolog is not None:
                 tolog.error(f"Error reading file {txt_file_name}: {e}")
             return None
@@ -201,7 +192,7 @@ def load_text_file(txt_file_name: Union[str, Path]) -> Optional[str]:
         return None
 
 
-def save_text_file(text: str, filename: Union[str, Path]) -> None:
+def save_text_file(text: str, filename: str | Path) -> None:
     """
     Save text to a file.
 
@@ -215,7 +206,7 @@ def save_text_file(text: str, filename: Union[str, Path]) -> None:
             f.write(clean(text))
         if tolog is not None:
             tolog.debug("Saved text file in: " + str(file_path))
-    except (IOError, OSError, PermissionError) as e:
+    except (OSError, PermissionError) as e:
         if tolog is not None:
             tolog.error(f"Error saving file {file_path}: {e}")
         raise
@@ -259,7 +250,7 @@ def normalize_spaces(text: str) -> str:
 
 # HELPER FUNCTION TO GET VALUE OR NONE FROM A LIST ENTRY
 # an equivalent of dict.get(key, default) for lists
-def get_val(myList: List[Any], idx: int, default: Any = None) -> Any:
+def get_val(myList: list[Any], idx: int, default: Any = None) -> Any:
     """
     Get value from list at index, returning default if index is out of bounds.
 
@@ -298,9 +289,7 @@ def strip_urls(input_text: str) -> str:
     return input_text
 
 
-_markdown_re = re.compile(
-    r".*(" r"\*(.*)\*|" r"_(.*)_|" r"\[(.*)\]\((.*)\)|" r"`(.*)`|" r"```(.*)```" r").*"
-)
+_markdown_re = re.compile(r".*(" r"\*(.*)\*|" r"_(.*)_|" r"\[(.*)\]\((.*)\)|" r"`(.*)`|" r"```(.*)```" r").*")
 
 
 def is_markdown(input_text: str) -> bool:
@@ -362,8 +351,8 @@ def detect_file_encoding(file_path: Path) -> str:
 
 # Function to extract title and author info from foreign novels filenames (chinese, japanese, etc.)
 def foreign_book_title_splitter(
-    filename: Union[str, Path],
-) -> Tuple[str, str, str, str, str, str]:
+    filename: str | Path,
+) -> tuple[str, str, str, str, str, str]:
     """
     Extract title and author info from foreign novel filenames.
 
@@ -423,9 +412,7 @@ def foreign_book_title_splitter(
 
 
 # Import the original language novel txt file and split it in chunks of max MAXCHARS characters
-def import_book_from_txt(
-    file_path: Union[str, Path], encoding: str = "utf-8", max_chars: int = MAXCHARS
-) -> str:
+def import_book_from_txt(file_path: str | Path, encoding: str = "utf-8", max_chars: int = MAXCHARS) -> str:
     """
     Import a book from text file and split into chunks.
 
@@ -444,9 +431,7 @@ def import_book_from_txt(
     duplicate_book = Book.get_or_none(Book.source_file == filename)
     if duplicate_book is not None:
         if tolog is not None:
-            tolog.debug(
-                "ERROR - Book with filename '{filename}' was already imported in db!"
-            )
+            tolog.debug("ERROR - Book with filename '{filename}' was already imported in db!")
         return str(duplicate_book.book_id)
 
     # LOAD FILE CONTENT
@@ -492,9 +477,7 @@ def import_book_from_txt(
         )
     except Exception as e:
         if tolog is not None:
-            tolog.debug(
-                "An exception happened when creating a new variation original for a chunk:"
-            )
+            tolog.debug("An exception happened when creating a new variation original for a chunk:")
             tolog.debug("ERROR: " + str(e))
     finally:
         manual_commit()
@@ -514,9 +497,7 @@ def import_book_from_txt(
             )
         except Exception as e:
             if tolog is not None:
-                tolog.debug(
-                    f"An exception happened when creating chunk n.{index} with ID {new_variation_id}. "
-                )
+                tolog.debug(f"An exception happened when creating chunk n.{index} with ID {new_variation_id}. ")
                 tolog.debug("ERROR: " + str(e))
         else:
             try:
@@ -532,9 +513,7 @@ def import_book_from_txt(
             except Exception as e:
                 chunk_number = index if "index" in locals() else "unknown"
                 if tolog is not None:
-                    tolog.debug(
-                        f"An exception happened when creating a new variation original for chunk n.{chunk_number}:"
-                    )
+                    tolog.debug(f"An exception happened when creating a new variation original for chunk n.{chunk_number}:")
                     tolog.debug("ERROR: " + str(e))
         finally:
             manual_commit()
@@ -542,9 +521,7 @@ def import_book_from_txt(
     return new_book_id
 
 
-def quick_replace(
-    text_content: str, original: str, substitution: str, case_insensitive=True
-) -> str:
+def quick_replace(text_content: str, original: str, substitution: str, case_insensitive=True) -> str:
     """
     Replace all occurrences of a string with another string.
 
@@ -559,9 +536,7 @@ def quick_replace(
     """
     # case insensitive substitution or not
     if case_insensitive:
-        return re.sub(
-            "(?i)" + re.escape(original), lambda m: f"{substitution}", text_content
-        )
+        return re.sub("(?i)" + re.escape(original), lambda m: f"{substitution}", text_content)
     else:
         return re.sub(re.escape(original), lambda m: f"{substitution}", text_content)
 
@@ -649,9 +624,7 @@ def split_on_punctuation_contextual(text: str) -> list:
         if char in SENTENCE_ENDING:
             buffer += char
             # Lookahead: If the next character indicates the start of a new paragraph
-            if (next_char in PARAGRAPH_START_TRIGGERS) or (
-                next_char == " " and next_next_char in PARAGRAPH_START_TRIGGERS
-            ):
+            if (next_char in PARAGRAPH_START_TRIGGERS) or (next_char == " " and next_next_char in PARAGRAPH_START_TRIGGERS):
                 buffer = flush_buffer(buffer, paragraphs)
                 i += 1
                 continue
@@ -663,9 +636,7 @@ def split_on_punctuation_contextual(text: str) -> list:
         if char in CLOSING_QUOTES:
             if buffer and buffer[-1] in SENTENCE_ENDING:
                 buffer += char
-                if (next_char in PARAGRAPH_START_TRIGGERS) or (
-                    next_char == " " and next_next_char in PARAGRAPH_START_TRIGGERS
-                ):
+                if (next_char in PARAGRAPH_START_TRIGGERS) or (next_char == " " and next_next_char in PARAGRAPH_START_TRIGGERS):
                     buffer = flush_buffer(buffer, paragraphs)
                     i += 1
                     continue
@@ -730,7 +701,7 @@ def split_text_by_actual_paragraphs(text: str) -> list:
 
 
 ## Function to split a chinese novel in parts of max n characters keeping the paragraphs intact
-def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS) -> List[str]:
+def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS) -> list[str]:
     """
     Split Chinese novel text into chunks of maximum character length.
 
@@ -788,9 +759,7 @@ def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS) -> List[st
         chunks_counter += 1
 
     if tolog is not None:
-        tolog.debug(
-            f"\n -> Import COMPLETE.\n  Total number of paragraphs: {str(paragraph_index)}\n  Total number of chunks: {str(chunks_counter)}\n"
-        )
+        tolog.debug(f"\n -> Import COMPLETE.\n  Total number of paragraphs: {str(paragraph_index)}\n  Total number of chunks: {str(chunks_counter)}\n")
 
     return chunks
 
@@ -1057,9 +1026,7 @@ def format_chunk_error_message(
     )
 
 
-def save_translated_book(
-    book_id: str, resume: bool = False, create_epub: bool = False
-) -> None:
+def save_translated_book(book_id: str, resume: bool = False, create_epub: bool = False) -> None:
     """
     Simulate translation of the book and save the translated text to a file.
     For each chunk, use the translator to translate the original text.
@@ -1070,18 +1037,14 @@ def save_translated_book(
     # Get max chunk retry attempts from config or use default
     max_chunk_retries = DEFAULT_MAX_CHUNK_RETRIES
     if _module_config:
-        max_chunk_retries = _module_config.get("translation", {}).get(
-            "max_chunk_retries", DEFAULT_MAX_CHUNK_RETRIES
-        )
+        max_chunk_retries = _module_config.get("translation", {}).get("max_chunk_retries", DEFAULT_MAX_CHUNK_RETRIES)
 
     book = Book.get_by_id(book_id)
     if not book:
         raise ValueError("Book not found")
     # Create book folder
     try:
-        folder_name = sanitize_filename(
-            f"{book.translated_title} by {book.translated_author}"
-        )
+        folder_name = common_sanitize_filename(f"{book.translated_title} by {book.translated_author}", max_length=100)
         book_dir = Path(folder_name)
         book_dir.mkdir(exist_ok=True)
     except OSError as e:
@@ -1090,7 +1053,7 @@ def save_translated_book(
             book_dir = Path.cwd()
 
     # Prepare autoresume data
-    existing_chunk_nums: Set[int] = set()
+    existing_chunk_nums: set[int] = set()
     if resume:
         pattern = f"{book.translated_title} by {book.translated_author} - Chunk_*.txt"
         for p in sorted(book_dir.glob(pattern), key=lambda x: x.name):
@@ -1098,9 +1061,7 @@ def save_translated_book(
             if match:
                 existing_chunk_nums.add(int(match.group(1)))
         if existing_chunk_nums:
-            tolog.info(
-                f"Autoresume active: existing translated chunks detected: {sorted(existing_chunk_nums)}"
-            )
+            tolog.info(f"Autoresume active: existing translated chunks detected: {sorted(existing_chunk_nums)}")
         else:
             tolog.info("Autoresume active but no existing chunk files found.")
 
@@ -1112,19 +1073,12 @@ def save_translated_book(
         variation = VARIATION_DB.get(chunk.original_variation_id)
         if variation:
             if resume and chunk.chunk_number in existing_chunk_nums:
-                p_existing = (
-                    book_dir
-                    / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
-                )
+                p_existing = book_dir / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
                 try:
                     translated_text = p_existing.read_text(encoding="utf-8")
-                    tolog.info(
-                        f"Skipping translation for chunk {chunk.chunk_number}; using existing translation."
-                    )
+                    tolog.info(f"Skipping translation for chunk {chunk.chunk_number}; using existing translation.")
                 except FileNotFoundError:
-                    tolog.warning(
-                        f"Expected file {p_existing.name} not found; re-translating."
-                    )
+                    tolog.warning(f"Expected file {p_existing.name} not found; re-translating.")
                 else:
                     translated_contents.append(f"\n{translated_text}\n")
                     continue
@@ -1133,48 +1087,35 @@ def save_translated_book(
             # Use the max_chunk_retries loaded above
             chunk_translated = False
             last_error = None
-            output_filename_chunk = (
-                book_dir
-                / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
-            )
+            output_filename_chunk = book_dir / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
 
             for chunk_attempt in range(1, max_chunk_retries + 1):
                 try:
-                    tolog.info(
-                        f"TRANSLATING CHUNK {chunk.chunk_number:06d} of {len(sorted_chunks)} (Attempt {chunk_attempt}/{max_chunk_retries})"
-                    )
+                    tolog.info(f"TRANSLATING CHUNK {chunk.chunk_number:06d} of {len(sorted_chunks)} (Attempt {chunk_attempt}/{max_chunk_retries})")
                     is_last_chunk = chunk.chunk_number == len(sorted_chunks)
                     translated_text = translator.translate(original_text, is_last_chunk)
 
                     # Validate translated text
                     if not translated_text or len(translated_text.strip()) == 0:
-                        raise ValueError(
-                            "Translation returned empty or whitespace-only text"
-                        )
+                        raise ValueError("Translation returned empty or whitespace-only text")
 
                     # Save chunk to file
                     p = output_filename_chunk
                     try:
                         p.write_text(translated_text)
-                    except (IOError, OSError, PermissionError) as e:
+                    except (OSError, PermissionError) as e:
                         if tolog is not None:
-                            tolog.error(
-                                f"Error saving chunk {chunk.chunk_number:06d} to {p}: {e}"
-                            )
+                            tolog.error(f"Error saving chunk {chunk.chunk_number:06d} to {p}: {e}")
                         raise
 
                     # Success! Mark as translated and break out of retry loop
                     chunk_translated = True
-                    tolog.info(
-                        f"Successfully translated chunk {chunk.chunk_number:06d} on attempt {chunk_attempt}"
-                    )
+                    tolog.info(f"Successfully translated chunk {chunk.chunk_number:06d} on attempt {chunk_attempt}")
                     break
 
                 except Exception as e:
                     last_error = e
-                    tolog.error(
-                        f"ERROR: Translation failed for chunk {chunk.chunk_number:06d} on attempt {chunk_attempt}/{max_chunk_retries}: {str(e)}"
-                    )
+                    tolog.error(f"ERROR: Translation failed for chunk {chunk.chunk_number:06d} on attempt {chunk_attempt}/{max_chunk_retries}: {str(e)}")
 
                     if chunk_attempt < max_chunk_retries:
                         # Calculate wait time with exponential backoff
@@ -1204,9 +1145,7 @@ def save_translated_book(
     full_translated_text = "\n".join(translated_contents)
     full_translated_text = remove_excess_empty_lines(full_translated_text)
     # Save to a file named with the book_id
-    output_filename = (
-        book_dir / f"translated_{book.translated_title} by {book.translated_author}.txt"
-    )
+    output_filename = book_dir / f"translated_{book.translated_title} by {book.translated_author}.txt"
     # Prepare path for writing (ensures parent directory is synced)
     output_filename = prepare_for_write(output_filename)
     try:
@@ -1214,7 +1153,7 @@ def save_translated_book(
             f.write(full_translated_text)
         if tolog is not None:
             tolog.info(f"Translated book saved to {output_filename}")
-    except (IOError, OSError, PermissionError) as e:
+    except (OSError, PermissionError) as e:
         if tolog is not None:
             tolog.error(f"Error saving translated book to {output_filename}: {e}")
         raise
@@ -1230,9 +1169,7 @@ def save_translated_book(
                 f.write("AI Translation Cost Log\n")
                 f.write("======================\n\n")
                 f.write(f"Novel: {book.translated_title} by {book.translated_author}\n")
-                f.write(
-                    f"Translation Date: {dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-                )
+                f.write(f"Translation Date: {dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                 f.write("API Service: OpenRouter (Remote)\n")
                 f.write(f"Model: {translator.MODEL_NAME}\n")
                 f.write(f"\n{translator.format_cost_summary()}\n")
@@ -1242,12 +1179,8 @@ def save_translated_book(
                 f.write("-------------------\n")
                 f.write(f"Total Chunks Translated: {len(sorted_chunks)}\n")
                 if translator.request_count > 0 and len(sorted_chunks) > 0:
-                    f.write(
-                        f"Average Cost per chunk: ${translator.total_cost / len(sorted_chunks):.6f}\n"
-                    )
-                    f.write(
-                        f"Average Tokens per chunk: {translator.total_tokens // len(sorted_chunks):,}\n"
-                    )
+                    f.write(f"Average Cost per chunk: ${translator.total_cost / len(sorted_chunks):.6f}\n")
+                    f.write(f"Average Tokens per chunk: {translator.total_tokens // len(sorted_chunks):,}\n")
 
                 # Save raw data for potential future analysis
                 f.write("\n\nRaw Data:\n")
@@ -1255,12 +1188,10 @@ def save_translated_book(
                 f.write(f"total_cost: {translator.total_cost}\n")
                 f.write(f"total_tokens: {translator.total_tokens}\n")
                 f.write(f"total_prompt_tokens: {translator.total_prompt_tokens}\n")
-                f.write(
-                    f"total_completion_tokens: {translator.total_completion_tokens}\n"
-                )
+                f.write(f"total_completion_tokens: {translator.total_completion_tokens}\n")
                 f.write(f"request_count: {translator.request_count}\n")
 
-        except (IOError, OSError, PermissionError) as e:
+        except (OSError, PermissionError) as e:
             if tolog is not None:
                 tolog.error(f"Error saving cost log to {cost_log_path}: {e}")
             raise
@@ -1274,7 +1205,7 @@ def save_translated_book(
 ###############################################
 
 
-def load_safe_yaml(path: Path) -> Optional[Dict[str, Any]]:
+def load_safe_yaml(path: Path) -> dict[str, Any] | None:
     """Safely load YAML file - wrapper for common utility with exception handling"""
     try:
         return load_yaml_safe(path)
@@ -1331,9 +1262,7 @@ def process_batch(args) -> None:
             if item["status"] == "completed":
                 continue
             if item.get("retry_count", 0) >= MAX_RETRIES:
-                tolog.warning(
-                    f"Skipping {item['path']} after {MAX_RETRIES} failed attempts."
-                )
+                tolog.warning(f"Skipping {item['path']} after {MAX_RETRIES} failed attempts.")
                 item["status"] = "failed/skipped"
                 continue
 
@@ -1342,16 +1271,14 @@ def process_batch(args) -> None:
             try:
                 with progress_file.open("w") as f:
                     yaml.safe_dump(progress, f)
-            except (IOError, OSError, yaml.YAMLError) as e:
+            except (OSError, yaml.YAMLError) as e:
                 if tolog is not None:
                     tolog.error(f"Error saving progress file: {e}")
                 raise
 
             try:
                 tolog.info(f"Processing: {Path(item['path']).name}")
-                book_id = import_book_from_txt(
-                    item["path"], encoding=args.encoding, max_chars=args.max_chars
-                )
+                book_id = import_book_from_txt(item["path"], encoding=args.encoding, max_chars=args.max_chars)
                 save_translated_book(book_id, resume=args.resume, create_epub=args.epub)
                 item["status"] = "completed"
             except Exception as e:
@@ -1364,21 +1291,18 @@ def process_batch(args) -> None:
                 try:
                     with progress_file.open("w") as f:
                         yaml.safe_dump(progress, f)
-                except (IOError, OSError, yaml.YAMLError) as e:
+                except (OSError, yaml.YAMLError) as e:
                     if tolog is not None:
                         tolog.error(f"Error saving progress file in finally block: {e}")
                     # Don't re-raise in finally block to avoid masking original exception
 
                 # Move completed batch to history
-                if all(
-                    file["status"] in ("completed", "failed/skipped")
-                    for file in progress["files"]
-                ):
+                if all(file["status"] in ("completed", "failed/skipped") for file in progress["files"]):
                     try:
                         with history_file.open("a", encoding="utf-8") as f:
                             f.write("---\n")
                             yaml.safe_dump(progress, f, allow_unicode=True)
-                    except (IOError, OSError, yaml.YAMLError) as e:
+                    except (OSError, yaml.YAMLError) as e:
                         if tolog is not None:
                             tolog.error(f"Error writing to history file: {e}")
                         # Continue anyway - don't fail the whole batch for history logging
@@ -1396,21 +1320,15 @@ def process_batch(args) -> None:
         batch_cost_log_path = input_path / "BATCH_AI_COSTS.log"
         batch_cost_log_path = prepare_for_write(batch_cost_log_path)
 
-        completed_count = sum(
-            1 for file in progress["files"] if file["status"] == "completed"
-        )
-        failed_count = sum(
-            1 for file in progress["files"] if file["status"] == "failed/skipped"
-        )
+        completed_count = sum(1 for file in progress["files"] if file["status"] == "completed")
+        failed_count = sum(1 for file in progress["files"] if file["status"] == "failed/skipped")
 
         try:
             with open(batch_cost_log_path, "w", encoding="utf-8") as f:
                 f.write("Batch Translation Cost Summary\n")
                 f.write("==============================\n\n")
                 f.write(f"Batch Directory: {input_path}\n")
-                f.write(
-                    f"Translation Date: {dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-                )
+                f.write(f"Translation Date: {dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                 f.write("API Service: OpenRouter (Remote)\n")
                 f.write(f"Model: {translator.MODEL_NAME}\n")
                 f.write("\nFiles Processed:\n")
@@ -1436,22 +1354,14 @@ def process_batch(args) -> None:
                 f.write(f"total_cost: {translator.total_cost}\n")
                 f.write(f"total_tokens: {translator.total_tokens}\n")
                 f.write(f"total_prompt_tokens: {translator.total_prompt_tokens}\n")
-                f.write(
-                    f"total_completion_tokens: {translator.total_completion_tokens}\n"
-                )
+                f.write(f"total_completion_tokens: {translator.total_completion_tokens}\n")
                 f.write(f"request_count: {translator.request_count}\n")
                 if completed_count > 0:
-                    f.write(
-                        f"average_cost_per_novel: ${translator.total_cost / completed_count:.6f}\n"
-                    )
-                    f.write(
-                        f"average_tokens_per_novel: {translator.total_tokens // completed_count:,}\n"
-                    )
-        except (IOError, OSError, PermissionError) as e:
+                    f.write(f"average_cost_per_novel: ${translator.total_cost / completed_count:.6f}\n")
+                    f.write(f"average_tokens_per_novel: {translator.total_tokens // completed_count:,}\n")
+        except (OSError, PermissionError) as e:
             if tolog is not None:
-                tolog.error(
-                    f"Error saving batch cost log to {batch_cost_log_path}: {e}"
-                )
+                tolog.error(f"Error saving batch cost log to {batch_cost_log_path}: {e}")
             # Don't re-raise, just log the error
         else:
             tolog.info(f"Batch cost summary saved to {batch_cost_log_path}")
@@ -1506,10 +1416,8 @@ def translate_novel(
             file_handler.setLevel(log_level)
             file_handler.setFormatter(logging.Formatter(log_format))
             tolog.addHandler(file_handler)
-        except (IOError, OSError, PermissionError) as e:
-            tolog.error(
-                f"Failed to set up file logging to {config['logging']['file_path']}: {e}"
-            )
+        except (OSError, PermissionError) as e:
+            tolog.error(f"Failed to set up file logging to {config['logging']['file_path']}: {e}")
             # Continue without file logging
 
     # Initialize global services
@@ -1522,9 +1430,7 @@ def translate_novel(
 
     # Warn if colorama is missing
     if cr is None:
-        tolog.warning(
-            "colorama package not installed. Colored text may not work properly."
-        )
+        tolog.warning("colorama package not installed. Colored text may not work properly.")
 
     # Set up signal handling for graceful termination
     def signal_handler(sig, frame):
@@ -1542,9 +1448,7 @@ def translate_novel(
         # Get API key from config or environment
         api_key = config_manager.get_api_key("openrouter")
         if not api_key:
-            tolog.error(
-                "OpenRouter API key required. Set OPENROUTER_API_KEY or configure in enchant_config.yml"
-            )
+            tolog.error("OpenRouter API key required. Set OPENROUTER_API_KEY or configure in enchant_config.yml")
             sys.exit(1)
 
         translator = ChineseAITranslator(
@@ -1574,13 +1478,9 @@ def translate_novel(
 
     try:
         # Call the import_book_from_txt function to process the text file
-        new_book_id = import_book_from_txt(
-            file_path, encoding=encoding, max_chars=max_chars
-        )
+        new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
         tolog.info(f"Book imported successfully. Book ID: {new_book_id}")
-        safe_print(
-            f"[bold green]Book imported successfully. Book ID: {new_book_id}[/bold green]"
-        )
+        safe_print(f"[bold green]Book imported successfully. Book ID: {new_book_id}[/bold green]")
     except Exception:
         tolog.exception("An error occurred during book import.")
         return False
@@ -1598,9 +1498,7 @@ def translate_novel(
         elif config["pricing"]["enabled"]:
             # Cost tracking is now handled by global_cost_tracker
             summary = global_cost_tracker.get_summary()
-            tolog.info(
-                f"Cost Summary: Total cost: ${summary['total_cost']:.6f}, Total requests: {summary['request_count']}"
-            )
+            tolog.info(f"Cost Summary: Total cost: ${summary['total_cost']:.6f}, Total requests: {summary['request_count']}")
 
         return True
     except Exception:
@@ -1642,10 +1540,8 @@ def main() -> None:
             file_handler.setLevel(log_level)
             file_handler.setFormatter(logging.Formatter(log_format))
             tolog.addHandler(file_handler)
-        except (IOError, OSError, PermissionError) as e:
-            tolog.error(
-                f"Failed to set up file logging to {config['logging']['file_path']}: {e}"
-            )
+        except (OSError, PermissionError) as e:
+            tolog.error(f"Failed to set up file logging to {config['logging']['file_path']}: {e}")
             # Continue without file logging
 
     # Initialize global services
@@ -1658,9 +1554,7 @@ def main() -> None:
 
     # Warn if colorama is missing
     if cr is None:
-        tolog.warning(
-            "colorama package not installed. Colored text may not work properly."
-        )
+        tolog.warning("colorama package not installed. Colored text may not work properly.")
 
     # Set up signal handling for graceful termination
     def signal_handler(sig, frame):

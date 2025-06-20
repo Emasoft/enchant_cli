@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Real API tests for translation_service.py - minimal mocking
 """
@@ -35,9 +34,7 @@ class TestChineseAITranslatorReal:
 
     def test_init_local_real(self):
         """Test local translator initialization with real values"""
-        translator = ChineseAITranslator(
-            logger=self.logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=self.logger, use_remote=False, temperature=0.05)
 
         # Check real configuration values
         assert translator.api_url == "http://localhost:1234/v1/chat/completions"
@@ -50,9 +47,7 @@ class TestChineseAITranslatorReal:
 
     def test_real_translation_local(self):
         """Test actual translation with local API"""
-        translator = ChineseAITranslator(
-            logger=self.logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=self.logger, use_remote=False, temperature=0.05)
 
         # Test with real Chinese text
         test_text = "你好，世界！这是一个真实的测试。"
@@ -63,9 +58,7 @@ class TestChineseAITranslatorReal:
             # Verify result
             assert result is not None, "Translation returned None"
             assert len(result) > 0, "Translation is empty"
-            assert not any("\u4e00" <= c <= "\u9fff" for c in result), (
-                "Result contains Chinese"
-            )
+            assert not any("\u4e00" <= c <= "\u9fff" for c in result), "Result contains Chinese"
 
             print(f"✓ Real translation: '{test_text}' -> '{result}'")
             return True
@@ -75,9 +68,7 @@ class TestChineseAITranslatorReal:
 
     def test_remove_thinking_block_real(self):
         """Test thinking block removal with real translator"""
-        translator = ChineseAITranslator(
-            logger=self.logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=self.logger, use_remote=False, temperature=0.05)
 
         # Test various thinking block formats
         test_cases = [
@@ -99,9 +90,7 @@ class TestChineseAITranslatorReal:
 
     def test_real_wuxia_translation(self):
         """Test wuxia terminology translation with real API"""
-        translator = ChineseAITranslator(
-            logger=self.logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=self.logger, use_remote=False, temperature=0.05)
 
         # Wuxia text with specific terms
         test_text = "他的修为已达元婴期，丹田中真气充沛。"
@@ -137,9 +126,7 @@ class TestChineseAITranslatorReal:
 
     def test_real_name_translation(self):
         """Test name translation with real API"""
-        translator = ChineseAITranslator(
-            logger=self.logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=self.logger, use_remote=False, temperature=0.05)
 
         # Text with names that should include meanings
         test_text = '唐舞桐对霍雨浩说："我们走吧。"'
@@ -149,10 +136,7 @@ class TestChineseAITranslatorReal:
 
             # Check name format
             has_tang = "Tang Wutong" in result
-            has_meaning = any(
-                phrase in result
-                for phrase in ["Dancing Willow", "Dance Willow", "Dancing Paulownia"]
-            )
+            has_meaning = any(phrase in result for phrase in ["Dancing Willow", "Dance Willow", "Dancing Paulownia"])
             has_quotes = '"' in result or '"' in result
 
             print(f"Result: {result}")
@@ -170,30 +154,22 @@ class TestChineseAITranslatorReal:
 
     def test_real_double_translation(self):
         """Test double translation with real API"""
-        translator = ChineseAITranslator(
-            logger=self.logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=self.logger, use_remote=False, temperature=0.05)
 
         # Mixed text that needs double pass
         mixed_text = "Hello 世界, this is a 测试 message."
 
         try:
             # Single pass
-            single = translator.translate_chunk(
-                mixed_text, double_translation=False, is_last_chunk=True
-            )
+            single = translator.translate_chunk(mixed_text, double_translation=False, is_last_chunk=True)
             print(f"Single pass: {single}")
 
             # Double pass
-            double = translator.translate_chunk(
-                mixed_text, double_translation=True, is_last_chunk=True
-            )
+            double = translator.translate_chunk(mixed_text, double_translation=True, is_last_chunk=True)
             print(f"Double pass: {double}")
 
             # Check if double pass removed Chinese
-            double_has_chinese = (
-                any("\u4e00" <= c <= "\u9fff" for c in double) if double else True
-            )
+            double_has_chinese = any("\u4e00" <= c <= "\u9fff" for c in double) if double else True
 
             if not double_has_chinese:
                 print("✓ Double translation removed all Chinese")
@@ -206,9 +182,7 @@ class TestChineseAITranslatorReal:
 
     def test_translate_file_real(self):
         """Test file translation with real API"""
-        translator = ChineseAITranslator(
-            logger=self.logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=self.logger, use_remote=False, temperature=0.05)
 
         # Create temporary test files
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -221,9 +195,7 @@ class TestChineseAITranslatorReal:
 
             try:
                 # Translate file
-                translator.translate_file(
-                    str(input_file), str(output_file), is_last_chunk=True
-                )
+                translator.translate_file(str(input_file), str(output_file), is_last_chunk=True)
 
                 # Check output
                 if output_file.exists():
@@ -248,9 +220,7 @@ class TestChineseAITranslatorReal:
 
     def test_cost_tracking_local(self):
         """Test that local API doesn't track costs"""
-        translator = ChineseAITranslator(
-            logger=self.logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=self.logger, use_remote=False, temperature=0.05)
 
         # Make a real translation
         try:
@@ -267,9 +237,7 @@ class TestChineseAITranslatorReal:
 
     def test_real_performance(self):
         """Test translation performance with real API"""
-        translator = ChineseAITranslator(
-            logger=self.logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=self.logger, use_remote=False, temperature=0.05)
 
         # Test with various text lengths
         test_texts = [
@@ -287,9 +255,7 @@ class TestChineseAITranslatorReal:
 
                 if result:
                     speed = len(text) / elapsed
-                    print(
-                        f"✓ {name} text ({len(text)} chars) in {elapsed:.2f}s = {speed:.1f} chars/s"
-                    )
+                    print(f"✓ {name} text ({len(text)} chars) in {elapsed:.2f}s = {speed:.1f} chars/s")
                 else:
                     print(f"✗ {name} text translation failed")
                     all_passed = False
@@ -301,9 +267,7 @@ class TestChineseAITranslatorReal:
 
     def test_thread_safety_real(self):
         """Test thread safety with real concurrent translations"""
-        translator = ChineseAITranslator(
-            logger=self.logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=self.logger, use_remote=False, temperature=0.05)
 
         results = []
         errors = []
@@ -337,9 +301,7 @@ class TestChineseAITranslatorReal:
             print(f"✓ All {len(test_texts)} concurrent translations completed")
         else:
             print(f"✗ Only {len(results)}/{len(test_texts)} translations completed")
-            assert False, (
-                f"Only {len(results)}/{len(test_texts)} translations completed"
-            )
+            assert False, f"Only {len(results)}/{len(test_texts)} translations completed"
 
 
 class TestUtilityFunctionsReal:

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 common_utils.py - Shared utility functions for EnChANT modules
 """
@@ -10,7 +9,8 @@ import time
 import sys
 import functools
 from pathlib import Path
-from typing import Dict, Any, Optional, Callable, TypeVar
+from typing import Dict, Any, Optional, TypeVar, cast
+from collections.abc import Callable
 import logging
 
 
@@ -51,7 +51,7 @@ def sanitize_filename(filename: str, max_length: int = 255) -> str:
     return filename
 
 
-def extract_book_info_from_path(file_path: Path) -> Dict[str, Any]:
+def extract_book_info_from_path(file_path: Path) -> dict[str, Any]:
     """
     Extract book information from file path or directory name.
     Handles both the standard naming format and fallbacks.
@@ -103,57 +103,62 @@ def retry_with_backoff(
     max_wait: float = 60.0,
     min_wait: float = 1.0,
     exception_types: tuple[type[Exception], ...] = (Exception,),
-    time_limit: Optional[float] = None,
+    time_limit: float | None = None,
     exit_on_failure: bool = False,
 ) -> Callable[[Callable[..., T]], Callable[..., T]]:
     """
     Decorator for retrying functions with exponential backoff.
-    
+
     This is a decorator version of exponential_backoff_retry for standardized retry logic.
-    
+
     Args:
         max_attempts: Maximum number of attempts
         base_wait: Base wait time in seconds
-        max_wait: Maximum wait time in seconds  
+        max_wait: Maximum wait time in seconds
         min_wait: Minimum wait time in seconds
         exception_types: Tuple of exception types to retry on
         time_limit: Optional total time limit in seconds
         exit_on_failure: If True, exit the program on failure (for critical operations)
-        
+
     Returns:
         Decorator function
     """
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs) -> Optional[T]:
+        def wrapper(*args: Any, **kwargs: Any) -> T:
             # Get logger from the first argument if it's a method with self.logger
             logger = None
-            if args and hasattr(args[0], 'logger'):
+            if args and hasattr(args[0], "logger"):
                 logger = args[0].logger
-                
-            result = exponential_backoff_retry(
-                func,
-                max_attempts,
-                base_wait,
-                max_wait,
-                min_wait,
-                exception_types,
-                logger,
-                None,  # on_retry
-                time_limit,
-                *args,
-                **kwargs
-            )
-            
-            if result is None and exit_on_failure:
-                error_msg = f"Critical failure in {func.__name__} after {max_attempts} attempts"
-                if logger:
-                    logger.error(error_msg)
-                print(f"\\n❌ FATAL ERROR: {error_msg}")
-                sys.exit(1)
-                
-            return result
+
+            try:
+                result = exponential_backoff_retry(
+                    func,
+                    max_attempts,
+                    base_wait,
+                    max_wait,
+                    min_wait,
+                    exception_types,
+                    logger,
+                    None,  # on_retry
+                    time_limit,
+                    *args,
+                    **kwargs,
+                )
+                return result
+            except Exception as e:
+                if exit_on_failure:
+                    error_msg = f"Critical failure in {func.__name__} after {max_attempts} attempts: {e}"
+                    if logger:
+                        logger.error(error_msg)
+                    print(f"\\n❌ FATAL ERROR: {error_msg}")
+                    sys.exit(1)
+                else:
+                    raise
+
         return wrapper
+
     return decorator
 
 
@@ -164,12 +169,12 @@ def exponential_backoff_retry(
     max_wait: float = 60.0,
     min_wait: float = 1.0,
     exception_types: tuple[type[Exception], ...] = (Exception,),
-    logger: Optional[logging.Logger] = None,
-    on_retry: Optional[Callable[[int, Exception, float], None]] = None,
-    time_limit: Optional[float] = None,
-    *args,
-    **kwargs,
-) -> Optional[T]:
+    logger: logging.Logger | None = None,
+    on_retry: Callable[[int, Exception, float], None] | None = None,
+    time_limit: float | None = None,
+    *args: Any,
+    **kwargs: Any,
+) -> T | None:
     """
     Generic retry function with exponential backoff.
 
@@ -217,15 +222,11 @@ def exponential_backoff_retry(
                     wait_time = max(0, time_limit - elapsed - 1)
                     if wait_time <= 0:
                         if logger:
-                            logger.error(
-                                f"Time limit {time_limit}s exceeded after {attempt} attempts"
-                            )
+                            logger.error(f"Time limit {time_limit}s exceeded after {attempt} attempts")
                         raise
 
             if logger:
-                logger.warning(
-                    f"Attempt {attempt}/{max_attempts} failed: {e}. Retrying in {wait_time:.1f}s..."
-                )
+                logger.warning(f"Attempt {attempt}/{max_attempts} failed: {e}. Retrying in {wait_time:.1f}s...")
 
             # Call optional retry callback
             if on_retry:

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Comprehensive tests for translation_service.py with 100% coverage
 """
@@ -20,7 +19,7 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.enchant_book_manager.translation_service import (
+from enchant_book_manager.translation_service import (
     ChineseAITranslator,
     TranslationException,
     is_latin_char,
@@ -44,9 +43,7 @@ class TestChineseAITranslator:
     @pytest.fixture
     def translator_remote(self, mock_logger):
         """Create a remote translator instance"""
-        return ChineseAITranslator(
-            logger=mock_logger, use_remote=True, api_key="test_key"
-        )
+        return ChineseAITranslator(logger=mock_logger, use_remote=True, api_key="test_key")
 
     def test_init_local(self, translator_local):
         """Test local translator initialization"""
@@ -59,9 +56,7 @@ class TestChineseAITranslator:
     def test_init_remote(self, translator_remote):
         """Test remote translator initialization"""
         assert translator_remote.is_remote
-        assert (
-            translator_remote.api_url == "https://openrouter.ai/api/v1/chat/completions"
-        )
+        assert translator_remote.api_url == "https://openrouter.ai/api/v1/chat/completions"
         assert translator_remote.MODEL_NAME == "deepseek/deepseek-r1:nitro"
         assert translator_remote.api_key == "test_key"
         assert translator_remote.request_count == 0
@@ -69,9 +64,7 @@ class TestChineseAITranslator:
     def test_init_remote_no_api_key(self, mock_logger):
         """Test remote translator without API key raises error"""
         with patch.dict(os.environ, {}, clear=True):
-            with pytest.raises(
-                ValueError, match="OPENROUTER_API_KEY not set in environment variables"
-            ):
+            with pytest.raises(ValueError, match="OPENROUTER_API_KEY not set in environment variables"):
                 ChineseAITranslator(logger=mock_logger, use_remote=True, api_key=None)
 
     def test_log_method(self, translator_local):
@@ -111,14 +104,10 @@ class TestChineseAITranslator:
 
         # Test case sensitivity
         text = "<translation>test</translation>"
-        result = translator_local.remove_custom_tags(
-            text, "TRANSLATION", ignore_case=True
-        )
+        result = translator_local.remove_custom_tags(text, "TRANSLATION", ignore_case=True)
         assert result == "test"
 
-        result = translator_local.remove_custom_tags(
-            text, "TRANSLATION", ignore_case=False
-        )
+        result = translator_local.remove_custom_tags(text, "TRANSLATION", ignore_case=False)
         assert result == "<translation>test</translation>"
 
     def test_remove_excess_empty_lines(self, translator_local):
@@ -185,7 +174,7 @@ class TestChineseAITranslator:
             result = translator_local.remove_translation_markers(text)
             assert tag not in result
 
-    @patch("src.enchant_book_manager.translation_service.requests.post")
+    @patch("enchant_book_manager.translation_service.requests.post")
     def test_translate_messages_success_local(self, mock_post, translator_local):
         """Test successful translation with local API"""
         # Mock successful response
@@ -206,7 +195,7 @@ class TestChineseAITranslator:
         assert result == "Translated text in English"
         assert mock_post.called
 
-    @patch("src.enchant_book_manager.translation_service.requests.post")
+    @patch("enchant_book_manager.translation_service.requests.post")
     def test_translate_messages_success_remote(self, mock_post, translator_remote):
         """Test successful translation with remote API and cost tracking"""
         # Mock successful response with cost
@@ -224,14 +213,10 @@ class TestChineseAITranslator:
         mock_post.return_value = mock_response
 
         # Mock global cost tracker
-        with patch(
-            "src.enchant_book_manager.translation_service.global_cost_tracker.track_usage"
-        ) as mock_track_usage:
+        with patch("src.enchant_book_manager.translation_service.global_cost_tracker.track_usage") as mock_track_usage:
             mock_track_usage.return_value = 0.0025
 
-            result = translator_remote.translate_messages(
-                "Test message", is_last_chunk=True
-            )
+            result = translator_remote.translate_messages("Test message", is_last_chunk=True)
 
             assert result == "Translated text in English"
             assert translator_remote.request_count == 1
@@ -248,7 +233,7 @@ class TestChineseAITranslator:
             call_args = mock_post.call_args
             assert call_args[1]["json"]["usage"] == {"include": True}
 
-    @patch("src.enchant_book_manager.translation_service.requests.post")
+    @patch("enchant_book_manager.translation_service.requests.post")
     def test_translate_messages_remote_no_cost(self, mock_post, translator_remote):
         """Test remote translation without cost information"""
         # Mock response without cost
@@ -265,9 +250,7 @@ class TestChineseAITranslator:
         mock_post.return_value = mock_response
 
         # Mock global cost tracker
-        with patch(
-            "src.enchant_book_manager.translation_service.global_cost_tracker.track_usage"
-        ) as mock_track_usage:
+        with patch("src.enchant_book_manager.translation_service.global_cost_tracker.track_usage") as mock_track_usage:
             mock_track_usage.return_value = 0.0  # No cost returned
 
             result = translator_remote.translate_messages("Test", is_last_chunk=True)
@@ -283,26 +266,18 @@ class TestChineseAITranslator:
             assert usage_arg["total_tokens"] == 150
             assert "cost" not in usage_arg  # No cost field in response
 
-    @patch("src.enchant_book_manager.translation_service.requests.post")
+    @patch("enchant_book_manager.translation_service.requests.post")
     def test_translate_messages_thinking_removal(self, mock_post, translator_local):
         """Test thinking block removal from response"""
         mock_response = Mock()
-        mock_response.json.return_value = {
-            "choices": [
-                {
-                    "message": {
-                        "content": "<think>Internal thought</think>Actual translation"
-                    }
-                }
-            ]
-        }
+        mock_response.json.return_value = {"choices": [{"message": {"content": "<think>Internal thought</think>Actual translation"}}]}
         mock_response.raise_for_status = Mock()
         mock_post.return_value = mock_response
 
         result = translator_local.translate_messages("Test", is_last_chunk=True)
         assert result == "Actual translation"
 
-    @patch("src.enchant_book_manager.translation_service.requests.post")
+    @patch("enchant_book_manager.translation_service.requests.post")
     def test_translate_messages_non_latin_retry(self, mock_post, translator_local):
         """Test retry when translation is not Latin charset"""
         # First response with Chinese characters
@@ -320,9 +295,7 @@ class TestChineseAITranslator:
 
         # Second response with English
         mock_response2 = Mock()
-        mock_response2.json.return_value = {
-            "choices": [{"message": {"content": "This is English text"}}]
-        }
+        mock_response2.json.return_value = {"choices": [{"message": {"content": "This is English text"}}]}
         mock_response2.raise_for_status = Mock()
 
         mock_post.side_effect = [mock_response1, mock_response2]
@@ -331,14 +304,12 @@ class TestChineseAITranslator:
         assert result == "This is English text"
         assert mock_post.call_count == 2
 
-    @patch("src.enchant_book_manager.translation_service.requests.post")
+    @patch("enchant_book_manager.translation_service.requests.post")
     def test_translate_messages_too_short_retry(self, mock_post, translator_local):
         """Test retry when translation is too short"""
         # First response too short
         mock_response1 = Mock()
-        mock_response1.json.return_value = {
-            "choices": [{"message": {"content": "Short"}}]
-        }
+        mock_response1.json.return_value = {"choices": [{"message": {"content": "Short"}}]}
         mock_response1.raise_for_status = Mock()
 
         # Second response adequate
@@ -360,13 +331,11 @@ class TestChineseAITranslator:
         assert result == "A" * 301
         assert mock_post.call_count == 2
 
-    @patch("src.enchant_book_manager.translation_service.requests.post")
+    @patch("enchant_book_manager.translation_service.requests.post")
     def test_translate_messages_last_chunk_short_ok(self, mock_post, translator_local):
         """Test that short translations are OK for last chunk"""
         mock_response = Mock()
-        mock_response.json.return_value = {
-            "choices": [{"message": {"content": "Short translation"}}]
-        }
+        mock_response.json.return_value = {"choices": [{"message": {"content": "Short translation"}}]}
         mock_response.raise_for_status = Mock()
         mock_post.return_value = mock_response
 
@@ -374,94 +343,92 @@ class TestChineseAITranslator:
         assert result == "Short translation"
         assert mock_post.call_count == 1
 
-    @patch("src.enchant_book_manager.translation_service.time.sleep")
-    @patch("src.enchant_book_manager.translation_service.requests.post")
-    def test_translate_messages_http_error(
-        self, mock_post, mock_sleep, translator_local
-    ):
+    @patch("enchant_book_manager.translation_service.time.sleep")
+    @patch("enchant_book_manager.translation_service.requests.post")
+    def test_translate_messages_http_error(self, mock_post, mock_sleep, translator_local):
         """Test HTTP error handling"""
         mock_response = Mock()
         mock_response.raise_for_status.side_effect = HTTPError("404 Not Found")
         mock_post.return_value = mock_response
 
-        # Set low retry count for test speed
-        translator_local.max_retries = 2
+        # The decorator has max_attempts=10, so let's patch it to use lower value
+        with patch("enchant_book_manager.common_utils.exponential_backoff_retry") as mock_retry:
+            # Make it fail quickly
+            mock_retry.side_effect = HTTPError("404 Not Found")
 
-        # The custom retry mechanism calls sys.exit(1) on failure
-        with patch("sys.exit") as mock_exit:
-            mock_exit.side_effect = SystemExit(1)
-            with pytest.raises(SystemExit):
-                translator_local.translate_messages("Test")
-            mock_exit.assert_called_with(1)
+            # The custom retry mechanism calls sys.exit(1) on failure
+            with patch("sys.exit") as mock_exit:
+                mock_exit.side_effect = SystemExit(1)
+                with pytest.raises(SystemExit):
+                    translator_local.translate_messages("Test")
+                mock_exit.assert_called_with(1)
 
-    @patch("src.enchant_book_manager.translation_service.time.sleep")
-    @patch("src.enchant_book_manager.translation_service.requests.post")
-    def test_translate_messages_request_exception(
-        self, mock_post, mock_sleep, translator_local
-    ):
+    @patch("enchant_book_manager.translation_service.time.sleep")
+    @patch("enchant_book_manager.translation_service.requests.post")
+    def test_translate_messages_request_exception(self, mock_post, mock_sleep, translator_local):
         """Test request exception handling"""
         mock_post.side_effect = RequestException("Connection error")
 
-        # Set low retry count for test speed
-        translator_local.max_retries = 2
+        # The decorator has max_attempts=10, so let's patch it to use lower value
+        with patch("enchant_book_manager.common_utils.exponential_backoff_retry") as mock_retry:
+            # Make it fail quickly
+            mock_retry.side_effect = RequestException("Connection error")
 
-        # The custom retry mechanism calls sys.exit(1) on failure
-        with patch("sys.exit") as mock_exit:
-            mock_exit.side_effect = SystemExit(1)
-            with pytest.raises(SystemExit):
-                translator_local.translate_messages("Test")
-            mock_exit.assert_called_with(1)
+            # The custom retry mechanism calls sys.exit(1) on failure
+            with patch("sys.exit") as mock_exit:
+                mock_exit.side_effect = SystemExit(1)
+                with pytest.raises(SystemExit):
+                    translator_local.translate_messages("Test")
+                mock_exit.assert_called_with(1)
 
-    @patch("src.enchant_book_manager.translation_service.time.sleep")
-    @patch("src.enchant_book_manager.translation_service.requests.post")
-    def test_translate_messages_json_error(
-        self, mock_post, mock_sleep, translator_local
-    ):
+    @patch("enchant_book_manager.translation_service.time.sleep")
+    @patch("enchant_book_manager.translation_service.requests.post")
+    def test_translate_messages_json_error(self, mock_post, mock_sleep, translator_local):
         """Test JSON decode error"""
         mock_response = Mock()
         mock_response.json.side_effect = json.JSONDecodeError("Invalid JSON", "", 0)
         mock_response.raise_for_status = Mock()
         mock_post.return_value = mock_response
 
-        # Set low retry count for test speed
-        translator_local.max_retries = 2
+        # The decorator has max_attempts=10, so let's patch it to use lower value
+        with patch("enchant_book_manager.common_utils.exponential_backoff_retry") as mock_retry:
+            # Make it fail quickly
+            mock_retry.side_effect = json.JSONDecodeError("Invalid JSON", "", 0)
 
-        # The custom retry mechanism calls sys.exit(1) on failure
-        with patch("sys.exit") as mock_exit:
-            mock_exit.side_effect = SystemExit(1)
-            with pytest.raises(SystemExit):
-                translator_local.translate_messages("Test")
-            mock_exit.assert_called_with(1)
+            # The custom retry mechanism calls sys.exit(1) on failure
+            with patch("sys.exit") as mock_exit:
+                mock_exit.side_effect = SystemExit(1)
+                with pytest.raises(SystemExit):
+                    translator_local.translate_messages("Test")
+                mock_exit.assert_called_with(1)
 
-    @patch("src.enchant_book_manager.translation_service.time.sleep")
-    @patch("src.enchant_book_manager.translation_service.requests.post")
-    def test_translate_messages_unexpected_response(
-        self, mock_post, mock_sleep, translator_local
-    ):
+    @patch("enchant_book_manager.translation_service.time.sleep")
+    @patch("enchant_book_manager.translation_service.requests.post")
+    def test_translate_messages_unexpected_response(self, mock_post, mock_sleep, translator_local):
         """Test unexpected response structure"""
         mock_response = Mock()
         mock_response.json.return_value = {"unexpected": "structure"}
         mock_response.raise_for_status = Mock()
         mock_post.return_value = mock_response
 
-        # Set low retry count for test speed
-        translator_local.max_retries = 2
+        # The decorator has max_attempts=10, so let's patch it to use lower value
+        with patch("enchant_book_manager.common_utils.exponential_backoff_retry") as mock_retry:
+            # Make it fail quickly with a generic error
+            mock_retry.side_effect = ValueError("Unexpected response structure from Open Router API.")
 
-        # The custom retry mechanism calls sys.exit(1) on failure
-        with patch("sys.exit") as mock_exit:
-            mock_exit.side_effect = SystemExit(1)
-            with pytest.raises(SystemExit):
-                translator_local.translate_messages("Test")
-            mock_exit.assert_called_with(1)
+            # The custom retry mechanism calls sys.exit(1) on failure
+            with patch("sys.exit") as mock_exit:
+                mock_exit.side_effect = SystemExit(1)
+                with pytest.raises(SystemExit):
+                    translator_local.translate_messages("Test")
+                mock_exit.assert_called_with(1)
 
-    @patch("src.enchant_book_manager.translation_service.requests.post")
+    @patch("enchant_book_manager.translation_service.requests.post")
     def test_translate_chunk(self, mock_post, translator_local):
         """Test translate_chunk method"""
         mock_response = Mock()
         mock_response.json.return_value = {
-            "choices": [
-                {"message": {"content": "[TRANSLATION]English text[/TRANSLATION]"}}
-            ],
+            "choices": [{"message": {"content": "[TRANSLATION]English text[/TRANSLATION]"}}],
             "usage": {
                 "prompt_tokens": 100,
                 "completion_tokens": 50,
@@ -478,7 +445,7 @@ class TestChineseAITranslator:
         assert result == "English text"
         assert "\n\n\n\n\n" not in result
 
-    @patch("src.enchant_book_manager.translation_service.requests.post")
+    @patch("enchant_book_manager.translation_service.requests.post")
     def test_translate_chunk_double_translation(self, mock_post, translator_local):
         """Test double translation feature"""
         # First translation
@@ -496,9 +463,7 @@ class TestChineseAITranslator:
         # Second translation
         mock_response2 = Mock()
         mock_response2.json.return_value = {
-            "choices": [
-                {"message": {"content": "Second pass translation fully English"}}
-            ],
+            "choices": [{"message": {"content": "Second pass translation fully English"}}],
             "usage": {
                 "prompt_tokens": 100,
                 "completion_tokens": 50,
@@ -509,9 +474,7 @@ class TestChineseAITranslator:
 
         mock_post.side_effect = [mock_response1, mock_response2]
 
-        result = translator_local.translate_chunk(
-            "中文文本", double_translation=True, is_last_chunk=True
-        )
+        result = translator_local.translate_chunk("中文文本", double_translation=True, is_last_chunk=True)
 
         assert result == "Second pass translation fully English"
         assert mock_post.call_count == 2
@@ -550,9 +513,7 @@ class TestChineseAITranslator:
             result = translator_local.translate("中文", is_last_chunk=True)
 
             assert result == "Translated text"
-            mock_translate.assert_called_once_with(
-                "中文", double_translation=None, is_last_chunk=True
-            )
+            mock_translate.assert_called_once_with("中文", double_translation=None, is_last_chunk=True)
 
     def test_translate_method_error(self, translator_local):
         """Test translate method error handling"""
@@ -567,9 +528,7 @@ class TestChineseAITranslator:
     def test_get_cost_summary_remote(self, translator_remote):
         """Test cost summary for remote API"""
         # Mock the global cost tracker's summary
-        with patch(
-            "src.enchant_book_manager.translation_service.global_cost_tracker.get_summary"
-        ) as mock_get_summary:
+        with patch("src.enchant_book_manager.translation_service.global_cost_tracker.get_summary") as mock_get_summary:
             mock_get_summary.return_value = {
                 "total_cost": 0.15,
                 "total_tokens": 5000,
@@ -600,9 +559,7 @@ class TestChineseAITranslator:
     def test_format_cost_summary_remote(self, translator_remote):
         """Test formatted cost summary for remote API"""
         # Mock the global cost tracker's summary
-        with patch(
-            "src.enchant_book_manager.translation_service.global_cost_tracker.get_summary"
-        ) as mock_get_summary:
+        with patch("src.enchant_book_manager.translation_service.global_cost_tracker.get_summary") as mock_get_summary:
             mock_get_summary.return_value = {
                 "total_cost": 0.25,
                 "total_tokens": 10000,
@@ -635,9 +592,7 @@ class TestChineseAITranslator:
         translator_remote.request_count = 5
 
         # Mock the global cost tracker reset
-        with patch(
-            "src.enchant_book_manager.translation_service.global_cost_tracker.reset"
-        ) as mock_reset:
+        with patch("src.enchant_book_manager.translation_service.global_cost_tracker.reset") as mock_reset:
             # Reset
             translator_remote.reset_cost_tracking()
 

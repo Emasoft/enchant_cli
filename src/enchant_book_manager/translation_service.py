@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2024-2025 Emasoft
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +16,8 @@ import requests
 import json
 import re
 import threading
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict, Any
+from collections.abc import Callable
 from functools import wraps
 import unicodedata
 import string
@@ -30,9 +30,7 @@ from .common_utils import retry_with_backoff
 
 
 # Constant parameters:
-DEFAULT_CHUNK_SIZE = (
-    12000  # max chars for each chunk of chinese text to send to the server
-)
+DEFAULT_CHUNK_SIZE = 12000  # max chars for each chunk of chinese text to send to the server
 CONNECTION_TIMEOUT = 60  # max seconds to wait for connecting with the server (1 minute)
 RESPONSE_TIMEOUT = 360  # max seconds to wait for the server response (6 minutes total)
 DEFAULT_MAX_TOKENS = 4000  # Default max tokens for API responses
@@ -202,7 +200,7 @@ _repeated_chars = re.compile(r"(.)\1+")
 ALLOWED_ASCII = set(string.ascii_letters + string.digits + string.punctuation)
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def is_latin_char(char: str) -> bool:
     """
     Returns True if the non-ASCII character belongs to the Latin script
@@ -287,24 +285,24 @@ tenacity.Retrying.__call__ = no_retry_call
 class ChineseAITranslator:
     def __init__(
         self,
-        logger: Optional[logging.Logger] = None,
+        logger: logging.Logger | None = None,
         use_remote: bool = False,
-        api_key: Optional[str] = None,
-        endpoint: Optional[str] = None,
-        model: Optional[str] = None,
+        api_key: str | None = None,
+        endpoint: str | None = None,
+        model: str | None = None,
         temperature: float = 0.05,
-        max_tokens: Optional[int] = None,
-        timeout: Optional[int] = None,
-        config: Optional[Dict[str, Any]] = None,
-        max_retries: Optional[int] = None,
-        retry_wait_base: Optional[float] = None,
-        retry_wait_min: Optional[float] = None,
-        retry_wait_max: Optional[float] = None,
-        connection_timeout: Optional[int] = None,
-        double_pass: Optional[bool] = None,
-        system_prompt: Optional[str] = None,
-        user_prompt_1st_pass: Optional[str] = None,
-        user_prompt_2nd_pass: Optional[str] = None,
+        max_tokens: int | None = None,
+        timeout: int | None = None,
+        config: dict[str, Any] | None = None,
+        max_retries: int | None = None,
+        retry_wait_base: float | None = None,
+        retry_wait_min: float | None = None,
+        retry_wait_max: float | None = None,
+        connection_timeout: int | None = None,
+        double_pass: bool | None = None,
+        system_prompt: str | None = None,
+        user_prompt_1st_pass: str | None = None,
+        user_prompt_2nd_pass: str | None = None,
     ):
         self.logger = logger or logging.getLogger(__name__)
         self.api_key = api_key or os.environ.get("OPENROUTER_API_KEY")
@@ -338,19 +336,9 @@ class ChineseAITranslator:
                 raise ValueError(error_msg)
             self.api_url = endpoint or API_URL_OPENROUTER
             self.MODEL_NAME = model or MODEL_NAME_DEEPSEEK
-            self.SYSTEM_PROMPT = (
-                system_prompt if system_prompt is not None else SYSTEM_PROMPT_DEEPSEEK
-            )
-            self.USER_PROMPT_1STPASS = (
-                user_prompt_1st_pass
-                if user_prompt_1st_pass is not None
-                else USER_PROMPT_1STPASS_DEEPSEEK
-            )
-            self.USER_PROMPT_2NDPASS = (
-                user_prompt_2nd_pass
-                if user_prompt_2nd_pass is not None
-                else USER_PROMPT_2NDPASS_DEEPSEEK
-            )
+            self.SYSTEM_PROMPT = system_prompt if system_prompt is not None else SYSTEM_PROMPT_DEEPSEEK
+            self.USER_PROMPT_1STPASS = user_prompt_1st_pass if user_prompt_1st_pass is not None else USER_PROMPT_1STPASS_DEEPSEEK
+            self.USER_PROMPT_2NDPASS = user_prompt_2nd_pass if user_prompt_2nd_pass is not None else USER_PROMPT_2NDPASS_DEEPSEEK
             self.timeout = timeout or RESPONSE_TIMEOUT
             # Set default double_pass if not specified
             if self.double_pass is None:
@@ -358,19 +346,9 @@ class ChineseAITranslator:
         else:
             self.api_url = endpoint or API_URL_LMSTUDIO
             self.MODEL_NAME = model or MODEL_NAME_QWEN
-            self.SYSTEM_PROMPT = (
-                system_prompt if system_prompt is not None else SYSTEM_PROMPT_QWEN
-            )
-            self.USER_PROMPT_1STPASS = (
-                user_prompt_1st_pass
-                if user_prompt_1st_pass is not None
-                else USER_PROMPT_1STPASS_QWEN
-            )
-            self.USER_PROMPT_2NDPASS = (
-                user_prompt_2nd_pass
-                if user_prompt_2nd_pass is not None
-                else USER_PROMPT_2NDPASS_QWEN
-            )
+            self.SYSTEM_PROMPT = system_prompt if system_prompt is not None else SYSTEM_PROMPT_QWEN
+            self.USER_PROMPT_1STPASS = user_prompt_1st_pass if user_prompt_1st_pass is not None else USER_PROMPT_1STPASS_QWEN
+            self.USER_PROMPT_2NDPASS = user_prompt_2nd_pass if user_prompt_2nd_pass is not None else USER_PROMPT_2NDPASS_QWEN
             self.timeout = timeout or RESPONSE_TIMEOUT
             # Set default double_pass if not specified
             if self.double_pass is None:
@@ -408,9 +386,7 @@ class ChineseAITranslator:
         content = re.sub(r"<thinking>.*?</thinking>\n?", "", content, flags=re.DOTALL)
         return content
 
-    def remove_custom_tags(
-        self, text: str, keyword: str, ignore_case: bool = True
-    ) -> str:
+    def remove_custom_tags(self, text: str, keyword: str, ignore_case: bool = True) -> str:
         """
         Remove custom tags with specified keyword from text.
 
@@ -497,9 +473,7 @@ class ChineseAITranslator:
         cleaned_txt = clean(cleaned_txt)
 
         # Refined regex pattern to match variations of "Start of translation" with better constraints
-        pattern = (
-            r"[\[\(\-\*\s]*[-]*Start of translation[\.\-\)\]\s]*[\.\-]*[\)\]\*\s]*"
-        )
+        pattern = r"[\[\(\-\*\s]*[-]*Start of translation[\.\-\)\]\s]*[\.\-]*[\)\]\*\s]*"
 
         # Use re.sub to remove all variations of "Start of translation"
         cleaned_txt = re.sub(pattern, "", cleaned_txt, flags=re.IGNORECASE)
@@ -548,7 +522,7 @@ class ChineseAITranslator:
     def translate_chunk(
         self,
         chunk: str,
-        double_translation: Optional[bool] = None,
+        double_translation: bool | None = None,
         is_last_chunk: bool = False,
     ) -> str:
         """
@@ -631,7 +605,7 @@ class ChineseAITranslator:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
         }
-        data: Dict[str, Any] = {
+        data: dict[str, Any] = {
             "model": self.MODEL_NAME,
             "messages": [
                 {
@@ -670,7 +644,7 @@ class ChineseAITranslator:
             self.log(f"Server returned RESPONSE: \n{response.json()}")
 
             # Track costs
-            result: Dict[str, Any] = response.json()
+            result: dict[str, Any] = response.json()
             if "usage" in result:
                 usage = result["usage"]
 
@@ -701,19 +675,11 @@ class ChineseAITranslator:
                 content = self.remove_thinking_block(content)
                 # Raise exception if the content is not primarily Latin-based.
                 if not is_latin_charset(content):
-                    self.log(
-                        "Translated text does not appear to be in a Latin-based charset. Retrying..."
-                    )
-                    raise TranslationException(
-                        "Translated text does not appear to be in a Latin-based charset."
-                    )
+                    self.log("Translated text does not appear to be in a Latin-based charset. Retrying...")
+                    raise TranslationException("Translated text does not appear to be in a Latin-based charset.")
                 if len(content) < 300 and is_last_chunk is False:
-                    self.log(
-                        "Translated text is too short. An error must have occurred. Retrying..."
-                    )
-                    raise TranslationException(
-                        "Translated text is too short. An error must have occurred. Retrying..."
-                    )
+                    self.log("Translated text is too short. An error must have occurred. Retrying...")
+                    raise TranslationException("Translated text is too short. An error must have occurred. Retrying...")
                 return content
             else:
                 self.log("Unexpected response structure from API", "error")
@@ -731,9 +697,7 @@ class ChineseAITranslator:
             self.log(f"Unexpected error: {e}", "error")
             raise TranslationException(f"Unexpected error: {e}") from e
 
-    def translate_file(
-        self, input_file: str, output_file: str, is_last_chunk: bool = False
-    ) -> Optional[str]:
+    def translate_file(self, input_file: str, output_file: str, is_last_chunk: bool = False) -> str | None:
         """
         Translate a text file from Chinese to English.
 
@@ -754,9 +718,7 @@ class ChineseAITranslator:
                 self.log("Input file is empty or contains only whitespace", "warning")
                 return ""
 
-            english_text = self.translate_chunk(
-                chinese_text, is_last_chunk=is_last_chunk
-            )
+            english_text = self.translate_chunk(chinese_text, is_last_chunk=is_last_chunk)
 
             with open(output_file, "w", encoding="utf-8") as f:
                 f.write(english_text)
@@ -766,7 +728,7 @@ class ChineseAITranslator:
             self.log(f"Translation failed: {str(e)}", "error")
             return None
 
-    def translate(self, input_string: str, is_last_chunk: bool = False) -> Optional[str]:
+    def translate(self, input_string: str, is_last_chunk: bool = False) -> str | None:
         """
         Translate a string from Chinese to English.
 
@@ -786,15 +748,13 @@ class ChineseAITranslator:
 
         try:
             chinese_text = input_string
-            english_text = self.translate_chunk(
-                chinese_text, double_translation=None, is_last_chunk=is_last_chunk
-            )
+            english_text = self.translate_chunk(chinese_text, double_translation=None, is_last_chunk=is_last_chunk)
         except Exception as ex:
             self.log(f"Unexpected error during file translation: {ex}", "error")
             return None
         return english_text
 
-    def get_cost_summary(self) -> Dict[str, Any]:
+    def get_cost_summary(self) -> dict[str, Any]:
         """
         Get cumulative cost summary for remote API usage.
 
@@ -842,12 +802,8 @@ class ChineseAITranslator:
                 f"  - Completion Tokens: {summary['total_completion_tokens']:,}",
             ]
             if summary["request_count"] > 0:
-                lines.append(
-                    f"Average Cost per Request: ${summary['average_cost_per_request']:.6f}"
-                )
-                lines.append(
-                    f"Average Tokens per Request: {summary['total_tokens'] // summary['request_count']:,}"
-                )
+                lines.append(f"Average Cost per Request: ${summary['average_cost_per_request']:.6f}")
+                lines.append(f"Average Tokens per Request: {summary['total_tokens'] // summary['request_count']:,}")
             return "\n".join(lines)
         else:
             return f"\n=== Translation Cost Summary ===\nModel: {summary['model']}\nAPI Type: {summary['api_type']}\nLocal API - no costs incurred"
@@ -869,9 +825,7 @@ class ChineseAITranslator:
 # Example usage:
 if __name__ == "__main__":
     translator = ChineseAITranslator(use_remote=False)
-    english_text = translator.translate_file(
-        input_file="dummy_chinese.txt", output_file="output.txt"
-    )
+    english_text = translator.translate_file(input_file="dummy_chinese.txt", output_file="output.txt")
     if english_text:
         # This is example code, print is acceptable here
         print("Translation completed successfully.")

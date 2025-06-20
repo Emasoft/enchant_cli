@@ -12,7 +12,7 @@ import getpass
 from pathlib import Path
 import multiprocessing
 from json import JSONDecodeError
-from typing import Optional
+from typing import Optional, Any, cast
 from requests.exceptions import HTTPError, ConnectionError, Timeout
 from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
@@ -95,7 +95,7 @@ SUPPORTED_ENCODINGS = [
 
 
 # Load configuration from YAML file
-def load_config() -> dict:
+def load_config() -> dict[str, Any]:
     """
     Load configuration from YAML file or create default.
 
@@ -116,9 +116,7 @@ def load_config() -> dict:
         try:
             with open(config_path, "w") as config_file:
                 yaml.dump(default_config, config_file)
-            logger.info(
-                f"Default configuration file created at '{config_path}'. Please update it with your settings."
-            )
+            logger.info(f"Default configuration file created at '{config_path}'. Please update it with your settings.")
         except Exception as e:
             logger.error(f"Failed to create default config file: {e}")
         return default_config
@@ -126,9 +124,7 @@ def load_config() -> dict:
         try:
             config = load_safe_yaml(config_path)
             if not config:  # load_safe_yaml returns {} for empty files
-                logger.warning(
-                    f"Config file '{config_path}' is empty. Using default configurations."
-                )
+                logger.warning(f"Config file '{config_path}' is empty. Using default configurations.")
                 return default_config
             return config
         except ValueError as e:
@@ -161,9 +157,7 @@ OPENROUTER_MODEL_MAPPING = {
     min_wait=4.0,
     exception_types=(HTTPError, ConnectionError, Timeout),
 )
-def make_openai_request(
-    api_key: str, model: str, temperature: float, messages: list
-) -> dict:
+def make_openai_request(api_key: str, model: str, temperature: float, messages: list[dict[str, Any]]) -> dict[str, Any]:
     """
     Make request to OpenRouter API with retry logic.
 
@@ -208,19 +202,12 @@ def make_openai_request(
         )
         response.raise_for_status()
         logger.info("OpenRouter API request successful.")
-        return response.json()
+        return cast(dict[str, Any], response.json())
     except HTTPError as e:
         if e.response.status_code == 400 and "model" in e.response.text.lower():
-            logger.error(
-                f"Model '{model}' (mapped to '{openrouter_model}') not available on OpenRouter."
-            )
-            logger.error(
-                "Available OpenAI models on OpenRouter: "
-                + ", ".join(OPENROUTER_MODEL_MAPPING.values())
-            )
-            logger.error(
-                "For other models, use the full model name as listed on OpenRouter."
-            )
+            logger.error(f"Model '{model}' (mapped to '{openrouter_model}') not available on OpenRouter.")
+            logger.error("Available OpenAI models on OpenRouter: " + ", ".join(OPENROUTER_MODEL_MAPPING.values()))
+            logger.error("For other models, use the full model name as listed on OpenRouter.")
         raise
     except KeyboardInterrupt:
         logger.error("Request interrupted by user (Ctrl+C). Exiting gracefully.")
@@ -231,7 +218,7 @@ def make_openai_request(
 
 
 # Function to find all eligible text files in a given folder
-def find_text_files(folder_path: Path, recursive: bool) -> list:
+def find_text_files(folder_path: Path, recursive: bool) -> list[Path]:
     """
     Find all eligible text files in a given folder.
 
@@ -252,20 +239,14 @@ def find_text_files(folder_path: Path, recursive: bool) -> list:
         files = folder_path.glob("*.txt")
 
     for file_path in files:
-        if (
-            file_path.is_file()
-            and not file_path.name.startswith(".")
-            and file_path.stat().st_size >= MIN_FILE_SIZE_KB * 1024
-        ):
+        if file_path.is_file() and not file_path.name.startswith(".") and file_path.stat().st_size >= MIN_FILE_SIZE_KB * 1024:
             txt_files.append(file_path)
 
     return txt_files
 
 
 # Function to decode file content to UTF-8
-def decode_file_content(
-    file_path: Path, kb_to_read: int, icloud_sync: ICloudSync
-) -> Optional[str]:
+def decode_file_content(file_path: Path, kb_to_read: int, icloud_sync: ICloudSync) -> str | None:
     """Decode file content using common_file_utils with size limit."""
     try:
         synced_path = icloud_sync.ensure_synced(file_path)
@@ -291,13 +272,10 @@ def decode_file_content(
 
 
 # Helper function to sanitize filenames
-def sanitize_filename(name: str) -> str:
-    """Sanitize the filename using the common utility function."""
-    return common_sanitize_filename(name)
 
 
 # Function to rename the original file with novel information
-def rename_file(file_path: Path, data: dict) -> None:
+def rename_file(file_path: Path, data: dict[str, Any]) -> None:
     """
     Rename file based on extracted novel metadata.
 
@@ -308,11 +286,11 @@ def rename_file(file_path: Path, data: dict) -> None:
         file_path: Path to the file to rename
         data: Dictionary containing novel metadata
     """
-    title_eng = sanitize_filename(data.get("novel_title_english", "Unknown Title"))
-    author_eng = sanitize_filename(data.get("author_name_english", "Unknown Author"))
-    author_roman = sanitize_filename(data.get("author_name_romanized", "Unknown"))
-    title_orig = sanitize_filename(data.get("novel_title_original", "Unknown"))
-    author_orig = sanitize_filename(data.get("author_name_original", "Unknown"))
+    title_eng = common_sanitize_filename(data.get("novel_title_english", "Unknown Title"))
+    author_eng = common_sanitize_filename(data.get("author_name_english", "Unknown Author"))
+    author_roman = common_sanitize_filename(data.get("author_name_romanized", "Unknown"))
+    title_orig = common_sanitize_filename(data.get("novel_title_original", "Unknown"))
+    author_orig = common_sanitize_filename(data.get("author_name_original", "Unknown"))
 
     new_name = f"{title_eng} by {author_eng} ({author_roman}) - {title_orig} by {author_orig}.txt"
     new_path = file_path.with_name(new_name)
@@ -332,16 +310,16 @@ def rename_file(file_path: Path, data: dict) -> None:
 
 
 # Helper function to extract JSON from response content
-def extract_json(response_content: str) -> Optional[dict]:
+def extract_json(response_content: str) -> dict[str, Any] | None:
     """Attempt to extract JSON from a string."""
     try:
-        return json.loads(response_content)
+        return cast(dict[str, Any], json.loads(response_content))
     except JSONDecodeError:
         # Attempt to extract JSON using regex
         json_str_match = re.search(r"\{.*\}", response_content, re.DOTALL)
         if json_str_match:
             try:
-                return json.loads(json_str_match.group())
+                return cast(dict[str, Any], json.loads(json_str_match.group()))
             except JSONDecodeError:
                 logger.error("Failed to parse JSON from the extracted string.")
                 return None
@@ -359,7 +337,7 @@ def process_novel_file(
     model: str = "gpt-4o-mini",
     temperature: float = 0.0,
     dry_run: bool = False,
-) -> tuple[bool, Path, dict]:
+) -> tuple[bool, Path, dict[str, Any]]:
     """
     Process a single novel file to extract metadata and rename it.
 
@@ -394,9 +372,7 @@ def process_novel_file(
             "- Detect the language(s) of the text.\n"
             "- Find the title of the novel and the author's name.\n"
             "- Return the title of the novel and author in the original language, followed by their English translations and the romanization of the author's name.\n"
-            "Content:\n"
-            + content[:CONTENT_NUMBER_OF_CHARACTERS_HARD_LIMIT]
-            + "\nReturn the response in JSON format as follows:\n"
+            "Content:\n" + content[:CONTENT_NUMBER_OF_CHARACTERS_HARD_LIMIT] + "\nReturn the response in JSON format as follows:\n"
             "{\n"
             '    "detected_language": "<detected_language>",\n'
             '    "novel_title_original": "<novel_title_original>",\n'
@@ -425,9 +401,7 @@ def process_novel_file(
         response_data = extract_json(response_content)
 
         if response_data is None:
-            logger.error(
-                f"Failed to extract JSON data from OpenAI response for file {file_path}."
-            )
+            logger.error(f"Failed to extract JSON data from OpenAI response for file {file_path}.")
             return False, file_path, {}
 
         # Validate required keys
@@ -440,9 +414,7 @@ def process_novel_file(
             "author_name_romanized",
         ]
         if not all(key in response_data for key in required_keys):
-            logger.error(
-                f"Missing keys in response data for file {file_path}: {response_data}"
-            )
+            logger.error(f"Missing keys in response data for file {file_path}: {response_data}")
             return False, file_path, {}
 
         # Track cost using unified cost tracker
@@ -450,21 +422,11 @@ def process_novel_file(
         global_cost_tracker.track_usage(usage, str(file_path))
 
         # Determine new file path
-        title_eng = sanitize_filename(
-            response_data.get("novel_title_english", "Unknown Title")
-        )
-        author_eng = sanitize_filename(
-            response_data.get("author_name_english", "Unknown Author")
-        )
-        author_roman = sanitize_filename(
-            response_data.get("author_name_romanized", "Unknown")
-        )
-        title_orig = sanitize_filename(
-            response_data.get("novel_title_original", "Unknown")
-        )
-        author_orig = sanitize_filename(
-            response_data.get("author_name_original", "Unknown")
-        )
+        title_eng = common_sanitize_filename(response_data.get("novel_title_english", "Unknown Title"))
+        author_eng = common_sanitize_filename(response_data.get("author_name_english", "Unknown Author"))
+        author_roman = common_sanitize_filename(response_data.get("author_name_romanized", "Unknown"))
+        title_orig = common_sanitize_filename(response_data.get("novel_title_original", "Unknown"))
+        author_orig = common_sanitize_filename(response_data.get("author_name_original", "Unknown"))
 
         new_name = f"{title_eng} by {author_eng} ({author_roman}) - {title_orig} by {author_orig}.txt"
         new_path = file_path.with_name(new_name)
@@ -518,9 +480,7 @@ def process_single_file(
     """
     content = decode_file_content(file_path, kb_to_read, icloud_sync)
     if content is None:
-        logger.error(
-            f"Skipping file {file_path} due to decoding errors or iCloud sync failure."
-        )
+        logger.error(f"Skipping file {file_path} due to decoding errors or iCloud sync failure.")
         return
 
     prompt = (
@@ -528,9 +488,7 @@ def process_single_file(
         "- Detect the language(s) of the text.\n"
         "- Find the title of the novel and the author's name.\n"
         "- Return the title of the novel and author in the original language, followed by their English translations and the romanization of the author's name.\n"
-        "Content:\n"
-        + content[:CONTENT_NUMBER_OF_CHARACTERS_HARD_LIMIT]
-        + "\nReturn the response in JSON format as follows:\n"
+        "Content:\n" + content[:CONTENT_NUMBER_OF_CHARACTERS_HARD_LIMIT] + "\nReturn the response in JSON format as follows:\n"
         "{\n"
         '    "detected_language": "<detected_language>",\n'
         '    "novel_title_original": "<novel_title_original>",\n'
@@ -559,9 +517,7 @@ def process_single_file(
         response_data = extract_json(response_content)
 
         if response_data is None:
-            logger.error(
-                f"Failed to extract JSON data from OpenAI response for file {file_path}."
-            )
+            logger.error(f"Failed to extract JSON data from OpenAI response for file {file_path}.")
             return
 
         # Validate required keys
@@ -574,9 +530,7 @@ def process_single_file(
             "author_name_romanized",
         ]
         if not all(key in response_data for key in required_keys):
-            logger.error(
-                f"Missing keys in response data for file {file_path}: {response_data}"
-            )
+            logger.error(f"Missing keys in response data for file {file_path}: {response_data}")
             return
 
         # Track cost using unified cost tracker
@@ -620,14 +574,10 @@ def process_files(
     """
     txt_files = find_text_files(folder_or_path, recursive=recursive)
     if not txt_files:
-        logger.error(
-            "No eligible text files found to process. Please check the folder or file pattern and ensure files are not hidden or too small."
-        )
+        logger.error("No eligible text files found to process. Please check the folder or file pattern and ensure files are not hidden or too small.")
         return
 
-    logger.info(
-        f"Starting processing of {len(txt_files)} file(s) with max_workers={max_workers}."
-    )
+    logger.info(f"Starting processing of {len(txt_files)} file(s) with max_workers={max_workers}.")
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [
@@ -670,9 +620,7 @@ def parse_args() -> argparse.Namespace:
         epilog="Example usage:\n  python renamenovels.py /path/to/folder -r -k 50",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    parser.add_argument(
-        "path", type=str, help="Path to the folder containing text files."
-    )
+    parser.add_argument("path", type=str, help="Path to the folder containing text files.")
     parser.add_argument(
         "-r",
         "--recursive",
@@ -686,9 +634,7 @@ def parse_args() -> argparse.Namespace:
         help="Amount of KB to read from the beginning of each file.",
         default=DEFAULT_KB_TO_READ,
     )
-    parser.add_argument(
-        "--version", action="version", version=f"Novel Auto Renamer v{VERSION}"
-    )
+    parser.add_argument("--version", action="version", version=f"Novel Auto Renamer v{VERSION}")
     return parser.parse_args()
 
 
@@ -716,9 +662,7 @@ def main() -> None:
             api_key = getpass.getpass("Please enter your OpenRouter API key: ").strip()
 
         if not api_key:
-            logger.error(
-                "OpenRouter API key is required. Please provide it via config file, environment variable (OPENROUTER_API_KEY), or input prompt."
-            )
+            logger.error("OpenRouter API key is required. Please provide it via config file, environment variable (OPENROUTER_API_KEY), or input prompt.")
             sys.exit(1)
 
         # Cost tracking is now handled by the unified cost_tracker module

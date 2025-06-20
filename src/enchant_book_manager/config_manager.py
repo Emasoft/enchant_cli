@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 config_manager.py - Comprehensive configuration management for ENCHANT with presets support
 """
@@ -381,8 +380,8 @@ class ConfigManager:
 
     def __init__(
         self,
-        config_path: Optional[Path] = None,
-        logger: Optional[logging.Logger] = None,
+        config_path: Path | None = None,
+        logger: logging.Logger | None = None,
     ):
         """
         Initialize configuration manager.
@@ -393,16 +392,14 @@ class ConfigManager:
         """
         self.logger = logger or logging.getLogger(__name__)
         self.config_path = config_path or Path("enchant_config.yml")
-        self._config_lines: List[str] = []  # Store file lines for error reporting
+        self._config_lines: list[str] = []  # Store file lines for error reporting
         self.config = self._load_config()
-        self.active_preset: Optional[str] = None
+        self.active_preset: str | None = None
 
-    def _load_config(self) -> Dict[str, Any]:
+    def _load_config(self) -> dict[str, Any]:
         """Load configuration from file or create default."""
         if not self.config_path.exists():
-            self.logger.info(
-                f"Configuration file not found. Creating default at: {self.config_path}"
-            )
+            self.logger.info(f"Configuration file not found. Creating default at: {self.config_path}")
             self._create_default_config()
 
         try:
@@ -427,17 +424,13 @@ class ConfigManager:
                 if first_error.get("can_restore"):
                     if first_error["type"] == "missing_required_preset":
                         preset_name = first_error["preset"]
-                        response = input(
-                            f"\nRequired preset '{preset_name}' is missing. Restore default values? (y/n): "
-                        )
+                        response = input(f"\nRequired preset '{preset_name}' is missing. Restore default values? (y/n): ")
                         if response.lower() == "y":
                             defaults = self._get_default_config()
                             default_presets = defaults.get("presets", {})
                             if "presets" not in config:
                                 config["presets"] = {}
-                            config["presets"][preset_name] = default_presets.get(
-                                preset_name, {}
-                            )
+                            config["presets"][preset_name] = default_presets.get(preset_name, {})
                             self.logger.info(f"Restored default '{preset_name}' preset")
                             # Re-validate after restoration
                             first_error = self._validate_config_first_error(config)
@@ -471,14 +464,12 @@ class ConfigManager:
             self.logger.error(f"Failed to create configuration file: {e}")
             raise
 
-    def _get_default_config(self) -> Dict[str, Any]:
+    def _get_default_config(self) -> dict[str, Any]:
         """Get default configuration as dictionary."""
         result = yaml.safe_load(DEFAULT_CONFIG_TEMPLATE)
         return result if isinstance(result, dict) else {}
 
-    def _validate_config_first_error(
-        self, config: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    def _validate_config_first_error(self, config: dict[str, Any]) -> dict[str, Any] | None:
         """Validate configuration and return only the FIRST error found."""
         # Check for unknown keys at top level
         defaults = self._get_default_config()
@@ -547,9 +538,7 @@ class ConfigManager:
 
         return None
 
-    def _validate_presets_first_error(
-        self, config: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    def _validate_presets_first_error(self, config: dict[str, Any]) -> dict[str, Any] | None:
         """Validate presets and return only the FIRST error found."""
 
         presets = config.get("presets", {})
@@ -573,9 +562,7 @@ class ConfigManager:
                 line_num = self._find_line_number(f"presets.{preset_name}")
                 error_msg = "Preset names must start with a letter or underscore, followed by letters, numbers, or underscores"
                 if preset_name[0].isdigit():
-                    error_msg = (
-                        "invalid preset name. Names must not begin with a number!"
-                    )
+                    error_msg = "invalid preset name. Names must not begin with a number!"
                 elif "-" in preset_name:
                     error_msg = "invalid preset name. Names cannot contain hyphens (-). Use underscores (_) instead"
                 elif " " in preset_name:
@@ -649,11 +636,9 @@ class ConfigManager:
                     # Find the line where this key should be added
                     preset_line = self._find_line_number(f"presets.{preset_name}")
                     # Look for the last key in this preset
-                    last_key_line = preset_line
+                    last_key_line = preset_line if preset_line is not None else 0
                     for existing_key in preset_data.keys():
-                        key_line = self._find_line_number(
-                            f"presets.{preset_name}.{existing_key}"
-                        )
+                        key_line = self._find_line_number(f"presets.{preset_name}.{existing_key}")
                         if key_line is not None and key_line > last_key_line:
                             last_key_line = key_line
 
@@ -666,17 +651,13 @@ class ConfigManager:
                     }
 
             # Validate values for each key
-            value_error = self._validate_preset_values_first_error(
-                preset_name, preset_data
-            )
+            value_error = self._validate_preset_values_first_error(preset_name, preset_data)
             if value_error:
                 return value_error
 
         return None
 
-    def _validate_preset_values_first_error(
-        self, preset_name: str, preset_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    def _validate_preset_values_first_error(self, preset_name: str, preset_data: dict[str, Any]) -> dict[str, Any] | None:
         """Validate preset values and return only the FIRST error found."""
         # Check each value in order
         for key, value in preset_data.items():
@@ -786,7 +767,7 @@ class ConfigManager:
 
         return None
 
-    def _report_single_error(self, error: Dict[str, Any]) -> None:
+    def _report_single_error(self, error: dict[str, Any]) -> None:
         """Report a single validation error."""
         line = error.get("line")
         if line is None:
@@ -816,7 +797,7 @@ class ConfigManager:
             # Generic error reporting
             print(f"\nline {line}: {error['message']}")
 
-    def _find_line_number(self, key_path: str) -> Optional[int]:
+    def _find_line_number(self, key_path: str) -> int | None:
         """Find the line number of a configuration key in the YAML file."""
         if not hasattr(self, "_config_lines"):
             return None
@@ -860,9 +841,7 @@ class ConfigManager:
                 lines = f.readlines()
                 if mark.line < len(lines):
                     print(f"  {mark.line + 1}: {lines[mark.line].rstrip()}")
-                    print(
-                        f"  {' ' * (len(str(mark.line + 1)) + 2)}{' ' * mark.column}^"
-                    )
+                    print(f"  {' ' * (len(str(mark.line + 1)) + 2)}{' ' * mark.column}^")
 
         print()
         print(f"Problem: {error.problem if hasattr(error, 'problem') else str(error)}")
@@ -880,11 +859,10 @@ class ConfigManager:
         print("Fix the syntax error or delete the config file to regenerate defaults.")
         print("=" * 80)
 
-    def _merge_with_defaults(self, config: Dict[str, Any]) -> Dict[str, Any]:
+    def _merge_with_defaults(self, config: dict[str, Any]) -> dict[str, Any]:
         """Merge user config with defaults to ensure all keys exist."""
         defaults = self._get_default_config()
         return merge_yaml_configs(defaults, config)
-
 
     def get(self, key_path: str, default: Any = None) -> Any:
         """
@@ -922,17 +900,13 @@ class ConfigManager:
         # Validate preset name format
         valid_name_pattern = re.compile(r"^[A-Za-z0-9_]+$")
         if not valid_name_pattern.match(preset_name):
-            self.logger.error(
-                f"Invalid preset name '{preset_name}'. Preset names must contain only alphanumeric characters and underscores."
-            )
+            self.logger.error(f"Invalid preset name '{preset_name}'. Preset names must contain only alphanumeric characters and underscores.")
             return False
 
         presets = self.config.get("presets", {})
         if preset_name not in presets:
             available = list(presets.keys())
-            self.logger.error(
-                f"Preset '{preset_name}' not found. Available presets: {', '.join(available)}"
-            )
+            self.logger.error(f"Preset '{preset_name}' not found. Available presets: {', '.join(available)}")
             # Exit with error for non-existent preset
             import sys
 
@@ -964,11 +938,11 @@ class ConfigManager:
                 return preset[key]
         return default
 
-    def get_available_presets(self) -> List[str]:
+    def get_available_presets(self) -> list[str]:
         """Get list of available presets."""
         return list(self.config.get("presets", {}).keys())
 
-    def update_with_args(self, args: Any) -> Dict[str, Any]:
+    def update_with_args(self, args: Any) -> dict[str, Any]:
         """
         Update configuration with command-line arguments.
         Command-line args take precedence over config file and presets.
@@ -1030,22 +1004,16 @@ class ConfigManager:
                 ]:
                     # Map preset keys to config paths
                     if key == "max_chars_per_chunk":
-                        self._set_config_value(
-                            config, "text_processing.max_chars_per_chunk", value
-                        )
+                        self._set_config_value(config, "text_processing.max_chars_per_chunk", value)
                     elif key in [
                         "model",
                         "endpoint",
                         "connection_timeout",
                         "response_timeout",
                     ]:
-                        service = (
-                            "remote" if self.active_preset == "REMOTE" else "local"
-                        )
+                        service = "remote" if self.active_preset == "REMOTE" else "local"
                         if key == "response_timeout":
-                            self._set_config_value(
-                                config, f"translation.{service}.timeout", value
-                            )
+                            self._set_config_value(config, f"translation.{service}.timeout", value)
                         elif key == "connection_timeout":
                             self._set_config_value(
                                 config,
@@ -1053,9 +1021,7 @@ class ConfigManager:
                                 value,
                             )
                         else:
-                            self._set_config_value(
-                                config, f"translation.{service}.{key}", value
-                            )
+                            self._set_config_value(config, f"translation.{service}.{key}", value)
                     else:
                         self._set_config_value(config, f"translation.{key}", value)
 
@@ -1077,7 +1043,7 @@ class ConfigManager:
 
         return config
 
-    def _set_config_value(self, config: Dict[str, Any], path: str, value: Any) -> None:
+    def _set_config_value(self, config: dict[str, Any], path: str, value: Any) -> None:
         """Set a value in the config dictionary using dot notation."""
         keys = path.split(".")
         target = config
@@ -1087,7 +1053,7 @@ class ConfigManager:
             target = target[key]
         target[keys[-1]] = value
 
-    def get_api_key(self, service: str) -> Optional[str]:
+    def get_api_key(self, service: str) -> str | None:
         """
         Get API key for a service from config or environment.
 
@@ -1119,7 +1085,7 @@ class ConfigManager:
 _global_config = None
 
 
-def get_config(config_path: Optional[Path] = None) -> ConfigManager:
+def get_config(config_path: Path | None = None) -> ConfigManager:
     """Get or create global configuration instance."""
     global _global_config
     if _global_config is None:
@@ -1127,6 +1093,6 @@ def get_config(config_path: Optional[Path] = None) -> ConfigManager:
     return _global_config
 
 
-def load_config(config_path: Optional[Path] = None) -> Dict[str, Any]:
+def load_config(config_path: Path | None = None) -> dict[str, Any]:
     """Load configuration and return as dictionary."""
     return get_config(config_path).config

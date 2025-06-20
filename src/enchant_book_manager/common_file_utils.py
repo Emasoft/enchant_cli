@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 common_file_utils.py - Shared file handling utilities for EnChANT modules
 
@@ -9,9 +8,11 @@ with configurable behavior for different use cases.
 
 import logging
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union, Any
 import chardet
 from chardet.universaldetector import UniversalDetector
+import yaml
+import json
 
 # Default logger
 logger = logging.getLogger(__name__)
@@ -20,10 +21,10 @@ logger = logging.getLogger(__name__)
 def detect_file_encoding(
     file_path: Path,
     method: str = "universal",  # 'universal', 'chardet', 'auto'
-    sample_size: Optional[int] = None,  # bytes to sample (None = adaptive)
+    sample_size: int | None = None,  # bytes to sample (None = adaptive)
     confidence_threshold: float = 0.0,
-    logger: Optional[logging.Logger] = None,
-) -> Tuple[str, float]:
+    logger: logging.Logger | None = None,
+) -> tuple[str, float]:
     """
     Detect file encoding using specified method.
 
@@ -52,17 +53,13 @@ def detect_file_encoding(
         if confidence >= confidence_threshold and encoding:
             return encoding, confidence
         # Fall back to universal if confidence too low
-        logger.debug(
-            f"Chardet confidence {confidence} below threshold {confidence_threshold}, trying UniversalDetector"
-        )
+        logger.debug(f"Chardet confidence {confidence} below threshold {confidence_threshold}, trying UniversalDetector")
         return _detect_with_universal(file_path, logger)
     else:
         raise ValueError(f"Unknown detection method: {method}")
 
 
-def _detect_with_universal(
-    file_path: Path, logger: logging.Logger
-) -> Tuple[str, float]:
+def _detect_with_universal(file_path: Path, logger: logging.Logger) -> tuple[str, float]:
     """Detect encoding using UniversalDetector (line by line reading)."""
     detector = UniversalDetector()
     try:
@@ -82,9 +79,7 @@ def _detect_with_universal(
         return "utf-8", 0.0
 
 
-def _detect_with_chardet(
-    file_path: Path, sample_size: Optional[int], logger: logging.Logger
-) -> Tuple[str, float]:
+def _detect_with_chardet(file_path: Path, sample_size: int | None, logger: logging.Logger) -> tuple[str, float]:
     """Detect encoding using chardet.detect (sample reading)."""
     if sample_size is None:
         sample_size = 32 * 1024  # 32KB default
@@ -107,14 +102,14 @@ def decode_file_content(
     file_path: Path,
     mode: str = "full",  # 'full' or 'preview'
     preview_kb: int = 35,
-    min_file_size_kb: Optional[int] = None,
+    min_file_size_kb: int | None = None,
     encoding_detector: str = "auto",  # 'universal', 'chardet', 'auto'
     confidence_threshold: float = 0.7,
-    fallback_encodings: Optional[list[str]] = None,
-    truncate_chars: Optional[int] = None,
-    logger: Optional[logging.Logger] = None,
+    fallback_encodings: list[str] | None = None,
+    truncate_chars: int | None = None,
+    logger: logging.Logger | None = None,
     raise_on_error: bool = True,
-) -> Optional[str]:
+) -> str | None:
     """
     Unified file content decoder with configurable behavior.
 
@@ -143,13 +138,9 @@ def decode_file_content(
         if min_file_size_kb is not None:
             file_size_kb = file_path.stat().st_size / 1024
             if file_size_kb < min_file_size_kb:
-                logger.warning(
-                    f"File '{file_path}' is smaller than {min_file_size_kb} KB. Skipping."
-                )
+                logger.warning(f"File '{file_path}' is smaller than {min_file_size_kb} KB. Skipping.")
                 if raise_on_error:
-                    raise ValueError(
-                        f"File too small: {file_size_kb:.1f} KB < {min_file_size_kb} KB"
-                    )
+                    raise ValueError(f"File too small: {file_size_kb:.1f} KB < {min_file_size_kb} KB")
                 return None
 
         # Determine how much to read
@@ -179,9 +170,7 @@ def decode_file_content(
 
         # Try to decode with detected encoding
         content = None
-        if encoding and (
-            confidence >= confidence_threshold or encoding_detector == "universal"
-        ):
+        if encoding and (confidence >= confidence_threshold or encoding_detector == "universal"):
             try:
                 content = raw_data.decode(encoding)
                 logger.debug(f"Successfully decoded with {encoding}")
@@ -201,9 +190,7 @@ def decode_file_content(
 
         # If still no success, try with error replacement
         if content is None:
-            logger.warning(
-                f"All encodings failed, using {fallback_encodings[0]} with error replacement"
-            )
+            logger.warning(f"All encodings failed, using {fallback_encodings[0]} with error replacement")
             content = raw_data.decode(fallback_encodings[0], errors="replace")
 
         # Truncate if requested
@@ -223,7 +210,7 @@ def decode_file_content(
 # Convenience functions that match original module interfaces
 
 
-def decode_full_file(file_path: Path, logger: Optional[logging.Logger] = None) -> str:
+def decode_full_file(file_path: Path, logger: logging.Logger | None = None) -> str:
     """
     Read and decode entire file content (cli_translator.py style).
     Always returns content (with replacement chars if needed).
@@ -243,8 +230,8 @@ def decode_file_preview(
     kb_to_read: int = 35,
     min_file_size_kb: int = 100,
     max_chars: int = 1500,
-    logger: Optional[logging.Logger] = None,
-) -> Optional[str]:
+    logger: logging.Logger | None = None,
+) -> str | None:
     """
     Read and decode limited file content for preview (novel_renamer.py style).
     Returns None on errors or if file is too small.
@@ -260,3 +247,67 @@ def decode_file_preview(
         logger=logger,
         raise_on_error=False,
     )
+
+
+def safe_write_file(
+    file_path: str | Path,
+    content: str | dict | Any,
+    encoding: str = "utf-8",
+    mode: str = "text",
+    logger: logging.Logger | None = None,
+    backup: bool = False,
+) -> bool:
+    """
+    Safely write content to a file with proper error handling.
+
+    Args:
+        file_path: Path to the file to write
+        content: Content to write (string for text, dict for json/yaml)
+        encoding: Text encoding (default: utf-8)
+        mode: Write mode - "text", "json", "yaml" (default: text)
+        logger: Optional logger instance
+        backup: Create backup of existing file (default: False)
+
+    Returns:
+        True if successful, False on error
+    """
+    if logger is None:
+        logger = globals()["logger"]
+
+    file_path = Path(file_path)
+
+    try:
+        # Create parent directories if needed
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Backup existing file if requested
+        if backup and file_path.exists():
+            backup_path = file_path.with_suffix(file_path.suffix + ".bak")
+            try:
+                import shutil
+
+                shutil.copy2(file_path, backup_path)
+                logger.debug(f"Created backup: {backup_path}")
+            except Exception as e:
+                logger.warning(f"Failed to create backup: {e}")
+
+        # Write content based on mode
+        if mode == "json":
+            with open(file_path, "w", encoding=encoding) as f:
+                json.dump(content, f, indent=2, ensure_ascii=False)
+        elif mode == "yaml":
+            with open(file_path, "w", encoding=encoding) as f:
+                yaml.safe_dump(content, f, allow_unicode=True, default_flow_style=False)
+        else:  # text mode
+            with open(file_path, "w", encoding=encoding) as f:
+                f.write(str(content))
+
+        logger.debug(f"Successfully wrote to {file_path}")
+        return True
+
+    except (OSError, PermissionError) as e:
+        logger.error(f"Failed to write to {file_path}: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"Unexpected error writing to {file_path}: {e}")
+        return False

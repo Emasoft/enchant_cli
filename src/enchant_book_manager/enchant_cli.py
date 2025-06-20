@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # HERE IS THE CHANGELOG FOR THIS VERSION OF THE CODE:
 # - Fixed architecture: Made enchant_cli.py the unified orchestrator
@@ -66,13 +65,13 @@ except ImportError:
 
 # Global variables - will be initialized in main()
 tolog: logging.Logger = logging.getLogger(__name__)  # Initialize immediately to avoid None
-icloud_sync: Optional[ICloudSync] = None
+icloud_sync: ICloudSync | None = None
 # Cost tracking is now handled by global_cost_tracker from cost_tracker module
 
 ### ORCHESTRATION FUNCTIONS #####
 
 
-def load_safe_yaml(path: Path) -> Optional[Dict[str, Any]]:
+def load_safe_yaml(path: Path) -> dict[str, Any] | None:
     """Safely load YAML file - wrapper for common utility with exception handling"""
     try:
         return load_yaml_safe(path)
@@ -112,10 +111,7 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
         }
 
     # Update current path from progress if available
-    if (
-        progress["phases"]["renaming"]["status"] == "completed"
-        and progress["phases"]["renaming"]["result"]
-    ):
+    if progress["phases"]["renaming"]["status"] == "completed" and progress["phases"]["renaming"]["result"]:
         current_path = Path(progress["phases"]["renaming"]["result"])
         if current_path.exists():
             if tolog:
@@ -124,27 +120,18 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
             current_path = file_path
 
     # Phase 1: Renaming
-    if (
-        not getattr(args, "skip_renaming", False)
-        and progress["phases"]["renaming"]["status"] != "completed"
-    ):
+    if not getattr(args, "skip_renaming", False) and progress["phases"]["renaming"]["status"] != "completed":
         tolog.info(f"Phase 1: Renaming file {file_path.name}")
 
         if not renaming_available:
-            tolog.error(
-                "Renaming phase requested but renamenovels module not available"
-            )
+            tolog.error("Renaming phase requested but renamenovels module not available")
             progress["phases"]["renaming"]["status"] = "failed"
             progress["phases"]["renaming"]["error"] = "Module not available"
         else:
             # Get API key for renaming
-            api_key = getattr(args, "openai_api_key", None) or os.getenv(
-                "OPENROUTER_API_KEY"
-            )
+            api_key = getattr(args, "openai_api_key", None) or os.getenv("OPENROUTER_API_KEY")
             if not api_key:
-                tolog.error(
-                    "OpenRouter API key required for renaming. Use --openai-api-key or set OPENROUTER_API_KEY env var"
-                )
+                tolog.error("OpenRouter API key required for renaming. Use --openai-api-key or set OPENROUTER_API_KEY env var")
                 progress["phases"]["renaming"]["status"] = "failed"
                 progress["phases"]["renaming"]["error"] = "No API key"
             else:
@@ -163,9 +150,7 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                         progress["phases"]["renaming"]["result"] = str(new_path)
                         tolog.info(f"File renamed to: {new_path.name}")
                     else:
-                        tolog.warning(
-                            f"Renaming failed for {file_path.name}, continuing with original name"
-                        )
+                        tolog.warning(f"Renaming failed for {file_path.name}, continuing with original name")
                         progress["phases"]["renaming"]["status"] = "failed"
 
                 except Exception as e:
@@ -178,25 +163,20 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
             try:
                 with progress_file.open("w") as f:
                     yaml.safe_dump(progress, f)
-            except (IOError, OSError, yaml.YAMLError) as e:
+            except (OSError, yaml.YAMLError) as e:
                 tolog.error(f"Error saving batch progress: {e}")
                 # Re-raise as this is critical for batch processing
                 raise
-        except (IOError, OSError, yaml.YAMLError) as e:
+        except (OSError, yaml.YAMLError) as e:
             tolog.error(f"Error saving progress file: {e}")
             # Continue anyway - progress tracking is not critical
 
     # Phase 2: Translation
-    if (
-        not getattr(args, "skip_translating", False)
-        and progress["phases"]["translation"]["status"] != "completed"
-    ):
+    if not getattr(args, "skip_translating", False) and progress["phases"]["translation"]["status"] != "completed":
         tolog.info(f"Phase 2: Translating {current_path.name}")
 
         if not translation_available:
-            tolog.error(
-                "Translation phase requested but cli_translator module not available"
-            )
+            tolog.error("Translation phase requested but cli_translator module not available")
             progress["phases"]["translation"]["status"] = "failed"
             progress["phases"]["translation"]["error"] = "Module not available"
         else:
@@ -229,19 +209,16 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
             try:
                 with progress_file.open("w") as f:
                     yaml.safe_dump(progress, f)
-            except (IOError, OSError, yaml.YAMLError) as e:
+            except (OSError, yaml.YAMLError) as e:
                 tolog.error(f"Error saving batch progress: {e}")
                 # Re-raise as this is critical for batch processing
                 raise
-        except (IOError, OSError, yaml.YAMLError) as e:
+        except (OSError, yaml.YAMLError) as e:
             tolog.error(f"Error saving progress file: {e}")
             # Continue anyway - progress tracking is not critical
 
     # Phase 3: EPUB Generation
-    if (
-        not getattr(args, "skip_epub", False)
-        and progress["phases"]["epub"]["status"] != "completed"
-    ):
+    if not getattr(args, "skip_epub", False) and progress["phases"]["epub"]["status"] != "completed":
         tolog.info(f"Phase 3: Generating EPUB for {current_path.name}")
 
         if not epub_available:
@@ -271,16 +248,12 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                     book_author = book_info.get("author_english", "Unknown")
 
                     # Look for translated chunks directory
-                    safe_folder_name = sanitize_filename(
-                        f"{book_title} by {book_author}"
-                    )
+                    safe_folder_name = sanitize_filename(f"{book_title} by {book_author}")
                     book_dir = current_path.parent / safe_folder_name
 
                     if book_dir.exists() and book_dir.is_dir():
                         # Look for the complete translated text file
-                        translated_file_pattern = (
-                            f"translated_{book_title} by {book_author}.txt"
-                        )
+                        translated_file_pattern = f"translated_{book_title} by {book_author}.txt"
                         translated_file = book_dir / translated_file_pattern
                     else:
                         translated_file = None
@@ -303,9 +276,7 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                     }
 
                     # Create EPUB configuration from book info and settings
-                    epub_config = get_epub_config_from_book_info(
-                        book_info=book_info_for_config, epub_settings=epub_settings
-                    )
+                    epub_config = get_epub_config_from_book_info(book_info=book_info_for_config, epub_settings=epub_settings)
 
                     # Create EPUB using the common utility
                     success, issues = create_epub_with_config(
@@ -321,34 +292,22 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                         tolog.info(f"EPUB created successfully: {epub_path}")
 
                         if issues:
-                            tolog.warning(
-                                f"EPUB created with {len(issues)} validation warnings"
-                            )
+                            tolog.warning(f"EPUB created with {len(issues)} validation warnings")
                             for issue in issues[:5]:
                                 tolog.warning(f"  - {issue}")
                     else:
                         progress["phases"]["epub"]["status"] = "failed"
-                        progress["phases"]["epub"]["error"] = (
-                            f"EPUB creation failed: {'; '.join(issues[:3])}"
-                        )
+                        progress["phases"]["epub"]["error"] = f"EPUB creation failed: {'; '.join(issues[:3])}"
                         tolog.error(f"EPUB creation failed with {len(issues)} errors")
                 else:
                     # Translated file not found
                     progress["phases"]["epub"]["status"] = "failed"
                     if hasattr(args, "translated") and args.translated:
-                        progress["phases"]["epub"]["error"] = (
-                            "Provided translated file not found"
-                        )
-                        tolog.error(
-                            f"Provided translated file not found: {args.translated}"
-                        )
+                        progress["phases"]["epub"]["error"] = "Provided translated file not found"
+                        tolog.error(f"Provided translated file not found: {args.translated}")
                     else:
-                        progress["phases"]["epub"]["error"] = (
-                            "No translation directory or file found"
-                        )
-                        tolog.warning(
-                            "No translation output directory found or translated file missing"
-                        )
+                        progress["phases"]["epub"]["error"] = "No translation directory or file found"
+                        tolog.warning("No translation output directory found or translated file missing")
 
             except Exception as e:
                 tolog.error(f"Error during EPUB generation: {e}")
@@ -360,19 +319,16 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
             try:
                 with progress_file.open("w") as f:
                     yaml.safe_dump(progress, f)
-            except (IOError, OSError, yaml.YAMLError) as e:
+            except (OSError, yaml.YAMLError) as e:
                 tolog.error(f"Error saving batch progress: {e}")
                 # Re-raise as this is critical for batch processing
                 raise
-        except (IOError, OSError, yaml.YAMLError) as e:
+        except (OSError, yaml.YAMLError) as e:
             tolog.error(f"Error saving progress file: {e}")
             # Continue anyway - progress tracking is not critical
 
     # Clean up progress file if all phases completed successfully
-    all_completed = all(
-        phase["status"] in ("completed", "skipped")
-        for phase in progress["phases"].values()
-    )
+    all_completed = all(phase["status"] in ("completed", "skipped") for phase in progress["phases"].values())
     if all_completed and progress_file.exists():
         try:
             progress_file.unlink()
@@ -427,9 +383,7 @@ def process_batch(args: argparse.Namespace) -> None:
             if item["status"] == "completed":
                 continue
             if item.get("retry_count", 0) >= MAX_RETRIES:
-                tolog.warning(
-                    f"Skipping {item['path']} after {MAX_RETRIES} failed attempts."
-                )
+                tolog.warning(f"Skipping {item['path']} after {MAX_RETRIES} failed attempts.")
                 item["status"] = "failed/skipped"
                 continue
 
@@ -438,7 +392,7 @@ def process_batch(args: argparse.Namespace) -> None:
             try:
                 with progress_file.open("w") as f:
                     yaml.safe_dump(progress, f)
-            except (IOError, OSError, yaml.YAMLError) as e:
+            except (OSError, yaml.YAMLError) as e:
                 tolog.error(f"Error saving batch progress: {e}")
                 # Re-raise as this is critical for batch processing
                 raise
@@ -465,15 +419,12 @@ def process_batch(args: argparse.Namespace) -> None:
                     yaml.safe_dump(progress, f)
 
                 # Move completed batch to history
-                if all(
-                    file["status"] in ("completed", "failed/skipped")
-                    for file in progress["files"]
-                ):
+                if all(file["status"] in ("completed", "failed/skipped") for file in progress["files"]):
                     try:
                         with history_file.open("a", encoding="utf-8") as f:
                             f.write("---\n")
                             yaml.safe_dump(progress, f, allow_unicode=True)
-                    except (IOError, OSError, yaml.YAMLError) as e:
+                    except (OSError, yaml.YAMLError) as e:
                         tolog.error(f"Error writing to history file: {e}")
                         # Continue anyway - history is not critical
 
@@ -489,7 +440,7 @@ def process_batch(args: argparse.Namespace) -> None:
 ###############################################
 
 
-def setup_configuration() -> Tuple[ConfigManager, Dict[str, Any]]:
+def setup_configuration() -> tuple[ConfigManager, dict[str, Any]]:
     """Load and validate configuration from config file."""
     import argparse
 
@@ -518,7 +469,7 @@ def setup_configuration() -> Tuple[ConfigManager, Dict[str, Any]]:
         sys.exit(1)
 
 
-def setup_logging(config: Dict[str, Any]) -> logging.Logger:
+def setup_logging(config: dict[str, Any]) -> logging.Logger:
     """Set up logging based on configuration."""
     log_level = getattr(logging, config["logging"]["level"], logging.INFO)
     log_format = config["logging"]["format"]
@@ -534,16 +485,14 @@ def setup_logging(config: Dict[str, Any]) -> logging.Logger:
             file_handler.setLevel(log_level)
             file_handler.setFormatter(logging.Formatter(log_format))
             tolog.addHandler(file_handler)
-        except (IOError, OSError, PermissionError) as e:
-            tolog.error(
-                f"Failed to set up file logging to {config['logging']['file_path']}: {e}"
-            )
+        except (OSError, PermissionError) as e:
+            tolog.error(f"Failed to set up file logging to {config['logging']['file_path']}: {e}")
             # Continue without file logging
 
     return tolog
 
 
-def setup_global_services(config: Dict[str, Any]) -> None:
+def setup_global_services(config: dict[str, Any]) -> None:
     """Initialize global services like iCloud sync."""
     global icloud_sync
     icloud_sync = ICloudSync(enabled=config["icloud"]["enabled"])
@@ -566,9 +515,7 @@ def main() -> None:
 
     # Warn if colorama is missing
     if cr is None:
-        tolog.warning(
-            "colorama package not installed. Colored text may not work properly."
-        )
+        tolog.warning("colorama package not installed. Colored text may not work properly.")
 
     # Set up signal handling for graceful termination
     def signal_handler(sig: int, frame: Any) -> None:
@@ -748,15 +695,9 @@ API KEYS:
     )
 
     # Skip flags for different phases
-    parser.add_argument(
-        "--skip-renaming", action="store_true", help="Skip the file renaming phase"
-    )
-    parser.add_argument(
-        "--skip-translating", action="store_true", help="Skip the translation phase"
-    )
-    parser.add_argument(
-        "--skip-epub", action="store_true", help="Skip the EPUB generation phase"
-    )
+    parser.add_argument("--skip-renaming", action="store_true", help="Skip the file renaming phase")
+    parser.add_argument("--skip-translating", action="store_true", help="Skip the translation phase")
+    parser.add_argument("--skip-epub", action="store_true", help="Skip the EPUB generation phase")
 
     # Translated file path for direct EPUB generation
     parser.add_argument(
@@ -785,13 +726,9 @@ API KEYS:
         help="Maximum retry attempts for failed requests (overrides config/preset)",
     )
 
-    parser.add_argument(
-        "--model", type=str, help="AI model name (overrides config/preset)"
-    )
+    parser.add_argument("--model", type=str, help="AI model name (overrides config/preset)")
 
-    parser.add_argument(
-        "--endpoint", type=str, help="API endpoint URL (overrides config/preset)"
-    )
+    parser.add_argument("--endpoint", type=str, help="API endpoint URL (overrides config/preset)")
 
     parser.add_argument(
         "--temperature",
@@ -820,9 +757,7 @@ API KEYS:
     if args.translated:
         args.skip_renaming = True
         args.skip_translating = True
-        tolog.info(
-            "--translated option provided, automatically skipping renaming and translation phases"
-        )
+        tolog.info("--translated option provided, automatically skipping renaming and translation phases")
 
         # Validate that the translated file exists
         translated_path = Path(args.translated)
@@ -869,13 +804,9 @@ API KEYS:
         success = process_novel_unified(file_path, args)
 
         if success:
-            safe_print(
-                "[bold green]Novel processing completed successfully![/bold green]"
-            )
+            safe_print("[bold green]Novel processing completed successfully![/bold green]")
         else:
-            safe_print(
-                "[bold yellow]Novel processing completed with some issues. Check logs for details.[/bold yellow]"
-            )
+            safe_print("[bold yellow]Novel processing completed with some issues. Check logs for details.[/bold yellow]")
             sys.exit(1)
 
     except Exception as e:
