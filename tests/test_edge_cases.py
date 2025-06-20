@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Test edge cases for chunk processing and error handling
 """
@@ -40,9 +39,7 @@ class TestEdgeCases:
         assert remove_excess_empty_lines("\n\n\n\n\n") == "\n\n\n"
 
         # Mixed content
-        assert (
-            remove_excess_empty_lines("A\n\n\n\n\nB\n\n\n\n\n\nC") == "A\n\n\nB\n\n\nC"
-        )
+        assert remove_excess_empty_lines("A\n\n\n\n\nB\n\n\n\n\n\nC") == "A\n\n\nB\n\n\nC"
 
         # Windows line endings
         text = "A\r\n\r\n\r\n\r\nB"
@@ -55,7 +52,7 @@ class TestEdgeCases:
         from src.enchant_book_manager.cli_translator import split_chinese_text_in_parts
 
         # Mock logger
-        import cli_translator
+        from src.enchant_book_manager import cli_translator
 
         cli_translator.tolog = Mock()
 
@@ -87,7 +84,7 @@ class TestEdgeCases:
 
     def test_none_global_variables(self):
         """Test handling of None global variables"""
-        import cli_translator
+        from src.enchant_book_manager import cli_translator
 
         # Save original values
         orig_tolog = cli_translator.tolog
@@ -98,17 +95,13 @@ class TestEdgeCases:
 
             # Functions that use tolog should handle None gracefully
             # After our fixes, this should NOT raise AttributeError
-            result = cli_translator.split_chinese_text_in_parts(
-                "test text", max_chars=100
-            )
+            result = cli_translator.split_chinese_text_in_parts("test text", max_chars=100)
             assert isinstance(result, list)
             assert len(result) == 1
             assert "test text" in result[0]
 
             # Test other functions too
-            cli_translator.load_text_file(
-                "nonexistent.txt"
-            )  # Should return None, not crash
+            cli_translator.load_text_file("nonexistent.txt")  # Should return None, not crash
 
         finally:
             # Restore
@@ -173,7 +166,7 @@ class TestEdgeCases:
         from src.enchant_book_manager.cli_translator import split_chinese_text_in_parts
 
         # Mock logger
-        import cli_translator
+        from src.enchant_book_manager import cli_translator
 
         cli_translator.tolog = Mock()
 
@@ -189,7 +182,7 @@ class TestEdgeCases:
 
     def test_consistency_between_functions(self):
         """Test that different functions use consistent limits"""
-        import cli_translator
+        from src.enchant_book_manager import cli_translator
 
         # Check MAXCHARS default
         assert cli_translator.MAXCHARS == 11999
@@ -218,11 +211,7 @@ if __name__ == "__main__":
         # Manual test runner
 
         test_class = TestEdgeCases()
-        test_methods = [
-            method
-            for method in dir(test_class)
-            if method.startswith("test_") and callable(getattr(test_class, method))
-        ]
+        test_methods = [method for method in dir(test_class) if method.startswith("test_") and callable(getattr(test_class, method))]
 
         passed = 0
         failed = 0

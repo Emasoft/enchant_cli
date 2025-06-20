@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 """
 End-to-End test for complete Chinese novel to English EPUB conversion.
@@ -381,9 +380,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             },
         }
 
-    def test_single_novel_complete_pipeline(
-        self, temp_workspace, mock_openai_responses, mock_translation_responses
-    ):
+    def test_single_novel_complete_pipeline(self, temp_workspace, mock_openai_responses, mock_translation_responses):
         """Test complete pipeline for a single Chinese novel"""
 
         # Select test novel
@@ -398,9 +395,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
 
         translation_response = Mock()
         translation_response.status_code = 200
-        translation_response.json = Mock(
-            return_value=mock_translation_responses["cultivation"]
-        )
+        translation_response.json = Mock(return_value=mock_translation_responses["cultivation"])
         translation_response.raise_for_status = Mock()
 
         # Patch ICLOUD first to avoid iCloud sync errors
@@ -426,7 +421,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
 
             # Create a mock translate_novel function that creates expected output
             def mock_translate_novel(input_file, **kwargs):
-                from common_utils import sanitize_filename, extract_book_info_from_path
+                from src.enchant_book_manager.common_utils import sanitize_filename, extract_book_info_from_path
 
                 # Get the renamed file path
                 input_path = Path(input_file)
@@ -444,18 +439,14 @@ They needed to venture deep into the forest and clear out the magical beasts the
                 # Create translated file with exact expected name
                 translated_file_name = f"translated_{book_title} by {book_author}.txt"
                 translated_file = translation_dir / translated_file_name
-                translated_content = mock_translation_responses["cultivation"][
-                    "choices"
-                ][0]["message"]["content"]
+                translated_content = mock_translation_responses["cultivation"]["choices"][0]["message"]["content"]
                 translated_file.write_text(translated_content, encoding="utf-8")
 
                 return True
 
             # Patch make_openai_request directly to avoid any issues
             with (
-                patch(
-                    "src.enchant_book_manager.renamenovels.make_openai_request"
-                ) as mock_openai_request,
+                patch("src.enchant_book_manager.renamenovels.make_openai_request") as mock_openai_request,
                 patch("requests.post", side_effect=mock_requests_post),
                 patch(
                     "src.enchant_book_manager.enchant_cli.translate_novel",
@@ -506,16 +497,12 @@ They needed to venture deep into the forest and clear out the magical beasts the
                         os.chdir(original_cwd)
 
                     # Verify outputs
-                    self._verify_complete_pipeline_outputs(
-                        temp_workspace, "Cultivation Supreme", "Unknown Author"
-                    )
+                    self._verify_complete_pipeline_outputs(temp_workspace, "Cultivation Supreme", "Unknown Author")
         finally:
             # Restore original ICLOUD value
             renamenovels.ICLOUD = original_icloud
 
-    def test_batch_processing_multiple_novels(
-        self, temp_workspace, mock_openai_responses, mock_translation_responses
-    ):
+    def test_batch_processing_multiple_novels(self, temp_workspace, mock_openai_responses, mock_translation_responses):
         """Test batch processing of multiple Chinese novels"""
 
         config_file = temp_workspace / "test_config.yml"
@@ -561,19 +548,13 @@ They needed to venture deep into the forest and clear out the magical beasts the
                         _, trans_type = get_novel_from_content(content)
                         response = Mock()
                         response.status_code = 200
-                        response.json = Mock(
-                            return_value=mock_translation_responses[trans_type]
-                        )
+                        response.json = Mock(return_value=mock_translation_responses[trans_type])
                         response.raise_for_status = Mock()
                         return response
                 # Default response
                 response = Mock()
                 response.status_code = 200
-                response.json = Mock(
-                    return_value={
-                        "choices": [{"message": {"content": "Default response"}}]
-                    }
-                )
+                response.json = Mock(return_value={"choices": [{"message": {"content": "Default response"}}]})
                 response.raise_for_status = Mock()
                 return response
 
@@ -635,18 +616,14 @@ They needed to venture deep into the forest and clear out the magical beasts the
                     ]
 
                     for title, author in expected_outputs:
-                        self._verify_complete_pipeline_outputs(
-                            temp_workspace, title, author
-                        )
+                        self._verify_complete_pipeline_outputs(temp_workspace, title, author)
         finally:
             # Restore original ICLOUD value
             renamenovels.ICLOUD = original_icloud
 
     @pytest.mark.timeout(300)  # 5 minutes for real API calls
     @pytest.mark.skip(reason="Temporarily skip due to complex real API interactions")
-    def test_resume_functionality(
-        self, temp_workspace, mock_openai_responses, mock_translation_responses
-    ):
+    def test_resume_functionality(self, temp_workspace, mock_openai_responses, mock_translation_responses):
         """Test resume functionality when process is interrupted"""
 
         # Create a subdirectory for this test to avoid conflicts
@@ -753,9 +730,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             renamed_files = [f for f in all_txt_files if " by " in f.name]
 
             # If we can't find renamed files, something went wrong
-            assert len(renamed_files) >= 1, (
-                f"No renamed files found. All files: {[f.name for f in all_txt_files]}"
-            )
+            assert len(renamed_files) >= 1, f"No renamed files found. All files: {[f.name for f in all_txt_files]}"
 
             # Find the most recently modified file (should be our renamed file)
             renamed_file = max(renamed_files, key=lambda f: f.stat().st_mtime)
@@ -804,17 +779,13 @@ They needed to venture deep into the forest and clear out the magical beasts the
                         actual_title = "Unknown Title"
                         actual_author = "Unknown Author"
 
-                self._verify_complete_pipeline_outputs(
-                    test_dir, actual_title, actual_author
-                )
+                self._verify_complete_pipeline_outputs(test_dir, actual_title, actual_author)
         finally:
             # Restore original ICLOUD value
             renamenovels.ICLOUD = original_icloud
 
     @pytest.mark.timeout(30)
-    def test_epub_content_quality(
-        self, temp_workspace, mock_openai_responses, mock_translation_responses
-    ):
+    def test_epub_content_quality(self, temp_workspace, mock_openai_responses, mock_translation_responses):
         """Test quality and correctness of generated EPUB content"""
 
         test_novel = temp_workspace / "魔法学院.txt"
@@ -894,9 +865,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
                 assert "Chapter 3: First Mission" in toc_ncx
 
                 # Verify chapter content is in English
-                chapter1_content = epub_zip.read("OEBPS/Text/chapter1.xhtml").decode(
-                    "utf-8"
-                )
+                chapter1_content = epub_zip.read("OEBPS/Text/chapter1.xhtml").decode("utf-8")
                 assert "Ally was a girl from a small village" in chapter1_content
                 assert "magical talent" in chapter1_content
                 assert "Magic Academy" in chapter1_content
@@ -951,18 +920,14 @@ They needed to venture deep into the forest and clear out the magical beasts the
             # Restore original ICLOUD value
             renamenovels.ICLOUD = original_icloud
 
-    def _verify_complete_pipeline_outputs(
-        self, workspace: Path, expected_title: str, expected_author: str
-    ):
+    def _verify_complete_pipeline_outputs(self, workspace: Path, expected_title: str, expected_author: str):
         """Verify all outputs from the complete pipeline are present and correct"""
 
         # 1. Verify renamed file exists
         safe_title = expected_title.replace(" ", "_")
         renamed_pattern = f"{expected_title} by {expected_author}*.txt"
         renamed_files = list(workspace.glob(renamed_pattern))
-        assert len(renamed_files) >= 1, (
-            f"No renamed file found matching pattern: {renamed_pattern}"
-        )
+        assert len(renamed_files) >= 1, f"No renamed file found matching pattern: {renamed_pattern}"
 
         # 2. Verify translation directory exists
         # The directory might include romanized author name, so we need to be flexible
@@ -976,9 +941,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             potential_dirs = list(workspace.glob(f"{expected_title}*"))
             translation_dirs = [d for d in potential_dirs if d.is_dir()]
 
-        assert len(translation_dirs) > 0, (
-            f"No translation directory found matching: {dir_pattern}. Found files/dirs: {list(workspace.iterdir())}"
-        )
+        assert len(translation_dirs) > 0, f"No translation directory found matching: {dir_pattern}. Found files/dirs: {list(workspace.iterdir())}"
         translation_dir = translation_dirs[0]  # Use the first matching directory
 
         # 3. Verify chapter files exist
@@ -991,15 +954,11 @@ They needed to venture deep into the forest and clear out the magical beasts the
             # Maybe chapters are in the combined file
             # Look for the translated file instead
             translated_files = list(translation_dir.glob("translated_*.txt"))
-            assert len(translated_files) >= 1, (
-                f"No translated file found in {translation_dir}. Files: {[f.name for f in all_files]}"
-            )
+            assert len(translated_files) >= 1, f"No translated file found in {translation_dir}. Files: {[f.name for f in all_files]}"
 
         # 4. Verify combined translation file
         combined_files = list(translation_dir.glob("translated_*.txt"))
-        assert len(combined_files) >= 1, (
-            f"No combined translation file found in: {translation_dir}. Files found: {list(translation_dir.iterdir())}"
-        )
+        assert len(combined_files) >= 1, f"No combined translation file found in: {translation_dir}. Files found: {list(translation_dir.iterdir())}"
 
         # 5. Verify EPUB file exists (might not exist due to directory name mismatch issue)
         epub_pattern = f"{safe_title}*.epub"
@@ -1007,9 +966,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
         if len(epub_files) == 0:
             # EPUB generation might have been skipped due to directory name mismatch
             # This is a known issue where enchant_cli looks for directory without romanized author
-            print(
-                "Warning: No EPUB file found. This is expected due to directory name mismatch issue."
-            )
+            print("Warning: No EPUB file found. This is expected due to directory name mismatch issue.")
             return  # Skip EPUB verification for now
 
         epub_file = epub_files[0]
@@ -1025,9 +982,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             assert "OEBPS/toc.ncx" in files
 
             # Chapter content
-            chapter_xhtml_files = [
-                f for f in files if f.startswith("OEBPS/Text/chapter")
-            ]
+            chapter_xhtml_files = [f for f in files if f.startswith("OEBPS/Text/chapter")]
             assert len(chapter_xhtml_files) >= 3
 
             # Verify metadata in content.opf
