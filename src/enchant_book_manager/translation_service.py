@@ -26,6 +26,7 @@ import time
 from .cost_tracker import global_cost_tracker
 from .common_text_utils import clean
 from .common_constants import DEFAULT_LMSTUDIO_API_URL
+from .common_utils import retry_with_backoff
 
 
 # Constant parameters:
@@ -40,114 +41,6 @@ DEFAULT_MAX_TOKENS = 4000  # Default max tokens for API responses
 # Define a custom exception for translation failures
 class TranslationException(Exception):
     pass
-
-
-# Define a Tenacity retry wrapper that works on class methods
-def retry_with_tenacity(method: Callable[..., Any]) -> Callable[..., Any]:
-    """
-    Decorator for retrying failed API calls with exponential backoff.
-
-    Implements smart retry logic with time limits and exponential backoff.
-    Will exit the program if translation fails after all retries.
-
-    Args:
-        method: The method to wrap with retry logic
-
-    Returns:
-        Wrapped method with retry capability
-    """
-
-    @wraps(method)
-    def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
-        # Improved retry settings with time limit
-        max_retries = 10  # Maximum 10 retries
-        total_time_limit = 18 * 60  # 18 minutes total time limit
-        retry_wait_base = 1.0
-        retry_wait_min = 3.0
-        retry_wait_max = 30.0  # Max 30 seconds between retries
-
-        start_time = time.time()
-        attempts = 0
-        last_exception = None
-
-        while attempts < max_retries:
-            attempts += 1
-            elapsed_time = time.time() - start_time
-
-            # Check if we've exceeded total time limit
-            if elapsed_time >= total_time_limit:
-                error_msg = (
-                    f"Translation failed: Exceeded total time limit of {total_time_limit / 60:.1f} minutes "
-                    f"after {attempts} attempts. Last error: {last_exception}"
-                )
-                self.logger.error(error_msg)
-                # Exit the program on failure - never continue
-                print(f"\n❌ FATAL ERROR: {error_msg}")
-                sys.exit(1)
-
-            try:
-                # Log attempt
-                if attempts > 1:
-                    self.logger.warning(
-                        f"Retry attempt {attempts}/{max_retries} after {elapsed_time:.1f}s"
-                    )
-
-                # Call the actual method
-                result = method(self, *args, **kwargs)
-
-                # Success! Return the result
-                if attempts > 1:
-                    self.logger.info(
-                        f"Successfully completed after {attempts} attempts in {elapsed_time:.1f}s"
-                    )
-                return result
-
-            except (
-                requests.exceptions.RequestException,
-                requests.exceptions.HTTPError,
-                TranslationException,
-            ) as e:
-                last_exception = e
-
-                # Check if we should retry
-                if attempts >= max_retries:
-                    error_msg = f"Translation failed after {max_retries} retries: {e}"
-                    self.logger.error(error_msg)
-                    print(f"\n❌ FATAL ERROR: {error_msg}")
-                    sys.exit(1)
-
-                # Check time limit again before waiting
-                elapsed_time = time.time() - start_time
-                if elapsed_time >= total_time_limit:
-                    error_msg = (
-                        f"Translation failed: Exceeded total time limit of {total_time_limit / 60:.1f} minutes "
-                        f"after {attempts} attempts. Last error: {e}"
-                    )
-                    self.logger.error(error_msg)
-                    print(f"\n❌ FATAL ERROR: {error_msg}")
-                    sys.exit(1)
-
-                # Calculate wait time with exponential backoff
-                wait_time = min(retry_wait_base * (2 ** (attempts - 1)), retry_wait_max)
-                wait_time = max(wait_time, retry_wait_min)
-
-                # Don't wait if it would exceed time limit
-                if elapsed_time + wait_time >= total_time_limit:
-                    wait_time = max(0, total_time_limit - elapsed_time - 1)
-
-                if wait_time > 0:
-                    self.logger.warning(
-                        f"Waiting {wait_time:.1f}s before retry. Error: {e}"
-                    )
-                    time.sleep(wait_time)
-
-        # Should never reach here, but just in case
-        error_msg = "Translation failed: Unexpected exit from retry loop"
-        self.logger.error(error_msg)
-        print(f"\n❌ FATAL ERROR: {error_msg}")
-        sys.exit(1)
-
-    return wrapper
 
 
 ## LLM API SETTINGS CONSTANTS
@@ -708,7 +601,14 @@ class ChineseAITranslator:
         ## RETURN THE FINAL TRANSLATED STRING
         return final_translation
 
-    @retry_with_tenacity
+    @retry_with_backoff(
+        max_attempts=10,
+        base_wait=1.0,
+        max_wait=30.0,
+        min_wait=3.0,
+        time_limit=18 * 60,  # 18 minutes
+        exit_on_failure=True,  # Critical for translation
+    )
     def translate_messages(self, messages: str, is_last_chunk: bool = False) -> str:
         """
         Send translation request to API and process response.

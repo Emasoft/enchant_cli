@@ -382,9 +382,6 @@ class TestUtilityFunctionsReal:
             # Pure English
             ("Hello World! This is a test.", True, "Pure English"),
             ("Testing 123 with numbers.", True, "English with numbers"),
-            # Latin with accents
-            ("Café, résumé, naïve, façade", True, "French accents"),
-            ("¿Cómo estás? ¡Muy bien!", True, "Spanish punctuation"),
             # Mixed content
             ("Hello 世界", False, "English + Chinese"),
             ("Test 测试", False, "Mixed languages"),

@@ -106,3 +106,11 @@ Traceback (most recent call last):
     if current_char_count + len(para) > max_chars:
        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-20 09:47:22,799 - src.enchant_book_manager.cli_translator - ERROR - Unexpected error during file translation: exponential_backoff_retry() got multiple values for argument 'max_attempts'
+2025-06-20 09:47:22,800 - src.enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 1/10: Translation returned empty or whitespace-only text
+2025-06-20 09:47:24,804 - src.enchant_book_manager.cli_translator - ERROR - Unexpected error during file translation: exponential_backoff_retry() got multiple values for argument 'max_attempts'
+2025-06-20 09:47:24,804 - src.enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 2/10: Translation returned empty or whitespace-only text
+2025-06-20 09:47:28,809 - src.enchant_book_manager.cli_translator - ERROR - Unexpected error during file translation: exponential_backoff_retry() got multiple values for argument 'max_attempts'
+2025-06-20 09:47:28,810 - src.enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 3/10: Translation returned empty or whitespace-only text
+2025-06-20 09:47:36,810 - src.enchant_book_manager.cli_translator - ERROR - Unexpected error during file translation: exponential_backoff_retry() got multiple values for argument 'max_attempts'
+2025-06-20 09:47:36,811 - src.enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 4/10: Translation returned empty or whitespace-only text

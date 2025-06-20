@@ -33,7 +33,7 @@ from .icloud_sync import ICloudSync
 try:
     import colorama as cr
 except ImportError:
-    cr = None
+    cr = None  # type: ignore[assignment]
     # tolog is not yet defined here, so we will log warning later in main if needed
 
 APP_NAME = "EnChANT - English-Chinese Automatic Novel Translator"
@@ -65,7 +65,7 @@ except ImportError:
     epub_available = False
 
 # Global variables - will be initialized in main()
-tolog: Optional[logging.Logger] = None
+tolog: logging.Logger = logging.getLogger(__name__)  # Initialize immediately to avoid None
 icloud_sync: Optional[ICloudSync] = None
 # Cost tracking is now handled by global_cost_tracker from cost_tracker module
 
@@ -77,12 +77,10 @@ def load_safe_yaml(path: Path) -> Optional[Dict[str, Any]]:
     try:
         return load_yaml_safe(path)
     except ValueError as e:
-        if tolog is not None:
-            tolog.error(f"Error loading YAML from {path}: {e}")
+        tolog.error(f"Error loading YAML from {path}: {e}")
         return None
     except Exception as e:
-        if tolog is not None:
-            tolog.error(f"Unexpected error loading YAML from {path}: {e}")
+        tolog.error(f"Unexpected error loading YAML from {path}: {e}")
         return None
 
 
@@ -181,13 +179,11 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                 with progress_file.open("w") as f:
                     yaml.safe_dump(progress, f)
             except (IOError, OSError, yaml.YAMLError) as e:
-                if tolog is not None:
-                    tolog.error(f"Error saving batch progress: {e}")
+                tolog.error(f"Error saving batch progress: {e}")
                 # Re-raise as this is critical for batch processing
                 raise
         except (IOError, OSError, yaml.YAMLError) as e:
-            if tolog is not None:
-                tolog.error(f"Error saving progress file: {e}")
+            tolog.error(f"Error saving progress file: {e}")
             # Continue anyway - progress tracking is not critical
 
     # Phase 2: Translation
@@ -234,13 +230,11 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                 with progress_file.open("w") as f:
                     yaml.safe_dump(progress, f)
             except (IOError, OSError, yaml.YAMLError) as e:
-                if tolog is not None:
-                    tolog.error(f"Error saving batch progress: {e}")
+                tolog.error(f"Error saving batch progress: {e}")
                 # Re-raise as this is critical for batch processing
                 raise
         except (IOError, OSError, yaml.YAMLError) as e:
-            if tolog is not None:
-                tolog.error(f"Error saving progress file: {e}")
+            tolog.error(f"Error saving progress file: {e}")
             # Continue anyway - progress tracking is not critical
 
     # Phase 3: EPUB Generation
@@ -367,13 +361,11 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                 with progress_file.open("w") as f:
                     yaml.safe_dump(progress, f)
             except (IOError, OSError, yaml.YAMLError) as e:
-                if tolog is not None:
-                    tolog.error(f"Error saving batch progress: {e}")
+                tolog.error(f"Error saving batch progress: {e}")
                 # Re-raise as this is critical for batch processing
                 raise
         except (IOError, OSError, yaml.YAMLError) as e:
-            if tolog is not None:
-                tolog.error(f"Error saving progress file: {e}")
+            tolog.error(f"Error saving progress file: {e}")
             # Continue anyway - progress tracking is not critical
 
     # Clean up progress file if all phases completed successfully
@@ -386,8 +378,7 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
             progress_file.unlink()
             tolog.info("All phases completed, removed progress file")
         except (FileNotFoundError, PermissionError) as e:
-            if tolog is not None:
-                tolog.warning(f"Could not remove progress file: {e}")
+            tolog.warning(f"Could not remove progress file: {e}")
             # Not critical - file will be overwritten next time
 
     return all_completed
@@ -448,8 +439,7 @@ def process_batch(args: argparse.Namespace) -> None:
                 with progress_file.open("w") as f:
                     yaml.safe_dump(progress, f)
             except (IOError, OSError, yaml.YAMLError) as e:
-                if tolog is not None:
-                    tolog.error(f"Error saving batch progress: {e}")
+                tolog.error(f"Error saving batch progress: {e}")
                 # Re-raise as this is critical for batch processing
                 raise
 
@@ -484,15 +474,13 @@ def process_batch(args: argparse.Namespace) -> None:
                             f.write("---\n")
                             yaml.safe_dump(progress, f, allow_unicode=True)
                     except (IOError, OSError, yaml.YAMLError) as e:
-                        if tolog is not None:
-                            tolog.error(f"Error writing to history file: {e}")
+                        tolog.error(f"Error writing to history file: {e}")
                         # Continue anyway - history is not critical
 
                     try:
                         progress_file.unlink()
                     except (FileNotFoundError, PermissionError) as e:
-                        if tolog is not None:
-                            tolog.error(f"Error deleting progress file: {e}")
+                        tolog.error(f"Error deleting progress file: {e}")
                         # Continue anyway - file will be overwritten next time
 
 
@@ -547,10 +535,9 @@ def setup_logging(config: Dict[str, Any]) -> logging.Logger:
             file_handler.setFormatter(logging.Formatter(log_format))
             tolog.addHandler(file_handler)
         except (IOError, OSError, PermissionError) as e:
-            if tolog is not None:
-                tolog.error(
-                    f"Failed to set up file logging to {config['logging']['file_path']}: {e}"
-                )
+            tolog.error(
+                f"Failed to set up file logging to {config['logging']['file_path']}: {e}"
+            )
             # Continue without file logging
 
     return tolog
@@ -585,8 +572,7 @@ def main() -> None:
 
     # Set up signal handling for graceful termination
     def signal_handler(sig: int, frame: Any) -> None:
-        if tolog:
-            tolog.info("Interrupt received. Exiting gracefully.")
+        tolog.info("Interrupt received. Exiting gracefully.")
         sys.exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)

@@ -25,7 +25,6 @@ from src.enchant_book_manager.translation_service import (
     TranslationException,
     is_latin_char,
     is_latin_charset,
-    retry_with_tenacity,
 )
 
 
@@ -709,82 +708,9 @@ class TestUtilityFunctions:
         assert is_latin_charset(text, threshold=0.005) is False
 
 
-class TestRetryWrapper:
-    """Test retry_with_tenacity wrapper"""
-
-    @patch("src.enchant_book_manager.translation_service.time.sleep")
-    def test_retry_on_http_error(self, mock_sleep):
-        """Test retry on HTTP errors"""
-        mock_obj = Mock()
-        mock_obj.logger = Mock(spec=logging.Logger)
-        mock_obj.max_retries = 7
-        mock_obj.retry_wait_base = 1.0
-        mock_obj.retry_wait_min = 3.0
-        mock_obj.retry_wait_max = 60.0
-
-        # Create a method that fails then succeeds
-        call_count = 0
-
-        def failing_method(self):
-            nonlocal call_count
-            call_count += 1
-            if call_count < 3:
-                raise requests.exceptions.HTTPError("Server error")
-            return "Success"
-
-        # Apply decorator
-        wrapped = retry_with_tenacity(failing_method)
-
-        # Test
-        result = wrapped(mock_obj)
-        assert result == "Success"
-        assert call_count == 3
-
-    @patch("src.enchant_book_manager.translation_service.time.sleep")
-    def test_retry_on_translation_exception(self, mock_sleep):
-        """Test retry on TranslationException"""
-        mock_obj = Mock()
-        mock_obj.logger = Mock(spec=logging.Logger)
-        mock_obj.max_retries = 7
-        mock_obj.retry_wait_base = 1.0
-        mock_obj.retry_wait_min = 3.0
-        mock_obj.retry_wait_max = 60.0
-
-        call_count = 0
-
-        def failing_method(self):
-            nonlocal call_count
-            call_count += 1
-            if call_count < 2:
-                raise TranslationException("Translation failed")
-            return "Success"
-
-        wrapped = retry_with_tenacity(failing_method)
-        result = wrapped(mock_obj)
-        assert result == "Success"
-        assert call_count == 2
-
-    @patch("src.enchant_book_manager.translation_service.time.sleep")
-    def test_retry_exhaustion(self, mock_sleep):
-        """Test retry exhaustion after max attempts"""
-        mock_obj = Mock()
-        mock_obj.logger = Mock(spec=logging.Logger)
-        mock_obj.max_retries = 3
-        mock_obj.retry_wait_base = 0.1
-        mock_obj.retry_wait_min = 0.1
-        mock_obj.retry_wait_max = 0.5
-
-        def always_failing_method(self):
-            raise requests.exceptions.RequestException("Always fails")
-
-        wrapped = retry_with_tenacity(always_failing_method)
-
-        # The custom retry mechanism calls sys.exit(1) on failure
-        with patch("sys.exit") as mock_exit:
-            mock_exit.side_effect = SystemExit(1)
-            with pytest.raises(SystemExit):
-                wrapped(mock_obj)
-            mock_exit.assert_called_with(1)
+# Note: TestRetryWrapper tests have been removed since retry_with_tenacity
+# was replaced with the common retry_with_backoff decorator from common_utils.
+# The retry logic is now tested via common_utils module tests.
 
 
 if __name__ == "__main__":

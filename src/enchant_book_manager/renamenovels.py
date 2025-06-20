@@ -13,17 +13,11 @@ from pathlib import Path
 import multiprocessing
 from json import JSONDecodeError
 from typing import Optional
-from tenacity import (
-    retry,
-    stop_after_attempt,
-    wait_exponential,
-    retry_if_exception_type,
-)
 from requests.exceptions import HTTPError, ConnectionError, Timeout
 from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
 from .common_file_utils import decode_full_file
-from .common_utils import sanitize_filename as common_sanitize_filename
+from .common_utils import sanitize_filename as common_sanitize_filename, retry_with_backoff
 from .common_yaml_utils import load_safe_yaml
 from .cost_tracker import global_cost_tracker
 from .icloud_sync import ICloudSync, ICloudSyncError
@@ -160,10 +154,12 @@ OPENROUTER_MODEL_MAPPING = {
 
 
 # Retry mechanism for making requests to OpenRouter API
-@retry(
-    stop=stop_after_attempt(5),
-    wait=wait_exponential(multiplier=1, min=4, max=10),
-    retry=retry_if_exception_type((HTTPError, ConnectionError, Timeout)),
+@retry_with_backoff(
+    max_attempts=5,
+    base_wait=4.0,
+    max_wait=10.0,
+    min_wait=4.0,
+    exception_types=(HTTPError, ConnectionError, Timeout),
 )
 def make_openai_request(
     api_key: str, model: str, temperature: float, messages: list

@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional, List
 import re
 import copy
 
-from .common_yaml_utils import load_safe_yaml
+from .common_yaml_utils import load_safe_yaml, merge_yaml_configs
 
 # Default configuration template with extensive comments
 DEFAULT_CONFIG_TEMPLATE = """# ENCHANT Configuration File
@@ -883,25 +883,8 @@ class ConfigManager:
     def _merge_with_defaults(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """Merge user config with defaults to ensure all keys exist."""
         defaults = self._get_default_config()
-        return self._deep_merge(defaults, config)
+        return merge_yaml_configs(defaults, config)
 
-    def _deep_merge(
-        self, base: Dict[str, Any], update: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """Deep merge two dictionaries."""
-        result = base.copy()
-
-        for key, value in update.items():
-            if (
-                key in result
-                and isinstance(result[key], dict)
-                and isinstance(value, dict)
-            ):
-                result[key] = self._deep_merge(result[key], value)
-            else:
-                result[key] = value
-
-        return result
 
     def get(self, key_path: str, default: Any = None) -> Any:
         """
