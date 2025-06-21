@@ -421,7 +421,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
 
             # Create a mock translate_novel function that creates expected output
             def mock_translate_novel(input_file, **kwargs):
-                from src.enchant_book_manager.common_utils import sanitize_filename, extract_book_info_from_path
+                from enchant_book_manager.common_utils import sanitize_filename, extract_book_info_from_path
 
                 # Get the renamed file path
                 input_path = Path(input_file)
@@ -446,10 +446,10 @@ They needed to venture deep into the forest and clear out the magical beasts the
 
             # Patch make_openai_request directly to avoid any issues
             with (
-                patch("src.enchant_book_manager.renamenovels.make_openai_request") as mock_openai_request,
+                patch("enchant_book_manager.renamenovels.make_openai_request") as mock_openai_request,
                 patch("requests.post", side_effect=mock_requests_post),
                 patch(
-                    "src.enchant_book_manager.enchant_cli.translate_novel",
+                    "enchant_book_manager.enchant_cli.translate_novel",
                     side_effect=mock_translate_novel,
                 ),
             ):
@@ -481,7 +481,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
                         os.chdir(temp_workspace)
 
                         # Import and test after patching
-                        from src.enchant_book_manager.enchant_cli import (
+                        from enchant_book_manager.enchant_cli import (
                             main as enchant_main,
                         )
 
@@ -567,7 +567,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
 
             with (
                 patch(
-                    "src.enchant_book_manager.renamenovels.make_openai_request",
+                    "enchant_book_manager.renamenovels.make_openai_request",
                     side_effect=mock_make_openai,
                 ),
                 patch("requests.post", side_effect=mock_requests_post),
@@ -593,7 +593,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
                     try:
                         os.chdir(temp_workspace)
 
-                        from src.enchant_book_manager.enchant_cli import (
+                        from enchant_book_manager.enchant_cli import (
                             main as enchant_main,
                         )
 
@@ -717,7 +717,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             ]
 
             with patch("sys.argv", cmd[1:]):
-                from src.enchant_book_manager.enchant_cli import main as enchant_main
+                from enchant_book_manager.enchant_cli import main as enchant_main
 
                 try:
                     enchant_main()
@@ -751,7 +751,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             ]
 
             with patch("sys.argv", cmd[1:]):
-                from src.enchant_book_manager.enchant_cli import main as enchant_main
+                from enchant_book_manager.enchant_cli import main as enchant_main
 
                 try:
                     enchant_main()
@@ -823,7 +823,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
                 ]
 
             with patch("sys.argv", cmd[1:]):
-                from src.enchant_book_manager.enchant_cli import main as enchant_main
+                from enchant_book_manager.enchant_cli import main as enchant_main
 
                 try:
                     enchant_main()
@@ -907,7 +907,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             ]
 
             with patch("sys.argv", cmd[1:]):
-                from src.enchant_book_manager.enchant_cli import main as enchant_main
+                from enchant_book_manager.enchant_cli import main as enchant_main
 
                 try:
                     enchant_main()

@@ -176,9 +176,7 @@ def replace_repeated_chars(text: str, chars: str) -> str:
     return text
 
 
-def limit_repeated_chars(
-    text: str, force_chinese: bool = False, force_english: bool = False
-) -> str:
+def limit_repeated_chars(text: str, force_chinese: bool = False, force_english: bool = False) -> str:
     """
     Normalize repeated character sequences in the input text.
 
@@ -309,12 +307,8 @@ def remove_html_comments(html_str: str) -> str:
 
 def remove_script_and_style(html_str: str) -> str:
     """Remove <script> and <style> tags and their content."""
-    html_str = re.sub(
-        r"<script\b[^>]*>.*?</script>", "", html_str, flags=re.DOTALL | re.IGNORECASE
-    )
-    html_str = re.sub(
-        r"<style\b[^>]*>.*?</style>", "", html_str, flags=re.DOTALL | re.IGNORECASE
-    )
+    html_str = re.sub(r"<script\b[^>]*>.*?</script>", "", html_str, flags=re.DOTALL | re.IGNORECASE)
+    html_str = re.sub(r"<style\b[^>]*>.*?</style>", "", html_str, flags=re.DOTALL | re.IGNORECASE)
     return html_str
 
 

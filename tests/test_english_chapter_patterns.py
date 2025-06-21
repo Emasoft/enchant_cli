@@ -12,7 +12,7 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.enchant_book_manager.make_epub import HEADING_RE, parse_num, split_text
+from enchant_book_manager.make_epub import HEADING_RE, parse_num, split_text
 
 
 class TestEnglishChapterPatterns:
@@ -74,9 +74,7 @@ class TestEnglishChapterPatterns:
         """Test Part, Section, Book patterns"""
         match = HEADING_RE.match(text)
         assert match is not None, f"Failed to match: {text}"
-        num_str = (
-            match.group("part_d") or match.group("part_r") or match.group("part_w")
-        )
+        num_str = match.group("part_d") or match.group("part_r") or match.group("part_w")
         num = parse_num(num_str)
         assert num == expected
 
@@ -172,14 +170,14 @@ class TestChapterSequenceValidation:
     )
     def test_valid_sequences(self, seq):
         """Test that valid sequences produce no issues"""
-        from src.enchant_book_manager.make_epub import detect_issues
+        from enchant_book_manager.make_epub import detect_issues
 
         issues = detect_issues(seq)
         assert len(issues) == 0
 
     def test_missing_chapters(self):
         """Test detection of missing chapters"""
-        from src.enchant_book_manager.make_epub import detect_issues
+        from enchant_book_manager.make_epub import detect_issues
 
         seq = [1, 3, 5]
         issues = detect_issues(seq)
@@ -190,7 +188,7 @@ class TestChapterSequenceValidation:
 
     def test_out_of_order_chapters(self):
         """Test detection of out-of-order chapters"""
-        from src.enchant_book_manager.make_epub import detect_issues
+        from enchant_book_manager.make_epub import detect_issues
 
         seq = [1, 2, 5, 3, 4]
         issues = detect_issues(seq)
@@ -200,7 +198,7 @@ class TestChapterSequenceValidation:
 
     def test_repeated_chapters(self):
         """Test detection of repeated chapters"""
-        from src.enchant_book_manager.make_epub import detect_issues
+        from enchant_book_manager.make_epub import detect_issues
 
         seq = [1, 2, 2, 3]
         issues = detect_issues(seq)

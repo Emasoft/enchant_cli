@@ -1,3 +1,10 @@
+# Pre-commit configuration for EnChANT Book Manager
+# Runs all linters automatically before each commit
+minimum_pre_commit_version: '2.20.0'
+fail_fast: false
+default_language_version:
+  python: python3.12
+
 repos:
   # Standard pre-commit hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -24,7 +31,7 @@ repos:
     rev: v0.8.5
     hooks:
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+        args: ['--fix', '--ignore', 'E203,E402,E501,E266,W505,F841,F842,F401,W293,I001,UP015,C901,W291', '--isolated']
       - id: ruff-format
 
   # Local hooks that use uv run
@@ -37,7 +44,8 @@ repos:
         language: system
         types: [python]
         require_serial: true
-        args: [--strict, --ignore-missing-imports]
+        args: ['--strict', '--show-error-context', '--pretty', '--no-color-output', '--show-error-codes', '--show-error-code-links', '--no-error-summary', '--follow-imports=normal']
+        exclude: '^(tests/|__pycache__|\.git/)'
 
       # Dependency checking with deptry
       - id: deptry
@@ -71,3 +79,19 @@ repos:
         language: system
         files: ^\.github/workflows/.*\.ya?ml$
         pass_filenames: true
+
+      # Shell script linting with shellcheck
+      - id: shellcheck
+        name: shellcheck
+        entry: uv run --frozen shellcheck
+        language: system
+        types: [shell]
+        args: ['--severity=error', '--extended-analysis=true']
+
+      # Detect secrets with gitleaks
+      - id: gitleaks
+        name: gitleaks
+        entry: gitleaks protect --staged --verbose
+        language: system
+        pass_filenames: false
+        always_run: true

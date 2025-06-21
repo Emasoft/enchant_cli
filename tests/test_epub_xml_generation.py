@@ -11,7 +11,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.enchant_book_manager.make_epub import (
+from enchant_book_manager.make_epub import (
     build_chap_xhtml,
     build_cover_xhtml,
     build_container_xml,
@@ -84,9 +84,7 @@ class TestXMLGenerationEPUB:
         assert root.get("version") == "1.0"
 
         # Check rootfile
-        rootfile = root.find(
-            ".//{urn:oasis:names:tc:opendocument:xmlns:container}rootfile"
-        )
+        rootfile = root.find(".//{urn:oasis:names:tc:opendocument:xmlns:container}rootfile")
         assert rootfile.get("full-path") == "OEBPS/content.opf"
         assert rootfile.get("media-type") == "application/oebps-package+xml"
 
@@ -106,9 +104,7 @@ class TestXMLGenerationEPUB:
             "series_index": 1,
         }
 
-        result = build_content_opf(
-            title, author, manifest, spine, uid, cover_id, language, metadata
-        )
+        result = build_content_opf(title, author, manifest, spine, uid, cover_id, language, metadata)
 
         # Should contain properly escaped characters
         assert "Test &amp; Book &lt;Special&gt;" in result
@@ -129,9 +125,7 @@ class TestXMLGenerationEPUB:
         """Test NCX generation with special characters"""
         title = "Book & Title"
         author = "Author <Name>"
-        nav_points = [
-            '<navPoint id="nav1" playOrder="1"><navLabel><text>Chapter &amp; 1</text></navLabel><content src="chapter1.xhtml"/></navPoint>'
-        ]
+        nav_points = ['<navPoint id="nav1" playOrder="1"><navLabel><text>Chapter &amp; 1</text></navLabel><content src="chapter1.xhtml"/></navPoint>']
         uid = "test-uuid"
 
         result = build_toc_ncx(title, author, nav_points, uid)

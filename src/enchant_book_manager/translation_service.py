@@ -10,21 +10,17 @@
 from __future__ import annotations
 
 import os
-import sys
 import logging
 import requests
 import json
 import re
 import threading
-from typing import Optional, Dict, Any
-from collections.abc import Callable
-from functools import wraps
+from typing import Any
 import unicodedata
 import string
 import functools
-import time
 from .cost_tracker import global_cost_tracker
-from .common_text_utils import clean
+from .common_text_utils import clean, normalize_spaces as common_normalize_spaces
 from .common_constants import DEFAULT_LMSTUDIO_API_URL
 from .common_utils import retry_with_backoff
 
@@ -48,7 +44,8 @@ class TranslationException(Exception):
 #######################
 # REMOTE API SETTINGS #
 #######################
-API_URL_OPENROUTER = "https://openrouter.ai/api/v1/chat/completions"
+from .common_constants import DEFAULT_OPENROUTER_API_URL as API_URL_OPENROUTER
+
 MODEL_NAME_DEEPSEEK = "deepseek/deepseek-r1:nitro"
 SYSTEM_PROMPT_DEEPSEEK = ""
 USER_PROMPT_1STPASS_DEEPSEEK = """;; [Task]
@@ -429,8 +426,10 @@ class ChineseAITranslator:
         """
         Normalize spaces in text while preserving paragraph structure.
 
-        Collapses multiple spaces to single space within lines.
-        Preserves empty lines for paragraph breaks.
+        Uses the common normalize_spaces function which handles:
+        - Unicode space characters
+        - Multiple spaces to single space
+        - Preserved empty lines for paragraph breaks
 
         Args:
             text: Text with potentially irregular spacing
@@ -438,20 +437,7 @@ class ChineseAITranslator:
         Returns:
             Text with normalized spacing
         """
-        lines = text.split("\n")
-        normalized_lines = []
-
-        for line in lines:
-            stripped_line = line.strip()
-            if stripped_line:
-                # Replace multiple spaces with a single space
-                normalized_line = " ".join(stripped_line.split())
-                normalized_lines.append(normalized_line)
-            else:
-                # Preserve empty lines
-                normalized_lines.append("")
-
-        return "\n".join(normalized_lines)
+        return common_normalize_spaces(text)
 
     def remove_translation_markers(self, txt: str) -> str:
         """

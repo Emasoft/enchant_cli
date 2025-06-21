@@ -10,7 +10,7 @@ import sys
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.enchant_book_manager.epub_toc_enhanced import (
+from enchant_book_manager.epub_toc_enhanced import (
     EnhancedTocBuilder,
     TocEntry,
     build_enhanced_toc_ncx,
@@ -40,9 +40,7 @@ class TestEnhancedTocBuilder(unittest.TestCase):
 
     def test_toc_entry_to_ncx(self):
         """Test TocEntry NCX generation"""
-        entry = TocEntry(
-            title="Chapter 1: Test", href="Text/chapter1.xhtml", play_order=1, level=1
-        )
+        entry = TocEntry(title="Chapter 1: Test", href="Text/chapter1.xhtml", play_order=1, level=1)
 
         ncx = entry.to_ncx_navpoint()
         self.assertIn('<navPoint id="nav1" playOrder="1">', ncx)
@@ -129,9 +127,7 @@ class TestEnhancedTocBuilder(unittest.TestCase):
 
     def test_empty_chapters(self):
         """Test handling of empty chapter list"""
-        toc = build_enhanced_toc_ncx(
-            [], "Empty Book", "No Author", "empty-uid", hierarchical=True
-        )
+        toc = build_enhanced_toc_ncx([], "Empty Book", "No Author", "empty-uid", hierarchical=True)
 
         self.assertIn("<navMap>", toc)
         self.assertIn("</navMap>", toc)

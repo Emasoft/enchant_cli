@@ -24,15 +24,11 @@ sys.path.insert(0, str(project_root))
 
 # Check if sample files exist
 sample_novel_path = project_root / "tests" / "sample_novel" / "sample_chapters.txt"
-chapter_headings_path = (
-    project_root / "tests" / "sample_novel" / "chapter_headings_sample.txt"
-)
+chapter_headings_path = project_root / "tests" / "sample_novel" / "chapter_headings_sample.txt"
 sample_files_exist = sample_novel_path.exists() and chapter_headings_path.exists()
 
 
-@pytest.mark.skipif(
-    not sample_files_exist, reason="Sample novel files not found in tests/sample_novel/"
-)
+@pytest.mark.skipif(not sample_files_exist, reason="Sample novel files not found in tests/sample_novel/")
 class TestChapterParsingPhase3:
     """Test that enchant_cli.py correctly generates EPUB with proper chapter TOC"""
 
@@ -87,9 +83,7 @@ class TestChapterParsingPhase3:
 
         return chapters  # Return all chapters from the expected file
 
-    def test_epub_toc_matches_expected_chapters(
-        self, sample_novel_path, expected_chapters
-    ):
+    def test_epub_toc_matches_expected_chapters(self, sample_novel_path, expected_chapters):
         """Test that the generated EPUB TOC matches expected chapter list"""
 
         # Clean up any existing EPUB files before test
@@ -126,9 +120,7 @@ class TestChapterParsingPhase3:
             import time
 
             start_time = time.time()
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, cwd=str(temp_dir), timeout=60
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(temp_dir), timeout=60)
             elapsed = time.time() - start_time
             print(f"EPUB generation completed in {elapsed:.1f} seconds")
 
@@ -140,14 +132,10 @@ class TestChapterParsingPhase3:
             if not epub_files:
                 epub_files = list(temp_dir.glob("*.epub"))
 
-            assert len(epub_files) > 0, (
-                f"No EPUB file created. stdout: {result.stdout}\nstderr: {result.stderr}"
-            )
+            assert len(epub_files) > 0, f"No EPUB file created. stdout: {result.stdout}\nstderr: {result.stderr}"
 
             epub_file = epub_files[0]
-            print(
-                f"Generated EPUB: {epub_file.name} ({epub_file.stat().st_size / 1024 / 1024:.1f} MB)"
-            )
+            print(f"Generated EPUB: {epub_file.name} ({epub_file.stat().st_size / 1024 / 1024:.1f} MB)")
 
             # Extract and verify TOC from EPUB
             with zipfile.ZipFile(epub_file, "r") as epub:
@@ -160,9 +148,7 @@ class TestChapterParsingPhase3:
 
                 # Find all navPoints (chapters) - skip the first one as it's usually the title
                 nav_map = root.find(".//ncx:navMap", ns)
-                nav_points = (
-                    nav_map.findall("./ncx:navPoint", ns) if nav_map is not None else []
-                )
+                nav_points = nav_map.findall("./ncx:navPoint", ns) if nav_map is not None else []
 
                 # The first navPoint might be "Front Matter" or similar, let's check
                 actual_chapters = []
@@ -190,22 +176,14 @@ class TestChapterParsingPhase3:
 
                     actual = actual_chapters[i]
                     if actual != expected["text"]:
-                        mismatches.append(
-                            f"Chapter {i + 1}:\n"
-                            f"  Expected: '{expected['text']}'\n"
-                            f"  Actual:   '{actual}'"
-                        )
+                        mismatches.append(f"Chapter {i + 1}:\n" f"  Expected: '{expected['text']}'\n" f"  Actual:   '{actual}'")
 
                 # Report all mismatches if any
                 if mismatches:
                     pytest.fail(
                         f"TOC chapters don't match expected. Found {len(mismatches)} mismatches:\n"
                         + "\n".join(mismatches[:10])  # Show first 10 mismatches
-                        + (
-                            f"\n... and {len(mismatches) - 10} more"
-                            if len(mismatches) > 10
-                            else ""
-                        )
+                        + (f"\n... and {len(mismatches) - 10} more" if len(mismatches) > 10 else "")
                     )
 
                 # Additional check: Ensure no duplicates in TOC
@@ -217,21 +195,15 @@ class TestChapterParsingPhase3:
                     seen_chapters.add(chapter)
 
                 if len(duplicates) > 0:
-                    print(
-                        f"⚠️  Warning: Found {len(duplicates)} duplicate chapters in TOC:"
-                    )
+                    print(f"⚠️  Warning: Found {len(duplicates)} duplicate chapters in TOC:")
                     for dup in duplicates[:5]:  # Show first 5 duplicates
                         print(f"   {dup}")
                     if len(duplicates) > 5:
                         print(f"   ... and {len(duplicates) - 5} more")
                 else:
-                    print(
-                        f"✓ No duplicates found in {len(actual_chapters)} TOC entries"
-                    )
+                    print(f"✓ No duplicates found in {len(actual_chapters)} TOC entries")
 
-                print(
-                    f"✓ All {chapters_to_check} checked chapters match expected values"
-                )
+                print(f"✓ All {chapters_to_check} checked chapters match expected values")
 
         finally:
             # Clean up temp directory

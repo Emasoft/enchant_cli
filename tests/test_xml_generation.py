@@ -78,10 +78,7 @@ class TestXMLGenerationElementTree:
         assert '"quotes"' in xml_str
 
         # Verify attribute escaping (quotes ARE escaped in attributes)
-        assert (
-            'data-test="attribute with &quot;quotes&quot; &amp; special &lt;chars&gt;"'
-            in xml_str
-        )
+        assert 'data-test="attribute with &quot;quotes&quot; &amp; special &lt;chars&gt;"' in xml_str
 
         # Parse back and verify content is preserved
         parsed = ET.fromstring(xml_str)

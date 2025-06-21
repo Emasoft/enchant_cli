@@ -80,9 +80,7 @@ def create_epub_with_config(
     # Log configuration
     if logger:
         logger.info(f"Creating EPUB for: {title} by {author}")
-        logger.debug(
-            f"EPUB configuration: generate_toc={generate_toc}, validate={validate}, strict_mode={strict_mode}, language={language}"
-        )
+        logger.debug(f"EPUB configuration: generate_toc={generate_toc}, validate={validate}, strict_mode={strict_mode}, language={language}")
 
     try:
         # Call the make_epub function
@@ -105,9 +103,7 @@ def create_epub_with_config(
             if success:
                 logger.info(f"EPUB created successfully: {output_path}")
                 if issues:
-                    logger.warning(
-                        f"EPUB created with {len(issues)} validation warnings"
-                    )
+                    logger.warning(f"EPUB created with {len(issues)} validation warnings")
                     for issue in issues[:5]:
                         logger.warning(f"  - {issue}")
                     if len(issues) > 5:
@@ -128,9 +124,7 @@ def create_epub_with_config(
         return False, [error_msg]
 
 
-def get_epub_config_from_book_info(
-    book_info: Dict[str, Any], epub_settings: Optional[Dict[str, Any]] = None
-) -> Dict[str, Any]:
+def get_epub_config_from_book_info(book_info: Dict[str, Any], epub_settings: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Build EPUB configuration from book information and settings.
 

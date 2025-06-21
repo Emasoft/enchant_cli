@@ -14,7 +14,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.enchant_book_manager.make_epub import create_epub_from_txt_file
+from enchant_book_manager.make_epub import create_epub_from_txt_file
 
 
 @pytest.fixture

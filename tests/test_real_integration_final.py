@@ -13,7 +13,7 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.enchant_book_manager.translation_service import ChineseAITranslator
+from enchant_book_manager.translation_service import ChineseAITranslator
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -56,9 +56,7 @@ class RealIntegrationTests:
         print("\n1. Testing Basic Translation")
         print("-" * 60)
 
-        translator = ChineseAITranslator(
-            logger=logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=logger, use_remote=False, temperature=0.05)
 
         test_text = "你好，世界！这是一个测试。"
 
@@ -82,9 +80,7 @@ class RealIntegrationTests:
         print("\n2. Testing Wuxia Terminology")
         print("-" * 60)
 
-        translator = ChineseAITranslator(
-            logger=logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=logger, use_remote=False, temperature=0.05)
 
         test_text = "他已经突破到了元婴期，内力深厚，真气充沛。"
 
@@ -123,9 +119,7 @@ class RealIntegrationTests:
         print("\n3. Testing Name Translation Format")
         print("-" * 60)
 
-        translator = ChineseAITranslator(
-            logger=logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=logger, use_remote=False, temperature=0.05)
 
         test_text = '唐舞桐看着霍雨浩说道："我们该走了。"'
 
@@ -159,9 +153,7 @@ class RealIntegrationTests:
         print("\n4. Testing Curly Quote Conversion")
         print("-" * 60)
 
-        translator = ChineseAITranslator(
-            logger=logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=logger, use_remote=False, temperature=0.05)
 
         test_text = '他说："今天天气真好。" 她回答："是的，确实不错。"'
 
@@ -193,9 +185,7 @@ class RealIntegrationTests:
         print("\n5. Testing Complete Translation (No Chinese)")
         print("-" * 60)
 
-        translator = ChineseAITranslator(
-            logger=logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=logger, use_remote=False, temperature=0.05)
 
         test_text = "这是一段混合文本 with some English 和更多中文。"
 
@@ -226,9 +216,7 @@ class RealIntegrationTests:
         print("\n6. Testing Chapter Structure")
         print("-" * 60)
 
-        translator = ChineseAITranslator(
-            logger=logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=logger, use_remote=False, temperature=0.05)
 
         test_text = """第一章：开始
 
@@ -264,25 +252,19 @@ class RealIntegrationTests:
         print("\n7. Testing Double Translation")
         print("-" * 60)
 
-        translator = ChineseAITranslator(
-            logger=logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=logger, use_remote=False, temperature=0.05)
 
         # Text with intentionally mixed content
         test_text = "He said 你好 and then 再见 to everyone."
 
         try:
             # Single pass
-            result1 = translator.translate_chunk(
-                test_text, double_translation=False, is_last_chunk=True
-            )
+            result1 = translator.translate_chunk(test_text, double_translation=False, is_last_chunk=True)
             print(f"Input: {test_text}")
             print(f"Single pass: {result1}")
 
             # Double pass
-            result2 = translator.translate_chunk(
-                test_text, double_translation=True, is_last_chunk=True
-            )
+            result2 = translator.translate_chunk(test_text, double_translation=True, is_last_chunk=True)
             print(f"Double pass: {result2}")
 
             if result2:
@@ -291,9 +273,7 @@ class RealIntegrationTests:
                     print("  ✓ Double translation removed all Chinese")
                     return True
                 else:
-                    print(
-                        "  ✗ Chinese characters still present after double translation"
-                    )
+                    print("  ✗ Chinese characters still present after double translation")
                     return False
             return False
         except Exception as e:
@@ -342,9 +322,7 @@ class RealIntegrationTests:
         print("\n9. Testing Production Configuration")
         print("-" * 60)
 
-        translator = ChineseAITranslator(
-            logger=logger, use_remote=False, temperature=0.05
-        )
+        translator = ChineseAITranslator(logger=logger, use_remote=False, temperature=0.05)
 
         checks = [
             (

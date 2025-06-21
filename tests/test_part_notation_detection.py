@@ -14,7 +14,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.enchant_book_manager.make_epub import has_part_notation, split_text  # noqa: E402
+from enchant_book_manager.make_epub import has_part_notation, split_text  # noqa: E402
 
 
 class TestPartNotationDetection(unittest.TestCase):
@@ -65,9 +65,7 @@ class TestPartNotationDetection(unittest.TestCase):
         # Roman numerals in other contexts (should not match)
         self.assertFalse(has_part_notation("Chapter 5: World War II History"))
         self.assertFalse(has_part_notation("Chapter 5: Louis XIV"))
-        self.assertFalse(
-            has_part_notation("Chapter 5: The War I")
-        )  # Plain "I" at end no longer matches
+        self.assertFalse(has_part_notation("Chapter 5: The War I"))  # Plain "I" at end no longer matches
 
     def test_has_part_notation_case_insensitive(self):
         """Test case insensitivity"""

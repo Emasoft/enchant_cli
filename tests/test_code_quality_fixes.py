@@ -19,8 +19,8 @@ src_dir = project_root / "src"
 if src_dir.exists():
     sys.path.insert(0, str(src_dir))
 
-from src.enchant_book_manager.make_epub import parse_num, split_text  # noqa: E402
-from src.enchant_book_manager.epub_constants import (  # noqa: E402
+from enchant_book_manager.make_epub import parse_num, split_text  # noqa: E402
+from enchant_book_manager.epub_constants import (  # noqa: E402
     roman_to_int,
     words_to_int,
     parse_num as parse_num_shared,
@@ -86,16 +86,14 @@ class TestCodeQualityFixes(unittest.TestCase):
         self.assertEqual(len(seq), 0)
 
         # Test with no chapters
-        chapters, seq = split_text(
-            "Just some text\nNo chapters here", detect_headings=True, force_no_db=True
-        )
+        chapters, seq = split_text("Just some text\nNo chapters here", detect_headings=True, force_no_db=True)
         self.assertEqual(len(chapters), 1)
         self.assertEqual(chapters[0][0], "Content")
         self.assertEqual(len(seq), 0)
 
     def test_constants_consistency(self):
         """Test that constants are consistent across modules"""
-        from src.enchant_book_manager.epub_constants import (
+        from enchant_book_manager.epub_constants import (
             ENCODING,
             MIMETYPE,
             WORD_NUMS,
@@ -125,11 +123,11 @@ class TestModuleIntegrity(unittest.TestCase):
 
         # Test that modules can be found and imported
         modules_to_test = [
-            "src.enchant_book_manager.make_epub",
-            "src.enchant_book_manager.epub_constants",
-            "src.enchant_book_manager.epub_toc_enhanced",
-            "src.enchant_book_manager.epub_db_optimized",
-            "src.enchant_book_manager.epub_builder",
+            "enchant_book_manager.make_epub",
+            "enchant_book_manager.epub_constants",
+            "enchant_book_manager.epub_toc_enhanced",
+            "enchant_book_manager.epub_db_optimized",
+            "enchant_book_manager.epub_builder",
         ]
 
         for module_name in modules_to_test:
@@ -145,12 +143,12 @@ class TestModuleIntegrity(unittest.TestCase):
     def test_no_circular_imports(self):
         """Test that there are no circular import issues"""
         # Import in different order
-        import src.enchant_book_manager.epub_constants
-        import src.enchant_book_manager.make_epub
+        import enchant_book_manager.epub_constants
+        import enchant_book_manager.make_epub
 
         # Should be able to use functions from both
-        self.assertTrue(callable(src.enchant_book_manager.make_epub.parse_num))
-        self.assertTrue(callable(src.enchant_book_manager.epub_constants.parse_num))
+        self.assertTrue(callable(enchant_book_manager.make_epub.parse_num))
+        self.assertTrue(callable(enchant_book_manager.epub_constants.parse_num))
 
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@ with configurable behavior for different use cases.
 
 import logging
 from pathlib import Path
-from typing import Optional, Tuple, Union, Any
+from typing import Any
 import chardet
 from chardet.universaldetector import UniversalDetector
 import yaml
@@ -251,7 +251,7 @@ def decode_file_preview(
 
 def safe_write_file(
     file_path: str | Path,
-    content: str | dict | Any,
+    content: str | dict[str, Any] | Any,
     encoding: str = "utf-8",
     mode: str = "text",
     logger: logging.Logger | None = None,

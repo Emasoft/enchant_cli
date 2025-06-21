@@ -22,9 +22,7 @@ class CostTracker:
         self.total_completion_tokens = 0
         self.request_count = 0
 
-    def track_usage(
-        self, usage: Dict[str, Any], file_path: Optional[str] = None
-    ) -> float:
+    def track_usage(self, usage: Dict[str, Any], file_path: Optional[str] = None) -> float:
         """
         Track API usage from OpenRouter response.
 
@@ -50,13 +48,9 @@ class CostTracker:
                 self.total_completion_tokens += completion_tokens
 
                 if file_path:
-                    logger.info(
-                        f"File '{file_path}' used {total_tokens} tokens. Cost: ${cost:.6f}"
-                    )
+                    logger.info(f"File '{file_path}' used {total_tokens} tokens. Cost: ${cost:.6f}")
                 else:
-                    logger.info(
-                        f"Request used {total_tokens} tokens. Cost: ${cost:.6f}"
-                    )
+                    logger.info(f"Request used {total_tokens} tokens. Cost: ${cost:.6f}")
 
                 logger.info(f"Cumulative cost: ${self.total_cost:.6f}")
                 logger.info(f"Total requests so far: {self.request_count}")
@@ -79,9 +73,7 @@ class CostTracker:
                 "total_prompt_tokens": self.total_prompt_tokens,
                 "total_completion_tokens": self.total_completion_tokens,
                 "request_count": self.request_count,
-                "average_cost_per_request": self.total_cost / self.request_count
-                if self.request_count > 0
-                else 0,
+                "average_cost_per_request": self.total_cost / self.request_count if self.request_count > 0 else 0,
             }
 
     def reset(self) -> None:

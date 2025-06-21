@@ -22,8 +22,8 @@ from typing import List, Tuple, Optional, Callable, Pattern, TYPE_CHECKING
 if TYPE_CHECKING:
     pass
 
-from peewee import Model, IntegerField, TextField, BooleanField, AutoField, fn, chunked  # type: ignore[import-untyped]
-from playhouse.sqlite_ext import SqliteExtDatabase  # type: ignore[import-untyped]
+from peewee import Model, IntegerField, TextField, BooleanField, AutoField, fn, chunked
+from playhouse.sqlite_ext import SqliteExtDatabase
 
 
 # Database instance - in-memory for maximum speed
@@ -108,9 +108,7 @@ def import_text_optimized(text: str) -> None:
         return
 
     # Prepare data for bulk insert
-    data = [
-        {"line_number": i + 1, "text_content": line} for i, line in enumerate(lines)
-    ]
+    data = [{"line_number": i + 1, "text_content": line} for i, line in enumerate(lines)]
 
     # Insert using optimal chunk size (1000 from benchmark)
     try:
@@ -133,16 +131,7 @@ def find_chapters_two_stage(
     """
     # STAGE 1: Fast basic search using LIKE query (fastest from benchmark)
     # This reduces 632k lines to ~1.5k lines
-    stage1_query = TextLine.select().where(
-        TextLine.text_content.contains("chapter")
-        | TextLine.text_content.contains("Chapter")
-        | TextLine.text_content.contains("CHAPTER")
-        | TextLine.text_content.contains("Ch.")
-        | TextLine.text_content.contains("CH.")
-        | TextLine.text_content.contains("ch.")
-        | TextLine.text_content.contains("Chap")
-        | TextLine.text_content.contains("chap")
-    )
+    stage1_query = TextLine.select().where(TextLine.text_content.contains("chapter") | TextLine.text_content.contains("Chapter") | TextLine.text_content.contains("CHAPTER") | TextLine.text_content.contains("Ch.") | TextLine.text_content.contains("CH.") | TextLine.text_content.contains("ch.") | TextLine.text_content.contains("Chap") | TextLine.text_content.contains("chap"))
 
     stage1_lines = list(stage1_query)
     print(f"[Stage 1] Found {len(stage1_lines)} potential chapter lines")
@@ -204,9 +193,7 @@ def find_chapters_two_stage(
     # Batch update all chapter flags
     with db.atomic():
         for batch in chunked(validated_chapters, 100):
-            TextLine.bulk_update(
-                batch, fields=[TextLine.is_chapter, TextLine.chapter_number]
-            )
+            TextLine.bulk_update(batch, fields=[TextLine.is_chapter, TextLine.chapter_number])
 
     print(f"[Stage 2] Validated {len(validated_chapters)} chapter headings")
     return validated_chapters
@@ -218,16 +205,11 @@ def build_chapters_table() -> Tuple[List[Tuple[str, str]], List[int]]:
     Returns chapters and sequence for compatibility.
     """
     # Get all chapter lines in order
-    chapter_lines = list(
-        TextLine.select().where(TextLine.is_chapter).order_by(TextLine.line_number)
-    )
+    chapter_lines = list(TextLine.select().where(TextLine.is_chapter).order_by(TextLine.line_number))
 
     if not chapter_lines:
         # No chapters found, return entire content as one chapter
-        all_text = "\n".join(
-            line.text_content
-            for line in TextLine.select().order_by(TextLine.line_number)
-        )
+        all_text = "\n".join(line.text_content for line in TextLine.select().order_by(TextLine.line_number))
         return [("Content", all_text)], []
 
     chapters = []
@@ -248,14 +230,7 @@ def build_chapters_table() -> Tuple[List[Tuple[str, str]], List[int]]:
         title = chapter_line.text_content.strip()
 
         # Get chapter content using efficient aggregation
-        content_lines = (
-            TextLine.select(TextLine.text_content)
-            .where(
-                (TextLine.line_number >= start_line)
-                & (TextLine.line_number <= end_line)
-            )
-            .order_by(TextLine.line_number)
-        )
+        content_lines = TextLine.select(TextLine.text_content).where((TextLine.line_number >= start_line) & (TextLine.line_number <= end_line)).order_by(TextLine.line_number)
 
         content = "\n".join(line.text_content for line in content_lines)
 

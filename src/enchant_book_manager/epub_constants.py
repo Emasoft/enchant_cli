@@ -14,11 +14,7 @@ ENCODING = "utf-8"
 MIMETYPE = "application/epub+zip"
 
 # Word numbers for conversion
-WORD_NUMS = (
-    "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|"
-    "thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|"
-    "twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand"
-)
+WORD_NUMS = "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|" "thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|" "twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand"
 
 # Regex patterns
 FILENAME_RE = re.compile(

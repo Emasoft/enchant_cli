@@ -18,10 +18,10 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
 
     def test_renamenovels_uses_openrouter_endpoint(self):
         """Test that renamenovels uses OpenRouter API endpoint"""
-        from src.enchant_book_manager.renamenovels import make_openai_request
+        from enchant_book_manager.renamenovels import make_openai_request
 
         # Mock the requests.post to capture the URL
-        with patch("src.enchant_book_manager.renamenovels.requests.post") as mock_post:
+        with patch("enchant_book_manager.renamenovels.requests.post") as mock_post:
             mock_response = Mock()
             mock_response.json.return_value = {
                 "choices": [{"message": {"content": '{"test": "data"}'}}],
@@ -44,25 +44,21 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
 
     def test_translation_service_uses_openrouter_endpoint(self):
         """Test that translation service uses OpenRouter API endpoint"""
-        from src.enchant_book_manager.translation_service import ChineseAITranslator
+        from enchant_book_manager.translation_service import ChineseAITranslator
 
         translator = ChineseAITranslator(use_remote=True, api_key="test_key")
 
         # Verify it uses OpenRouter endpoint
-        self.assertEqual(
-            translator.api_url, "https://openrouter.ai/api/v1/chat/completions"
-        )
+        self.assertEqual(translator.api_url, "https://openrouter.ai/api/v1/chat/completions")
 
     def test_model_name_mapping(self):
         """Test that OpenAI model names are mapped correctly"""
-        from src.enchant_book_manager.renamenovels import OPENROUTER_MODEL_MAPPING
+        from enchant_book_manager.renamenovels import OPENROUTER_MODEL_MAPPING
 
         # Test known mappings
         self.assertEqual(OPENROUTER_MODEL_MAPPING["gpt-4o-mini"], "openai/gpt-4o-mini")
         self.assertEqual(OPENROUTER_MODEL_MAPPING["gpt-4"], "openai/gpt-4")
-        self.assertEqual(
-            OPENROUTER_MODEL_MAPPING["gpt-3.5-turbo"], "openai/gpt-3.5-turbo"
-        )
+        self.assertEqual(OPENROUTER_MODEL_MAPPING["gpt-3.5-turbo"], "openai/gpt-3.5-turbo")
 
     def test_environment_variable_usage(self):
         """Test that OPENROUTER_API_KEY is used consistently"""
@@ -77,7 +73,7 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
 
     def test_cost_tracking_unified(self):
         """Test that cost tracking uses OpenRouter's response format"""
-        from src.enchant_book_manager.translation_service import ChineseAITranslator
+        from enchant_book_manager.translation_service import ChineseAITranslator
 
         translator = ChineseAITranslator(use_remote=True, api_key="test_key")
 
@@ -113,13 +109,9 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
 
         # Ensure we're using OpenRouter's direct cost info
         # since OpenRouter provides costs directly
-        with patch(
-            "src.enchant_book_manager.renamenovels.make_openai_request"
-        ) as mock_request:
+        with patch("src.enchant_book_manager.renamenovels.make_openai_request") as mock_request:
             mock_request.return_value = {
-                "choices": [
-                    {"message": {"content": '{"novel_title_english": "Test"}'}}
-                ],
+                "choices": [{"message": {"content": '{"novel_title_english": "Test"}'}}],
                 "usage": {"total_tokens": 100, "cost": 0.001},
             }
 

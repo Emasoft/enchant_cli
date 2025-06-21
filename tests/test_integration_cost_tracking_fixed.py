@@ -13,10 +13,10 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # We need to mock these before importing cli_translator
-with patch("src.enchant_book_manager.cli_translator.ConfigManager"):
-    with patch("src.enchant_book_manager.cli_translator.ICloudSync"):
-        from src.enchant_book_manager.cli_translator import ChineseAITranslator
-        from src.enchant_book_manager.cost_tracker import global_cost_tracker
+with patch("enchant_book_manager.cli_translator.ConfigManager"):
+    with patch("enchant_book_manager.cli_translator.ICloudSync"):
+        from enchant_book_manager.cli_translator import ChineseAITranslator
+        from enchant_book_manager.cost_tracker import global_cost_tracker
 
 
 class TestCostTrackingIntegration:
@@ -195,9 +195,7 @@ class TestCostTrackingIntegration:
         )
 
         # Mock global_cost_tracker summary
-        with patch(
-            "src.enchant_book_manager.cost_tracker.global_cost_tracker.get_summary"
-        ) as mock_summary:
+        with patch("enchant_book_manager.cost_tracker.global_cost_tracker.get_summary") as mock_summary:
             mock_summary.return_value = {
                 "total_cost": 0.12345,
                 "total_tokens": 50000,
@@ -325,9 +323,7 @@ class TestCostTrackingIntegration:
         )
 
         # Simulate some usage by mocking global_cost_tracker
-        with patch(
-            "src.enchant_book_manager.cost_tracker.global_cost_tracker.get_summary"
-        ) as mock_summary:
+        with patch("enchant_book_manager.cost_tracker.global_cost_tracker.get_summary") as mock_summary:
             mock_summary.return_value = {
                 "total_cost": 1.0,
                 "total_tokens": 10000,
@@ -402,9 +398,7 @@ class TestCostTrackingIntegration:
         assert "Total Cost: $0.000000" in summary
 
         # Test with very small cost
-        with patch(
-            "src.enchant_book_manager.cost_tracker.global_cost_tracker.get_summary"
-        ) as mock_summary:
+        with patch("enchant_book_manager.cost_tracker.global_cost_tracker.get_summary") as mock_summary:
             mock_summary.return_value = {
                 "total_cost": 0.000001,
                 "total_tokens": 10,
@@ -425,14 +419,8 @@ class TestCostTrackingIntegration:
         # Verify exact production values
         assert config["translation"]["remote"]["model"] == "deepseek/deepseek-r1:nitro"
         assert config["translation"]["local"]["model"] == "qwen3-30b-a3b-mlx@8bit"
-        assert (
-            config["translation"]["remote"]["endpoint"]
-            == "https://openrouter.ai/api/v1/chat/completions"
-        )
-        assert (
-            config["translation"]["local"]["endpoint"]
-            == "http://localhost:1234/v1/chat/completions"
-        )
+        assert config["translation"]["remote"]["endpoint"] == "https://openrouter.ai/api/v1/chat/completions"
+        assert config["translation"]["local"]["endpoint"] == "http://localhost:1234/v1/chat/completions"
         assert config["translation"]["remote"]["timeout"] == 300
         assert config["translation"]["remote"]["connection_timeout"] == 30
         assert config["translation"]["local"]["timeout"] == 300

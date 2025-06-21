@@ -213,7 +213,7 @@ class TestChineseAITranslator:
         mock_post.return_value = mock_response
 
         # Mock global cost tracker
-        with patch("src.enchant_book_manager.translation_service.global_cost_tracker.track_usage") as mock_track_usage:
+        with patch("enchant_book_manager.translation_service.global_cost_tracker.track_usage") as mock_track_usage:
             mock_track_usage.return_value = 0.0025
 
             result = translator_remote.translate_messages("Test message", is_last_chunk=True)
@@ -250,7 +250,7 @@ class TestChineseAITranslator:
         mock_post.return_value = mock_response
 
         # Mock global cost tracker
-        with patch("src.enchant_book_manager.translation_service.global_cost_tracker.track_usage") as mock_track_usage:
+        with patch("enchant_book_manager.translation_service.global_cost_tracker.track_usage") as mock_track_usage:
             mock_track_usage.return_value = 0.0  # No cost returned
 
             result = translator_remote.translate_messages("Test", is_last_chunk=True)
@@ -528,7 +528,7 @@ class TestChineseAITranslator:
     def test_get_cost_summary_remote(self, translator_remote):
         """Test cost summary for remote API"""
         # Mock the global cost tracker's summary
-        with patch("src.enchant_book_manager.translation_service.global_cost_tracker.get_summary") as mock_get_summary:
+        with patch("enchant_book_manager.translation_service.global_cost_tracker.get_summary") as mock_get_summary:
             mock_get_summary.return_value = {
                 "total_cost": 0.15,
                 "total_tokens": 5000,
@@ -559,7 +559,7 @@ class TestChineseAITranslator:
     def test_format_cost_summary_remote(self, translator_remote):
         """Test formatted cost summary for remote API"""
         # Mock the global cost tracker's summary
-        with patch("src.enchant_book_manager.translation_service.global_cost_tracker.get_summary") as mock_get_summary:
+        with patch("enchant_book_manager.translation_service.global_cost_tracker.get_summary") as mock_get_summary:
             mock_get_summary.return_value = {
                 "total_cost": 0.25,
                 "total_tokens": 10000,
@@ -592,7 +592,7 @@ class TestChineseAITranslator:
         translator_remote.request_count = 5
 
         # Mock the global cost tracker reset
-        with patch("src.enchant_book_manager.translation_service.global_cost_tracker.reset") as mock_reset:
+        with patch("enchant_book_manager.translation_service.global_cost_tracker.reset") as mock_reset:
             # Reset
             translator_remote.reset_cost_tracking()
 

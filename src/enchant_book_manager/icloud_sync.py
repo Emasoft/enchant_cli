@@ -14,14 +14,12 @@ import shutil
 
 # Try to import waiting, but make it optional
 try:
-    import waiting  # type: ignore[import-not-found]
+    import waiting
 
     HAS_WAITING = True
 except ImportError:
     HAS_WAITING = False
-    logging.warning(
-        "'waiting' module not installed. Some iCloud sync features may be limited."
-    )
+    logging.warning("'waiting' module not installed. Some iCloud sync features may be limited.")
 
 
 class ICloudSyncError(Exception):
@@ -36,9 +34,7 @@ class ICloudSync:
     Auto-detects if running on compatible platform and within iCloud Drive.
     """
 
-    def __init__(
-        self, enabled: Optional[bool] = None, logger: Optional[logging.Logger] = None
-    ):
+    def __init__(self, enabled: Optional[bool] = None, logger: Optional[logging.Logger] = None):
         """
         Initialize iCloud sync handler.
 
@@ -125,9 +121,7 @@ class ICloudSync:
             self.logger.info("Using brctl for iCloud sync")
             return
 
-        self.logger.warning(
-            "No iCloud sync commands found. Sync functionality will be limited."
-        )
+        self.logger.warning("No iCloud sync commands found. Sync functionality will be limited.")
         self.enabled = False
 
     def ensure_synced(self, path: Union[str, Path]) -> Path:

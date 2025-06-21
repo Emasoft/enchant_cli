@@ -9,7 +9,7 @@ import time
 import sys
 import functools
 from pathlib import Path
-from typing import Dict, Any, Optional, TypeVar, cast
+from typing import Any, TypeVar
 from collections.abc import Callable
 import logging
 
@@ -174,7 +174,7 @@ def exponential_backoff_retry(
     time_limit: float | None = None,
     *args: Any,
     **kwargs: Any,
-) -> T | None:
+) -> T:
     """
     Generic retry function with exponential backoff.
 
@@ -192,7 +192,7 @@ def exponential_backoff_retry(
         **kwargs: Keyword arguments to pass to func
 
     Returns:
-        Result of func if successful, None if all attempts failed
+        Result of func if successful
 
     Raises:
         Exception: Re-raises the last exception if all attempts fail
@@ -237,4 +237,4 @@ def exponential_backoff_retry(
     # This should not be reached, but just in case
     if last_exception:
         raise last_exception
-    return None
+    raise RuntimeError("Retry function failed without exception")

@@ -30,7 +30,7 @@ class TestEdgeCases:
 
     def test_empty_line_reduction_edge_cases(self):
         """Test empty line reduction with various inputs"""
-        from src.enchant_book_manager.cli_translator import remove_excess_empty_lines
+        from enchant_book_manager.cli_translator import remove_excess_empty_lines
 
         # Empty string
         assert remove_excess_empty_lines("") == ""
@@ -49,7 +49,7 @@ class TestEdgeCases:
 
     def test_character_limit_boundary(self):
         """Test character limit at exact boundary"""
-        from src.enchant_book_manager.cli_translator import split_chinese_text_in_parts
+        from enchant_book_manager.cli_translator import split_chinese_text_in_parts
 
         # Mock logger
         from src.enchant_book_manager import cli_translator
@@ -133,7 +133,7 @@ class TestEdgeCases:
 
     def test_unicode_handling(self):
         """Test handling of various Unicode characters"""
-        from src.enchant_book_manager.cli_translator import remove_excess_empty_lines
+        from enchant_book_manager.cli_translator import remove_excess_empty_lines
 
         # Chinese text with newlines
         text = "第一章\n\n\n\n\n中文内容"
@@ -163,7 +163,7 @@ class TestEdgeCases:
 
     def test_empty_book_handling(self):
         """Test handling of empty or very short books"""
-        from src.enchant_book_manager.cli_translator import split_chinese_text_in_parts
+        from enchant_book_manager.cli_translator import split_chinese_text_in_parts
 
         # Mock logger
         from src.enchant_book_manager import cli_translator

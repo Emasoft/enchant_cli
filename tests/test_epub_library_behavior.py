@@ -13,7 +13,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.enchant_book_manager.make_epub import (
+from enchant_book_manager.make_epub import (
     ensure_dir_readable,
     ensure_output_ok,
     ensure_cover_ok,
@@ -55,9 +55,7 @@ class TestLibraryBehavior:
 
         # Should mention permission or creation issue
         error_msg = str(excinfo.value)
-        assert (
-            "Cannot create directory" in error_msg or "No write permission" in error_msg
-        )
+        assert "Cannot create directory" in error_msg or "No write permission" in error_msg
 
     def test_ensure_cover_ok_no_prompts(self, temp_dir):
         """Cover validation should raise exceptions, not prompt"""

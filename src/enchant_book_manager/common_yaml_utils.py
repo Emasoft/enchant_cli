@@ -41,9 +41,7 @@ def load_safe_yaml(yaml_path: Union[str, Path]) -> Dict[str, Any]:
             return {}
 
         if not isinstance(data, dict):
-            raise ValueError(
-                f"YAML file must contain a dictionary at the root level, got {type(data)}"
-            )
+            raise ValueError(f"YAML file must contain a dictionary at the root level, got {type(data)}")
 
         return data
 
@@ -53,9 +51,7 @@ def load_safe_yaml(yaml_path: Union[str, Path]) -> Dict[str, Any]:
         raise ValueError(f"Error loading YAML file {yaml_path}: {e}")
 
 
-def save_safe_yaml(
-    data: Dict[str, Any], yaml_path: Union[str, Path], create_dirs: bool = True
-) -> None:
+def save_safe_yaml(data: Dict[str, Any], yaml_path: Union[str, Path], create_dirs: bool = True) -> None:
     """
     Safely save data to YAML file with error handling.
 
@@ -82,9 +78,7 @@ def save_safe_yaml(
         raise ValueError(f"Error saving YAML file {yaml_path}: {e}")
 
 
-def merge_yaml_configs(
-    base_config: Dict[str, Any], override_config: Dict[str, Any]
-) -> Dict[str, Any]:
+def merge_yaml_configs(base_config: Dict[str, Any], override_config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Deep merge two YAML configurations, with override taking precedence.
 

@@ -13,9 +13,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 # Add src directory to path so we can import our modules
-src_dir = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"
-)
+src_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src")
 sys.path.insert(0, src_dir)
 
 
@@ -135,9 +133,7 @@ def mock_requests_post():
 # Configure pytest options
 def pytest_configure(config):
     """Configure pytest with custom markers"""
-    config.addinivalue_line(
-        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
-    )
+    config.addinivalue_line("markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')")
     config.addinivalue_line("markers", "integration: marks tests as integration tests")
 
 

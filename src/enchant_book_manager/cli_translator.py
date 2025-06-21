@@ -32,11 +32,7 @@ from pathlib import Path
 from typing import (
     Any,
     Dict,
-    List,
     Optional,
-    Set,
-    Tuple,
-    Union,
 )
 
 import filelock
@@ -66,7 +62,7 @@ from .translation_service import ChineseAITranslator
 try:
     import colorama as cr
 except ImportError:
-    cr = None
+    cr = None  # type: ignore[assignment]
     # tolog is not yet defined here, so we will log warning later in main if needed
 
 APP_NAME = "cli-translator"
@@ -76,10 +72,10 @@ MIN_PYTHON_VERSION_REQUIRED = "3.8"
 # Note: model_pricing module is deprecated - using global_cost_tracker instead
 
 # Global variables - will be initialized in main()
-translator = None
-tolog = None
-icloud_sync = None
-_module_config = None
+translator: Optional[ChineseAITranslator] = None
+tolog: Optional[logging.Logger] = None
+icloud_sync: Optional[ICloudSync] = None
+_module_config: Optional[Dict[str, Any]] = None
 # Cost tracking is now handled by global_cost_tracker from cost_tracker module
 
 MAXCHARS = 11999  # Default value, will be updated from config in main()
@@ -218,34 +214,7 @@ def remove_excess_empty_lines(txt: str) -> str:
     return re.sub(r"\n{4,}", "\n\n\n", txt)
 
 
-def normalize_spaces(text: str) -> str:
-    """
-    Normalize spaces in text by stripping whitespace and collapsing multiple spaces.
-
-    Args:
-        text: The input text to normalize
-
-    Returns:
-        Text with normalized spaces
-    """
-    # Split the text into lines
-    lines = text.split("\n")
-    normalized_lines = []
-
-    for line in lines:
-        # Strip leading/trailing whitespace from the line
-        stripped_line = line.strip()
-
-        if stripped_line:  # If the line is not empty (contains actual content)
-            # Replace multiple spaces with a single space
-            normalized_line = " ".join(stripped_line.split())
-            normalized_lines.append(normalized_line)
-        else:
-            # For empty lines, add only a newline (no spaces)
-            normalized_lines.append("")
-
-    # Join lines back with newlines
-    return "\n".join(normalized_lines)
+# NOTE: normalize_spaces function removed - use from common_text_utils if needed
 
 
 # HELPER FUNCTION TO GET VALUE OR NONE FROM A LIST ENTRY
@@ -521,7 +490,7 @@ def import_book_from_txt(file_path: str | Path, encoding: str = "utf-8", max_cha
     return new_book_id
 
 
-def quick_replace(text_content: str, original: str, substitution: str, case_insensitive=True) -> str:
+def quick_replace(text_content: str, original: str, substitution: str, case_insensitive: bool = True) -> str:
     """
     Replace all occurrences of a string with another string.
 
@@ -541,7 +510,7 @@ def quick_replace(text_content: str, original: str, substitution: str, case_inse
         return re.sub(re.escape(original), lambda m: f"{substitution}", text_content)
 
 
-def flush_buffer(buffer: str, paragraphs: list) -> str:
+def flush_buffer(buffer: str, paragraphs: list[str]) -> str:
     """
     If the buffer contains text, normalize spaces and append it as a new paragraph.
     Returns an empty string to reset the buffer.
@@ -553,7 +522,7 @@ def flush_buffer(buffer: str, paragraphs: list) -> str:
     return ""
 
 
-def split_on_punctuation_contextual(text: str) -> list:
+def split_on_punctuation_contextual(text: str) -> list[str]:
     """
     Splits Chinese text into paragraphs based on punctuation and newline delimiters.
 
@@ -601,10 +570,10 @@ def split_on_punctuation_contextual(text: str) -> list:
     text = clean(text)
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     text = re.sub(" +", " ", text)
-    text = replace_repeated_chars(text, ALL_PUNCTUATION)
-    text = replace_repeated_chars(text, PARAGRAPH_DELIMITERS)
+    text = replace_repeated_chars(text, "".join(ALL_PUNCTUATION))
+    text = replace_repeated_chars(text, "".join(PARAGRAPH_DELIMITERS))
 
-    paragraphs = []
+    paragraphs: list[str] = []
     buffer = ""
     length = len(text)
     i = 0
@@ -665,7 +634,7 @@ def split_on_punctuation_contextual(text: str) -> list:
     return paragraphs
 
 
-def split_text_by_actual_paragraphs(text: str) -> list:
+def split_text_by_actual_paragraphs(text: str) -> list[str]:
     """
     Splits text into paragraphs based on actual paragraph breaks (double newlines).
     This preserves the natural paragraph structure of the text.
@@ -725,7 +694,7 @@ def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS) -> list[st
     chunks = list()
     chunks_counter = 1
     current_char_count = 0
-    paragraphs_buffer = []
+    paragraphs_buffer: list[str] = []
     paragraph_index = 0
     chars_processed = 0
 
@@ -783,18 +752,18 @@ class Field:
     Allows attribute-style access and comparison operations.
     """
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self.name = name
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance: Any, owner: type) -> Any:
         if instance is None:
             return self
         return instance.__dict__.get(self.name)
 
-    def __set__(self, instance, value):
+    def __set__(self, instance: Any, value: Any) -> None:
         instance.__dict__[self.name] = value
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> Any:
         # When used in a class-level comparison (e.g., Book.source_file == filename),
         # return a lambda that checks whether the instance's attribute equals 'other'.
         return lambda instance: getattr(instance, self.name, None) == other
@@ -812,18 +781,18 @@ class Book:
 
     def __init__(
         self,
-        book_id,
-        title,
-        original_title,
-        translated_title,
-        transliterated_title,
-        author,
-        original_author,
-        translated_author,
-        transliterated_author,
-        source_file,
-        total_characters,
-    ):
+        book_id: str,
+        title: str,
+        original_title: str,
+        translated_title: str,
+        transliterated_title: str,
+        author: str,
+        original_author: str,
+        translated_author: str,
+        transliterated_author: str,
+        source_file: str,
+        total_characters: int,
+    ) -> None:
         self.book_id = book_id
         self.title = title
         self.original_title = original_title
@@ -835,10 +804,10 @@ class Book:
         self.transliterated_author = transliterated_author
         self.source_file = source_file
         self.total_characters = total_characters
-        self.chunks = []  # List to hold chunk instances
+        self.chunks: list[chunk] = []  # List to hold chunk instances
 
     @classmethod
-    def create(cls, **kwargs):
+    def create(cls, **kwargs: Any) -> Book:
         """
         Create a new Book instance and add it to the database.
 
@@ -849,23 +818,23 @@ class Book:
             The created Book instance
         """
         book = cls(
-            book_id=kwargs.get("book_id"),
-            title=kwargs.get("title"),
-            original_title=kwargs.get("original_title"),
-            translated_title=kwargs.get("translated_title"),
-            transliterated_title=kwargs.get("transliterated_title"),
-            author=kwargs.get("author"),
-            original_author=kwargs.get("original_author"),
-            translated_author=kwargs.get("translated_author"),
-            transliterated_author=kwargs.get("transliterated_author"),
-            source_file=kwargs.get("source_file"),
-            total_characters=kwargs.get("total_characters"),
+            book_id=kwargs.get("book_id", ""),
+            title=kwargs.get("title", ""),
+            original_title=kwargs.get("original_title", ""),
+            translated_title=kwargs.get("translated_title", ""),
+            transliterated_title=kwargs.get("transliterated_title", ""),
+            author=kwargs.get("author", ""),
+            original_author=kwargs.get("original_author", ""),
+            translated_author=kwargs.get("translated_author", ""),
+            transliterated_author=kwargs.get("transliterated_author", ""),
+            source_file=kwargs.get("source_file", ""),
+            total_characters=kwargs.get("total_characters", 0),
         )
         BOOK_DB[book.book_id] = book
         return book
 
     @classmethod
-    def get_or_none(cls, condition):
+    def get_or_none(cls, condition: Any) -> Optional[Book]:
         """
         Find a book matching the given condition.
 
@@ -881,7 +850,7 @@ class Book:
         return None
 
     @classmethod
-    def get_by_id(cls, book_id):
+    def get_by_id(cls, book_id: str) -> Book:
         """
         Get a book by its ID.
 
@@ -889,9 +858,15 @@ class Book:
             book_id: The book's unique identifier
 
         Returns:
-            The Book instance or None if not found
+            The Book instance
+
+        Raises:
+            KeyError: If book not found
         """
-        return BOOK_DB.get(book_id)
+        book = BOOK_DB.get(book_id)
+        if book is None:
+            raise KeyError(f"Book with id {book_id} not found")
+        return book
 
 
 class chunk:
@@ -901,14 +876,14 @@ class chunk:
     Books are split into chunks for manageable translation.
     """
 
-    def __init__(self, chunk_id, book_id, chunk_number, original_variation_id):
+    def __init__(self, chunk_id: str, book_id: str, chunk_number: int, original_variation_id: str) -> None:
         self.chunk_id = chunk_id
         self.book_id = book_id
         self.chunk_number = chunk_number
         self.original_variation_id = original_variation_id
 
     @classmethod
-    def create(cls, chunk_id, book_id, chunk_number, original_variation_id):
+    def create(cls, chunk_id: str, book_id: str, chunk_number: int, original_variation_id: str) -> chunk:
         """
         Create a new chunk and add it to the database.
 
@@ -939,14 +914,14 @@ class Variation:
 
     def __init__(
         self,
-        variation_id,
-        book_id,
-        chunk_id,
-        chunk_number,
-        language,
-        category,
-        text_content,
-    ):
+        variation_id: str,
+        book_id: str,
+        chunk_id: str,
+        chunk_number: int,
+        language: str,
+        category: str,
+        text_content: str,
+    ) -> None:
         self.variation_id = variation_id
         self.book_id = book_id
         self.chunk_id = chunk_id
@@ -956,7 +931,7 @@ class Variation:
         self.text_content = text_content
 
     @classmethod
-    def create(cls, **kwargs):
+    def create(cls, **kwargs: Any) -> Variation:
         """
         Create a new Variation instance and add it to the database.
 
@@ -967,13 +942,13 @@ class Variation:
             The created Variation instance
         """
         variation = cls(
-            variation_id=kwargs.get("variation_id"),
-            book_id=kwargs.get("book_id"),
-            chunk_id=kwargs.get("chunk_id"),
-            chunk_number=kwargs.get("chunk_number"),
-            language=kwargs.get("language"),
-            category=kwargs.get("category"),
-            text_content=kwargs.get("text_content"),
+            variation_id=kwargs.get("variation_id", ""),
+            book_id=kwargs.get("book_id", ""),
+            chunk_id=kwargs.get("chunk_id", ""),
+            chunk_number=kwargs.get("chunk_number", 0),
+            language=kwargs.get("language", ""),
+            category=kwargs.get("category", ""),
+            text_content=kwargs.get("text_content", ""),
         )
         VARIATION_DB[variation.variation_id] = variation
         return variation
@@ -1034,6 +1009,11 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
     Note: The create_epub parameter is kept for backward compatibility but is ignored.
     EPUB generation is handled by enchant_cli.py orchestrator.
     """
+    # Ensure logger is available
+    global tolog
+    if tolog is None:
+        tolog = logging.getLogger(__name__)
+
     # Get max chunk retry attempts from config or use default
     max_chunk_retries = DEFAULT_MAX_CHUNK_RETRIES
     if _module_config:
@@ -1093,7 +1073,15 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
                 try:
                     tolog.info(f"TRANSLATING CHUNK {chunk.chunk_number:06d} of {len(sorted_chunks)} (Attempt {chunk_attempt}/{max_chunk_retries})")
                     is_last_chunk = chunk.chunk_number == len(sorted_chunks)
-                    translated_text = translator.translate(original_text, is_last_chunk)
+
+                    # Check if translator is initialized
+                    if translator is None:
+                        raise RuntimeError("Translator not initialized. This function should be called after translator setup.")
+
+                    translated_result = translator.translate(original_text, is_last_chunk)
+                    if translated_result is None:
+                        raise ValueError("Translation returned None")
+                    translated_text = translated_result
 
                     # Validate translated text
                     if not translated_text or len(translated_text.strip()) == 0:
@@ -1178,17 +1166,18 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
                 f.write("\n\nDetailed Breakdown:\n")
                 f.write("-------------------\n")
                 f.write(f"Total Chunks Translated: {len(sorted_chunks)}\n")
-                if translator.request_count > 0 and len(sorted_chunks) > 0:
-                    f.write(f"Average Cost per chunk: ${translator.total_cost / len(sorted_chunks):.6f}\n")
-                    f.write(f"Average Tokens per chunk: {translator.total_tokens // len(sorted_chunks):,}\n")
+                summary = global_cost_tracker.get_summary()
+                if summary["request_count"] > 0 and len(sorted_chunks) > 0:
+                    f.write(f"Average Cost per chunk: ${summary['total_cost'] / len(sorted_chunks):.6f}\n")
+                    f.write(f"Average Tokens per chunk: {summary['total_tokens'] // len(sorted_chunks):,}\n")
 
                 # Save raw data for potential future analysis
                 f.write("\n\nRaw Data:\n")
                 f.write("---------\n")
-                f.write(f"total_cost: {translator.total_cost}\n")
-                f.write(f"total_tokens: {translator.total_tokens}\n")
-                f.write(f"total_prompt_tokens: {translator.total_prompt_tokens}\n")
-                f.write(f"total_completion_tokens: {translator.total_completion_tokens}\n")
+                f.write(f"total_cost: {summary['total_cost']}\n")
+                f.write(f"total_tokens: {summary['total_tokens']}\n")
+                f.write(f"total_prompt_tokens: {summary.get('total_prompt_tokens', 0)}\n")
+                f.write(f"total_completion_tokens: {summary.get('total_completion_tokens', 0)}\n")
                 f.write(f"request_count: {translator.request_count}\n")
 
         except (OSError, PermissionError) as e:
@@ -1219,8 +1208,13 @@ def load_safe_yaml(path: Path) -> dict[str, Any] | None:
         return None
 
 
-def process_batch(args) -> None:
+def process_batch(args: Any) -> None:
     """Process batch of novel files"""
+    # Ensure logger is available
+    global tolog
+    if tolog is None:
+        tolog = logging.getLogger(__name__)
+
     input_path = Path(args.filepath)
     if not input_path.exists() or not input_path.is_dir():
         tolog.error("Batch processing requires an existing directory path.")
@@ -1349,16 +1343,17 @@ def process_batch(args) -> None:
                         f.write(f"  Error: {file['error']}\n")
 
                 # Save raw data
+                summary = global_cost_tracker.get_summary()
                 f.write("\n\nRaw Cost Data:\n")
                 f.write("-------------\n")
-                f.write(f"total_cost: {translator.total_cost}\n")
-                f.write(f"total_tokens: {translator.total_tokens}\n")
-                f.write(f"total_prompt_tokens: {translator.total_prompt_tokens}\n")
-                f.write(f"total_completion_tokens: {translator.total_completion_tokens}\n")
+                f.write(f"total_cost: {summary['total_cost']}\n")
+                f.write(f"total_tokens: {summary['total_tokens']}\n")
+                f.write(f"total_prompt_tokens: {summary.get('total_prompt_tokens', 0)}\n")
+                f.write(f"total_completion_tokens: {summary.get('total_completion_tokens', 0)}\n")
                 f.write(f"request_count: {translator.request_count}\n")
                 if completed_count > 0:
-                    f.write(f"average_cost_per_novel: ${translator.total_cost / completed_count:.6f}\n")
-                    f.write(f"average_tokens_per_novel: {translator.total_tokens // completed_count:,}\n")
+                    f.write(f"average_cost_per_novel: ${summary['total_cost'] / completed_count:.6f}\n")
+                    f.write(f"average_tokens_per_novel: {summary['total_tokens'] // completed_count:,}\n")
         except (OSError, PermissionError) as e:
             if tolog is not None:
                 tolog.error(f"Error saving batch cost log to {batch_cost_log_path}: {e}")
@@ -1399,7 +1394,8 @@ def translate_novel(
         # Store config globally for use by other functions
         _module_config = config
     except ValueError as e:
-        tolog.error(f"Configuration error: {e}")
+        # tolog hasn't been initialized yet, use print for error
+        print(f"Configuration error: {e}")
         return False
 
     # Set up logging based on config
@@ -1433,7 +1429,7 @@ def translate_novel(
         tolog.warning("colorama package not installed. Colored text may not work properly.")
 
     # Set up signal handling for graceful termination
-    def signal_handler(sig, frame):
+    def signal_handler(sig: int, frame: Any) -> None:
         tolog.info("Interrupt received. Exiting gracefully.")
         sys.exit(0)
 
@@ -1557,7 +1553,7 @@ def main() -> None:
         tolog.warning("colorama package not installed. Colored text may not work properly.")
 
     # Set up signal handling for graceful termination
-    def signal_handler(sig, frame):
+    def signal_handler(sig: int, frame: Any) -> None:
         tolog.info("Interrupt received. Exiting gracefully.")
         sys.exit(0)
 

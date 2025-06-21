@@ -10,8 +10,8 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from unittest.mock import Mock, patch
-from src.enchant_book_manager.translation_service import ChineseAITranslator
-from src.enchant_book_manager.cost_tracker import global_cost_tracker
+from enchant_book_manager.translation_service import ChineseAITranslator
+from enchant_book_manager.cost_tracker import global_cost_tracker
 
 
 def test_remote_cost_tracking():
@@ -34,8 +34,7 @@ def test_remote_cost_tracking():
             "choices": [
                 {
                     "message": {
-                        "content": "This is a much longer translated text in English. "
-                        * 10  # Make it over 300 chars
+                        "content": "This is a much longer translated text in English. " * 10  # Make it over 300 chars
                     }
                 }
             ],
@@ -77,9 +76,7 @@ def test_remote_cost_tracking():
         ):
             mock_response = Mock()
             mock_response.json.return_value = {
-                "choices": [
-                    {"message": {"content": f"This is translation number {i}. " * 20}}
-                ],
+                "choices": [{"message": {"content": f"This is translation number {i}. " * 20}}],
                 "usage": {
                     "prompt_tokens": 200,
                     "completion_tokens": 100,
@@ -131,14 +128,7 @@ def test_local_api_no_cost():
     with patch("requests.post") as mock_post, patch("time.sleep", return_value=None):
         mock_response = Mock()
         mock_response.json.return_value = {
-            "choices": [
-                {
-                    "message": {
-                        "content": "This is a long translation for local API testing. "
-                        * 10
-                    }
-                }
-            ],
+            "choices": [{"message": {"content": "This is a long translation for local API testing. " * 10}}],
             "usage": {
                 "prompt_tokens": 100,
                 "completion_tokens": 50,

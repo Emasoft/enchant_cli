@@ -221,9 +221,7 @@ def detect_issues(seq: List[int]) -> List[str]:
                 run_len += 1
                 j += 1
             t = "times" if run_len > 1 else "time"
-            issues.append(
-                (idx, f"number {v} is repeated {run_len} {t} after number {pred}")
-            )
+            issues.append((idx, f"number {v} is repeated {run_len} {t} after number {pred}"))
         else:
             seen.add(v)
 
@@ -246,9 +244,7 @@ def detect_issues(seq: List[int]) -> List[str]:
                 issues.append((idx, f"number {a} is switched in place with number {b}"))
                 issues.append((idx, f"number {b} is switched in place with number {a}"))
             else:
-                issues.append(
-                    (idx, f"number {v} is out of place after number {seq[idx - 1]}")
-                )
+                issues.append((idx, f"number {v} is out of place after number {seq[idx - 1]}"))
             prev_expected = v + 1
 
     # tail missing
@@ -294,9 +290,7 @@ def is_valid_chapter_line(line: str) -> bool:
     before_chapter = line_stripped[:chapter_pos].strip()
 
     # Special characters that can precede chapter
-    if before_chapter and all(
-        c in "#*>§[](){}|-–—•~/" or c.isspace() for c in before_chapter
-    ):
+    if before_chapter and all(c in "#*>§[](){}|-–—•~/" or c.isspace() for c in before_chapter):
         return True  # After special chars/whitespace only
 
     # Check if preceded by quotes
@@ -306,9 +300,7 @@ def is_valid_chapter_line(line: str) -> bool:
     return False  # Mid-sentence
 
 
-def split_text_db(
-    text: str, detect_headings: bool
-) -> Tuple[List[Tuple[str, str]], List[int]]:
+def split_text_db(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str]], List[int]]:
     """
     Database-optimized version for fast chapter parsing.
     Uses SQLite with indexes for efficient processing of large files.
@@ -319,9 +311,7 @@ def split_text_db(
     try:
         if DB_OPTIMIZED:
             # Use new optimized approach with two-stage search
-            return process_text_optimized(
-                text, HEADING_RE, parse_num, is_valid_chapter_line
-            )
+            return process_text_optimized(text, HEADING_RE, parse_num, is_valid_chapter_line)
         else:
             # Database optimization not available, fallback to regular processing
             return split_text(text, detect_headings, force_no_db=True)
@@ -332,9 +322,7 @@ def split_text_db(
         return split_text(text, detect_headings, force_no_db=True)
 
 
-def split_text(
-    text: str, detect_headings: bool, force_no_db: bool = False
-) -> Tuple[List[Tuple[str, str]], List[int]]:
+def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> Tuple[List[Tuple[str, str]], List[int]]:
     """
     Enhanced version with:
     1. Position/quote checking for chapter patterns
@@ -389,16 +377,7 @@ def split_text(
                 continue
 
             # Extract number from whichever group matched
-            num_str = (
-                m.group("num_d")
-                or m.group("num_r")
-                or m.group("num_w")
-                or m.group("part_d")
-                or m.group("part_r")
-                or m.group("part_w")
-                or m.group("sec_d")
-                or m.group("hash_d")
-            )
+            num_str = m.group("num_d") or m.group("num_r") or m.group("num_w") or m.group("part_d") or m.group("part_r") or m.group("part_w") or m.group("sec_d") or m.group("hash_d")
             num = parse_num(num_str) if num_str else None
             if num is None:
                 buf.append(line)
@@ -458,9 +437,7 @@ def split_text(
 
     # Second pass: analyze patterns to determine which chapters need sub-numbering
     chapter_groups: Dict[int, List[Tuple[str, str, Optional[int]]]] = {}
-    chapter_index: Dict[
-        Tuple[Optional[int], str], int
-    ] = {}  # Map (num, title) to index for O(1) lookup
+    chapter_index: Dict[Tuple[Optional[int], str], int] = {}  # Map (num, title) to index for O(1) lookup
 
     # Group chapters by their number and build index
     for idx, (title, content, num) in enumerate(raw_chapters):
@@ -488,35 +465,17 @@ def split_text(
                 chapter_idx: Optional[int] = chapter_index.get((num, title))
                 if chapter_idx is not None:
                     # Check previous and next chapters
-                    prev_has_parts = (
-                        chapter_idx > 0
-                        and raw_chapters[chapter_idx - 1][2] is not None
-                        and has_part_notation(raw_chapters[chapter_idx - 1][0])
-                    )
-                    next_has_parts = (
-                        chapter_idx < len(raw_chapters) - 1
-                        and raw_chapters[chapter_idx + 1][2] is not None
-                        and has_part_notation(raw_chapters[chapter_idx + 1][0])
-                    )
+                    prev_has_parts = chapter_idx > 0 and raw_chapters[chapter_idx - 1][2] is not None and has_part_notation(raw_chapters[chapter_idx - 1][0])
+                    next_has_parts = chapter_idx < len(raw_chapters) - 1 and raw_chapters[chapter_idx + 1][2] is not None and has_part_notation(raw_chapters[chapter_idx + 1][0])
 
                     # If adjacent chapters also have part notation with different numbers,
                     # then this is likely sequential numbering, not sub-parts
                     if prev_has_parts or next_has_parts:
-                        prev_num = (
-                            raw_chapters[chapter_idx - 1][2]
-                            if chapter_idx > 0
-                            else None
-                        )
-                        next_num = (
-                            raw_chapters[chapter_idx + 1][2]
-                            if chapter_idx < len(raw_chapters) - 1
-                            else None
-                        )
+                        prev_num = raw_chapters[chapter_idx - 1][2] if chapter_idx > 0 else None
+                        next_num = raw_chapters[chapter_idx + 1][2] if chapter_idx < len(raw_chapters) - 1 else None
 
                         # Sequential if numbers are different
-                        if (prev_num != num and prev_num is not None) or (
-                            next_num != num and next_num is not None
-                        ):
+                        if (prev_num != num and prev_num is not None) or (next_num != num and next_num is not None):
                             needs_subnumbering[num] = False
                         else:
                             needs_subnumbering[num] = True
@@ -543,9 +502,7 @@ def split_text(
             # Match various chapter patterns to insert part number appropriately
             if re.match(r"^Chapter\s+\w+:", title, re.IGNORECASE):
                 # "Chapter One: Title" -> "Chapter One.1: Title"
-                new_title = re.sub(
-                    r"^(Chapter\s+\w+):", rf"\1.{part_num}:", title, flags=re.IGNORECASE
-                )
+                new_title = re.sub(r"^(Chapter\s+\w+):", rf"\1.{part_num}:", title, flags=re.IGNORECASE)
             elif re.match(r"^Chapter\s+\w+\s", title, re.IGNORECASE):
                 # "Chapter One Title" -> "Chapter One.1 Title"
                 new_title = re.sub(
@@ -733,9 +690,7 @@ def build_container_xml() -> str:
     rootfile.set("media-type", "application/oebps-package+xml")
 
     # Generate string
-    return ET.tostring(
-        container, encoding="unicode", method="xml", xml_declaration=True
-    )
+    return ET.tostring(container, encoding="unicode", method="xml", xml_declaration=True)
 
 
 def build_style_css(custom_css: Optional[str] = None) -> str:
@@ -743,12 +698,7 @@ def build_style_css(custom_css: Optional[str] = None) -> str:
     if custom_css:
         return custom_css
     # Default CSS
-    return (
-        "body{font-family:serif;line-height:1.4;margin:5%}"
-        "h1{text-align:center;margin:2em 0 1em}"
-        "p{text-indent:1.5em;margin:0 0 1em}"
-        "img{max-width:100%;height:auto}"
-    )
+    return "body{font-family:serif;line-height:1.4;margin:5%}" "h1{text-align:center;margin:2em 0 1em}" "p{text-indent:1.5em;margin:0 0 1em}" "img{max-width:100%;height:auto}"
 
 
 def build_content_opf(
@@ -850,9 +800,7 @@ def ensure_output_ok(path: Path, append: bool) -> None:
         ValidationError: If output path is not writable
     """
     if append:
-        if path.suffix.lower() != ".epub" or not (
-            path.exists() and os.access(path, os.W_OK)
-        ):
+        if path.suffix.lower() != ".epub" or not (path.exists() and os.access(path, os.W_OK)):
             raise ValidationError(f"Cannot write EPUB '{path}'.")
     else:
         target = path.parent if path.suffix.lower() == ".epub" else path
@@ -935,9 +883,7 @@ def write_new_epub(
             (oebps / "Images").mkdir()
 
         (tmp / "META-INF" / "container.xml").write_text(build_container_xml(), ENCODING)
-        (oebps / "Styles" / "style.css").write_text(
-            build_style_css(custom_css), ENCODING
-        )
+        (oebps / "Styles" / "style.css").write_text(build_style_css(custom_css), ENCODING)
 
         manifest = [
             "<item id='ncx' href='toc.ncx' media-type='application/x-dtbncx+xml'/>",
@@ -950,51 +896,31 @@ def write_new_epub(
             cover_id = "cover-img"
             img_rel = f"Images/{cover.name}"
             shutil.copy2(cover, oebps / img_rel)
-            mime = (
-                "image/jpeg"
-                if cover.suffix.lower() in {".jpg", ".jpeg"}
-                else "image/png"
-            )
-            manifest.append(
-                f"<item id='{cover_id}' href='{img_rel}' media-type='{mime}'/>"
-            )
-            (oebps / "Text" / "cover.xhtml").write_text(
-                build_cover_xhtml(img_rel), ENCODING
-            )
-            manifest.append(
-                "<item id='coverpage' href='Text/cover.xhtml' media-type='application/xhtml+xml'/>"
-            )
+            mime = "image/jpeg" if cover.suffix.lower() in {".jpg", ".jpeg"} else "image/png"
+            manifest.append(f"<item id='{cover_id}' href='{img_rel}' media-type='{mime}'/>")
+            (oebps / "Text" / "cover.xhtml").write_text(build_cover_xhtml(img_rel), ENCODING)
+            manifest.append("<item id='coverpage' href='Text/cover.xhtml' media-type='application/xhtml+xml'/>")
             spine.append("<itemref idref='coverpage' linear='yes'/>")
 
         for idx, (title_, body_html) in enumerate(chaps, 1):
             xhtml = f"Text/chapter{idx}.xhtml"
             (oebps / xhtml).write_text(build_chap_xhtml(title_, body_html), ENCODING)
-            manifest.append(
-                f"<item id='chap{idx}' href='{xhtml}' media-type='application/xhtml+xml'/>"
-            )
+            manifest.append(f"<item id='chap{idx}' href='{xhtml}' media-type='application/xhtml+xml'/>")
             spine.append(f"<itemref idref='chap{idx}'/>")
-            nav.append(
-                f"<navPoint id='nav{idx}' playOrder='{idx}'><navLabel><text>{html.escape(title_)}</text></navLabel><content src='{xhtml}'/></navPoint>"
-            )
+            nav.append(f"<navPoint id='nav{idx}' playOrder='{idx}'><navLabel><text>{html.escape(title_)}</text></navLabel><content src='{xhtml}'/></navPoint>")
 
         (oebps / "content.opf").write_text(
-            build_content_opf(
-                title, author, manifest, spine, uid, cover_id, language, metadata
-            ),
+            build_content_opf(title, author, manifest, spine, uid, cover_id, language, metadata),
             ENCODING,
         )
 
         # Use enhanced TOC builder if available
         if TOC_ENHANCED:
             # Pass full chapter data for hierarchical analysis
-            toc_content = build_enhanced_toc_ncx(
-                chaps, title, author, uid, hierarchical=True
-            )
+            toc_content = build_enhanced_toc_ncx(chaps, title, author, uid, hierarchical=True)
             (oebps / "toc.ncx").write_text(toc_content, ENCODING)
         else:
-            (oebps / "toc.ncx").write_text(
-                build_toc_ncx(title, author, nav, uid), ENCODING
-            )
+            (oebps / "toc.ncx").write_text(build_toc_ncx(title, author, nav, uid), ENCODING)
 
         with zipfile.ZipFile(out, "w") as z:
             z.writestr("mimetype", MIMETYPE, zipfile.ZIP_STORED)
@@ -1016,11 +942,7 @@ def extend_epub(epub: Path, new: List[Tuple[str, str]]) -> None:
         oebps = tmp / "OEBPS"
         textdir = oebps / "Text"
         next_idx = 1 + max(
-            (
-                int(m.group(1))
-                for p in textdir.glob("chapter*.xhtml")
-                if (m := re.search(r"chapter(\d+)\.xhtml", p.name))
-            ),
+            (int(m.group(1)) for p in textdir.glob("chapter*.xhtml") if (m := re.search(r"chapter(\d+)\.xhtml", p.name))),
             default=0,
         )
 
@@ -1033,15 +955,10 @@ def extend_epub(epub: Path, new: List[Tuple[str, str]]) -> None:
         navmap = ncx.find("ncx:navMap", ns_ncx)
 
         if manifest is None or spine is None or navmap is None:
-            raise ValueError(
-                "Invalid EPUB structure: missing manifest, spine, or navMap"
-            )
+            raise ValueError("Invalid EPUB structure: missing manifest, spine, or navMap")
 
         play = max(
-            (
-                int(n.get("playOrder", "0"))
-                for n in navmap.findall("ncx:navPoint", ns_ncx)
-            ),
+            (int(n.get("playOrder", "0")) for n in navmap.findall("ncx:navPoint", ns_ncx)),
             default=0,
         )
 
@@ -1069,12 +986,8 @@ def extend_epub(epub: Path, new: List[Tuple[str, str]]) -> None:
                 {"id": f"nav{next_idx}", "playOrder": str(play)},
             )
             nl = ET.SubElement(np, "{http://www.daisy.org/z3986/2005/ncx/}navLabel")
-            ET.SubElement(
-                nl, "{http://www.daisy.org/z3986/2005/ncx/}text"
-            ).text = title_
-            ET.SubElement(
-                np, "{http://www.daisy.org/z3986/2005/ncx/}content", {"src": xhtml}
-            )
+            ET.SubElement(nl, "{http://www.daisy.org/z3986/2005/ncx/}text").text = title_
+            ET.SubElement(np, "{http://www.daisy.org/z3986/2005/ncx/}content", {"src": xhtml})
             next_idx += 1
 
         opf.write(oebps / "content.opf", ENCODING, xml_declaration=True)
@@ -1281,9 +1194,7 @@ def create_epub_from_directory(
         return issues
 
     if issues and strict:
-        raise ValidationError(
-            f"Found {len(issues)} validation issues in chapter sequence"
-        )
+        raise ValidationError(f"Found {len(issues)} validation issues in chapter sequence")
 
     # Auto-detect title and author if not provided
     if not title or not author:
@@ -1314,14 +1225,10 @@ def parse_add(val: str) -> Tuple[int, bool]:
 def main() -> None:
     ap = argparse.ArgumentParser(description="TXT chunks → EPUB builder / validator")
     ap.add_argument("input_dir", type=Path, help="Directory with .txt chunks")
-    ap.add_argument(
-        "-o", "--output", type=Path, required=True, help="Output directory or .epub"
-    )
+    ap.add_argument("-o", "--output", type=Path, required=True, help="Output directory or .epub")
     ap.add_argument("--title", help="Override book title")
     ap.add_argument("--author", help="Override author")
-    ap.add_argument(
-        "--toc", action="store_true", help="Detect chapter headings and build TOC"
-    )
+    ap.add_argument("--toc", action="store_true", help="Detect chapter headings and build TOC")
     ap.add_argument("--cover", type=Path, help="Cover image (jpg/png)")
     ap.add_argument(
         "--add",
@@ -1329,12 +1236,8 @@ def main() -> None:
         metavar="N[+]",
         help="Append chunk N (or N+) to existing EPUB",
     )
-    ap.add_argument(
-        "--validate-only", action="store_true", help="Only scan & report issues"
-    )
-    ap.add_argument(
-        "--no-strict", action="store_true", help="Soft mode (don't abort on issues)"
-    )
+    ap.add_argument("--validate-only", action="store_true", help="Only scan & report issues")
+    ap.add_argument("--no-strict", action="store_true", help="Soft mode (don't abort on issues)")
     ap.add_argument("--json-log", type=Path, help="Write JSON-lines issue log")
     args = ap.parse_args()
 
@@ -1353,16 +1256,7 @@ def main() -> None:
 
     chunks = collect_chunks(args.input_dir)
 
-    selected = (
-        {
-            n: p
-            for n, p in chunks.items()
-            if add_start is not None
-            and (n == add_start or (add_plus and n >= add_start))
-        }
-        if append
-        else chunks
-    )
+    selected = {n: p for n, p in chunks.items() if add_start is not None and (n == add_start or (add_plus and n >= add_start))} if append else chunks
     if append and not selected:
         sys.exit(f"No chunks ≥ {add_start} found.")
 
@@ -1374,9 +1268,7 @@ def main() -> None:
         log_issue(m, {"msg": m})
 
     if args.validate_only:
-        print(
-            "✅ no issues" if not msgs else f"⚠ {len(msgs)} issue(s) – see {_ERROR_LOG}"
-        )
+        print("✅ no issues" if not msgs else f"⚠ {len(msgs)} issue(s) – see {_ERROR_LOG}")
         sys.exit(1 if msgs else 0)
 
     if msgs and not args.no_strict:
@@ -1395,19 +1287,11 @@ def main() -> None:
         title = args.title or def_title
         author = args.author or def_author
         safe = re.sub(r"[^A-Za-z0-9_]+", "_", title).strip("_") or "book"
-        epub_path = (
-            args.output
-            if args.output.suffix.lower() == ".epub"
-            else args.output / f"{safe}.epub"
-        )
+        epub_path = args.output if args.output.suffix.lower() == ".epub" else args.output / f"{safe}.epub"
         write_new_epub(chapters, epub_path, title, author, args.cover)
         result = f"EPUB created at: {epub_path}"
 
-    summary = (
-        "✅ validation clean"
-        if not msgs
-        else f"⚠ {len(msgs)} issue(s) – see {_ERROR_LOG}"
-    )
+    summary = "✅ validation clean" if not msgs else f"⚠ {len(msgs)} issue(s) – see {_ERROR_LOG}"
     print(f"{result}  {summary}")
 
 

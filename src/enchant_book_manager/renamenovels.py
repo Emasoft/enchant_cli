@@ -12,13 +12,14 @@ import getpass
 from pathlib import Path
 import multiprocessing
 from json import JSONDecodeError
-from typing import Optional, Any, cast
+from typing import Any, cast
 from requests.exceptions import HTTPError, ConnectionError, Timeout
 from concurrent.futures import ThreadPoolExecutor
 import concurrent.futures
 from .common_file_utils import decode_full_file
 from .common_utils import sanitize_filename as common_sanitize_filename, retry_with_backoff
 from .common_yaml_utils import load_safe_yaml
+from .common_constants import DEFAULT_OPENROUTER_API_URL
 from .cost_tracker import global_cost_tracker
 from .icloud_sync import ICloudSync, ICloudSyncError
 
@@ -195,7 +196,7 @@ def make_openai_request(api_key: str, model: str, temperature: float, messages: 
     }
     try:
         response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
+            DEFAULT_OPENROUTER_API_URL,
             headers=headers,
             json=data,
             timeout=10,

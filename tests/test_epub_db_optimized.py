@@ -8,7 +8,7 @@ Tests for optimized database module
 import unittest
 import re
 
-from src.enchant_book_manager.epub_db_optimized import (
+from enchant_book_manager.epub_db_optimized import (
     setup_database,
     close_database,
     import_text_optimized,
@@ -71,9 +71,7 @@ CHAPTER 3: UPPERCASE"""
         import_text_optimized(text)
 
         # Define test regex and functions
-        heading_re = re.compile(
-            r"^Chapter\s+(?P<num_d>\d+)(?:\s*:\s*(?P<rest>.+))?", re.IGNORECASE
-        )
+        heading_re = re.compile(r"^Chapter\s+(?P<num_d>\d+)(?:\s*:\s*(?P<rest>.+))?", re.IGNORECASE)
 
         def parse_num(s):
             return int(s) if s and s.isdigit() else None
@@ -102,12 +100,8 @@ Content of chapter 2"""
         import_text_optimized(text)
 
         # Mark chapters manually for testing
-        TextLine.update(is_chapter=True, chapter_number=1).where(
-            TextLine.line_number == 1
-        ).execute()
-        TextLine.update(is_chapter=True, chapter_number=2).where(
-            TextLine.line_number == 4
-        ).execute()
+        TextLine.update(is_chapter=True, chapter_number=1).where(TextLine.line_number == 1).execute()
+        TextLine.update(is_chapter=True, chapter_number=2).where(TextLine.line_number == 4).execute()
 
         # Build chapters
         chapters, seq = build_chapters_table()
@@ -137,9 +131,7 @@ This is the second chapter.
 Chapter 3: The End
 This is the final chapter."""
 
-        heading_re = re.compile(
-            r"^Chapter\s+(?P<num_d>\d+)(?:\s*:\s*(?P<rest>.+))?", re.IGNORECASE
-        )
+        heading_re = re.compile(r"^Chapter\s+(?P<num_d>\d+)(?:\s*:\s*(?P<rest>.+))?", re.IGNORECASE)
 
         def parse_num(s):
             return int(s) if s and s.isdigit() else None
@@ -170,9 +162,7 @@ This is the final chapter."""
 
         text = "\n".join(lines)
 
-        heading_re = re.compile(
-            r"^Chapter\s+(?P<num_d>\d+)(?:\s*:\s*(?P<rest>.+))?", re.IGNORECASE
-        )
+        heading_re = re.compile(r"^Chapter\s+(?P<num_d>\d+)(?:\s*:\s*(?P<rest>.+))?", re.IGNORECASE)
 
         def parse_num(s):
             return int(s) if s and s.isdigit() else None

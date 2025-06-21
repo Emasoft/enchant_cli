@@ -14,7 +14,7 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.enchant_book_manager.translation_service import (
+from enchant_book_manager.translation_service import (
     ChineseAITranslator,
     is_latin_char,
     is_latin_charset,

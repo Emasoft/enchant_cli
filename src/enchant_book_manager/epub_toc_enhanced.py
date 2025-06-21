@@ -38,9 +38,7 @@ class TocEntry:
         nav_id = f"nav{self.play_order}"
 
         result = f'{indent}<navPoint id="{nav_id}" playOrder="{self.play_order}">\n'
-        result += (
-            f"{indent}  <navLabel><text>{html.escape(self.title)}</text></navLabel>\n"
-        )
+        result += f"{indent}  <navLabel><text>{html.escape(self.title)}</text></navLabel>\n"
         result += f'{indent}  <content src="{self.href}"/>\n'
 
         # Add children
@@ -84,9 +82,7 @@ class EnhancedTocBuilder:
         # Patterns for different levels
         part_pattern = re.compile(r"^Part\s+(\w+)(?:\s*[:\-–—]\s*(.+))?", re.IGNORECASE)
         book_pattern = re.compile(r"^Book\s+(\w+)(?:\s*[:\-–—]\s*(.+))?", re.IGNORECASE)
-        section_pattern = re.compile(
-            r"^Section\s+(\w+)(?:\s*[:\-–—]\s*(.+))?", re.IGNORECASE
-        )
+        section_pattern = re.compile(r"^Section\s+(\w+)(?:\s*[:\-–—]\s*(.+))?", re.IGNORECASE)
 
         for idx, (title, _content) in enumerate(chapters, 1):
             href = f"Text/chapter{idx}.xhtml"
@@ -94,9 +90,7 @@ class EnhancedTocBuilder:
             # Check for part
             part_match = part_pattern.match(title)
             if part_match:
-                current_part = TocEntry(
-                    title=title, href=href, play_order=self.play_order, level=1
-                )
+                current_part = TocEntry(title=title, href=href, play_order=self.play_order, level=1)
                 self.play_order += 1
                 toc_entries.append(current_part)
                 current_book = None  # Reset book when new part starts
@@ -105,9 +99,7 @@ class EnhancedTocBuilder:
             # Check for book
             book_match = book_pattern.match(title)
             if book_match:
-                current_book = TocEntry(
-                    title=title, href=href, play_order=self.play_order, level=2
-                )
+                current_book = TocEntry(title=title, href=href, play_order=self.play_order, level=2)
                 self.play_order += 1
 
                 if current_part:
@@ -119,9 +111,7 @@ class EnhancedTocBuilder:
             # Check for section
             section_match = section_pattern.match(title)
             if section_match:
-                section_entry = TocEntry(
-                    title=title, href=href, play_order=self.play_order, level=3
-                )
+                section_entry = TocEntry(title=title, href=href, play_order=self.play_order, level=3)
                 self.play_order += 1
 
                 if current_book:
@@ -133,9 +123,7 @@ class EnhancedTocBuilder:
                 continue
 
             # Regular chapter
-            chapter_entry = TocEntry(
-                title=title, href=href, play_order=self.play_order, level=4
-            )
+            chapter_entry = TocEntry(title=title, href=href, play_order=self.play_order, level=4)
             self.play_order += 1
 
             # Add to appropriate parent
@@ -148,9 +136,7 @@ class EnhancedTocBuilder:
 
         return toc_entries
 
-    def build_ncx_toc(
-        self, chapters: List[Tuple[str, str]], title: str, author: str, uid: str
-    ) -> str:
+    def build_ncx_toc(self, chapters: List[Tuple[str, str]], title: str, author: str, uid: str) -> str:
         """Build NCX format TOC with hierarchical structure"""
         toc_entries = self.analyze_chapters(chapters)
 
@@ -200,17 +186,13 @@ class EnhancedTocBuilder:
 </body>
 </html>"""
 
-    def _calculate_max_depth(
-        self, entries: List[TocEntry], current_depth: int = 1
-    ) -> int:
+    def _calculate_max_depth(self, entries: List[TocEntry], current_depth: int = 1) -> int:
         """Calculate maximum depth of TOC hierarchy"""
         max_depth = current_depth
 
         for entry in entries:
             if entry.children:
-                child_depth = self._calculate_max_depth(
-                    entry.children, current_depth + 1
-                )
+                child_depth = self._calculate_max_depth(entry.children, current_depth + 1)
                 max_depth = max(max_depth, child_depth)
 
         return max_depth
@@ -222,12 +204,7 @@ class EnhancedTocBuilder:
         """
         nav_points = []
         for idx, (title, _) in enumerate(chapters, 1):
-            nav_points.append(
-                f'<navPoint id="nav{idx}" playOrder="{idx}">'
-                f"<navLabel><text>{html.escape(title)}</text></navLabel>"
-                f'<content src="Text/chapter{idx}.xhtml"/>'
-                f"</navPoint>"
-            )
+            nav_points.append(f'<navPoint id="nav{idx}" playOrder="{idx}">' f"<navLabel><text>{html.escape(title)}</text></navLabel>" f'<content src="Text/chapter{idx}.xhtml"/>' f"</navPoint>")
         return nav_points
 
 

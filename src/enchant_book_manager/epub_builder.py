@@ -32,10 +32,7 @@ from .epub_constants import (
 )
 
 HEADING_RE = re.compile(
-    rf"^[^\w]*\s*chapter\s+"
-    rf"(?:(?P<num_d>\d+)|(?P<num_r>[ivxlcdm]+)|"
-    rf"(?P<num_w>(?:{WORD_NUMS})(?:[-\s](?:{WORD_NUMS}))*))"
-    rf"\b(?P<rest>.*)$",
+    rf"^[^\w]*\s*chapter\s+" rf"(?:(?P<num_d>\d+)|(?P<num_r>[ivxlcdm]+)|" rf"(?P<num_w>(?:{WORD_NUMS})(?:[-\s](?:{WORD_NUMS}))*))" rf"\b(?P<rest>.*)$",
     re.IGNORECASE,
 )
 
@@ -71,9 +68,7 @@ def detect_chapter_issues(seq: List[int]) -> List[Tuple[int, str]]:
                     run_len += 1
                     j += 1
                 t = "times" if run_len > 1 else "time"
-                issues.append(
-                    (idx, f"Chapter {v} is repeated {run_len} {t} after Chapter {pred}")
-                )
+                issues.append((idx, f"Chapter {v} is repeated {run_len} {t} after Chapter {pred}"))
         else:
             seen.add(v)
 
@@ -93,16 +88,10 @@ def detect_chapter_issues(seq: List[int]) -> List[Tuple[int, str]]:
         else:  # v < prev_expected
             if idx > 0 and abs(seq[idx - 1] - v) == 1 and v < seq[idx - 1]:
                 a, b = min(v, seq[idx - 1]), max(v, seq[idx - 1])
-                issues.append(
-                    (idx, f"Chapter {a} is switched in place with Chapter {b}")
-                )
-                issues.append(
-                    (idx, f"Chapter {b} is switched in place with Chapter {a}")
-                )
+                issues.append((idx, f"Chapter {a} is switched in place with Chapter {b}"))
+                issues.append((idx, f"Chapter {b} is switched in place with Chapter {a}"))
             else:
-                issues.append(
-                    (idx, f"Chapter {v} is out of place after Chapter {seq[idx - 1]}")
-                )
+                issues.append((idx, f"Chapter {v} is out of place after Chapter {seq[idx - 1]}"))
             prev_expected = v + 1
 
     # Check for missing chapters at the end
@@ -114,9 +103,7 @@ def detect_chapter_issues(seq: List[int]) -> List[Tuple[int, str]]:
     return issues
 
 
-def split_text(
-    text: str, detect_headings: bool = True
-) -> Tuple[List[Tuple[str, str, str]], List[int]]:
+def split_text(text: str, detect_headings: bool = True) -> Tuple[List[Tuple[str, str, str]], List[int]]:
     """
     Split text into chapters based on headings.
     Returns: ([(toc_title, original_heading, chapter_text), ...], [chapter_numbers])
@@ -174,9 +161,7 @@ def split_text(
 
     # Save last chapter
     if current_toc_title is not None:
-        chapters.append(
-            (current_toc_title, current_original_heading, "\n".join(current_text))
-        )
+        chapters.append((current_toc_title, current_original_heading, "\n".join(current_text)))
     elif current_text:
         # No chapters detected, return full text
         chapters.append(("Full Text", "", "\n".join(current_text)))
@@ -244,9 +229,7 @@ def create_epub_from_chapters(
         <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
     </rootfiles>
 </container>"""
-        (tmppath / "META-INF" / "container.xml").write_text(
-            container_xml, encoding=ENCODING
-        )
+        (tmppath / "META-INF" / "container.xml").write_text(container_xml, encoding=ENCODING)
 
         # Generate spine and manifest items
         manifest_items = []
@@ -257,9 +240,7 @@ def create_epub_from_chapters(
             ext = cover_path.suffix.lower()
             mime = "image/jpeg" if ext in [".jpg", ".jpeg"] else "image/png"
             (tmppath / "OEBPS" / "cover.jpg").write_bytes(cover_path.read_bytes())
-            manifest_items.append(
-                f'<item id="cover-image" href="cover.jpg" media-type="{mime}"/>'
-            )
+            manifest_items.append(f'<item id="cover-image" href="cover.jpg" media-type="{mime}"/>')
 
             # Create cover HTML
             cover_html = """<!DOCTYPE html>
@@ -274,12 +255,8 @@ def create_epub_from_chapters(
     <div><img src="cover.jpg" alt="Cover"/></div>
 </body>
 </html>"""
-            (tmppath / "OEBPS" / "cover.xhtml").write_text(
-                cover_html, encoding=ENCODING
-            )
-            manifest_items.append(
-                '<item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>'
-            )
+            (tmppath / "OEBPS" / "cover.xhtml").write_text(cover_html, encoding=ENCODING)
+            manifest_items.append('<item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>')
             spine_items.append('<itemref idref="cover"/>')
 
         # Write chapters
@@ -303,9 +280,7 @@ def create_epub_from_chapters(
 </html>"""
             (tmppath / "OEBPS" / chap_file).write_text(chap_content, encoding=ENCODING)
 
-            manifest_items.append(
-                f'<item id="{chap_id}" href="{chap_file}" media-type="application/xhtml+xml"/>'
-            )
+            manifest_items.append(f'<item id="{chap_id}" href="{chap_file}" media-type="application/xhtml+xml"/>')
             spine_items.append(f'<itemref idref="{chap_id}"/>')
             toc_items.append((chap_id, toc_title))
 
@@ -336,9 +311,7 @@ def create_epub_from_chapters(
     </navMap>
 </ncx>"""
         (tmppath / "OEBPS" / "toc.ncx").write_text(ncx_content, encoding=ENCODING)
-        manifest_items.append(
-            '<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>'
-        )
+        manifest_items.append('<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>')
 
         # Write content.opf
         opf_content = f"""<?xml version="1.0" encoding="UTF-8"?>
@@ -407,10 +380,7 @@ def build_epub_from_directory(
 
     # Split text and detect chapters
     chapter_blocks, chapter_nums = split_text(full_text, detect_toc)
-    chapters = [
-        (toc_title, original_heading, paragraphize(text))
-        for toc_title, original_heading, text in chapter_blocks
-    ]
+    chapters = [(toc_title, original_heading, paragraphize(text)) for toc_title, original_heading, text in chapter_blocks]
 
     # Detect issues
     issues = []
