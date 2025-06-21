@@ -1,6 +1,7 @@
 # Gitleaks configuration for ENCHANT Book Manager
 # This file configures gitleaks to allow only specific information
 # and block API keys, secrets, passwords, etc.
+# Author: Emasoft (713559+Emasoft@users.noreply.github.com)
 
 title = "ENCHANT Book Manager Gitleaks Configuration"
 
@@ -21,6 +22,9 @@ regexes = [
     '''YOUR_KEY''',
     '''your_key_here''',
     '''<your_.*_here>''',
+    '''OPENROUTER_API_KEY''',
+    '''placeholder''',
+    '''example''',
 ]
 
 paths = [

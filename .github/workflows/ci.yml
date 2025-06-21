@@ -44,7 +44,10 @@ jobs:
         run: |
           mkdir -p ~/.local/bin
           VERSION="v1.7.7"
-          curl -L "https://github.com/rhysd/actionlint/releases/download/${VERSION}/actionlint_$(uname -s | tr '[:upper:]' '[:lower:]')_amd64.tar.gz" | tar xz -C ~/.local/bin
+          ARCH="amd64"
+          OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+          URL="https://github.com/rhysd/actionlint/releases/download/${VERSION}/actionlint_${OS}_${ARCH}.tar.gz"
+          curl -L "${URL}" | tar xz -C ~/.local/bin
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Run actionlint
@@ -119,6 +122,10 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           SKIP_LOCAL_MODE_TESTS: true
+          GIT_AUTHOR_NAME: Emasoft
+          GIT_AUTHOR_EMAIL: 713559+Emasoft@users.noreply.github.com
+          GIT_COMMITTER_NAME: Emasoft
+          GIT_COMMITTER_EMAIL: 713559+Emasoft@users.noreply.github.com
         run: |
           # Use CI-specific pytest configuration
           uv run pytest tests -c .github/pytest.ini --cov=src/enchant_book_manager --cov-report=xml --cov-report=html
