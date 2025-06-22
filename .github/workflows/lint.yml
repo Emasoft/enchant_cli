@@ -1,0 +1,68 @@
+name: Lint
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Set up Python
+        run: |
+          uv python install 3.12
+          uv sync --all-extras
+
+      - name: Run ruff linting
+        run: |
+          echo "::group::Running ruff check"
+          uv run ruff check . --output-format=github
+          echo "::endgroup::"
+
+      - name: Run ruff formatting check
+        run: |
+          echo "::group::Running ruff format check"
+          uv run ruff format --check .
+          echo "::endgroup::"
+
+      - name: Run mypy type checking
+        run: |
+          echo "::group::Running mypy"
+          uv run mypy . --strict --ignore-missing-imports
+          echo "::endgroup::"
+
+      - name: Run yamllint
+        run: |
+          echo "::group::Running yamllint"
+          uv run yamllint . -f github
+          echo "::endgroup::"
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install frontend dependencies
+        run: uv run pnpm install
+        if: hashFiles('pnpm-lock.yaml') != ''
+
+      - name: Run ESLint
+        run: |
+          echo "::group::Running ESLint"
+          uv run pnpm run lint || echo "No ESLint configuration found"
+          echo "::endgroup::"
+        if: hashFiles('pnpm-lock.yaml') != ''
