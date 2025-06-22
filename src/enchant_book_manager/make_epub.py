@@ -37,7 +37,6 @@ Pure Python ≥ 3.8.  Output EPUB passes *epubcheck*.
 
 from __future__ import annotations
 
-import argparse
 import html
 import json
 import os
@@ -1215,88 +1214,4 @@ def create_epub_from_directory(
 # ───────────────────────── CLI entry point ───────────────────────── #
 
 
-def parse_add(val: str) -> Tuple[int, bool]:
-    m = re.fullmatch(r"(\d+)(\+)?", val)
-    if not m:
-        raise argparse.ArgumentTypeError("--add must be N or N+")
-    return int(m.group(1)), bool(m.group(2))
-
-
-def main() -> None:
-    ap = argparse.ArgumentParser(description="TXT chunks → EPUB builder / validator")
-    ap.add_argument("input_dir", type=Path, help="Directory with .txt chunks")
-    ap.add_argument("-o", "--output", type=Path, required=True, help="Output directory or .epub")
-    ap.add_argument("--title", help="Override book title")
-    ap.add_argument("--author", help="Override author")
-    ap.add_argument("--toc", action="store_true", help="Detect chapter headings and build TOC")
-    ap.add_argument("--cover", type=Path, help="Cover image (jpg/png)")
-    ap.add_argument(
-        "--add",
-        type=parse_add,
-        metavar="N[+]",
-        help="Append chunk N (or N+) to existing EPUB",
-    )
-    ap.add_argument("--validate-only", action="store_true", help="Only scan & report issues")
-    ap.add_argument("--no-strict", action="store_true", help="Soft mode (don't abort on issues)")
-    ap.add_argument("--json-log", type=Path, help="Write JSON-lines issue log")
-    args = ap.parse_args()
-
-    global _JSON_LOG
-    _JSON_LOG = args.json_log
-
-    append = args.add is not None
-    add_start, add_plus = args.add if append else (None, False)
-
-    ensure_dir_readable(args.input_dir)
-    ensure_output_ok(args.output, append)
-    if args.cover:
-        if append:
-            sys.exit("--cover only valid when creating a new EPUB.")
-        ensure_cover_ok(args.cover)
-
-    chunks = collect_chunks(args.input_dir)
-
-    selected = {n: p for n, p in chunks.items() if add_start is not None and (n == add_start or (add_plus and n >= add_start))} if append else chunks
-    if append and not selected:
-        sys.exit(f"No chunks ≥ {add_start} found.")
-
-    full_text = "\n".join(selected[i].read_text(ENCODING) for i in sorted(selected))
-    chap_blocks, seq = split_text(full_text, args.toc)
-    chapters = [(t, paragraphize(b)) for t, b in chap_blocks]
-    msgs = detect_issues(seq)
-    for m in msgs:
-        log_issue(m, {"msg": m})
-
-    if args.validate_only:
-        print("✅ no issues" if not msgs else f"⚠ {len(msgs)} issue(s) – see {_ERROR_LOG}")
-        sys.exit(1 if msgs else 0)
-
-    if msgs and not args.no_strict:
-        print(f"❌ {len(msgs)} issue(s) – aborting (strict mode).")
-        sys.exit(2)
-
-    if append:
-        extend_epub(args.output, chapters)
-        result = f"Appended {len(chapters)} chapter(s) to '{args.output}'."
-    else:
-        first = chunks[min(chunks)]
-        def_title, def_author = ("Untitled", "Unknown")
-        match = FILENAME_RE.match(first.name)
-        if match:
-            def_title, def_author = match.group("title"), match.group("author")
-        title = args.title or def_title
-        author = args.author or def_author
-        safe = re.sub(r"[^A-Za-z0-9_]+", "_", title).strip("_") or "book"
-        epub_path = args.output if args.output.suffix.lower() == ".epub" else args.output / f"{safe}.epub"
-        write_new_epub(chapters, epub_path, title, author, args.cover)
-        result = f"EPUB created at: {epub_path}"
-
-    summary = "✅ validation clean" if not msgs else f"⚠ {len(msgs)} issue(s) – see {_ERROR_LOG}"
-    print(f"{result}  {summary}")
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print("\nCancelled by user.")
+# This module is now a library only - use enchant_cli.py for command line interface

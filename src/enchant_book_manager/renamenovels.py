@@ -6,9 +6,7 @@ import yaml
 import json
 import logging
 import re
-import argparse
 import sys
-import getpass
 from pathlib import Path
 import multiprocessing
 from json import JSONDecodeError
@@ -608,94 +606,4 @@ def process_files(
     logger.info(f"Total cost for all transactions: ${summary['total_cost']:.6f}")
 
 
-# Argument parsing
-def parse_args() -> argparse.Namespace:
-    """
-    Parse command line arguments.
-
-    Returns:
-        Namespace object with parsed arguments
-    """
-    parser = argparse.ArgumentParser(
-        description=f"Novel Auto Renamer v{VERSION}\nAutomatically rename text files based on extracted novel information.",
-        epilog="Example usage:\n  python renamenovels.py /path/to/folder -r -k 50",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument("path", type=str, help="Path to the folder containing text files.")
-    parser.add_argument(
-        "-r",
-        "--recursive",
-        action="store_true",
-        help="Recursively search through subfolders.",
-    )
-    parser.add_argument(
-        "-k",
-        "--kb",
-        type=int,
-        help="Amount of KB to read from the beginning of each file.",
-        default=DEFAULT_KB_TO_READ,
-    )
-    parser.add_argument("--version", action="version", version=f"Novel Auto Renamer v{VERSION}")
-    return parser.parse_args()
-
-
-# Entry point of the script
-def main() -> None:
-    """
-    Main entry point for the script.
-
-    Loads configuration, processes arguments, and starts file processing.
-    """
-    try:
-        args = parse_args()
-        kb_to_read = args.kb
-
-        # Load configuration
-        config = load_config()
-        model = config.get("model", "gpt-4o-mini")
-        temperature = config.get("temperature", 0.0)
-        max_workers = config.get("max_workers", multiprocessing.cpu_count())
-        kb_to_read = config.get("kb_to_read", kb_to_read)
-
-        # Load API key from config or environment
-        api_key = config.get("api_key") or os.getenv("OPENROUTER_API_KEY")
-        if not api_key:
-            api_key = getpass.getpass("Please enter your OpenRouter API key: ").strip()
-
-        if not api_key:
-            logger.error("OpenRouter API key is required. Please provide it via config file, environment variable (OPENROUTER_API_KEY), or input prompt.")
-            sys.exit(1)
-
-        # Cost tracking is now handled by the unified cost_tracker module
-        # OpenRouter provides costs directly in the API response
-
-        # Initialize ICloudSync
-        icloud_sync = ICloudSync(enabled=False)
-
-        # Process files
-        process_files(
-            Path(args.path),
-            recursive=args.recursive,
-            kb_to_read=kb_to_read,
-            api_key=api_key,
-            model=model,
-            temperature=temperature,
-            max_workers=max_workers,
-            icloud_sync=icloud_sync,
-        )
-    except KeyboardInterrupt:
-        logger.info("Script interrupted by user. Exiting gracefully.")
-        sys.exit(0)
-    except ICloudSyncError as e:
-        logger.error(f"iCloud synchronization failed: {e}")
-        sys.exit(1)
-    except RuntimeError as e:
-        logger.error(f"Runtime error: {e}")
-        sys.exit(1)
-    except Exception as e:
-        logger.error(f"An unexpected error occurred: {e}")
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()
+# This module is now a library only - use enchant_cli.py for command line interface

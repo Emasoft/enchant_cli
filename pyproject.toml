@@ -35,10 +35,7 @@ dependencies = [
 ]
 
 [project.scripts]
-enchant = "enchant_book_manager.enchant_cli:main"
-enchant-translate = "enchant_book_manager.cli_translator:main"
-enchant-rename = "enchant_book_manager.renamenovels:main"
-enchant-epub = "enchant_book_manager.make_epub:main"
+enchant-cli = "enchant_book_manager.enchant_cli:main"
 
 [project.urls]
 Homepage = "https://github.com/Emasoft/enchant-book-manager"

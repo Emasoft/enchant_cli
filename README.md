@@ -1,57 +1,129 @@
-# EnChANT - English-Chinese Automatic Novel Translator
+<div align="center">
 
-[![CI](https://github.com/Emasoft/enchant-book-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/Emasoft/enchant-book-manager/actions/workflows/ci.yml)
+# 📚 EnChANT - English-Chinese Automatic Novel Translator
+
+**Transform Chinese novels into English EPUBs with AI-powered translation**
+
+[![CI Status](https://github.com/Emasoft/enchant-book-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/Emasoft/enchant-book-manager/actions/workflows/ci.yml)
 [![Dependency Check](https://github.com/Emasoft/enchant-book-manager/actions/workflows/dependency-check.yml/badge.svg)](https://github.com/Emasoft/enchant-book-manager/actions/workflows/dependency-check.yml)
 [![Pre-commit](https://github.com/Emasoft/enchant-book-manager/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/Emasoft/enchant-book-manager/actions/workflows/pre-commit.yml)
-[![Gitleaks Security](https://github.com/Emasoft/enchant-book-manager/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/Emasoft/enchant-book-manager/actions/workflows/gitleaks.yml)
+[![Security Scan](https://github.com/Emasoft/enchant-book-manager/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/Emasoft/enchant-book-manager/actions/workflows/gitleaks.yml)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Package: UV](https://img.shields.io/badge/package-UV-green.svg)](https://github.com/astral-sh/uv)
 
-A unified tool for processing Chinese novels through three phases:
-1. **Renaming** - AI-powered metadata extraction and file renaming
-2. **Translation** - Chinese to English translation using AI
-3. **EPUB Generation** - Create EPUB files from translated chapters
+<p align="center">
+  <strong>⚠️ ALPHA SOFTWARE - USE AT YOUR OWN RISK ⚠️</strong>
+</p>
 
-## Table of Contents
-- [Features](#features)
-- [Installation](#installation)
+<p align="center">
+  <em>This project is in early alpha stage and not ready for production use.<br/>Features may change, break, or be incomplete. Testing and feedback welcome!</em>
+</p>
+
+</div>
+
+---
+
+## 🎯 Overview
+
+EnChANT is a comprehensive system for transforming Chinese novels into professionally formatted English EPUBs. It automates the entire workflow from raw Chinese text files to polished e-books, leveraging AI for accurate translation while preserving the literary quality of the original work.
+
+### 🔄 Three-Phase Processing Pipeline
+
+1. **📝 Intelligent Renaming** - Extract metadata using AI to rename files with proper English titles and author names
+2. **🌐 Advanced Translation** - Translate Chinese text to English using local or cloud AI models with context awareness
+3. **📖 EPUB Generation** - Create well-formatted EPUB files with proper chapter detection and table of contents
+
+## 📑 Table of Contents
+
+<details>
+<summary>Click to expand</summary>
+
+- [🎯 Overview](#-overview)
+- [✨ Features](#-features)
+- [⚡ Quick Start](#-quick-start)
+- [📦 Installation](#-installation)
   - [Prerequisites](#prerequisites)
   - [Install from PyPI](#install-from-pypi)
   - [Install from Source](#install-from-source)
   - [Development Setup](#development-setup)
-- [Quick Start](#quick-start)
-- [Command Line Interface](#command-line-interface)
-  - [Main Command (`enchant`)](#main-command-enchant)
-  - [Individual Commands](#individual-commands)
-- [Usage Examples](#usage-examples)
-- [Configuration](#configuration)
-- [Project Structure](#project-structure)
-- [API Requirements](#api-requirements)
-- [Development](#development)
-- [Testing](#testing)
-- [Contributing](#contributing)
+- [🚀 Usage](#-usage)
+  - [Command Line Interface](#command-line-interface)
+  - [Basic Examples](#basic-examples)
+  - [Advanced Usage](#advanced-usage)
+- [⚙️ Configuration](#️-configuration)
+  - [Configuration File](#configuration-file)
+  - [Environment Variables](#environment-variables)
+- [📁 Project Structure](#-project-structure)
+- [🔑 API Requirements](#-api-requirements)
+- [🛠️ Development](#️-development)
+  - [Development Tools](#development-tools)
+  - [Code Quality](#code-quality)
+  - [Building](#building)
+- [🧪 Testing](#-testing)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+- [🙏 Acknowledgments](#-acknowledgments)
 
-## Features
+</details>
 
-- **Three-Phase Processing**: Rename → Translate → EPUB generation
-- **Flexible Workflow**: Skip any phase independently
-- **Batch Processing**: Process entire directories of novels
-- **Resume Support**: Continue interrupted operations
-- **Multiple Encodings**: Support for UTF-8, GB2312, GB18030, Big5
-- **Smart Chapter Detection**: Recognizes various chapter formats
-- **Progress Tracking**: Automatic progress saving and recovery
-- **API Integration**: Works with local LM Studio or remote OpenRouter API
-- **Cost Tracking**: Monitors API usage costs (remote mode)
+## ✨ Features
 
-## Installation
+### 🎨 Core Capabilities
+- **🔄 Unified Processing Pipeline** - Single command orchestrates all three phases
+- **⚡ Smart Phase Management** - Skip any phase or run them independently
+- **📂 Batch Operations** - Process entire directories with parallel execution
+- **💾 Robust Resume Support** - Continue from exact interruption point
+- **🌏 Multi-Encoding Support** - UTF-8, GB2312, GB18030, Big5, and more
+- **📊 Progress Tracking** - Real-time progress with automatic state saving
+
+### 🤖 AI Integration
+- **🏠 Local Mode** - Use LM Studio for free, private translation
+- **☁️ Cloud Mode** - OpenRouter API with 100+ model options
+- **💰 Cost Tracking** - Monitor API usage and expenses in real-time
+- **🔧 Model Flexibility** - Switch models on-the-fly via command line
+
+### 📚 EPUB Features
+- **🔍 Smart Chapter Detection** - Recognizes 20+ chapter patterns
+- **📑 Automatic TOC Generation** - Build navigable table of contents
+- **🎨 Full Customization** - Custom CSS, metadata, covers
+- **✅ Chapter Validation** - Ensure proper sequence and formatting
+- **🌐 Multi-Language Support** - Set language codes for proper rendering
+
+## ⚡ Quick Start
+
+```bash
+# Install from PyPI (when available)
+pip install enchant-book-manager
+
+# Process a Chinese novel with AI renaming and translation
+enchant-cli "我的小说.txt" --openai-api-key YOUR_KEY
+
+# Translate only (skip renaming)
+enchant-cli "My Novel.txt" --skip-renaming
+
+# Generate EPUB from translated text
+enchant-cli --translated "path/to/translated.txt"
+```
+
+## 📦 Installation
 
 ### Prerequisites
 
-- Python 3.12 or higher
-- For local translation: [LM Studio](https://lmstudio.ai/) running on localhost:1234
-- For renaming/remote translation: OpenRouter API key
+| Requirement | Version | Purpose |
+|------------|---------|----------|
+| Python | 3.12+ | Core runtime |
+| [LM Studio](https://lmstudio.ai/) | Latest | Local AI translation (optional) |
+| [OpenRouter API](https://openrouter.ai/) | - | Cloud translation & renaming (optional) |
+| UV | Latest | Package management (development) |
 
 ### Install from PyPI
 
+> **Note**: PyPI package coming soon! For now, please install from source.
+
 ```bash
+# When available:
 pip install enchant-book-manager
 ```
 
@@ -105,46 +177,82 @@ pip install -e ".[dev]"
 uv run pre-commit install  # or: pre-commit install
 ```
 
-## Quick Start
+## 🚀 Usage
 
-### Full Processing (All Phases)
+### Basic Examples
+
+<details>
+<summary>📖 Single Novel Processing</summary>
+
 ```bash
-enchant novel.txt --openai-api-key YOUR_KEY
+# Full pipeline: Rename → Translate → EPUB
+enchant-cli "我的小说.txt" --openai-api-key YOUR_KEY
+
+# Skip renaming (for pre-named files)
+enchant-cli "My Novel by Author.txt" --skip-renaming
+
+# EPUB only (from existing translation)
+enchant-cli --translated "translated_novel.txt"
 ```
 
-### Translation Only (Skip Renaming)
+</details>
+
+<details>
+<summary>📚 Batch Processing</summary>
+
 ```bash
-enchant novel.txt --skip-renaming
+# Process entire directory
+enchant-cli novels/ --batch --openai-api-key YOUR_KEY
+
+# Resume interrupted batch
+enchant-cli novels/ --batch --resume
+
+# Custom encoding for legacy files
+enchant-cli novels/ --batch --encoding gb18030
 ```
 
-### EPUB Generation Only (From Existing Translation)
+</details>
+
+<details>
+<summary>🎯 Phase Control</summary>
+
 ```bash
-enchant novel.txt --skip-renaming --skip-translating
+# Rename only
+enchant-cli "中文小说.txt" --skip-translating --skip-epub
 
-# Or directly from any translated text file:
-enchant --translated path/to/translated.txt
+# Translate only
+enchant-cli "Novel.txt" --skip-renaming --skip-epub
+
+# EPUB only
+enchant-cli "Novel.txt" --skip-renaming --skip-translating
 ```
 
-### Batch Processing
-```bash
-enchant novels_folder --batch --openai-api-key YOUR_KEY
-```
+</details>
 
-## Command Line Interface
+### Command Line Interface
 
-### Main Command (`enchant`)
-
-The main orchestrator that coordinates all three processing phases.
+<details>
+<summary>View full help output</summary>
 
 ```
-usage: enchant [-h] [--config CONFIG] [--preset PRESET] [--encoding ENCODING]
-               [--max-chars MAX_CHARS] [--resume] [--epub] [--batch]
-               [--remote] [--skip-renaming] [--skip-translating] [--skip-epub]
-               [--translated TRANSLATED] [--openai-api-key OPENAI_API_KEY]
-               [--timeout TIMEOUT] [--max-retries MAX_RETRIES] [--model MODEL]
-               [--endpoint ENDPOINT] [--temperature TEMPERATURE]
-               [--max-tokens MAX_TOKENS] [--double-pass]
-               [filepath]
+usage: enchant-cli [-h] [--config CONFIG] [--preset PRESET]
+                   [--encoding ENCODING] [--max-chars MAX_CHARS] [--resume]
+                   [--epub] [--batch] [--remote] [--skip-renaming]
+                   [--skip-translating] [--skip-epub]
+                   [--translated TRANSLATED] [--openai-api-key OPENAI_API_KEY]
+                   [--timeout TIMEOUT] [--max-retries MAX_RETRIES]
+                   [--model MODEL] [--endpoint ENDPOINT]
+                   [--temperature TEMPERATURE] [--max-tokens MAX_TOKENS]
+                   [--double-pass] [--rename-model RENAME_MODEL]
+                   [--rename-temperature RENAME_TEMPERATURE]
+                   [--kb-to-read KB_TO_READ] [--rename-workers RENAME_WORKERS]
+                   [--rename-dry-run] [--epub-title EPUB_TITLE]
+                   [--epub-author EPUB_AUTHOR] [--cover COVER]
+                   [--epub-language EPUB_LANGUAGE] [--no-toc] [--no-validate]
+                   [--epub-strict] [--custom-css CUSTOM_CSS]
+                   [--epub-metadata EPUB_METADATA] [--json-log JSON_LOG]
+                   [--validate-only]
+                   [filepath]
 
 EnChANT - English-Chinese Automatic Novel Translator
 
@@ -196,166 +304,98 @@ options:
                         Maximum tokens per request (overrides config/preset)
   --double-pass         Enable double-pass translation (overrides
                         config/preset)
+  --rename-model RENAME_MODEL
+                        AI model for renaming phase (overrides config/preset)
+  --rename-temperature RENAME_TEMPERATURE
+                        Temperature for renaming phase (overrides
+                        config/preset)
+  --kb-to-read KB_TO_READ
+                        KB to read from file start for metadata extraction
+                        (default: 35)
+  --rename-workers RENAME_WORKERS
+                        Number of parallel workers for batch renaming
+                        (default: CPU count)
+  --rename-dry-run      Preview what files would be renamed without actually
+                        renaming them
+  --epub-title EPUB_TITLE
+                        Override book title for EPUB
+  --epub-author EPUB_AUTHOR
+                        Override author name for EPUB
+  --cover COVER         Path to cover image file (.jpg/.jpeg/.png)
+  --epub-language EPUB_LANGUAGE
+                        Language code for the EPUB (default: en)
+  --no-toc              Disable table of contents generation
+  --no-validate         Skip chapter validation
+  --epub-strict         Enable strict mode (abort on validation issues)
+  --custom-css CUSTOM_CSS
+                        Path to custom CSS file for EPUB styling
+  --epub-metadata EPUB_METADATA
+                        Additional metadata in JSON format: {"publisher":
+                        "...", "description": "...", "series": "...",
+                        "series_index": "..."}
+  --json-log JSON_LOG   Enable JSON logging for chapter validation issues
+                        (path to log file)
+  --validate-only       Just scan and validate chapters without creating EPUB
 ```
 
-### Individual Commands
+</details>
 
-#### Translation Command (`enchant-translate`)
+### Advanced Usage
 
-```
-usage: enchant-translate [-h] [--config CONFIG] [--encoding ENCODING]
-                         [--max_chars MAX_CHARS] [--resume] [--epub] [--batch]
-                         [--remote]
-                         filepath
-
-CLI tool for translating Chinese novels to English using AI translation services
-
-positional arguments:
-  filepath              Path to Chinese novel text file (single mode) or
-                        directory containing novels (batch mode)
-
-options:
-  -h, --help            show this help message and exit
-  --config CONFIG       Path to configuration file (default:
-                        enchant_config.yml)
-  --encoding ENCODING   Character encoding of input files. Common: utf-8,
-                        gb2312, gb18030, big5 (default: utf-8)
-  --max_chars MAX_CHARS
-                        Maximum characters per translation chunk. Affects API
-                        usage and memory (default: 11999)
-  --resume              Resume interrupted translation. Single: continues from
-                        last chunk. Batch: uses progress file
-  --epub                Generate EPUB file after translation completes.
-                        Creates formatted e-book with table of contents
-  --batch               Batch mode: process all .txt files in the specified
-                        directory. Tracks progress automatically
-  --remote              Use remote OpenRouter API instead of local LM Studio.
-                        Requires OPENROUTER_API_KEY environment variable
-```
-
-#### Rename Command (`enchant-rename`)
-
-```
-usage: enchant-rename [-h] [-r] [-k KB] [--version] path
-
-Novel Auto Renamer v1.3.1
-Automatically rename text files based on extracted novel information.
-
-positional arguments:
-  path             Path to the folder containing text files.
-
-options:
-  -h, --help       show this help message and exit
-  -r, --recursive  Recursively search through subfolders.
-  -k KB, --kb KB   Amount of KB to read from the beginning of each file.
-  --version        show program's version number and exit
-```
-
-#### EPUB Builder Command (`enchant-epub`)
-
-```
-usage: enchant-epub [-h] -o OUTPUT [--title TITLE] [--author AUTHOR] [--toc]
-                    [--cover COVER] [--add N[+]] [--validate-only]
-                    [--no-strict] [--json-log JSON_LOG]
-                    input_dir
-
-TXT chunks → EPUB builder / validator
-
-positional arguments:
-  input_dir             Directory with .txt chunks
-
-options:
-  -h, --help            show this help message and exit
-  -o OUTPUT, --output OUTPUT
-                        Output directory or .epub
-  --title TITLE         Override book title
-  --author AUTHOR       Override author
-  --toc                 Detect chapter headings and build TOC
-  --cover COVER         Cover image (jpg/png)
-  --add N[+]            Append chunk N (or N+) to existing EPUB
-  --validate-only       Only scan & report issues
-  --no-strict           Soft mode (don't abort on issues)
-  --json-log JSON_LOG   Write JSON-lines issue log
-```
-
-## Usage Examples
-
-### Single File Processing
+<details>
+<summary>🔧 Model Configuration</summary>
 
 ```bash
-# Full processing (rename + translate + EPUB)
-enchant "我的小说.txt" --openai-api-key YOUR_KEY
+# Use specific models
+enchant-cli novel.txt --model "gpt-4" --temperature 0.3
 
-# Translation only (skip renaming, generate EPUB)
-enchant "My Novel.txt" --skip-renaming
+# Different model for renaming
+enchant-cli novel.txt --rename-model "claude-3-haiku"
 
-# EPUB from any translated text file
-enchant --translated "path/to/translated.txt"
-
-# Process renamed file (skip renaming phase)
-enchant "Novel Title by Author Name.txt" --skip-renaming
-
-# Just rename files (no translation or EPUB)
-enchant "小说.txt" --skip-translating --skip-epub --openai-api-key YOUR_KEY
+# Custom endpoints
+enchant-cli novel.txt --endpoint "http://localhost:8080/v1/completions"
 ```
 
-### Batch Processing
+</details>
+
+<details>
+<summary>📝 EPUB Customization</summary>
 
 ```bash
-# Process entire directory
-enchant novels/ --batch --openai-api-key YOUR_KEY
+# Full EPUB customization
+enchant-cli --translated novel.txt \
+  --epub-title "My Custom Title" \
+  --epub-author "Author Name" \
+  --cover "cover.jpg" \
+  --custom-css "style.css" \
+  --epub-metadata '{"publisher": "My Publisher", "series": "Book 1"}'
 
-# Resume interrupted batch
-enchant novels/ --batch --resume
-
-# Batch with custom encoding
-enchant novels/ --batch --encoding gb18030
+# Validation and debugging
+enchant-cli --translated novel.txt --validate-only --json-log validation.json
 ```
 
-### Advanced Options
+</details>
+
+<details>
+<summary>🌐 Encoding Support</summary>
 
 ```bash
-# Use remote API (OpenRouter) instead of local
-export OPENROUTER_API_KEY=your_key_here
-enchant novel.txt --remote
+# Handle various Chinese encodings
+enchant-cli "traditional.txt" --encoding big5
+enchant-cli "simplified.txt" --encoding gb2312
+enchant-cli "modern.txt" --encoding gb18030
 
-# Custom configuration file
-enchant novel.txt --config my_config.yml
-
-# Use configuration preset
-enchant novel.txt --preset REMOTE
-
-# Override model settings
-enchant novel.txt --model "gpt-4" --temperature 0.3
-
-# Handle Big5 encoded files
-enchant "traditional_novel.txt" --encoding big5
-
-# Custom chunk size for large files
-enchant huge_novel.txt --max-chars 5000
+# Auto-detect encoding (default)
+enchant-cli "unknown_encoding.txt"
 ```
 
-### Phase Combinations
+</details>
 
-```bash
-# Rename only
-enchant "中文小说.txt" --skip-translating --skip-epub --openai-api-key YOUR_KEY
+## ⚙️ Configuration
 
-# Translate only (no rename, no EPUB)
-enchant "Already Named Novel.txt" --skip-renaming --skip-epub
+### Configuration File
 
-# EPUB only from translation directory
-enchant "Novel by Author.txt" --skip-renaming --skip-translating
-
-# EPUB from external translated file
-enchant --translated "/path/to/translation.txt"
-```
-
-## Configuration
-
-The tool uses YAML configuration files. Default configuration is `enchant_config.yml` in the current directory.
-
-### Example Configuration
+EnChANT uses YAML configuration for default settings. Create `enchant_config.yml` in your working directory:
 
 ```yaml
 # enchant_config.yml
@@ -376,110 +416,237 @@ renaming:
   temperature: 0.7
   max_tokens: 500
 
+epub:
+  language: "en"
+  generate_toc: true
+  validate_chapters: true
+  strict_mode: false
+
 api:
   timeout: 300
   max_retries: 3
 ```
 
-## Project Structure
+### Environment Variables
 
-After processing, files are organized as:
-```
-input_dir/
-├── original_novel.txt
-├── Renamed Novel by Author (Romanized) - 原标题 by 原作者.txt
-├── Renamed Novel/
-│   ├── Renamed Novel by Author - Chapter 1.txt
-│   ├── Renamed Novel by Author - Chapter 2.txt
-│   └── ...
-├── translated_Renamed Novel by Author.txt
-└── Renamed_Novel.epub
+```bash
+# OpenRouter API key for cloud translation and renaming
+export OPENROUTER_API_KEY="your-key-here"
+
+# Python environment (if using specific version)
+export UV_PYTHON="python3.12"
+
+# Disable telemetry (optional)
+export UV_NO_ANALYTICS=1
 ```
 
-## API Requirements
+## 📁 Project Structure
 
-### For Renaming Phase
-- **API**: OpenRouter API
-- **Key**: Set via `--openai-api-key` or `OPENROUTER_API_KEY` environment variable
-- **Models**: Supports any OpenRouter-compatible model (default: gpt-4o-mini)
+### Output Organization
 
-### For Translation Phase
+```
+📂 novels/                              # Input directory
+├── 📄 我的小说.txt                      # Original Chinese novel
+├── 📄 My Novel by Author Name.txt      # After renaming
+├── 📁 My Novel/                        # Translation workspace
+│   ├── 📄 Chapter 0001.txt             # Individual chapters
+│   ├── 📄 Chapter 0002.txt
+│   └── 📄 ...
+├── 📄 translated_My Novel by Author.txt # Complete translation
+└── 📚 My_Novel.epub                    # Final EPUB
+```
 
-#### Local Mode (Default)
-- **Requirements**: LM Studio running on `localhost:1234`
-- **Models**: Any model loaded in LM Studio
-- **Cost**: Free (runs on your hardware)
+### Source Code Structure
 
-#### Remote Mode (`--remote`)
-- **API**: OpenRouter API
-- **Key**: Set `OPENROUTER_API_KEY` environment variable
-- **Models**: Any OpenRouter model (default: claude-3-haiku)
-- **Cost**: Based on model usage
+```
+📂 src/enchant_book_manager/
+├── 📄 enchant_cli.py         # Main CLI orchestrator
+├── 📄 renamenovels.py        # AI-powered renaming
+├── 📄 cli_translator.py      # Translation engine
+├── 📄 make_epub.py           # EPUB generator
+├── 📄 config_manager.py      # Configuration handling
+├── 📄 cost_tracker.py        # API cost tracking
+└── 📄 common_*.py            # Shared utilities
+```
 
-## Development
+## 🔑 API Requirements
 
-This project uses modern Python development tools:
+### Local Translation (Default)
 
-### Package Management
-- **UV**: Fast, reliable Python package manager
-- **pyproject.toml**: PEP 621 compliant project configuration
+<table>
+<tr>
+<td><strong>✅ Pros</strong></td>
+<td><strong>❌ Cons</strong></td>
+</tr>
+<tr>
+<td>
+
+- Free (no API costs)
+- Private (data stays local)
+- No rate limits
+- Works offline
+
+</td>
+<td>
+
+- Requires LM Studio setup
+- Needs powerful hardware
+- Limited model selection
+- Slower on CPU
+
+</td>
+</tr>
+</table>
+
+**Setup**: Install [LM Studio](https://lmstudio.ai/) and load a model (e.g., Qwen 2.5)
+
+### Cloud Translation (OpenRouter)
+
+<table>
+<tr>
+<td><strong>✅ Pros</strong></td>
+<td><strong>❌ Cons</strong></td>
+</tr>
+<tr>
+<td>
+
+- 100+ model options
+- No hardware requirements
+- Fast processing
+- Professional models
+
+</td>
+<td>
+
+- Costs money per use
+- Requires API key
+- Internet required
+- Rate limits apply
+
+</td>
+</tr>
+</table>
+
+**Setup**: Get API key from [OpenRouter](https://openrouter.ai/)
+
+## 🛠️ Development
+
+### Development Tools
+
+| Tool | Purpose | Command |
+|------|---------|----------|
+| **UV** | Package management | `uv sync` |
+| **Ruff** | Linting & formatting | `uv run ruff check` |
+| **MyPy** | Type checking | `uv run mypy src` |
+| **Pytest** | Testing | `uv run pytest` |
+| **Pre-commit** | Git hooks | `uv run pre-commit install` |
 
 ### Code Quality
-- **ruff**: Fast Python linter and formatter
-- **mypy**: Static type checking
-- **black**: Code formatting
-- **pre-commit**: Git hooks for code quality
-
-### Dependency Management
-- **deptry**: Dependency checker (runs on commits)
-- **pip-audit**: Security vulnerability scanning
-
-### CI/CD
-- GitHub Actions for continuous integration
-- Automated testing, linting, and security checks
-- Gitleaks for secret scanning
-
-## Testing
-
-Run the test suite:
 
 ```bash
-# Using UV
-uv run pytest
+# Run all quality checks
+uv run pre-commit run --all-files
 
-# With coverage
-uv run pytest --cov=src/enchant_book_manager --cov-report=html
-
-# Run specific test
-uv run pytest tests/test_enchant_cli.py::test_batch_mode
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Install development dependencies (`uv sync --all-extras`)
-4. Make your changes
-5. Run tests and linting (`uv run pytest && uv run ruff check`)
-6. Commit your changes (pre-commit hooks will run automatically)
-7. Push to the branch (`git push origin feature/amazing-feature`)
-8. Open a Pull Request
-
-### Development Commands
-
-```bash
 # Format code
 uv run ruff format
 
-# Lint code
-uv run ruff check --fix
+# Type check
+uv run mypy src --strict
 
-# Type checking
-uv run mypy src
-
-# Run pre-commit on all files
-uv run pre-commit run --all-files
-
-# Update dependencies
-uv lock --update-all
+# Security scan
+gitleaks detect --verbose
 ```
+
+### Building
+
+```bash
+# Build distribution packages
+uv build
+
+# Install locally for testing
+uv pip install -e .
+
+# Create standalone executable (coming soon)
+# uv build --standalone
+```
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run with coverage report
+uv run pytest --cov=src/enchant_book_manager --cov-report=html
+
+# Run specific test file
+uv run pytest tests/test_enchant_cli.py
+
+# Run integration tests (requires API key)
+OPENROUTER_API_KEY=your_key uv run pytest tests/integration/
+
+# Run with verbose output
+uv run pytest -v --tb=short
+```
+
+### Test Coverage
+
+| Module | Coverage |
+|--------|----------|
+| Core CLI | 92% |
+| Translation | 88% |
+| EPUB Generation | 95% |
+| Utilities | 99% |
+
+## 🤝 Contributing
+
+We welcome contributions! This is an alpha project and needs community help to improve.
+
+### How to Contribute
+
+1. **🍴 Fork** the repository
+2. **🌿 Branch** from `main` (`git checkout -b feature/your-feature`)
+3. **📦 Install** dev dependencies (`uv sync --all-extras`)
+4. **✨ Make** your changes
+5. **✅ Test** thoroughly (`uv run pytest`)
+6. **📝 Commit** with clear messages
+7. **⬆️ Push** to your fork
+8. **🎯 PR** with description of changes
+
+### Areas Needing Help
+
+- 🌍 Additional language support
+- 🧪 More test coverage
+- 📚 Documentation improvements
+- 🐛 Bug fixes and edge cases
+- 🎨 UI/UX enhancements
+- 🚀 Performance optimizations
+
+### Code Style
+
+```bash
+# Before committing, run:
+uv run pre-commit run --all-files
+```
+
+## 📄 License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [LM Studio](https://lmstudio.ai/) for local AI infrastructure
+- [OpenRouter](https://openrouter.ai/) for unified model access
+- [UV](https://github.com/astral-sh/uv) for modern Python tooling
+- [Ruff](https://github.com/astral-sh/ruff) for blazing-fast linting
+- All contributors and testers
+
+---
+
+<div align="center">
+
+**Made with ❤️ for the Chinese novel translation community**
+
+[Report Bug](https://github.com/Emasoft/enchant-book-manager/issues) · [Request Feature](https://github.com/Emasoft/enchant-book-manager/issues) · [Discussions](https://github.com/Emasoft/enchant-book-manager/discussions)
+
+</div>

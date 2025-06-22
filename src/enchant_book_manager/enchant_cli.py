@@ -136,12 +136,17 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                 progress["phases"]["renaming"]["error"] = "No API key"
             else:
                 try:
+                    # Use command line options if provided, otherwise defaults
+                    rename_model = getattr(args, "rename_model", None) or "gpt-4o-mini"
+                    rename_temperature = float(getattr(args, "rename_temperature", 0.0)) if hasattr(args, "rename_temperature") and getattr(args, "rename_temperature") is not None else 0.0
+                    rename_dry_run = getattr(args, "rename_dry_run", False)
+
                     success, new_path, metadata = rename_novel(
                         file_path,
                         api_key=api_key,
-                        model="gpt-4o-mini",
-                        temperature=0.0,
-                        dry_run=False,
+                        model=rename_model,
+                        temperature=rename_temperature,
+                        dry_run=rename_dry_run,
                     )
 
                     if success and new_path:
@@ -267,6 +272,12 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                     config = get_config()
                     epub_settings = config.get("epub", {})
 
+                    # Override with command line options
+                    if hasattr(args, "epub_title") and args.epub_title:
+                        book_title = args.epub_title
+                    if hasattr(args, "epub_author") and args.epub_author:
+                        book_author = args.epub_author
+
                     # Build book info for configuration
                     book_info_for_config = {
                         "title_english": book_title,
@@ -278,13 +289,76 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                     # Create EPUB configuration from book info and settings
                     epub_config = get_epub_config_from_book_info(book_info=book_info_for_config, epub_settings=epub_settings)
 
-                    # Create EPUB using the common utility
-                    success, issues = create_epub_with_config(
-                        txt_file_path=translated_file,
-                        output_path=epub_path,
-                        config=epub_config,
-                        logger=tolog,
-                    )
+                    # Override EPUB config with command line options
+                    if hasattr(args, "epub_language") and args.epub_language:
+                        epub_config["language"] = args.epub_language
+                    if hasattr(args, "no_toc") and args.no_toc:
+                        epub_config["generate_toc"] = False
+                    if hasattr(args, "no_validate") and args.no_validate:
+                        epub_config["validate_chapters"] = False
+                    if hasattr(args, "epub_strict") and args.epub_strict:
+                        epub_config["strict_mode"] = True
+
+                    # Handle cover image
+                    if hasattr(args, "cover") and args.cover:
+                        cover_path = Path(args.cover)
+                        if cover_path.exists():
+                            epub_config["cover_path"] = cover_path
+                        else:
+                            tolog.warning(f"Cover image not found: {args.cover}")
+
+                    # Handle custom CSS
+                    if hasattr(args, "custom_css") and args.custom_css:
+                        css_path = Path(args.custom_css)
+                        if css_path.exists():
+                            epub_config["custom_css"] = css_path.read_text(encoding="utf-8")
+                        else:
+                            tolog.warning(f"Custom CSS file not found: {args.custom_css}")
+
+                    # Handle metadata
+                    if hasattr(args, "epub_metadata") and args.epub_metadata:
+                        try:
+                            import json
+
+                            metadata = json.loads(args.epub_metadata)
+                            epub_config["metadata"] = metadata
+                        except json.JSONDecodeError as e:
+                            tolog.warning(f"Invalid JSON in epub-metadata: {e}")
+
+                    # Handle validate-only mode
+                    if hasattr(args, "validate_only") and args.validate_only:
+                        # Just validate, don't create EPUB
+                        from .make_epub import create_epub_from_txt_file
+
+                        success, issues = create_epub_from_txt_file(
+                            translated_file,
+                            output_path=epub_path,
+                            title=book_title,
+                            author=book_author,
+                            cover_path=epub_config.get("cover_path"),
+                            generate_toc=epub_config.get("generate_toc", True),
+                            validate=True,
+                            strict_mode=epub_config.get("strict_mode", False),
+                            language=epub_config.get("language", "en"),
+                            custom_css=epub_config.get("custom_css"),
+                            metadata=epub_config.get("metadata"),
+                        )
+                        if issues:
+                            tolog.info(f"Validation found {len(issues)} issues")
+                            for issue in issues:
+                                tolog.warning(f"  - {issue}")
+                        else:
+                            tolog.info("Validation passed with no issues")
+                        progress["phases"]["epub"]["status"] = "skipped"
+                        progress["phases"]["epub"]["result"] = "validate-only"
+                    else:
+                        # Create EPUB using the common utility
+                        success, issues = create_epub_with_config(
+                            txt_file_path=translated_file,
+                            output_path=epub_path,
+                            config=epub_config,
+                            logger=tolog,
+                        )
 
                     if success:
                         progress["phases"]["epub"]["status"] = "completed"
@@ -538,85 +612,112 @@ USAGE EXAMPLES:
 SINGLE FILE PROCESSING:
 
   Full processing (rename + translate + EPUB):
-    $ python enchant_cli.py "我的小说.txt" --openai-api-key YOUR_KEY
+    $ enchant-cli "我的小说.txt" --openai-api-key YOUR_KEY
 
   Translation only (skip renaming, generate EPUB):
-    $ python enchant_cli.py "My Novel.txt" --skip-renaming
+    $ enchant-cli "My Novel.txt" --skip-renaming
 
   EPUB from any translated text file:
-    $ python enchant_cli.py --translated "path/to/translated.txt"
+    $ enchant-cli --translated "path/to/translated.txt"
 
   Process renamed file (skip renaming phase):
-    $ python enchant_cli.py "Novel Title by Author Name.txt" --skip-renaming
+    $ enchant-cli "Novel Title by Author Name.txt" --skip-renaming
 
   Just rename files (no translation or EPUB):
-    $ python enchant_cli.py "小说.txt" --skip-translating --skip-epub --openai-api-key YOUR_KEY
+    $ enchant-cli "小说.txt" --skip-translating --skip-epub --openai-api-key YOUR_KEY
 
 BATCH PROCESSING:
 
   Process entire directory:
-    $ python enchant_cli.py novels/ --batch --openai-api-key YOUR_KEY
+    $ enchant-cli novels/ --batch --openai-api-key YOUR_KEY
 
   Resume interrupted batch:
-    $ python enchant_cli.py novels/ --batch --resume
+    $ enchant-cli novels/ --batch --resume
 
   Batch with custom encoding:
-    $ python enchant_cli.py novels/ --batch --encoding gb18030
+    $ enchant-cli novels/ --batch --encoding gb18030
 
 ADVANCED OPTIONS:
 
   Use remote API (OpenRouter) instead of local:
-    $ python enchant_cli.py novel.txt --remote
+    $ enchant-cli novel.txt --remote
     $ export OPENROUTER_API_KEY=your_key_here
 
   Custom configuration file:
-    $ python enchant_cli.py novel.txt --config my_config.yml
+    $ enchant-cli novel.txt --config my_config.yml
 
   Use configuration preset:
-    $ python enchant_cli.py novel.txt --preset REMOTE
+    $ enchant-cli novel.txt --preset REMOTE
 
   Override model settings:
-    $ python enchant_cli.py novel.txt --model "gpt-4" --temperature 0.3
+    $ enchant-cli novel.txt --model "gpt-4" --temperature 0.3
 
   Handle Big5 encoded files:
-    $ python enchant_cli.py "traditional_novel.txt" --encoding big5
+    $ enchant-cli "traditional_novel.txt" --encoding big5
 
   Custom chunk size for large files:
-    $ python enchant_cli.py huge_novel.txt --max-chars 5000
+    $ enchant-cli huge_novel.txt --max-chars 5000
+
+RENAMING OPTIONS:
+
+  Custom model for renaming:
+    $ enchant-cli novel.txt --rename-model "gpt-4" --openai-api-key YOUR_KEY
+
+  Preview renaming without changes:
+    $ enchant-cli novel.txt --rename-dry-run --openai-api-key YOUR_KEY
+
+  Adjust metadata extraction:
+    $ enchant-cli novel.txt --kb-to-read 50 --rename-temperature 0.5
+
+EPUB OPTIONS:
+
+  Custom title and author:
+    $ enchant-cli --translated novel.txt --epub-title "My Title" --epub-author "My Author"
+
+  Add cover image:
+    $ enchant-cli --translated novel.txt --cover "cover.jpg"
+
+  Custom CSS styling:
+    $ enchant-cli --translated novel.txt --custom-css "style.css"
+
+  Add metadata:
+    $ enchant-cli --translated novel.txt --epub-metadata '{"publisher": "My Pub", "series": "My Series"}'
+
+  Validate chapters only:
+    $ enchant-cli --translated novel.txt --validate-only
+
+  Disable TOC generation:
+    $ enchant-cli --translated novel.txt --no-toc
+
+  Strict validation mode:
+    $ enchant-cli --translated novel.txt --epub-strict
 
 PHASE COMBINATIONS:
 
   Rename only:
-    $ python enchant_cli.py "中文小说.txt" --skip-translating --skip-epub --openai-api-key YOUR_KEY
+    $ enchant-cli "中文小说.txt" --skip-translating --skip-epub --openai-api-key YOUR_KEY
 
   Translate only (no rename, no EPUB):
-    $ python enchant_cli.py "Already Named Novel.txt" --skip-renaming --skip-epub
+    $ enchant-cli "Already Named Novel.txt" --skip-renaming --skip-epub
 
   EPUB only from translation directory:
-    $ python enchant_cli.py "Novel by Author.txt" --skip-renaming --skip-translating
+    $ enchant-cli "Novel by Author.txt" --skip-renaming --skip-translating
 
-  EPUB from external translated file (simplified):
-    $ python enchant_cli.py --translated "/path/to/translation.txt"
-
-SPECIAL CASES:
-
-  Using --translated option:
-    • Automatically implies --skip-renaming and --skip-translating
-    • Makes the filepath argument optional
-    • Creates EPUB in the same directory as the translated file
-    Example: $ python enchant_cli.py --translated "my_translated_novel.txt"
-
-  Legacy method (without --translated):
-    • Requires filepath argument
-    • Looks for translation in expected directory structure
-    Example: $ python enchant_cli.py "Novel.txt" --skip-renaming --skip-translating
+  EPUB from external translated file:
+    $ enchant-cli --translated "/path/to/translation.txt"
 
 ====================================================================================
 PROCESSING PHASES:
 ====================================================================================
-  1. RENAMING: Extract metadata and rename files (requires OpenAI API key)
+  1. RENAMING: Extract metadata and rename files (requires OpenRouter API key)
+     Options: --rename-model, --rename-temperature, --kb-to-read, --rename-dry-run
+
   2. TRANSLATION: Translate Chinese text to English
-  3. EPUB: Generate EPUB from translated novel.
+     Options: --remote, --max-chars, --resume, --model, --temperature
+
+  3. EPUB: Generate EPUB from translated novel
+     Options: --epub-title, --epub-author, --cover, --epub-language, --custom-css,
+              --epub-metadata, --no-toc, --no-validate, --epub-strict, --validate-only
 
 SKIP FLAGS:
   --skip-renaming     Skip phase 1 (file renaming)
@@ -746,6 +847,106 @@ API KEYS:
         "--double-pass",
         action="store_true",
         help="Enable double-pass translation (overrides config/preset)",
+    )
+
+    # Renaming phase options
+    parser.add_argument(
+        "--rename-model",
+        type=str,
+        help="AI model for renaming phase (overrides config/preset)",
+    )
+
+    parser.add_argument(
+        "--rename-temperature",
+        type=float,
+        help="Temperature for renaming phase (overrides config/preset)",
+    )
+
+    parser.add_argument(
+        "--kb-to-read",
+        type=int,
+        default=35,
+        help="KB to read from file start for metadata extraction (default: 35)",
+    )
+
+    parser.add_argument(
+        "--rename-workers",
+        type=int,
+        help="Number of parallel workers for batch renaming (default: CPU count)",
+    )
+
+    parser.add_argument(
+        "--rename-dry-run",
+        action="store_true",
+        help="Preview what files would be renamed without actually renaming them",
+    )
+
+    # EPUB generation options
+    parser.add_argument(
+        "--epub-title",
+        type=str,
+        help="Override book title for EPUB",
+    )
+
+    parser.add_argument(
+        "--epub-author",
+        type=str,
+        help="Override author name for EPUB",
+    )
+
+    parser.add_argument(
+        "--cover",
+        type=str,
+        help="Path to cover image file (.jpg/.jpeg/.png)",
+    )
+
+    parser.add_argument(
+        "--epub-language",
+        type=str,
+        default="en",
+        help="Language code for the EPUB (default: en)",
+    )
+
+    parser.add_argument(
+        "--no-toc",
+        action="store_true",
+        help="Disable table of contents generation",
+    )
+
+    parser.add_argument(
+        "--no-validate",
+        action="store_true",
+        help="Skip chapter validation",
+    )
+
+    parser.add_argument(
+        "--epub-strict",
+        action="store_true",
+        help="Enable strict mode (abort on validation issues)",
+    )
+
+    parser.add_argument(
+        "--custom-css",
+        type=str,
+        help="Path to custom CSS file for EPUB styling",
+    )
+
+    parser.add_argument(
+        "--epub-metadata",
+        type=str,
+        help='Additional metadata in JSON format: {"publisher": "...", "description": "...", "series": "...", "series_index": "..."}',
+    )
+
+    parser.add_argument(
+        "--json-log",
+        type=str,
+        help="Enable JSON logging for chapter validation issues (path to log file)",
+    )
+
+    parser.add_argument(
+        "--validate-only",
+        action="store_true",
+        help="Just scan and validate chapters without creating EPUB",
     )
 
     args = parser.parse_args()
