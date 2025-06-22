@@ -1001,9 +1001,9 @@ They needed to venture deep into the forest and clear out the magical beasts the
             potential_dirs = list(workspace.glob(f"{expected_title}*"))
             translation_dirs = [d for d in potential_dirs if d.is_dir()]
 
-        assert (
-            len(translation_dirs) > 0
-        ), f"No translation directory found matching: {dir_pattern}. Found files/dirs: {list(workspace.iterdir())}"
+        assert len(translation_dirs) > 0, (
+            f"No translation directory found matching: {dir_pattern}. Found files/dirs: {list(workspace.iterdir())}"
+        )
         translation_dir = translation_dirs[0]  # Use the first matching directory
 
         # 3. Verify chapter files exist
@@ -1016,15 +1016,15 @@ They needed to venture deep into the forest and clear out the magical beasts the
             # Maybe chapters are in the combined file
             # Look for the translated file instead
             translated_files = list(translation_dir.glob("translated_*.txt"))
-            assert (
-                len(translated_files) >= 1
-            ), f"No translated file found in {translation_dir}. Files: {[f.name for f in all_files]}"
+            assert len(translated_files) >= 1, (
+                f"No translated file found in {translation_dir}. Files: {[f.name for f in all_files]}"
+            )
 
         # 4. Verify combined translation file
         combined_files = list(translation_dir.glob("translated_*.txt"))
-        assert (
-            len(combined_files) >= 1
-        ), f"No combined translation file found in: {translation_dir}. Files found: {list(translation_dir.iterdir())}"
+        assert len(combined_files) >= 1, (
+            f"No combined translation file found in: {translation_dir}. Files found: {list(translation_dir.iterdir())}"
+        )
 
         # 5. Verify EPUB file exists (might not exist due to directory name mismatch issue)
         epub_pattern = f"{safe_title}*.epub"

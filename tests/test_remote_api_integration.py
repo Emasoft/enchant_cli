@@ -130,9 +130,9 @@ class TestRemoteAPIIntegration:
                 # When skip_renaming is True, an empty title creates "by n.d" directory
                 # Look for directories created in the current (temp) directory
                 subdirs = [d for d in Path.cwd().iterdir() if d.is_dir() and d.name != "__pycache__"]
-                assert (
-                    len(subdirs) > 0
-                ), f"No translation directory was created. CWD contents: {list(Path.cwd().iterdir())}"
+                assert len(subdirs) > 0, (
+                    f"No translation directory was created. CWD contents: {list(Path.cwd().iterdir())}"
+                )
 
                 # Check that the translation directory contains translated files
                 translation_dir = subdirs[0]
