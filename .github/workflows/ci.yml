@@ -9,68 +9,8 @@ on:
     types: [created]
 
 jobs:
-  # Note: Comprehensive linting is also performed by Super-Linter in super-linter.yml
-  # This job focuses on Python-specific linting with our project's exact configuration
-  lint:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
-
-      - name: Set up Python environment
-        run: |
-          uv python install 3.12
-          uv sync --all-extras
-
-      - name: Run ruff
-        run: |
-          uv run ruff check \
-            --ignore E203,E402,E501,E266,W505,F841,F842,F401,W293,I001,UP015,C901,W291,UP017,UP009,B007,B011,UP031 \
-            src tests
-
-      - name: Run ruff format check
-        run: uv run ruff format --check src tests
-
-      - name: Run mypy
-        run: uv run mypy src --strict --ignore-missing-imports
-
-      - name: Run yamllint
-        run: uv run yamllint . --strict
-
-      - name: Install actionlint
-        run: |
-          mkdir -p ~/.local/bin
-          VERSION="1.7.7"
-          ARCH="amd64"
-          OS="linux"
-          URL="https://github.com/rhysd/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_${OS}_${ARCH}.tar.gz"
-          curl -L "${URL}" | tar xz -C ~/.local/bin actionlint
-          chmod +x ~/.local/bin/actionlint
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
-      - name: Install yamlfmt
-        run: |
-          # Install Go if not available
-          if ! command -v go &> /dev/null; then
-            wget -q https://go.dev/dl/go1.21.0.linux-amd64.tar.gz
-            sudo tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
-            export PATH=$PATH:/usr/local/go/bin
-          fi
-          # Install yamlfmt
-          go install github.com/google/yamlfmt/cmd/yamlfmt@latest
-          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
-
-      - name: Run actionlint
-        run: actionlint
-
-      - name: Check GitHub workflow YAML formatting
-        run: yamlfmt -lint .github/
+  # Note: Linting is now performed by the separate lint.yml workflow
+  # This CI workflow focuses on tests, dependency checks, and builds
 
   dependency-check:
     runs-on: ubuntu-latest
@@ -157,7 +97,7 @@ jobs:
           name: codecov-umbrella
 
   build:
-    needs: [lint, dependency-check, test]
+    needs: [dependency-check, test]
     runs-on: ubuntu-latest
 
     steps:
