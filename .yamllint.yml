@@ -43,3 +43,4 @@ ignore: |-
   .venv/
   htmlcov/
   test_data/
+  enchant_config.yml
