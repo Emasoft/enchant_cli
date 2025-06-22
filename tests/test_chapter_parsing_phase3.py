@@ -176,7 +176,7 @@ class TestChapterParsingPhase3:
 
                     actual = actual_chapters[i]
                     if actual != expected["text"]:
-                        mismatches.append(f"Chapter {i + 1}:\n" f"  Expected: '{expected['text']}'\n" f"  Actual:   '{actual}'")
+                        mismatches.append(f"Chapter {i + 1}:\n  Expected: '{expected['text']}'\n  Actual:   '{actual}'")
 
                 # Report all mismatches if any
                 if mismatches:

@@ -270,7 +270,9 @@ class TestChineseAITranslator:
     def test_translate_messages_thinking_removal(self, mock_post, translator_local):
         """Test thinking block removal from response"""
         mock_response = Mock()
-        mock_response.json.return_value = {"choices": [{"message": {"content": "<think>Internal thought</think>Actual translation"}}]}
+        mock_response.json.return_value = {
+            "choices": [{"message": {"content": "<think>Internal thought</think>Actual translation"}}]
+        }
         mock_response.raise_for_status = Mock()
         mock_post.return_value = mock_response
 

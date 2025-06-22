@@ -24,7 +24,7 @@ rules:
 
   quoted-strings:
     quote-type: any
-    required: only-when-needed
+    required: false
 
   brackets:
     min-spaces-inside: 0

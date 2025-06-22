@@ -439,7 +439,9 @@ class ConfigManager:
                 if first_error.get("can_restore"):
                     if first_error["type"] == "missing_required_preset":
                         preset_name = first_error["preset"]
-                        response = input(f"\nRequired preset '{preset_name}' is missing. Restore default values? (y/n): ")
+                        response = input(
+                            f"\nRequired preset '{preset_name}' is missing. Restore default values? (y/n): "
+                        )
                         if response.lower() == "y":
                             defaults = self._get_default_config()
                             default_presets = defaults.get("presets", {})
@@ -575,7 +577,9 @@ class ConfigManager:
         for preset_name in presets.keys():
             if not valid_name_pattern.match(preset_name):
                 line_num = self._find_line_number(f"presets.{preset_name}")
-                error_msg = "Preset names must start with a letter or underscore, followed by letters, numbers, or underscores"
+                error_msg = (
+                    "Preset names must start with a letter or underscore, followed by letters, numbers, or underscores"
+                )
                 if preset_name[0].isdigit():
                     error_msg = "invalid preset name. Names must not begin with a number!"
                 elif "-" in preset_name:
@@ -672,7 +676,9 @@ class ConfigManager:
 
         return None
 
-    def _validate_preset_values_first_error(self, preset_name: str, preset_data: dict[str, Any]) -> dict[str, Any] | None:
+    def _validate_preset_values_first_error(
+        self, preset_name: str, preset_data: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """Validate preset values and return only the FIRST error found."""
         # Check each value in order
         for key, value in preset_data.items():
@@ -915,7 +921,9 @@ class ConfigManager:
         # Validate preset name format
         valid_name_pattern = re.compile(r"^[A-Za-z0-9_]+$")
         if not valid_name_pattern.match(preset_name):
-            self.logger.error(f"Invalid preset name '{preset_name}'. Preset names must contain only alphanumeric characters and underscores.")
+            self.logger.error(
+                f"Invalid preset name '{preset_name}'. Preset names must contain only alphanumeric characters and underscores."
+            )
             return False
 
         presets = self.config.get("presets", {})

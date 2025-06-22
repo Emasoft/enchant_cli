@@ -82,7 +82,9 @@ class TestChunkRetryMechanism:
                 assert mock_translator.translate.call_count == 3
 
                 # Check log messages
-                success_logs = [call for call in mock_tolog.info.call_args_list if "Successfully translated chunk" in str(call)]
+                success_logs = [
+                    call for call in mock_tolog.info.call_args_list if "Successfully translated chunk" in str(call)
+                ]
                 assert len(success_logs) == 3
 
     @patch("enchant_book_manager.cli_translator.Book.get_by_id")
@@ -135,7 +137,9 @@ class TestChunkRetryMechanism:
         "enchant_book_manager.cli_translator._module_config",
         {"translation": {"max_chunk_retries": 3}},
     )
-    def test_translation_fails_after_max_retries(self, mock_sleep, mock_tolog, mock_translator, mock_var_db, mock_get_book):
+    def test_translation_fails_after_max_retries(
+        self, mock_sleep, mock_tolog, mock_translator, mock_var_db, mock_get_book
+    ):
         """Test program exits when all retry attempts fail"""
 
         # Setup mocks
@@ -180,7 +184,9 @@ class TestChunkRetryMechanism:
     @patch("enchant_book_manager.cli_translator.translator")
     @patch("enchant_book_manager.cli_translator.tolog")
     @patch("enchant_book_manager.cli_translator.time.sleep")
-    def test_empty_translation_triggers_retry(self, mock_sleep, mock_tolog, mock_translator, mock_var_db, mock_get_book):
+    def test_empty_translation_triggers_retry(
+        self, mock_sleep, mock_tolog, mock_translator, mock_var_db, mock_get_book
+    ):
         """Test that empty or whitespace-only translations trigger retry"""
         # Setup mocks
         mock_get_book.return_value = self.mock_book

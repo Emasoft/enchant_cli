@@ -146,7 +146,16 @@ def find_chapters_two_stage(
     """
     # STAGE 1: Fast basic search using LIKE query (fastest from benchmark)
     # This reduces 632k lines to ~1.5k lines
-    stage1_query = TextLine.select().where(TextLine.text_content.contains("chapter") | TextLine.text_content.contains("Chapter") | TextLine.text_content.contains("CHAPTER") | TextLine.text_content.contains("Ch.") | TextLine.text_content.contains("CH.") | TextLine.text_content.contains("ch.") | TextLine.text_content.contains("Chap") | TextLine.text_content.contains("chap"))
+    stage1_query = TextLine.select().where(
+        TextLine.text_content.contains("chapter")
+        | TextLine.text_content.contains("Chapter")
+        | TextLine.text_content.contains("CHAPTER")
+        | TextLine.text_content.contains("Ch.")
+        | TextLine.text_content.contains("CH.")
+        | TextLine.text_content.contains("ch.")
+        | TextLine.text_content.contains("Chap")
+        | TextLine.text_content.contains("chap")
+    )
 
     stage1_lines = list(stage1_query)
     print(f"[Stage 1] Found {len(stage1_lines)} potential chapter lines")
@@ -245,7 +254,11 @@ def build_chapters_table() -> tuple[list[tuple[str, str]], list[int]]:
         title = chapter_line.text_content.strip()
 
         # Get chapter content using efficient aggregation
-        content_lines = TextLine.select(TextLine.text_content).where((TextLine.line_number >= start_line) & (TextLine.line_number <= end_line)).order_by(TextLine.line_number)
+        content_lines = (
+            TextLine.select(TextLine.text_content)
+            .where((TextLine.line_number >= start_line) & (TextLine.line_number <= end_line))
+            .order_by(TextLine.line_number)
+        )
 
         content = "\n".join(line.text_content for line in content_lines)
 

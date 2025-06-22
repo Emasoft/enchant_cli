@@ -93,7 +93,9 @@ def create_epub_with_config(
     # Log configuration
     if logger:
         logger.info(f"Creating EPUB for: {title} by {author}")
-        logger.debug(f"EPUB configuration: generate_toc={generate_toc}, validate={validate}, strict_mode={strict_mode}, language={language}")
+        logger.debug(
+            f"EPUB configuration: generate_toc={generate_toc}, validate={validate}, strict_mode={strict_mode}, language={language}"
+        )
 
     try:
         # Call the make_epub function
@@ -137,7 +139,9 @@ def create_epub_with_config(
         return False, [error_msg]
 
 
-def get_epub_config_from_book_info(book_info: dict[str, Any], epub_settings: dict[str, Any] | None = None) -> dict[str, Any]:
+def get_epub_config_from_book_info(
+    book_info: dict[str, Any], epub_settings: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """
     Build EPUB configuration from book information and settings.
 

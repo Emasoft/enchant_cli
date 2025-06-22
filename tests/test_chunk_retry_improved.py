@@ -125,7 +125,9 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
             assert self.mock_translator.translate.call_count == 3
 
             # Check log messages
-            success_logs = [call for call in self.mock_tolog.info.call_args_list if "Successfully translated chunk" in str(call)]
+            success_logs = [
+                call for call in self.mock_tolog.info.call_args_list if "Successfully translated chunk" in str(call)
+            ]
             assert len(success_logs) == 3
 
     @patch("enchant_book_manager.cli_translator.time.sleep")

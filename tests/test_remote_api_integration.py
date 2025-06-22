@@ -74,7 +74,9 @@ class TestRemoteAPIIntegration:
 
             # Test renaming with remote API
             api_key = os.getenv("OPENROUTER_API_KEY")
-            success, new_path, metadata = process_novel_file(novel_file, api_key=api_key, model="gpt-4o-mini", temperature=0.0, dry_run=False)
+            success, new_path, metadata = process_novel_file(
+                novel_file, api_key=api_key, model="gpt-4o-mini", temperature=0.0, dry_run=False
+            )
 
             assert success is True
             assert new_path is not None
@@ -102,7 +104,9 @@ class TestRemoteAPIIntegration:
 
                 # Create test Chinese novel file
                 novel_file = temp_path / "测试小说.txt"
-                novel_file.write_text("第一章 开始\n\n这是一个测试。\n\n第二章 继续\n\n故事继续发展。", encoding="utf-8")
+                novel_file.write_text(
+                    "第一章 开始\n\n这是一个测试。\n\n第二章 继续\n\n故事继续发展。", encoding="utf-8"
+                )
 
                 # Mock args for orchestration
                 from unittest.mock import Mock
@@ -126,7 +130,9 @@ class TestRemoteAPIIntegration:
                 # When skip_renaming is True, an empty title creates "by n.d" directory
                 # Look for directories created in the current (temp) directory
                 subdirs = [d for d in Path.cwd().iterdir() if d.is_dir() and d.name != "__pycache__"]
-                assert len(subdirs) > 0, f"No translation directory was created. CWD contents: {list(Path.cwd().iterdir())}"
+                assert (
+                    len(subdirs) > 0
+                ), f"No translation directory was created. CWD contents: {list(Path.cwd().iterdir())}"
 
                 # Check that the translation directory contains translated files
                 translation_dir = subdirs[0]

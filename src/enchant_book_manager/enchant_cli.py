@@ -150,14 +150,20 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
             # Get API key for renaming
             api_key = getattr(args, "openai_api_key", None) or os.getenv("OPENROUTER_API_KEY")
             if not api_key:
-                tolog.error("OpenRouter API key required for renaming. Use --openai-api-key or set OPENROUTER_API_KEY env var")
+                tolog.error(
+                    "OpenRouter API key required for renaming. Use --openai-api-key or set OPENROUTER_API_KEY env var"
+                )
                 progress["phases"]["renaming"]["status"] = "failed"
                 progress["phases"]["renaming"]["error"] = "No API key"
             else:
                 try:
                     # Use command line options if provided, otherwise defaults
                     rename_model = getattr(args, "rename_model", None) or "gpt-4o-mini"
-                    rename_temperature = float(getattr(args, "rename_temperature", 0.0)) if hasattr(args, "rename_temperature") and args.rename_temperature is not None else 0.0
+                    rename_temperature = (
+                        float(getattr(args, "rename_temperature", 0.0))
+                        if hasattr(args, "rename_temperature") and args.rename_temperature is not None
+                        else 0.0
+                    )
                     rename_dry_run = getattr(args, "rename_dry_run", False)
 
                     success, new_path, metadata = rename_novel(
@@ -316,7 +322,9 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                     }
 
                     # Create EPUB configuration from book info and settings
-                    epub_config = get_epub_config_from_book_info(book_info=book_info_for_config, epub_settings=epub_settings)
+                    epub_config = get_epub_config_from_book_info(
+                        book_info=book_info_for_config, epub_settings=epub_settings
+                    )
 
                     # Override EPUB config with command line options
                     if hasattr(args, "epub_language") and args.epub_language:
@@ -1036,7 +1044,9 @@ API KEYS:
         if success:
             safe_print("[bold green]Novel processing completed successfully![/bold green]")
         else:
-            safe_print("[bold yellow]Novel processing completed with some issues. Check logs for details.[/bold yellow]")
+            safe_print(
+                "[bold yellow]Novel processing completed with some issues. Check logs for details.[/bold yellow]"
+            )
             sys.exit(1)
 
     except Exception as e:

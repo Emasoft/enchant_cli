@@ -125,7 +125,9 @@ class TestXMLGenerationEPUB:
         """Test NCX generation with special characters"""
         title = "Book & Title"
         author = "Author <Name>"
-        nav_points = ['<navPoint id="nav1" playOrder="1"><navLabel><text>Chapter &amp; 1</text></navLabel><content src="chapter1.xhtml"/></navPoint>']
+        nav_points = [
+            '<navPoint id="nav1" playOrder="1"><navLabel><text>Chapter &amp; 1</text></navLabel><content src="chapter1.xhtml"/></navPoint>'
+        ]
         uid = "test-uuid"
 
         result = build_toc_ncx(title, author, nav_points, uid)

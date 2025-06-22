@@ -252,7 +252,11 @@ def find_text_files(folder_path: Path, recursive: bool) -> list[Path]:
         files = folder_path.glob("*.txt")
 
     for file_path in files:
-        if file_path.is_file() and not file_path.name.startswith(".") and file_path.stat().st_size >= MIN_FILE_SIZE_KB * 1024:
+        if (
+            file_path.is_file()
+            and not file_path.name.startswith(".")
+            and file_path.stat().st_size >= MIN_FILE_SIZE_KB * 1024
+        ):
             txt_files.append(file_path)
 
     return txt_files
@@ -385,7 +389,9 @@ def process_novel_file(
             "- Detect the language(s) of the text.\n"
             "- Find the title of the novel and the author's name.\n"
             "- Return the title of the novel and author in the original language, followed by their English translations and the romanization of the author's name.\n"
-            "Content:\n" + content[:CONTENT_NUMBER_OF_CHARACTERS_HARD_LIMIT] + "\nReturn the response in JSON format as follows:\n"
+            "Content:\n"
+            + content[:CONTENT_NUMBER_OF_CHARACTERS_HARD_LIMIT]
+            + "\nReturn the response in JSON format as follows:\n"
             "{\n"
             '    "detected_language": "<detected_language>",\n'
             '    "novel_title_original": "<novel_title_original>",\n'
@@ -501,7 +507,9 @@ def process_single_file(
         "- Detect the language(s) of the text.\n"
         "- Find the title of the novel and the author's name.\n"
         "- Return the title of the novel and author in the original language, followed by their English translations and the romanization of the author's name.\n"
-        "Content:\n" + content[:CONTENT_NUMBER_OF_CHARACTERS_HARD_LIMIT] + "\nReturn the response in JSON format as follows:\n"
+        "Content:\n"
+        + content[:CONTENT_NUMBER_OF_CHARACTERS_HARD_LIMIT]
+        + "\nReturn the response in JSON format as follows:\n"
         "{\n"
         '    "detected_language": "<detected_language>",\n'
         '    "novel_title_original": "<novel_title_original>",\n'
@@ -587,7 +595,9 @@ def process_files(
     """
     txt_files = find_text_files(folder_or_path, recursive=recursive)
     if not txt_files:
-        logger.error("No eligible text files found to process. Please check the folder or file pattern and ensure files are not hidden or too small.")
+        logger.error(
+            "No eligible text files found to process. Please check the folder or file pattern and ensure files are not hidden or too small."
+        )
         return
 
     logger.info(f"Starting processing of {len(txt_files)} file(s) with max_workers={max_workers}.")
