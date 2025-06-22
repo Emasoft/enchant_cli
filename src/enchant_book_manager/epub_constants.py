@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright 2025 Emasoft
 #
@@ -28,7 +27,7 @@ ENCODING = "utf-8"
 MIMETYPE = "application/epub+zip"
 
 # Word numbers for conversion
-WORD_NUMS = "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|" "thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|" "twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand"
+WORD_NUMS = "one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand"
 
 # Regex patterns
 FILENAME_RE = re.compile(
@@ -106,7 +105,7 @@ def words_to_int(text: str) -> int:
     return total + curr
 
 
-def parse_num(raw: str) -> Optional[int]:
+def parse_num(raw: str) -> int | None:
     """Parse various number formats to integer."""
     # Handle letter suffixes like "14a", "14b"
     if raw and raw[0].isdigit():

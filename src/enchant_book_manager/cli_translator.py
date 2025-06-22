@@ -31,7 +31,6 @@ import uuid
 from pathlib import Path
 from typing import (
     Any,
-    Dict,
     Optional,
 )
 
@@ -72,10 +71,10 @@ MIN_PYTHON_VERSION_REQUIRED = "3.8"
 # Note: model_pricing module is deprecated - using global_cost_tracker instead
 
 # Global variables - will be initialized in main()
-translator: Optional[ChineseAITranslator] = None
-tolog: Optional[logging.Logger] = None
-icloud_sync: Optional[ICloudSync] = None
-_module_config: Optional[Dict[str, Any]] = None
+translator: ChineseAITranslator | None = None
+tolog: logging.Logger | None = None
+icloud_sync: ICloudSync | None = None
+_module_config: dict[str, Any] | None = None
 # Cost tracking is now handled by global_cost_tracker from cost_tracker module
 
 MAXCHARS = 11999  # Default value, will be updated from config in main()
@@ -219,14 +218,14 @@ def remove_excess_empty_lines(txt: str) -> str:
 
 # HELPER FUNCTION TO GET VALUE OR NONE FROM A LIST ENTRY
 # an equivalent of dict.get(key, default) for lists
-def get_val(myList: list[Any], idx: int, default: Any = None) -> Any:
+def get_val(my_list: list[Any], idx: int, default: Any = None) -> Any:
     """
     Get value from list at index, returning default if index is out of bounds.
 
     An equivalent of dict.get(key, default) for lists.
 
     Args:
-        myList: The list to get value from
+        my_list: The list to get value from
         idx: The index to access
         default: Default value if index is out of bounds
 
@@ -234,7 +233,7 @@ def get_val(myList: list[Any], idx: int, default: Any = None) -> Any:
         Value at index or default if index is invalid
     """
     try:
-        return myList[idx]
+        return my_list[idx]
     except IndexError:
         return default
 
@@ -458,7 +457,7 @@ def import_book_from_txt(file_path: str | Path, encoding: str = "utf-8", max_cha
         new_chunk_id = str(uuid.uuid4())
         new_variation_id = str(uuid.uuid4())
         try:
-            chunk.create(
+            Chunk.create(
                 chunk_id=new_chunk_id,
                 book_id=new_book_id,
                 chunk_number=index,
@@ -532,7 +531,7 @@ def split_on_punctuation_contextual(text: str) -> list[str]:
       - NON_BREAKING: Punctuation such as the Chinese comma and enumeration comma that
         do not trigger a paragraph break.
       - PARAGRAPH_DELIMITERS: A comprehensive set of newline and Unicode paragraph separators.
-      - PARAGRAPH_START_TRIGGERS: Characters which, if they follow punctuation, indicate
+      - paragraph_start_triggers: Characters which, if they follow punctuation, indicate
         a new paragraph is starting.
 
     Returns a list of paragraphs.
@@ -547,7 +546,7 @@ def split_on_punctuation_contextual(text: str) -> list[str]:
     # Use the imported punctuation constants from common_text_utils
 
     # Define a comprehensive set of paragraph delimiters.
-    PARAGRAPH_DELIMITERS = {
+    paragraph_delimiters = {
         "\n",  # Line Feed
         "\v",  # Vertical Tab
         "\f",  # Form Feed
@@ -560,7 +559,7 @@ def split_on_punctuation_contextual(text: str) -> list[str]:
     }
 
     # Define characters that trigger a new paragraph when following punctuation.
-    PARAGRAPH_START_TRIGGERS = {"\n", "“", "【", "《", "「"}
+    paragraph_start_triggers = {"\n", "“", "【", "《", "「"}
 
     # Preprocess text:
     # 1. Clean and normalize newlines.
@@ -571,7 +570,7 @@ def split_on_punctuation_contextual(text: str) -> list[str]:
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     text = re.sub(" +", " ", text)
     text = replace_repeated_chars(text, "".join(ALL_PUNCTUATION))
-    text = replace_repeated_chars(text, "".join(PARAGRAPH_DELIMITERS))
+    text = replace_repeated_chars(text, "".join(paragraph_delimiters))
 
     paragraphs: list[str] = []
     buffer = ""
@@ -593,7 +592,7 @@ def split_on_punctuation_contextual(text: str) -> list[str]:
         if char in SENTENCE_ENDING:
             buffer += char
             # Lookahead: If the next character indicates the start of a new paragraph
-            if (next_char in PARAGRAPH_START_TRIGGERS) or (next_char == " " and next_next_char in PARAGRAPH_START_TRIGGERS):
+            if (next_char in paragraph_start_triggers) or (next_char == " " and next_next_char in paragraph_start_triggers):
                 buffer = flush_buffer(buffer, paragraphs)
                 i += 1
                 continue
@@ -605,7 +604,7 @@ def split_on_punctuation_contextual(text: str) -> list[str]:
         if char in CLOSING_QUOTES:
             if buffer and buffer[-1] in SENTENCE_ENDING:
                 buffer += char
-                if (next_char in PARAGRAPH_START_TRIGGERS) or (next_char == " " and next_next_char in PARAGRAPH_START_TRIGGERS):
+                if (next_char in paragraph_start_triggers) or (next_char == " " and next_next_char in paragraph_start_triggers):
                     buffer = flush_buffer(buffer, paragraphs)
                     i += 1
                     continue
@@ -702,7 +701,7 @@ def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS) -> list[st
     if not paragraphs or all(not p.strip() for p in paragraphs):
         return [""]
 
-    for i, para in enumerate(paragraphs):
+    for para in paragraphs:
         # CHECK IF THE CURRENT PARAGRAPHS BUFFER HAS REACHED
         # THE CHARACTERS LIMIT AND IN SUCH CASE SAVE AND EMPTY THE PARAGRAPHS BUFFER
         if current_char_count + len(para) > max_chars:
@@ -741,7 +740,7 @@ def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS) -> list[st
 
 # In-memory “database” dictionaries
 BOOK_DB = {}
-chunk_DB = {}
+chunk_db = {}
 VARIATION_DB = {}
 
 
@@ -804,7 +803,7 @@ class Book:
         self.transliterated_author = transliterated_author
         self.source_file = source_file
         self.total_characters = total_characters
-        self.chunks: list[chunk] = []  # List to hold chunk instances
+        self.chunks: list[Chunk] = []  # List to hold Chunk instances
 
     @classmethod
     def create(cls, **kwargs: Any) -> Book:
@@ -834,7 +833,7 @@ class Book:
         return book
 
     @classmethod
-    def get_or_none(cls, condition: Any) -> Optional[Book]:
+    def get_or_none(cls, condition: Any) -> Book | None:
         """
         Find a book matching the given condition.
 
@@ -869,7 +868,7 @@ class Book:
         return book
 
 
-class chunk:
+class Chunk:
     """
     Represents a text chunk of a book for translation.
 
@@ -883,7 +882,7 @@ class chunk:
         self.original_variation_id = original_variation_id
 
     @classmethod
-    def create(cls, chunk_id: str, book_id: str, chunk_number: int, original_variation_id: str) -> chunk:
+    def create(cls, chunk_id: str, book_id: str, chunk_number: int, original_variation_id: str) -> Chunk:
         """
         Create a new chunk and add it to the database.
 
@@ -897,7 +896,7 @@ class chunk:
             The created chunk instance
         """
         chunk = cls(chunk_id, book_id, chunk_number, original_variation_id)
-        chunk_DB[chunk_id] = chunk
+        chunk_db[chunk_id] = chunk
         # Also add the chunk to the corresponding Book's chunks list
         book = Book.get_by_id(book_id)
         if book:
@@ -1249,14 +1248,14 @@ def process_batch(args: Any) -> None:
                     }
                 )
 
-        MAX_RETRIES = 3
+        max_retries = 3
 
         # Process files
         for item in progress["files"]:
             if item["status"] == "completed":
                 continue
-            if item.get("retry_count", 0) >= MAX_RETRIES:
-                tolog.warning(f"Skipping {item['path']} after {MAX_RETRIES} failed attempts.")
+            if item.get("retry_count", 0) >= max_retries:
+                tolog.warning(f"Skipping {item['path']} after {max_retries} failed attempts.")
                 item["status"] = "failed/skipped"
                 continue
 

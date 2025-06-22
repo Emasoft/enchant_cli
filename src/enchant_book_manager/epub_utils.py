@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright 2025 Emasoft
 #
@@ -21,7 +20,7 @@ Provides a unified interface for EPUB creation with configuration support.
 """
 
 from pathlib import Path
-from typing import Optional, Tuple, List, Dict, Any
+from typing import Optional, Any
 import logging
 
 # Import the make_epub module functions
@@ -36,9 +35,9 @@ except ImportError:
 def create_epub_with_config(
     txt_file_path: Path,
     output_path: Path,
-    config: Dict[str, Any],
-    logger: Optional[logging.Logger] = None,
-) -> Tuple[bool, List[str]]:
+    config: dict[str, Any],
+    logger: logging.Logger | None = None,
+) -> tuple[bool, list[str]]:
     """
     Create an EPUB file from a translated text file using configuration.
 
@@ -138,7 +137,7 @@ def create_epub_with_config(
         return False, [error_msg]
 
 
-def get_epub_config_from_book_info(book_info: Dict[str, Any], epub_settings: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def get_epub_config_from_book_info(book_info: dict[str, Any], epub_settings: dict[str, Any] | None = None) -> dict[str, Any]:
     """
     Build EPUB configuration from book information and settings.
 

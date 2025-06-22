@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright 2025 Emasoft
 #
@@ -62,7 +61,7 @@ import uuid
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Optional, Any
 import xml.etree.ElementTree as ET
 
 # Import shared constants and utilities
@@ -156,7 +155,7 @@ def has_part_notation(title: str) -> bool:
 
 
 # Use parse_num wrapper to maintain compatibility with existing code
-def parse_num(raw: Optional[str]) -> Optional[int]:
+def parse_num(raw: str | None) -> int | None:
     """Wrapper for shared parse_num function."""
     if raw is None:
         return None
@@ -176,11 +175,11 @@ def _log_path() -> Path:
     return Path.cwd() / f"errors_{datetime.now():%Y%m%d_%H%M%S}.log"
 
 
-_ERROR_LOG: Optional[Path] = None
-_JSON_LOG: Optional[Path] = None
+_ERROR_LOG: Path | None = None
+_JSON_LOG: Path | None = None
 
 
-def log_issue(msg: str, obj: Optional[Dict[str, Any]] = None) -> None:
+def log_issue(msg: str, obj: dict[str, Any] | None = None) -> None:
     """
     Append msg (and obj if requested) to per-run log files.
 
@@ -203,7 +202,7 @@ def log_issue(msg: str, obj: Optional[Dict[str, Any]] = None) -> None:
 # ─────────────────── anomaly detector (updated) ─────────────────── #
 
 
-def detect_issues(seq: List[int]) -> List[str]:
+def detect_issues(seq: list[int]) -> list[str]:
     """
     Updated algorithm provided by user: reports missing, repeats, swaps,
     out-of-place, duplicates.
@@ -313,7 +312,7 @@ def is_valid_chapter_line(line: str) -> bool:
     return False  # Mid-sentence
 
 
-def split_text_db(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str]], List[int]]:
+def split_text_db(text: str, detect_headings: bool) -> tuple[list[tuple[str, str]], list[int]]:
     """
     Database-optimized version for fast chapter parsing.
     Uses SQLite with indexes for efficient processing of large files.
@@ -335,7 +334,7 @@ def split_text_db(text: str, detect_headings: bool) -> Tuple[List[Tuple[str, str
         return split_text(text, detect_headings, force_no_db=True)
 
 
-def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> Tuple[List[Tuple[str, str]], List[int]]:
+def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> tuple[list[tuple[str, str]], list[int]]:
     """
     Enhanced version with:
     1. Position/quote checking for chapter patterns
@@ -350,9 +349,9 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
         force_no_db: Force non-database processing (used for fallback)
     """
     # Use database optimization for large files (unless forced not to)
-    DB_OPTIMIZATION_THRESHOLD = 100000  # Number of lines before using database
+    db_optimization_threshold = 100000  # Number of lines before using database
     lines = text.splitlines()
-    if not force_no_db and len(lines) > DB_OPTIMIZATION_THRESHOLD:
+    if not force_no_db and len(lines) > db_optimization_threshold:
         try:
             return split_text_db(text, detect_headings)
         except Exception:
@@ -364,13 +363,13 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
         return [("Content", text)], []
 
     # First pass: collect raw chapters with position/quote validation
-    raw_chapters: List[Tuple[str, str, Optional[int]]] = []
+    raw_chapters: list[tuple[str, str, int | None]] = []
     seq = []
     buf = []
     cur_title = None
     cur_num = None  # Track the current chapter's number
     front_done = False
-    last_num: Optional[int] = None
+    last_num: int | None = None
     blank_only = True
 
     # Track recent chapter detections for smart duplicate detection
@@ -383,7 +382,9 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
         m = HEADING_RE.match(line.strip())
         if m:
             # Additional validation for chapter patterns
-            if "chapter" in line.lower() and not is_valid_chapter_line(line):
+            # Only validate lines that start with "Chapter" (not abbreviations or other patterns)
+            stripped_line = line.strip().lower()
+            if (stripped_line.startswith("chapter ") or stripped_line.startswith("chapter\t")) and not is_valid_chapter_line(line):
                 # Skip false positive (dialogue, mid-sentence, etc.)
                 buf.append(line)
                 blank_only = False
@@ -449,8 +450,8 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
         raw_chapters.append(("Content", "\n".join(buf).strip(), None))
 
     # Second pass: analyze patterns to determine which chapters need sub-numbering
-    chapter_groups: Dict[int, List[Tuple[str, str, Optional[int]]]] = {}
-    chapter_index: Dict[Tuple[Optional[int], str], int] = {}  # Map (num, title) to index for O(1) lookup
+    chapter_groups: dict[int, list[tuple[str, str, int | None]]] = {}
+    chapter_index: dict[tuple[int | None, str], int] = {}  # Map (num, title) to index for O(1) lookup
 
     # Group chapters by their number and build index
     for idx, (title, content, num) in enumerate(raw_chapters):
@@ -461,7 +462,7 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
             chapter_index[(num, title)] = idx
 
     # Analyze each group to determine if sub-numbering is needed
-    needs_subnumbering: Dict[int, bool] = {}
+    needs_subnumbering: dict[int, bool] = {}
 
     for num, group in chapter_groups.items():
         if len(group) > 1:
@@ -475,7 +476,7 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
             # If it has part notation, check adjacent chapters
             if has_part_notation(title):
                 # Use index for O(1) lookup instead of linear search
-                chapter_idx: Optional[int] = chapter_index.get((num, title))
+                chapter_idx: int | None = chapter_index.get((num, title))
                 if chapter_idx is not None:
                     # Check previous and next chapters
                     prev_has_parts = chapter_idx > 0 and raw_chapters[chapter_idx - 1][2] is not None and has_part_notation(raw_chapters[chapter_idx - 1][0])
@@ -499,7 +500,7 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> T
 
     # Third pass: generate final chapters with sub-numbering only where needed
     chapters = []
-    part_counters: Dict[int, int] = {}
+    part_counters: dict[int, int] = {}
 
     for title, content, num in raw_chapters:
         if num is None:
@@ -706,23 +707,23 @@ def build_container_xml() -> str:
     return ET.tostring(container, encoding="unicode", method="xml", xml_declaration=True)
 
 
-def build_style_css(custom_css: Optional[str] = None) -> str:
+def build_style_css(custom_css: str | None = None) -> str:
     """Build CSS content, using custom CSS if provided."""
     if custom_css:
         return custom_css
     # Default CSS
-    return "body{font-family:serif;line-height:1.4;margin:5%}" "h1{text-align:center;margin:2em 0 1em}" "p{text-indent:1.5em;margin:0 0 1em}" "img{max-width:100%;height:auto}"
+    return "body{font-family:serif;line-height:1.4;margin:5%}h1{text-align:center;margin:2em 0 1em}p{text-indent:1.5em;margin:0 0 1em}img{max-width:100%;height:auto}"
 
 
 def build_content_opf(
     title: str,
     author: str,
-    manifest: List[str],
-    spine: List[str],
+    manifest: list[str],
+    spine: list[str],
     uid: str,
-    cover_id: Optional[str],
+    cover_id: str | None,
     language: str = "en",
-    metadata: Optional[Dict[str, Any]] = None,
+    metadata: dict[str, Any] | None = None,
 ) -> str:
     """Build OPF content with support for language and additional metadata."""
     date = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -758,7 +759,7 @@ def build_content_opf(
 </package>""".strip()
 
 
-def build_toc_ncx(title: str, author: str, nav_points: List[str], uid: str) -> str:
+def build_toc_ncx(title: str, author: str, nav_points: list[str], uid: str) -> str:
     return f"""<?xml version='1.0' encoding='utf-8'?>
 <!DOCTYPE ncx PUBLIC '-//NISO//DTD ncx 2005-1//EN' 'http://www.daisy.org/z3986/2005/ncx-2005-1.dtd'>
 <ncx xmlns='http://www.daisy.org/z3986/2005/ncx/' version='2005-1'><head>
@@ -796,7 +797,7 @@ def ensure_dir_readable(p: Path) -> None:
     try:
         list(p.iterdir())
     except OSError as e:
-        raise ValidationError(f"Cannot read directory '{p}': {e}")
+        raise ValidationError(f"Cannot read directory '{p}': {e}") from e
 
 
 def ensure_output_ok(path: Path, append: bool) -> None:
@@ -820,7 +821,7 @@ def ensure_output_ok(path: Path, append: bool) -> None:
         try:
             target.mkdir(parents=True, exist_ok=True)
         except OSError as e:
-            raise ValidationError(f"Cannot create directory '{target}': {e}")
+            raise ValidationError(f"Cannot create directory '{target}': {e}") from e
         if not os.access(target, os.W_OK):
             raise ValidationError(f"No write permission for '{target}'.")
 
@@ -835,10 +836,10 @@ def ensure_cover_ok(p: Path) -> None:
         raise ValidationError(f"No read permission for '{p}'.")
 
 
-def collect_chunks(folder: Path) -> Dict[int, Path]:
+def collect_chunks(folder: Path) -> dict[int, Path]:
     """Collect chapter chunks from folder. Raises ValidationError if none found."""
-    mapping: Dict[int, Path] = {}
-    issues: List[str] = []
+    mapping: dict[int, Path] = {}
+    issues: list[str] = []
 
     for f in folder.glob("*.txt"):
         try:
@@ -876,14 +877,14 @@ def collect_chunks(folder: Path) -> Dict[int, Path]:
 
 
 def write_new_epub(
-    chaps: List[Tuple[str, str]],
+    chaps: list[tuple[str, str]],
     out: Path,
     title: str,
     author: str,
-    cover: Optional[Path],
+    cover: Path | None,
     language: str = "en",
-    custom_css: Optional[str] = None,
-    metadata: Optional[Dict[str, Any]] = None,
+    custom_css: str | None = None,
+    metadata: dict[str, Any] | None = None,
 ) -> None:
     uid = str(uuid.uuid4())
     with tempfile.TemporaryDirectory() as td:
@@ -946,7 +947,7 @@ def write_new_epub(
                     z.write(fp, rel, zipfile.ZIP_DEFLATED)
 
 
-def extend_epub(epub: Path, new: List[Tuple[str, str]]) -> None:
+def extend_epub(epub: Path, new: list[tuple[str, str]]) -> None:
     with tempfile.TemporaryDirectory() as td:
         tmp = Path(td)
         with zipfile.ZipFile(epub) as z:
@@ -1023,11 +1024,11 @@ def extend_epub(epub: Path, new: List[Tuple[str, str]]) -> None:
 
 
 def create_epub_from_chapters(
-    chapters: List[Tuple[str, str]],
+    chapters: list[tuple[str, str]],
     output_path: Path,
     title: str,
     author: str,
-    cover_path: Optional[Path] = None,
+    cover_path: Path | None = None,
     detect_headings: bool = True,
 ) -> None:
     """
@@ -1069,14 +1070,14 @@ def create_epub_from_txt_file(
     output_path: Path,
     title: str,
     author: str,
-    cover_path: Optional[Path] = None,
+    cover_path: Path | None = None,
     generate_toc: bool = True,
     validate: bool = True,
     strict_mode: bool = False,
     language: str = "en",
-    custom_css: Optional[str] = None,
-    metadata: Optional[Dict[str, Any]] = None,
-) -> Tuple[bool, List[str]]:
+    custom_css: str | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> tuple[bool, list[str]]:
     """
     Create an EPUB from a complete translated text file.
     This is the main entry point for enchant_cli.py integration.
@@ -1112,7 +1113,7 @@ def create_epub_from_txt_file(
     try:
         full_text = txt_file_path.read_text(encoding="utf-8")
     except Exception as e:
-        raise ValidationError(f"Error reading input file: {e}")
+        raise ValidationError(f"Error reading input file: {e}") from e
 
     # Split text into chapters and detect headings
     chap_blocks, chapter_sequence = split_text(full_text, detect_headings=generate_toc)
@@ -1157,13 +1158,13 @@ def create_epub_from_txt_file(
 def create_epub_from_directory(
     input_dir: Path,
     output_path: Path,
-    title: Optional[str] = None,
-    author: Optional[str] = None,
-    cover_path: Optional[Path] = None,
+    title: str | None = None,
+    author: str | None = None,
+    cover_path: Path | None = None,
     detect_headings: bool = True,
     validate_only: bool = False,
     strict: bool = True,
-) -> List[str]:
+) -> list[str]:
     """
     Create an EPUB from a directory of chapter files.
 

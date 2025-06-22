@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright 2025 Emasoft
 #
@@ -41,8 +40,7 @@ PRESERVE_UNLIMITED = {
     "\n",  # Newline
     "\t",  # Tab
     " ",  # Space
-    "\u3000",  # Ideographic space
-    "　",  # Full-width space
+    "\u3000",  # Full-width space
 }
 
 # Maximum characters per chunk for text processing

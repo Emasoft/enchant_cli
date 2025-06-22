@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright 2025 Emasoft
 #
@@ -49,7 +48,7 @@ class ICloudSync:
     Auto-detects if running on compatible platform and within iCloud Drive.
     """
 
-    def __init__(self, enabled: Optional[bool] = None, logger: Optional[logging.Logger] = None):
+    def __init__(self, enabled: bool | None = None, logger: logging.Logger | None = None):
         """
         Initialize iCloud sync handler.
 
@@ -139,7 +138,7 @@ class ICloudSync:
         self.logger.warning("No iCloud sync commands found. Sync functionality will be limited.")
         self.enabled = False
 
-    def ensure_synced(self, path: Union[str, Path]) -> Path:
+    def ensure_synced(self, path: str | Path) -> Path:
         """
         Ensure a file or directory is fully synced from iCloud.
         This is the main entry point for the sync functionality.
@@ -277,13 +276,13 @@ class ICloudSync:
     def _is_folder_synced(self, folder_path: Path) -> bool:
         """Check if folder is fully synced (no .icloud files)."""
         try:
-            for item in folder_path.rglob("*.icloud"):
+            for _ in folder_path.rglob("*.icloud"):
                 return False
             return True
         except Exception:
             return True
 
-    def prepare_for_write(self, path: Union[str, Path]) -> Path:
+    def prepare_for_write(self, path: str | Path) -> Path:
         """
         Prepare a path for writing by ensuring parent directory is synced.
 
@@ -317,11 +316,11 @@ def get_icloud_sync() -> ICloudSync:
     return _global_sync
 
 
-def ensure_synced(path: Union[str, Path]) -> Path:
+def ensure_synced(path: str | Path) -> Path:
     """Convenience function to sync a path using global instance."""
     return get_icloud_sync().ensure_synced(path)
 
 
-def prepare_for_write(path: Union[str, Path]) -> Path:
+def prepare_for_write(path: str | Path) -> Path:
     """Convenience function to prepare a path for writing."""
     return get_icloud_sync().prepare_for_write(path)

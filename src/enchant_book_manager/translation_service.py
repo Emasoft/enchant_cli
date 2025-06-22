@@ -19,6 +19,7 @@ from typing import Any
 import unicodedata
 import string
 import functools
+import time
 from .cost_tracker import global_cost_tracker
 from .common_text_utils import clean, normalize_spaces as common_normalize_spaces
 from .common_constants import DEFAULT_LMSTUDIO_API_URL
@@ -28,12 +29,12 @@ from .common_utils import retry_with_backoff
 # Constant parameters:
 DEFAULT_CHUNK_SIZE = 12000  # max chars for each chunk of chinese text to send to the server
 CONNECTION_TIMEOUT = 60  # max seconds to wait for connecting with the server (1 minute)
-RESPONSE_TIMEOUT = 360  # max seconds to wait for the server response (6 minutes total)
+RESPONSE_TIMEOUT = 480  # max seconds to wait for the server response (8 minutes total)
 DEFAULT_MAX_TOKENS = 4000  # Default max tokens for API responses
 
 
 # Define a custom exception for translation failures
-class TranslationException(Exception):
+class TranslationError(Exception):
     pass
 
 
@@ -206,8 +207,20 @@ def is_latin_char(char: str) -> bool:
     # Check if it's a digit first
     if char.isdigit():
         return True
+
+    # Check Unicode category - allow all punctuation marks
+    category = unicodedata.category(char)
+    if category.startswith("P"):  # All punctuation categories (Pc, Pd, Pe, Pf, Pi, Po, Ps)
+        return True
+
+    # Check for common symbols used in Latin text
+    if category.startswith("S"):  # Symbol categories
+        return True
+
     try:
-        return "LATIN" in unicodedata.name(char)
+        name = unicodedata.name(char)
+        # Check for LATIN in name or common Latin-script related terms
+        return "LATIN" in name or "LETTER" in name
     except ValueError:
         # If the character has no Unicode name, assume it's not Latin.
         return False
@@ -583,7 +596,7 @@ class ChineseAITranslator:
             Translated text from API response
 
         Raises:
-            TranslationException: If translation fails
+            TranslationError: If translation fails
         """
         self.log("Sending translation request to API")
         self.log(f"AI MODEL USED: {self.MODEL_NAME}")
@@ -662,26 +675,26 @@ class ChineseAITranslator:
                 # Raise exception if the content is not primarily Latin-based.
                 if not is_latin_charset(content):
                     self.log("Translated text does not appear to be in a Latin-based charset. Retrying...")
-                    raise TranslationException("Translated text does not appear to be in a Latin-based charset.")
+                    raise TranslationError("Translated text does not appear to be in a Latin-based charset.")
                 if len(content) < 300 and is_last_chunk is False:
                     self.log("Translated text is too short. An error must have occurred. Retrying...")
-                    raise TranslationException("Translated text is too short. An error must have occurred. Retrying...")
+                    raise TranslationError("Translated text is too short. An error must have occurred. Retrying...")
                 return content
             else:
                 self.log("Unexpected response structure from API", "error")
                 raise ValueError("Unexpected response structure from Open Router API.")
         except requests.exceptions.HTTPError as http_err:
             self.log(f"HTTP error occurred: {http_err}", "error")
-            raise TranslationException(f"HTTP error: {http_err}") from http_err
+            raise TranslationError(f"HTTP error: {http_err}") from http_err
         except requests.exceptions.RequestException as req_err:
             self.log(f"Request exception: {req_err}", "error")
-            raise TranslationException(f"Request failed: {req_err}") from req_err
+            raise TranslationError(f"Request failed: {req_err}") from req_err
         except json.JSONDecodeError as json_err:
             self.log(f"JSON decode error: {json_err}", "error")
-            raise TranslationException(f"JSON error: {json_err}") from json_err
+            raise TranslationError(f"JSON error: {json_err}") from json_err
         except Exception as e:
             self.log(f"Unexpected error: {e}", "error")
-            raise TranslationException(f"Unexpected error: {e}") from e
+            raise TranslationError(f"Unexpected error: {e}") from e
 
     def translate_file(self, input_file: str, output_file: str, is_last_chunk: bool = False) -> str | None:
         """

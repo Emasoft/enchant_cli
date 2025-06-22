@@ -306,3 +306,279 @@ Traceback (most recent call last):
     if current_char_count + len(para) > max_chars:
        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 02:40:14,790 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 02:40:14,790 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 02:40:14,790 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 02:40:14,790 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 02:40:14,813 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 02:40:14,813 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 02:40:14,813 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 02:40:14,813 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 02:40:14,813 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 07:08:12,785 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 07:08:12,785 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 07:08:12,785 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 07:08:12,811 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 07:08:12,811 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 07:08:12,811 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 07:08:12,811 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 07:13:08,404 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 07:13:08,404 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 07:13:08,404 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 07:13:08,430 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 07:13:08,430 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 07:13:08,430 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-22 07:13:08,430 - enchant_book_manager.cli_translator - ERROR - An error occurred during book import.
+Traceback (most recent call last):
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 1476, in translate_novel
+    new_book_id = import_book_from_txt(file_path, encoding=encoding, max_chars=max_chars)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 417, in import_book_from_txt
+    splitted_chunks = split_chinese_text_in_parts(book_content, max_chars)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/emanuelesabetta/Code/ENCHANT_BOOK_MANAGER/src/enchant_book_manager/cli_translator.py", line 707, in split_chinese_text_in_parts
+    if current_char_count + len(para) > max_chars:
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: '>' not supported between instances of 'int' and 'Mock'

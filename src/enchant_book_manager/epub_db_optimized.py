@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright 2025 Emasoft
 #
@@ -31,7 +30,9 @@ Uses simplified schema and two-stage search for better performance.
 from __future__ import annotations
 
 import re
-from typing import List, Tuple, Optional, Callable, Pattern, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
+from re import Pattern
+from collections.abc import Callable
 
 if TYPE_CHECKING:
     pass
@@ -130,14 +131,14 @@ def import_text_optimized(text: str) -> None:
             for batch in chunked(data, 1000):
                 TextLine.insert_many(batch).execute()
     except Exception as e:
-        raise RuntimeError(f"Failed to import text to database: {e}")
+        raise RuntimeError(f"Failed to import text to database: {e}") from e
 
 
 def find_chapters_two_stage(
     heading_regex: Pattern[str],
-    parse_num_func: Callable[[Optional[str]], Optional[int]],
+    parse_num_func: Callable[[str | None], int | None],
     is_valid_func: Callable[[str], bool],
-) -> List[TextLine]:
+) -> list[TextLine]:
     """
     Two-stage chapter finding for optimal performance.
     Stage 1: Basic search for 'chapter' (reduces 632k lines to ~1.5k)
@@ -213,7 +214,7 @@ def find_chapters_two_stage(
     return validated_chapters
 
 
-def build_chapters_table() -> Tuple[List[Tuple[str, str]], List[int]]:
+def build_chapters_table() -> tuple[list[tuple[str, str]], list[int]]:
     """
     Build chapter content and create Chapter table entries.
     Returns chapters and sequence for compatibility.
@@ -271,9 +272,9 @@ def build_chapters_table() -> Tuple[List[Tuple[str, str]], List[int]]:
 def process_text_optimized(
     text: str,
     heading_regex: Pattern[str],
-    parse_num_func: Callable[[Optional[str]], Optional[int]],
+    parse_num_func: Callable[[str | None], int | None],
     is_valid_func: Callable[[str], bool],
-) -> Tuple[List[Tuple[str, str]], List[int]]:
+) -> tuple[list[tuple[str, str]], list[int]]:
     """
     Main entry point for optimized text processing.
     """

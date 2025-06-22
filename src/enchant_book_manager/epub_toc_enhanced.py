@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright 2025 Emasoft
 #
@@ -32,7 +31,7 @@ from __future__ import annotations
 
 import re
 import html
-from typing import List, Tuple, Optional
+from typing import Optional
 from dataclasses import dataclass, field
 
 
@@ -44,7 +43,7 @@ class TocEntry:
     href: str
     play_order: int
     level: int = 1
-    children: List[TocEntry] = field(default_factory=list)
+    children: list[TocEntry] = field(default_factory=list)
 
     def to_ncx_navpoint(self, depth: int = 0) -> str:
         """Convert to NCX navPoint XML"""
@@ -81,17 +80,17 @@ class EnhancedTocBuilder:
     """Build enhanced table of contents with hierarchical support"""
 
     def __init__(self) -> None:
-        self.entries: List[TocEntry] = []
+        self.entries: list[TocEntry] = []
         self.play_order = 1
 
-    def analyze_chapters(self, chapters: List[Tuple[str, str]]) -> List[TocEntry]:
+    def analyze_chapters(self, chapters: list[tuple[str, str]]) -> list[TocEntry]:
         """
         Analyze chapters and build hierarchical TOC structure.
         Detects parts, books, sections, and regular chapters.
         """
         toc_entries = []
-        current_part: Optional[TocEntry] = None
-        current_book: Optional[TocEntry] = None
+        current_part: TocEntry | None = None
+        current_book: TocEntry | None = None
 
         # Patterns for different levels
         part_pattern = re.compile(r"^Part\s+(\w+)(?:\s*[:\-–—]\s*(.+))?", re.IGNORECASE)
@@ -150,7 +149,7 @@ class EnhancedTocBuilder:
 
         return toc_entries
 
-    def build_ncx_toc(self, chapters: List[Tuple[str, str]], title: str, author: str, uid: str) -> str:
+    def build_ncx_toc(self, chapters: list[tuple[str, str]], title: str, author: str, uid: str) -> str:
         """Build NCX format TOC with hierarchical structure"""
         toc_entries = self.analyze_chapters(chapters)
 
@@ -176,7 +175,7 @@ class EnhancedTocBuilder:
 {nav_map_content}</navMap>
 </ncx>""".strip()
 
-    def build_nav_xhtml(self, chapters: List[Tuple[str, str]], title: str) -> str:
+    def build_nav_xhtml(self, chapters: list[tuple[str, str]], title: str) -> str:
         """Build EPUB3 navigation document with hierarchical structure"""
         toc_entries = self.analyze_chapters(chapters)
 
@@ -200,7 +199,7 @@ class EnhancedTocBuilder:
 </body>
 </html>"""
 
-    def _calculate_max_depth(self, entries: List[TocEntry], current_depth: int = 1) -> int:
+    def _calculate_max_depth(self, entries: list[TocEntry], current_depth: int = 1) -> int:
         """Calculate maximum depth of TOC hierarchy"""
         max_depth = current_depth
 
@@ -211,19 +210,19 @@ class EnhancedTocBuilder:
 
         return max_depth
 
-    def get_flat_nav_points(self, chapters: List[Tuple[str, str]]) -> List[str]:
+    def get_flat_nav_points(self, chapters: list[tuple[str, str]]) -> list[str]:
         """
         Get flat navigation points for backward compatibility.
         This is used when hierarchical TOC is not needed.
         """
         nav_points = []
         for idx, (title, _) in enumerate(chapters, 1):
-            nav_points.append(f'<navPoint id="nav{idx}" playOrder="{idx}">' f"<navLabel><text>{html.escape(title)}</text></navLabel>" f'<content src="Text/chapter{idx}.xhtml"/>' f"</navPoint>")
+            nav_points.append(f'<navPoint id="nav{idx}" playOrder="{idx}"><navLabel><text>{html.escape(title)}</text></navLabel><content src="Text/chapter{idx}.xhtml"/></navPoint>')
         return nav_points
 
 
 def build_enhanced_toc_ncx(
-    chapters: List[Tuple[str, str]],
+    chapters: list[tuple[str, str]],
     title: str,
     author: str,
     uid: str,

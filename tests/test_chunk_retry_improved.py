@@ -19,7 +19,7 @@ from enchant_book_manager.cli_translator import (
     DEFAULT_MAX_CHUNK_RETRIES,
     MAX_RETRY_WAIT_SECONDS,
 )
-from enchant_book_manager.cli_translator import Book, chunk
+from enchant_book_manager.cli_translator import Book, Chunk
 
 
 class BaseChunkRetryTest:
@@ -57,7 +57,7 @@ class BaseChunkRetryTest:
         # Create mock chapters
         mock_chapters = []
         for i in range(3):
-            chapter = Mock(spec=chunk)
+            chapter = Mock(spec=Chunk)
             chapter.chunk_number = i + 1
             chapter.original_variation_id = f"var-{i + 1}"
             mock_chapters.append(chapter)

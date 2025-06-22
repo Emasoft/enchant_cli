@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright 2025 Emasoft
 #
@@ -32,7 +31,7 @@ import zipfile
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Optional
 import logging
 
 # Import shared constants and utilities
@@ -51,12 +50,12 @@ HEADING_RE = re.compile(
 )
 
 
-def detect_chapter_issues(seq: List[int]) -> List[Tuple[int, str]]:
+def detect_chapter_issues(seq: list[int]) -> list[tuple[int, str]]:
     """
     Detect issues in chapter sequence (missing, out of order, duplicates).
     Returns list of (position, issue_description) tuples.
     """
-    issues: List[Tuple[int, str]] = []
+    issues: list[tuple[int, str]] = []
     if not seq:
         return issues
 
@@ -117,7 +116,7 @@ def detect_chapter_issues(seq: List[int]) -> List[Tuple[int, str]]:
     return issues
 
 
-def split_text(text: str, detect_headings: bool = True) -> Tuple[List[Tuple[str, str, str]], List[int]]:
+def split_text(text: str, detect_headings: bool = True) -> tuple[list[tuple[str, str, str]], list[int]]:
     """
     Split text into chapters based on headings.
     Returns: ([(toc_title, original_heading, chapter_text), ...], [chapter_numbers])
@@ -129,7 +128,7 @@ def split_text(text: str, detect_headings: bool = True) -> Tuple[List[Tuple[str,
     chapter_nums = []
     current_toc_title = None
     current_original_heading = ""
-    current_text: List[str] = []
+    current_text: list[str] = []
 
     for line in text.split("\n"):
         # Check if line is a chapter heading
@@ -202,7 +201,7 @@ def paragraphize(text: str) -> str:
     return "\n".join(paragraphs)
 
 
-def collect_chapter_files(input_dir: Path) -> Dict[int, Path]:
+def collect_chapter_files(input_dir: Path) -> dict[int, Path]:
     """Collect chapter files from directory, return {chapter_num: file_path}."""
     chapters = {}
 
@@ -216,11 +215,11 @@ def collect_chapter_files(input_dir: Path) -> Dict[int, Path]:
 
 
 def create_epub_from_chapters(
-    chapters: List[Tuple[str, str, str]],
+    chapters: list[tuple[str, str, str]],
     output_path: Path,
     title: str,
     author: str,
-    cover_path: Optional[Path] = None,
+    cover_path: Path | None = None,
     language: str = "en",
 ) -> None:
     """Create EPUB file from chapter list with (toc_title, original_heading, html_content)."""
@@ -362,13 +361,13 @@ def create_epub_from_chapters(
 def build_epub_from_directory(
     input_dir: Path,
     output_path: Path,
-    title: Optional[str] = None,
-    author: Optional[str] = None,
-    cover_path: Optional[Path] = None,
+    title: str | None = None,
+    author: str | None = None,
+    cover_path: Path | None = None,
     detect_toc: bool = True,
     strict: bool = True,
-    logger: Optional[logging.Logger] = None,
-) -> Tuple[bool, List[str]]:
+    logger: logging.Logger | None = None,
+) -> tuple[bool, list[str]]:
     """
     Build EPUB from directory of chapter files.
     Returns: (success, list_of_issues)

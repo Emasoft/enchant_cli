@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright 2025 Emasoft
 #
@@ -24,12 +23,11 @@ functions used across multiple EnChANT modules.
 
 import re
 import html
-from typing import List, Tuple
+# No typing imports needed - using built-in types
 
 # Constants from original modules
 PRESERVE_UNLIMITED = {
     "　",
-    "\u3000",
     "\u2002",
     "\u2003",
     "\u2004",
@@ -58,7 +56,6 @@ PRESERVE_UNLIMITED = {
     "\x1e",
     "\x1f",
     "\x85",
-    "\xa0",
     " ",
     "!",
     '"',
@@ -103,7 +100,6 @@ CHINESE_PUNCTUATION = {
     "：",
     "？",
     "！",
-    '"',
     '"',
     """, """,
     "（",
@@ -261,7 +257,7 @@ def limit_repeated_chars(text: str, force_chinese: bool = False, force_english: 
 # HTML Processing Functions
 
 
-def extract_code_blocks(html_str: str) -> Tuple[str, List[str]]:
+def extract_code_blocks(html_str: str) -> tuple[str, list[str]]:
     """
     Extract <pre> and <code> blocks from HTML and replace with placeholders.
     Returns modified HTML and list of extracted code blocks.
@@ -294,7 +290,7 @@ def extract_code_blocks(html_str: str) -> Tuple[str, List[str]]:
     return html_str, code_blocks
 
 
-def extract_inline_code(text: str) -> Tuple[str, List[str]]:
+def extract_inline_code(text: str) -> tuple[str, list[str]]:
     """
     Extract inline code (backtick delimited) and replace with placeholders.
     Returns modified text and list of extracted code snippets.

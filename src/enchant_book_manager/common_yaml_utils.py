@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright 2025 Emasoft
 #
@@ -24,13 +23,13 @@ error handling and validation.
 
 import yaml
 from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-def load_safe_yaml(yaml_path: Union[str, Path]) -> Dict[str, Any]:
+def load_safe_yaml(yaml_path: str | Path) -> dict[str, Any]:
     """
     Safely load YAML file with error handling.
 
@@ -61,12 +60,12 @@ def load_safe_yaml(yaml_path: Union[str, Path]) -> Dict[str, Any]:
         return data
 
     except yaml.YAMLError as e:
-        raise ValueError(f"Error parsing YAML file {yaml_path}: {e}")
+        raise ValueError(f"Error parsing YAML file {yaml_path}: {e}") from e
     except Exception as e:
-        raise ValueError(f"Error loading YAML file {yaml_path}: {e}")
+        raise ValueError(f"Error loading YAML file {yaml_path}: {e}") from e
 
 
-def save_safe_yaml(data: Dict[str, Any], yaml_path: Union[str, Path], create_dirs: bool = True) -> None:
+def save_safe_yaml(data: dict[str, Any], yaml_path: str | Path, create_dirs: bool = True) -> None:
     """
     Safely save data to YAML file with error handling.
 
@@ -88,12 +87,12 @@ def save_safe_yaml(data: Dict[str, Any], yaml_path: Union[str, Path], create_dir
             yaml.safe_dump(data, f, default_flow_style=False, allow_unicode=True)
 
     except yaml.YAMLError as e:
-        raise ValueError(f"Error serializing data to YAML: {e}")
+        raise ValueError(f"Error serializing data to YAML: {e}") from e
     except Exception as e:
-        raise ValueError(f"Error saving YAML file {yaml_path}: {e}")
+        raise ValueError(f"Error saving YAML file {yaml_path}: {e}") from e
 
 
-def merge_yaml_configs(base_config: Dict[str, Any], override_config: Dict[str, Any]) -> Dict[str, Any]:
+def merge_yaml_configs(base_config: dict[str, Any], override_config: dict[str, Any]) -> dict[str, Any]:
     """
     Deep merge two YAML configurations, with override taking precedence.
 
@@ -117,7 +116,7 @@ def merge_yaml_configs(base_config: Dict[str, Any], override_config: Dict[str, A
     return result
 
 
-def validate_yaml_schema(data: Dict[str, Any], schema: Dict[str, Any]) -> Optional[str]:
+def validate_yaml_schema(data: dict[str, Any], schema: dict[str, Any]) -> str | None:
     """
     Validate YAML data against a simple schema.
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright 2025 Emasoft
 #
@@ -20,7 +19,7 @@ cost_tracker.py - Unified cost tracking module for OpenRouter API responses
 """
 
 import threading
-from typing import Dict, Any, Optional
+from typing import Any, Optional
 import logging
 
 logger = logging.getLogger(__name__)
@@ -37,7 +36,7 @@ class CostTracker:
         self.total_completion_tokens = 0
         self.request_count = 0
 
-    def track_usage(self, usage: Dict[str, Any], file_path: Optional[str] = None) -> float:
+    def track_usage(self, usage: dict[str, Any], file_path: str | None = None) -> float:
         """
         Track API usage from OpenRouter response.
 
@@ -79,7 +78,7 @@ class CostTracker:
 
             return cost
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         """Get cost tracking summary"""
         with self._lock:
             return {

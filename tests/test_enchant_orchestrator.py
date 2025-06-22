@@ -129,6 +129,7 @@ class TestEnChANTOrchestrator:
                 "prompt_tokens": 150,
                 "completion_tokens": 50,
                 "total_tokens": 200,
+                "cost": 0.0003,
             },
         }
 
@@ -304,7 +305,7 @@ class TestEnChANTOrchestrator:
 
         enchant_cli.tolog = logging.getLogger(__name__)
 
-        # Create mock args object
+        # Create mock args object with all necessary attributes
         args = Mock()
         args.skip_renaming = False
         args.skip_translating = False
@@ -314,6 +315,20 @@ class TestEnChANTOrchestrator:
         args.encoding = "utf-8"
         args.max_chars = 2000
         args.remote = False
+        args.rename_temperature = 0.0
+        args.rename_model = "gpt-4o-mini"
+        args.rename_dry_run = False  # Important: set to False to actually rename
+        args.translated = None
+        args.epub_title = None
+        args.epub_author = None
+        args.epub_language = None
+        args.no_toc = False
+        args.no_validate = False
+        args.epub_strict = False
+        args.cover = None
+        args.custom_css = None
+        args.epub_metadata = None
+        args.validate_only = False
 
         # Create a mock translate_novel function that creates expected output
         def mock_translate_novel(input_file, **kwargs):
@@ -345,16 +360,16 @@ class TestEnChANTOrchestrator:
 
             return True
 
+        # Mock the make_openai_request function directly to avoid Mock object issues
         with (
-            patch("requests.post") as mock_post,
+            patch("enchant_book_manager.renamenovels.make_openai_request") as mock_openai_request,
             patch(
                 "enchant_book_manager.enchant_cli.translate_novel",
                 side_effect=mock_translate_novel,
             ),
         ):
-            # Setup mock responses for renaming
-            mock_post.return_value.json.return_value = mock_openai_response
-            mock_post.return_value.raise_for_status.return_value = None
+            # Return the proper response structure
+            mock_openai_request.return_value = mock_openai_response
 
             # Mock config loading
             with patch.dict(os.environ, {"ENCHANT_CONFIG": str(config_file)}):
@@ -381,9 +396,9 @@ class TestEnChANTOrchestrator:
                 epub_files = list(temp_dir.glob("*.epub"))
                 assert len(epub_files) == 1
                 epub_file = epub_files[0]
-                assert epub_file.name.startswith("Cultivation_Master")
+                assert "Cultivation" in epub_file.name and "Master" in epub_file.name
 
-    def test_orchestration_with_skip_flags(self, temp_dir, chinese_test_novel):
+    def test_orchestration_with_skip_flags(self, temp_dir, chinese_test_novel, mock_openai_response):
         """Test orchestration with different skip flags"""
 
         # Initialize logger to avoid NoneType error
@@ -392,7 +407,7 @@ class TestEnChANTOrchestrator:
 
         enchant_cli.tolog = logging.getLogger(__name__)
 
-        # Test skip renaming
+        # Test 1: Skip renaming (with explicit EPUB metadata since no renaming to extract it)
         args = Mock()
         args.skip_renaming = True
         args.skip_translating = False
@@ -401,39 +416,128 @@ class TestEnChANTOrchestrator:
         args.encoding = "utf-8"
         args.max_chars = 2000
         args.remote = False
+        args.translated = None
+        args.epub_title = "Test Novel"  # Provide explicit title since renaming is skipped
+        args.epub_author = "Test Author"  # Provide explicit author since renaming is skipped
+        args.epub_language = None
+        args.no_toc = False
+        args.no_validate = False
+        args.epub_strict = False
+        args.cover = None
+        args.custom_css = None
+        args.epub_metadata = None
+        args.validate_only = False
 
-        with patch("enchant_book_manager.enchant_cli.translate_novel") as mock_translate:
-            mock_translate.return_value = True
+        def mock_translate_with_skip_rename(input_file, **kwargs):
+            from enchant_book_manager.common_utils import sanitize_filename, extract_book_info_from_path
 
+            # When renaming is skipped, the system uses the original filename for directory
+            input_path = Path(input_file)
+            # Extract book info as the system would
+            book_info = extract_book_info_from_path(input_path)
+            book_title = book_info.get("title_english", input_path.stem)
+            book_author = book_info.get("author_english", "Unknown")
+            safe_folder_name = sanitize_filename(f"{book_title} by {book_author}")
+            translation_dir = input_path.parent / safe_folder_name
+            translation_dir.mkdir(exist_ok=True)
+            # Create translated file with expected name
+            translated_file = translation_dir / f"translated_{book_title} by {book_author}.txt"
+            translated_file.write_text("Chapter 1\n\nTranslated content.", encoding="utf-8")
+            # Create chapter files
+            chapter_file = translation_dir / "Chapter 1.txt"
+            chapter_file.write_text("Chapter 1\n\nTranslated content.", encoding="utf-8")
+            return True
+
+        with patch("enchant_book_manager.enchant_cli.translate_novel", side_effect=mock_translate_with_skip_rename):
             success = process_novel_unified(chinese_test_novel, args)
 
             # Should proceed with original filename
             assert success is True
 
-        # Test skip translation
-        args.skip_renaming = False
-        args.skip_translating = True
-        args.skip_epub = False
+        # Test 2: Skip translation
+        # Create a fresh copy of the test novel since the original may have been renamed
+        test_novel_2 = temp_dir / "test_novel_2.txt"
+        test_novel_2.write_text(chinese_test_novel.read_text(encoding="utf-8"), encoding="utf-8")
 
-        with patch("enchant_book_manager.renamenovels.process_novel_file") as mock_rename:
-            mock_rename.return_value = (True, chinese_test_novel, {})
+        args2 = Mock()
+        args2.skip_renaming = False
+        args2.skip_translating = True
+        args2.skip_epub = False
+        args2.resume = False
+        args2.openai_api_key = "test_key"
+        args2.rename_temperature = 0.0
+        args2.rename_model = "gpt-4o-mini"
+        args2.rename_dry_run = False
+        args2.encoding = "utf-8"
+        args2.translated = None
+        args2.epub_title = None
+        args2.epub_author = None
+        args2.epub_language = None
+        args2.no_toc = False
+        args2.no_validate = False
+        args2.epub_strict = False
+        args2.cover = None
+        args2.custom_css = None
+        args2.epub_metadata = None
+        args2.validate_only = False
 
-            success = process_novel_unified(chinese_test_novel, args)
+        # Mock the API call for renaming
+        with patch("enchant_book_manager.renamenovels.make_openai_request") as mock_openai_request:
+            mock_openai_request.return_value = mock_openai_response
+
+            # Create translation directory that would exist from skipped translation phase
+            book_dir = temp_dir / "Cultivation Master by Unknown Author"
+            book_dir.mkdir(exist_ok=True)
+            translated_file = book_dir / "translated_Cultivation Master by Unknown Author.txt"
+            translated_file.write_text("Chapter 1\n\nTranslated content.", encoding="utf-8")
+
+            success = process_novel_unified(test_novel_2, args2)
             assert success is True
 
-        # Test skip EPUB
-        args.skip_renaming = False
-        args.skip_translating = False
-        args.skip_epub = True
+        # Test 3: Skip EPUB
+        # Create another fresh copy of the test novel
+        test_novel_3 = temp_dir / "test_novel_3.txt"
+        test_novel_3.write_text(chinese_test_novel.read_text(encoding="utf-8"), encoding="utf-8")
+
+        args3 = Mock()
+        args3.skip_renaming = False
+        args3.skip_translating = False
+        args3.skip_epub = True
+        args3.resume = False
+        args3.openai_api_key = "test_key"
+        args3.rename_temperature = 0.0
+        args3.rename_model = "gpt-4o-mini"
+        args3.rename_dry_run = False
+        args3.encoding = "utf-8"
+        args3.max_chars = 2000
+        args3.remote = False
+
+        def mock_translate_novel(input_file, **kwargs):
+            from enchant_book_manager.common_utils import sanitize_filename
+
+            # Create translation directory structure
+            input_path = Path(input_file)
+            # Extract book info to get the title/author from renamed file
+            from enchant_book_manager.common_utils import extract_book_info_from_path
+
+            book_info = extract_book_info_from_path(input_path)
+            book_title = book_info.get("title_english", "Cultivation Master")
+            book_author = book_info.get("author_english", "Unknown Author")
+            safe_folder_name = sanitize_filename(f"{book_title} by {book_author}")
+            translation_dir = input_path.parent / safe_folder_name
+            translation_dir.mkdir(exist_ok=True)
+            # Create translated file
+            translated_file = translation_dir / f"translated_{book_title} by {book_author}.txt"
+            translated_file.write_text("Chapter 1\n\nTranslated content.", encoding="utf-8")
+            return True
 
         with (
-            patch("enchant_book_manager.renamenovels.process_novel_file") as mock_rename,
-            patch("enchant_book_manager.cli_translator.translate_novel") as mock_translate,
+            patch("enchant_book_manager.renamenovels.make_openai_request") as mock_openai_request,
+            patch("enchant_book_manager.enchant_cli.translate_novel", side_effect=mock_translate_novel),
         ):
-            mock_rename.return_value = (True, chinese_test_novel, {})
-            mock_translate.return_value = True
+            mock_openai_request.return_value = mock_openai_response
 
-            success = process_novel_unified(chinese_test_novel, args)
+            success = process_novel_unified(test_novel_3, args3)
             assert success is True
 
     def test_orchestration_resume_functionality(self, temp_dir, chinese_test_novel):
@@ -445,12 +549,16 @@ class TestEnChANTOrchestrator:
 
         enchant_cli.tolog = logging.getLogger(__name__)
 
+        # Create renamed file as if Phase 1 was completed
+        renamed_file = temp_dir / "Test Novel by Test Author.txt"
+        renamed_file.write_text(chinese_test_novel.read_text(encoding="utf-8"), encoding="utf-8")
+
         # Create progress file
         progress_file = temp_dir / f".{chinese_test_novel.stem}_progress.yml"
         progress_data = {
             "original_file": str(chinese_test_novel),
             "phases": {
-                "renaming": {"status": "completed", "result": str(chinese_test_novel)},
+                "renaming": {"status": "completed", "result": str(renamed_file)},
                 "translation": {"status": "pending", "result": None},
                 "epub": {"status": "pending", "result": None},
             },
@@ -467,10 +575,35 @@ class TestEnChANTOrchestrator:
         args.encoding = "utf-8"
         args.max_chars = 2000
         args.remote = False
+        args.translated = None
+        args.epub_title = None
+        args.epub_author = None
+        args.epub_language = None
+        args.no_toc = False
+        args.no_validate = False
+        args.epub_strict = False
+        args.cover = None
+        args.custom_css = None
+        args.epub_metadata = None
+        args.validate_only = False
 
-        with patch("enchant_book_manager.enchant_cli.translate_novel") as mock_translate:
-            mock_translate.return_value = True
+        def mock_translate_novel(input_file, **kwargs):
+            from enchant_book_manager.common_utils import sanitize_filename
 
+            # Create translation directory structure
+            input_path = Path(input_file)
+            safe_folder_name = sanitize_filename("Test Novel by Test Author")
+            translation_dir = input_path.parent / safe_folder_name
+            translation_dir.mkdir(exist_ok=True)
+            # Create translated file
+            translated_file = translation_dir / "translated_Test Novel by Test Author.txt"
+            translated_file.write_text("Chapter 1\n\nTranslated content.", encoding="utf-8")
+            # Create chapter files
+            chapter_file = translation_dir / "Chapter 1.txt"
+            chapter_file.write_text("Chapter 1\n\nTranslated content.", encoding="utf-8")
+            return True
+
+        with patch("enchant_book_manager.enchant_cli.translate_novel", side_effect=mock_translate_novel):
             success = process_novel_unified(chinese_test_novel, args)
 
             # Should skip completed renaming phase

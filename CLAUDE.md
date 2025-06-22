@@ -103,6 +103,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - All test functions must have docstrings with a short description that will be used by the table to describe the test.
 - Mark the slow tests (those usually skipped when running tests on GitHub, or that need some extra big dependencies installed) with the emoji of a snail 🐌. Be sure to account for the extra character in the table formatting.
 
+## GITHUB WORKFLOWS AFTER PUSHING
+After commit and pushing the project to github, always check if the push passed the github actions and checks.
+Wait few seconds, according to the average time needed for the lint and tests to run, then use the following commands to retrieve the last logs of the last actions:
+```
+gh run list --limit <..max number of recent actions logs to list...>
+gh run view <... run number ...> --log-failed
+```
+Example:
+```
+> gh run list --limit 10
+> mkdir -p ./logs && gh run view 15801201757 --log-failed > ./logs/15801201757.log
+etc..
+
+```
+Then examine the log files saved in the ./logs/ subdir. Think ultrahard to find the causes. Use actionlint, yamllint and act to test and verify the workflows issues. Then report the issues causing the failings.
 
 
 ### Code Quality

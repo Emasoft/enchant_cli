@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 # Copyright 2025 Emasoft
 #
@@ -135,7 +134,12 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
             current_path = file_path
 
     # Phase 1: Renaming
-    if not getattr(args, "skip_renaming", False) and progress["phases"]["renaming"]["status"] != "completed":
+    if getattr(args, "skip_renaming", False):
+        # Mark as skipped if not already completed
+        if progress["phases"]["renaming"]["status"] != "completed":
+            progress["phases"]["renaming"]["status"] = "skipped"
+            tolog.info("Phase 1: Skipping renaming phase")
+    elif not getattr(args, "skip_renaming", False) and progress["phases"]["renaming"]["status"] != "completed":
         tolog.info(f"Phase 1: Renaming file {file_path.name}")
 
         if not renaming_available:
@@ -153,7 +157,7 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
                 try:
                     # Use command line options if provided, otherwise defaults
                     rename_model = getattr(args, "rename_model", None) or "gpt-4o-mini"
-                    rename_temperature = float(getattr(args, "rename_temperature", 0.0)) if hasattr(args, "rename_temperature") and getattr(args, "rename_temperature") is not None else 0.0
+                    rename_temperature = float(getattr(args, "rename_temperature", 0.0)) if hasattr(args, "rename_temperature") and args.rename_temperature is not None else 0.0
                     rename_dry_run = getattr(args, "rename_dry_run", False)
 
                     success, new_path, metadata = rename_novel(
@@ -192,7 +196,12 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
             # Continue anyway - progress tracking is not critical
 
     # Phase 2: Translation
-    if not getattr(args, "skip_translating", False) and progress["phases"]["translation"]["status"] != "completed":
+    if getattr(args, "skip_translating", False):
+        # Mark as skipped if not already completed
+        if progress["phases"]["translation"]["status"] != "completed":
+            progress["phases"]["translation"]["status"] = "skipped"
+            tolog.info("Phase 2: Skipping translation phase")
+    elif not getattr(args, "skip_translating", False) and progress["phases"]["translation"]["status"] != "completed":
         tolog.info(f"Phase 2: Translating {current_path.name}")
 
         if not translation_available:
@@ -238,7 +247,12 @@ def process_novel_unified(file_path: Path, args: argparse.Namespace) -> bool:
             # Continue anyway - progress tracking is not critical
 
     # Phase 3: EPUB Generation
-    if not getattr(args, "skip_epub", False) and progress["phases"]["epub"]["status"] != "completed":
+    if getattr(args, "skip_epub", False):
+        # Mark as skipped if not already completed
+        if progress["phases"]["epub"]["status"] != "completed":
+            progress["phases"]["epub"]["status"] = "skipped"
+            tolog.info("Phase 3: Skipping EPUB generation phase")
+    elif not getattr(args, "skip_epub", False) and progress["phases"]["epub"]["status"] != "completed":
         tolog.info(f"Phase 3: Generating EPUB for {current_path.name}")
 
         if not epub_available:
@@ -465,14 +479,14 @@ def process_batch(args: argparse.Namespace) -> None:
                     }
                 )
 
-        MAX_RETRIES = 3
+        max_retries = 3
 
         # Process files
         for item in progress["files"]:
             if item["status"] == "completed":
                 continue
-            if item.get("retry_count", 0) >= MAX_RETRIES:
-                tolog.warning(f"Skipping {item['path']} after {MAX_RETRIES} failed attempts.")
+            if item.get("retry_count", 0) >= max_retries:
+                tolog.warning(f"Skipping {item['path']} after {max_retries} failed attempts.")
                 item["status"] = "failed/skipped"
                 continue
 
