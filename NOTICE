@@ -1,0 +1,56 @@
+EnChANT - English-Chinese Automatic Novel Translator
+Copyright 2025 Emasoft
+
+This product includes software developed by Emasoft (https://github.com/Emasoft).
+
+=========================================================================
+Third-Party Software Notices and Attributions
+=========================================================================
+
+This project incorporates material from the following third-party projects:
+
+1. chardet (https://github.com/chardet/chardet)
+   - License: LGPL v2.1+
+   - Copyright: Mark Pilgrim, Dan Blanchard, and contributors
+
+2. colorama (https://github.com/tartley/colorama)
+   - License: BSD 3-Clause
+   - Copyright: Jonathan Hartley and contributors
+
+3. filelock (https://github.com/tox-dev/py-filelock)
+   - License: Unlicense (Public Domain)
+
+4. peewee (https://github.com/coleifer/peewee)
+   - License: MIT
+   - Copyright: Charles Leifer
+
+5. PyYAML (https://github.com/yaml/pyyaml)
+   - License: MIT
+   - Copyright: 2017-2021 Ingy döt Net, 2006-2016 Kirill Simonov
+
+6. requests (https://github.com/psf/requests)
+   - License: Apache 2.0
+   - Copyright: Kenneth Reitz and contributors
+
+7. rich (https://github.com/Textualize/rich)
+   - License: MIT
+   - Copyright: Will McGugan
+
+8. tenacity (https://github.com/jd/tenacity)
+   - License: Apache 2.0
+   - Copyright: Julien Danjou
+
+9. waiting (https://github.com/vmalloc/waiting)
+   - License: BSD 3-Clause
+   - Copyright: Rotem Yaari
+
+The full license texts for these dependencies can be found in their respective
+project repositories.
+
+=========================================================================
+License Compatibility Notice
+=========================================================================
+
+This project is licensed under the Apache License 2.0, which is compatible
+with all the above licenses. The LGPL-licensed chardet library is used as
+a standard Python dependency and is not embedded or modified in this project.
