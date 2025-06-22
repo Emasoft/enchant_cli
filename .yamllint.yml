@@ -1,4 +1,3 @@
----
 # YAML Lint Configuration for Super-Linter
 extends: default
 
@@ -8,7 +7,7 @@ rules:
     level: warning
 
   comments:
-    min-spaces-from-content: 2
+    min-spaces-from-content: 1
 
   comments-indentation: disable
 
@@ -36,7 +35,7 @@ rules:
     max-spaces-inside: 1
 
 # Ignore certain paths
-ignore: |
+ignore: |-
   .github/linters/
   node_modules/
   dist/

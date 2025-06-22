@@ -6,7 +6,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write  # Required for PyPI trusted publishing
+  id-token: write # Required for PyPI trusted publishing
 
 jobs:
   build-and-publish:
@@ -33,7 +33,9 @@ jobs:
         run: |
           mkdir -p ~/.local/bin
           VERSION="v1.7.7"
-          curl -L "https://github.com/rhysd/actionlint/releases/download/${VERSION}/actionlint_$(uname -s | tr '[:upper:]' '[:lower:]')_amd64.tar.gz" | tar xz -C ~/.local/bin
+          PLATFORM=$(uname -s | tr '[:upper:]' '[:lower:]')
+          URL="https://github.com/rhysd/actionlint/releases/download/${VERSION}/actionlint_${PLATFORM}_amd64.tar.gz"
+          curl -L "${URL}" | tar xz -C ~/.local/bin
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Run all quality checks

@@ -44,7 +44,15 @@ repos:
         language: system
         types: [python]
         require_serial: true
-        args: ['--strict', '--show-error-context', '--pretty', '--no-color-output', '--show-error-codes', '--show-error-code-links', '--no-error-summary', '--follow-imports=normal']
+        args:
+          - '--strict'
+          - '--show-error-context'
+          - '--pretty'
+          - '--no-color-output'
+          - '--show-error-codes'
+          - '--show-error-code-links'
+          - '--no-error-summary'
+          - '--follow-imports=normal'
         exclude: '^(tests/|__pycache__|\.git/)'
 
       # Dependency checking with deptry
@@ -70,7 +78,15 @@ repos:
         entry: uv run --frozen yamllint
         language: system
         types: [yaml]
-        args: [-c, .yamllint]
+        args: [-c, .yamllint.yml]
+
+      # YAML formatting with yamlfmt
+      - id: yamlfmt
+        name: yamlfmt
+        entry: bash -c 'export PATH=$PATH:$(go env GOPATH)/bin && yamlfmt'
+        language: system
+        types: [yaml]
+        pass_filenames: true
 
       # GitHub Actions linting with actionlint
       - id: actionlint
@@ -91,7 +107,12 @@ repos:
       # Detect secrets with gitleaks
       - id: gitleaks
         name: gitleaks
-        entry: 'bash -c "if command -v gitleaks &> /dev/null; then gitleaks protect --staged --verbose; else echo \"Warning: gitleaks not installed, skipping check\"; fi"'
+        entry: |
+          bash -c "if command -v gitleaks &> /dev/null; then
+            gitleaks protect --staged --verbose
+          else
+            echo 'Warning: gitleaks not installed, skipping check'
+          fi"
         language: system
         pass_filenames: false
         always_run: true

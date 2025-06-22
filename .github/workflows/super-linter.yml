@@ -40,7 +40,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
           # Language-specific settings
-          VALIDATE_ALL_CODEBASE: false  # Only validate changed files in PRs
+          VALIDATE_ALL_CODEBASE: false # Only validate changed files in PRs
 
           # Only validate these languages/tools
           VALIDATE_PYTHON_MYPY: true
@@ -58,7 +58,8 @@ jobs:
           VALIDATE_EDITORCONFIG: true
 
           # Ignore generated files and test data
-          FILTER_REGEX_EXCLUDE: .*\/(dist|build|htmlcov|\.pytest_cache|\.mypy_cache|\.ruff_cache|test_data|sample_novel)\/.*
+          FILTER_REGEX_EXCLUDE: |
+            .*\/(dist|build|htmlcov|\.pytest_cache|\.mypy_cache|\.ruff_cache|test_data|sample_novel)\/.*
 
           # File extensions to lint
           FILE_EXTENSIONS: .py,.yml,.yaml,.json,.xml,.sh,.bash,.md

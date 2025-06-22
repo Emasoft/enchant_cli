@@ -1,0 +1,20 @@
+# .yamlfmt
+formatter:
+  indent: 2                      # Use 2-space indentation (standard in GitHub workflows)
+  retain_line_breaks: true       # Preserve existing blank lines between blocks
+  indentless_arrays: false       # Use standard indentation for arrays (GitHub Actions style)
+  scan_folded_as_literal: true   # Keep multi-line ">"-style blocks as-is, avoid collapsing
+  trim_trailing_whitespace: true # Remove trailing spaces at end of lines
+  eof_newline: true              # Ensure the file ends with exactly one newline
+
+# Exclude patterns
+exclude:
+  - ".venv/**"
+  - "venv/**"
+  - "node_modules/**"
+  - "dist/**"
+  - "build/**"
+  - "htmlcov/**"
+  - ".pytest_cache/**"
+  - "test_data/**"
+  - "tests/sample_novel/**"

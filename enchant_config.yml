@@ -64,7 +64,7 @@ presets:
       ;;
     # User prompt for first translation pass
     user_prompt_1st_pass: |
-       ;; Answer with the professional english translation of the following input text:
+      ;; Answer with the professional english translation of the following input text:
 
     # User prompt for second translation pass (if double_pass is enabled)
     user_prompt_2nd_pass: |
@@ -143,23 +143,23 @@ presets:
       - Output only the perfected english text, the whole unabridged text, with all the chinese words and characters completely translated into english.
 
 
-  # Add your custom presets here
-  # Example:
-  # CUSTOM_FAST:
-  #   endpoint: "http://localhost:1234/v1/chat/completions"
-  #   model: "custom-model"
-  #   connection_timeout: 15
-  #   response_timeout: 120
-  #   max_retries: 3
-  #   retry_wait_base: 0.5
-  #   retry_wait_max: 30.0
-  #   double_pass: false
-  #   max_chars_per_chunk: 8000
-  #   temperature: 0.1
-  #   max_tokens: 2000
-  #   system_prompt: "Your custom system prompt"
-  #   user_prompt_1st_pass: "Your custom first pass prompt"
-  #   user_prompt_2nd_pass: "Your custom second pass prompt"
+    # Add your custom presets here
+    # Example:
+    # CUSTOM_FAST:
+    #   endpoint: "http://localhost:1234/v1/chat/completions"
+    #   model: "custom-model"
+    #   connection_timeout: 15
+    #   response_timeout: 120
+    #   max_retries: 3
+    #   retry_wait_base: 0.5
+    #   retry_wait_max: 30.0
+    #   double_pass: false
+    #   max_chars_per_chunk: 8000
+    #   temperature: 0.1
+    #   max_tokens: 2000
+    #   system_prompt: "Your custom system prompt"
+    #   user_prompt_1st_pass: "Your custom first pass prompt"
+    #   user_prompt_2nd_pass: "Your custom second pass prompt"
 
 # Translation Settings
 # --------------------

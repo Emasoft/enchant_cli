@@ -34,5 +34,17 @@ jobs:
           chmod +x ~/.local/bin/actionlint
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
+      - name: Install yamlfmt
+        run: |
+          # Install Go if not available
+          if ! command -v go &> /dev/null; then
+            wget -q https://go.dev/dl/go1.21.0.linux-amd64.tar.gz
+            sudo tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
+            export PATH=$PATH:/usr/local/go/bin
+          fi
+          # Install yamlfmt
+          go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
       - name: Run pre-commit
         run: uv run pre-commit run --all-files --show-diff-on-failure --color=always
