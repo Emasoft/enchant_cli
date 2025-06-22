@@ -44,7 +44,7 @@ jobs:
 
           # Only validate these languages/tools
           VALIDATE_PYTHON_MYPY: true
-          PYTHON_MYPY_CONFIG_FILE: pyproject.toml
+          # PYTHON_MYPY_CONFIG_FILE is not set to use default location
           VALIDATE_PYTHON_RUFF: true
           VALIDATE_YAML: true
           YAML_CONFIG_FILE: .yamllint.yml

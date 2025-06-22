@@ -1,0 +1,124 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "enchant-book-manager"
+version = "1.0.0"
+description = "EnChANT - English-Chinese Automatic Novel Translator"
+readme = "README.md"
+authors = [
+    {name = "Emasoft", email = "713559+Emasoft@users.noreply.github.com"}
+]
+license = {text = "Apache-2.0"}
+requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Text Processing :: Linguistic",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+keywords = ["chinese", "translation", "epub", "novel", "ai"]
+dependencies = [
+    "chardet>=5.2.0",
+    "colorama>=0.4.6",
+    "filelock>=3.16.1",
+    "peewee>=3.18.1",
+    "pyyaml>=6.0.2",
+    "requests>=2.32.4",
+    "rich>=14.0.0",
+    "tenacity>=9.1.2",
+    "waiting>=1.4.1",
+]
+
+[project.scripts]
+enchant-cli = "enchant_book_manager.enchant_cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Emasoft/enchant-book-manager"
+Repository = "https://github.com/Emasoft/enchant-book-manager"
+Issues = "https://github.com/Emasoft/enchant-book-manager/issues"
+
+[tool.hatch.build]
+exclude = [
+    "*.bak",
+    "*.bak2",
+    "*.log",
+    "*.yml",
+    "CLAUDE.md",
+    "DEVELOPMENT_PLAN.md",
+    "CODE_QUALITY_REVIEW.md",
+    "ENCHANT_README.md",
+    ".gitignore",
+    ".python-version",
+    "tests/",
+    "__pycache__/",
+    ".pytest_cache/",
+    ".coverage",
+    "htmlcov/",
+    "dist/",
+    "build/",
+    "*.egg-info/",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/enchant_book_manager"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+[tool.deptry]
+known_first_party = ["enchant_book_manager"]
+ignore_notebooks = true
+ignore = ["DEP001", "DEP002"]  # Ignore missing/unused optional dependencies
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.0",
+    "pytest-timeout>=2.4.0",
+    "pytest-cov>=6.2.1",
+    "pytest-mock>=3.14.1",
+    "mypy>=1.11.2",
+    "ruff>=0.8.7",
+    "black>=24.10.0",
+    "pre-commit>=4.0.1",
+    "deptry>=0.23.0",
+    "pip-audit>=2.7.3",
+    "yamllint>=1.35.1",
+    "types-pyyaml>=6.0.12.20250516",
+    "types-requests>=2.32.4.20250611",
+    "types-chardet>=5.0.0",
+    "types-colorama>=0.4.15",
+]
+
+[tool.ruff]
+line-length = 400
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "I", "N", "UP", "C90"]
+ignore = ["E501", "E203", "E402", "W505", "F841", "F842", "F401", "W293", "I001", "UP015", "C901", "W291"]
+
+[tool.black]
+line-length = 400
+target-version = ['py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
