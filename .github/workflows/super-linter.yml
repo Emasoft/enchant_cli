@@ -47,7 +47,7 @@ jobs:
           # PYTHON_MYPY_CONFIG_FILE is not set to use default location
           VALIDATE_PYTHON_RUFF: true
           VALIDATE_YAML: true
-          YAML_CONFIG_FILE: .yamllint.yml
+          # YAML_CONFIG_FILE is not set to use default location
           VALIDATE_MARKDOWN: true
           VALIDATE_BASH: true
           VALIDATE_SHELL_SHFMT: true

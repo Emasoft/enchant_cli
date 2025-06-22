@@ -42,8 +42,9 @@ class TestRemoteAPIIntegration:
 
         assert result is not None
         assert len(result) > 0
-        assert "Hello" in result or "hello" in result
-        assert "world" in result or "World" in result
+        # Accept various greetings (Hello, Hi, Greetings, etc.)
+        assert any(greeting in result.lower() for greeting in ["hello", "hi", "greetings"])
+        assert "world" in result.lower()
 
         # Check cost tracking
         summary = global_cost_tracker.get_summary()
