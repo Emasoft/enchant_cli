@@ -31,19 +31,20 @@ jobs:
       - name: Run ruff formatting check
         run: |
           echo "::group::Running ruff format check"
-          uv run ruff format --check .
+          # Run the same ruff-format that pre-commit uses
+          uv run pre-commit run ruff-format --all-files || exit 1
           echo "::endgroup::"
 
       - name: Run mypy type checking
         run: |
           echo "::group::Running mypy"
-          uv run mypy . --strict --ignore-missing-imports
+          uv run pre-commit run mypy --all-files || exit 1
           echo "::endgroup::"
 
       - name: Run yamllint
         run: |
           echo "::group::Running yamllint"
-          uv run yamllint . -f github
+          uv run pre-commit run yamllint --all-files || exit 1
           echo "::endgroup::"
 
       - name: Install Node.js
