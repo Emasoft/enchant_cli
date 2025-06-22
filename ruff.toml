@@ -6,6 +6,27 @@ extend = "pyproject.toml"
 # Python version target
 target-version = "py310"
 
+# Maximum line length (for formatter)
+line-length = 120
+
+# Exclude paths
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "dist",
+    "build",
+    "*.egg-info",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    "htmlcov",
+    "test_data",
+    "sample_novel",
+]
+
+# Lint configuration
+[lint]
 # Enable pycodestyle, pyflakes, and additional rules
 select = ["E", "F", "W", "I", "N", "UP", "B", "C90"]
 
@@ -34,25 +55,6 @@ ignore = [
     "N816",   # Variable in class scope should not be mixedCase
     "N818",   # Exception name should be named with an Error suffix
     "B904",   # Use raise from to specify exception cause
-]
-
-# Maximum line length (for formatter)
-line-length = 120
-
-# Exclude paths
-exclude = [
-    ".git",
-    ".venv",
-    "__pycache__",
-    "dist",
-    "build",
-    "*.egg-info",
-    ".pytest_cache",
-    ".mypy_cache",
-    ".ruff_cache",
-    "htmlcov",
-    "test_data",
-    "sample_novel",
 ]
 
 [format]
