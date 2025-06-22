@@ -1,0 +1,66 @@
+# Ruff configuration for ENCHANT_BOOK_MANAGER
+
+# Extend the default configuration
+extend = "pyproject.toml"
+
+# Python version target
+target-version = "py310"
+
+# Enable pycodestyle, pyflakes, and additional rules
+select = ["E", "F", "W", "I", "N", "UP", "B", "C90"]
+
+# Ignore specific rules that conflict with our project style
+ignore = [
+    "E203",   # Whitespace before ':'
+    "E402",   # Module level import not at top of file
+    "E501",   # Line too long (handled by formatter)
+    "E266",   # Too many leading '#' for block comment
+    "W505",   # Doc line too long
+    "F841",   # Local variable assigned but never used
+    "F842",   # Local variable annotated but never used
+    "F401",   # Module imported but unused
+    "W293",   # Blank line contains whitespace
+    "I001",   # Import block is un-sorted or un-formatted
+    "UP015",  # Unnecessary open mode parameters
+    "C901",   # Too complex
+    "W291",   # Trailing whitespace
+    "UP017",  # Use datetime.UTC (not available in Python 3.10)
+    "UP009",  # UTF-8 encoding declaration is unnecessary
+    "B007",   # Loop control variable not used within loop body
+    "B011",   # Do not assert False
+    "UP031",  # Use format specifiers instead of percent format
+    "N803",   # Argument name should be lowercase
+    "N806",   # Variable in function should be lowercase
+    "N816",   # Variable in class scope should not be mixedCase
+    "N818",   # Exception name should be named with an Error suffix
+    "B904",   # Use raise from to specify exception cause
+]
+
+# Maximum line length (for formatter)
+line-length = 120
+
+# Exclude paths
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "dist",
+    "build",
+    "*.egg-info",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    "htmlcov",
+    "test_data",
+    "sample_novel",
+]
+
+[format]
+# Use double quotes
+quote-style = "double"
+
+# Indent with spaces
+indent-style = "space"
+
+# Magic trailing comma
+skip-magic-trailing-comma = false

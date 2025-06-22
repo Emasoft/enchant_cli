@@ -42,44 +42,19 @@ jobs:
           # Language-specific settings
           VALIDATE_ALL_CODEBASE: false  # Only validate changed files in PRs
 
-          # Python settings
-          VALIDATE_PYTHON_BLACK: false  # We use ruff format instead
-          VALIDATE_PYTHON_FLAKE8: false  # We use ruff instead
-          VALIDATE_PYTHON_ISORT: false  # We use ruff instead
-          VALIDATE_PYTHON_PYLINT: false  # We use ruff instead
+          # Only validate these languages/tools
           VALIDATE_PYTHON_MYPY: true
           PYTHON_MYPY_CONFIG_FILE: pyproject.toml
-
-          # Use our project's linting tools
           VALIDATE_PYTHON_RUFF: true
-
-          # YAML settings
           VALIDATE_YAML: true
           YAML_CONFIG_FILE: .yamllint.yml
-
-          # Markdown settings
           VALIDATE_MARKDOWN: true
-
-          # Shell script settings
           VALIDATE_BASH: true
           VALIDATE_SHELL_SHFMT: true
-
-          # GitHub Actions settings
           VALIDATE_GITHUB_ACTIONS: true
-
-          # JSON settings
           VALIDATE_JSON: true
-
-          # XML settings (for EPUB files)
           VALIDATE_XML: true
-
-          # Natural language settings
-          VALIDATE_NATURAL_LANGUAGE: false  # Too noisy for a translation project
-
-          # Dockerfile settings (if we add Docker support later)
           VALIDATE_DOCKERFILE_HADOLINT: true
-
-          # EditorConfig settings
           VALIDATE_EDITORCONFIG: true
 
           # Ignore generated files and test data

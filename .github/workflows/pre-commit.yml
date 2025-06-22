@@ -26,8 +26,12 @@ jobs:
         run: |
           # Install actionlint for GitHub Actions linting
           mkdir -p ~/.local/bin
-          VERSION="v1.7.7"
-          curl -L "https://github.com/rhysd/actionlint/releases/download/${VERSION}/actionlint_$(uname -s | tr '[:upper:]' '[:lower:]')_amd64.tar.gz" | tar xz -C ~/.local/bin
+          VERSION="1.7.7"
+          ARCH="amd64"
+          OS="linux"
+          URL="https://github.com/rhysd/actionlint/releases/download/v${VERSION}/actionlint_${VERSION}_${OS}_${ARCH}.tar.gz"
+          curl -L "${URL}" | tar xz -C ~/.local/bin actionlint
+          chmod +x ~/.local/bin/actionlint
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
       - name: Run pre-commit

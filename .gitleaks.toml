@@ -25,6 +25,8 @@ regexes = [
     '''OPENROUTER_API_KEY''',
     '''placeholder''',
     '''example''',
+    '''github\.com/rhysd/actionlint/releases/download''',
+    '''actionlint.*tar\.gz''',
 ]
 
 paths = [
@@ -36,6 +38,8 @@ paths = [
     '''CLAUDE\.md''',
     '''docs/.*''',
     '''enchant_cli\.py''',
+    '''\.github/workflows/.*\.yml''',
+    '''\.github/workflows/.*\.yaml''',
 ]
 
 # Files to completely ignore
@@ -98,4 +102,8 @@ paths = [
     '''tests/.*''',
     '''.*\.lock''',
     '''.*\.sum''',
+    '''\.github/workflows/.*''',
+]
+regexes = [
+    '''github\.com/rhysd/actionlint''',
 ]
