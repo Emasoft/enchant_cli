@@ -1,4 +1,4 @@
-# .yamlfmt
+# .yamlfmt - Configuration for GitHub Actions workflow formatting only
 formatter:
   indent: 2                      # Use 2-space indentation (standard in GitHub workflows)
   retain_line_breaks: true       # Preserve existing blank lines between blocks
@@ -6,6 +6,11 @@ formatter:
   scan_folded_as_literal: true   # Keep multi-line ">"-style blocks as-is, avoid collapsing
   trim_trailing_whitespace: true # Remove trailing spaces at end of lines
   eof_newline: true              # Ensure the file ends with exactly one newline
+
+# Only format files in .github directory
+include:
+  - ".github/**/*.yml"
+  - ".github/**/*.yaml"
 
 # Exclude patterns
 exclude:

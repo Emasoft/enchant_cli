@@ -80,12 +80,12 @@ repos:
         types: [yaml]
         args: [-c, .yamllint.yml]
 
-      # YAML formatting with yamlfmt
+      # YAML formatting with yamlfmt (GitHub workflows only)
       - id: yamlfmt
-        name: yamlfmt
+        name: yamlfmt (GitHub workflows)
         entry: bash -c 'export PATH=$PATH:$(go env GOPATH)/bin && yamlfmt'
         language: system
-        types: [yaml]
+        files: ^\.github/.*\.(yml|yaml)$
         pass_filenames: true
 
       # GitHub Actions linting with actionlint
