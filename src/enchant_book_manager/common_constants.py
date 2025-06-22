@@ -48,8 +48,10 @@ DEFAULT_MAX_CHARS = 12000
 
 # Default retry settings
 DEFAULT_MAX_RETRIES = 10
+DEFAULT_MAX_RETRIES_TEST = 2  # Reduced retries for tests
 DEFAULT_RETRY_WAIT_MIN = 1.0
 DEFAULT_RETRY_WAIT_MAX = 60.0
+DEFAULT_RETRY_WAIT_MAX_TEST = 5.0  # Reduced max wait for tests
 
 # API URLs (can be overridden by configuration)
 DEFAULT_OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"

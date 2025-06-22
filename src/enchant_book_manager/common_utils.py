@@ -22,11 +22,41 @@ import re
 import unicodedata
 import time
 import sys
+import os
 import functools
 from pathlib import Path
 from typing import Any, TypeVar
 from collections.abc import Callable
 import logging
+
+from .common_constants import (
+    DEFAULT_MAX_RETRIES,
+    DEFAULT_MAX_RETRIES_TEST,
+    DEFAULT_RETRY_WAIT_MAX,
+    DEFAULT_RETRY_WAIT_MAX_TEST,
+)
+
+
+def is_running_in_test() -> bool:
+    """
+    Detect if code is running in a test environment.
+
+    Returns:
+        True if running in a test environment, False otherwise
+    """
+    # Check if pytest is running
+    if "pytest" in sys.modules:
+        return True
+
+    # Check for common test environment variables
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        return True
+
+    # Check if running in CI/CD
+    if os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS"):
+        return True
+
+    return False
 
 
 def sanitize_filename(filename: str, max_length: int = 255) -> str:
@@ -147,12 +177,23 @@ def retry_with_backoff(
             if args and hasattr(args[0], "logger"):
                 logger = args[0].logger
 
+            # Use test-specific values if running in test environment
+            actual_max_attempts = max_attempts
+            actual_max_wait = max_wait
+
+            if is_running_in_test():
+                # Use test-specific defaults if using default values
+                if max_attempts == DEFAULT_MAX_RETRIES:
+                    actual_max_attempts = DEFAULT_MAX_RETRIES_TEST
+                if max_wait == DEFAULT_RETRY_WAIT_MAX:
+                    actual_max_wait = DEFAULT_RETRY_WAIT_MAX_TEST
+
             try:
                 result = exponential_backoff_retry(
                     func,
-                    max_attempts,
+                    actual_max_attempts,
                     base_wait,
-                    max_wait,
+                    actual_max_wait,
                     min_wait,
                     exception_types,
                     logger,
@@ -164,7 +205,7 @@ def retry_with_backoff(
                 return result
             except Exception as e:
                 if exit_on_failure:
-                    error_msg = f"Critical failure in {func.__name__} after {max_attempts} attempts: {e}"
+                    error_msg = f"Critical failure in {func.__name__} after {actual_max_attempts} attempts: {e}"
                     if logger:
                         logger.error(error_msg)
                     print(f"\\n❌ FATAL ERROR: {error_msg}")

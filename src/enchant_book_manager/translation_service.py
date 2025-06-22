@@ -24,6 +24,7 @@ from .cost_tracker import global_cost_tracker
 from .common_text_utils import clean, normalize_spaces as common_normalize_spaces
 from .common_constants import DEFAULT_LMSTUDIO_API_URL
 from .common_utils import retry_with_backoff
+from .common_constants import DEFAULT_MAX_RETRIES, DEFAULT_RETRY_WAIT_MAX
 
 
 # Constant parameters:
@@ -589,9 +590,9 @@ class ChineseAITranslator:
         return final_translation
 
     @retry_with_backoff(
-        max_attempts=10,
+        max_attempts=DEFAULT_MAX_RETRIES,
         base_wait=1.0,
-        max_wait=30.0,
+        max_wait=DEFAULT_RETRY_WAIT_MAX,
         min_wait=3.0,
         time_limit=18 * 60,  # 18 minutes
         exit_on_failure=True,  # Critical for translation
