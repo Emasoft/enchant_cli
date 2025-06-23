@@ -43,20 +43,6 @@ jobs:
         run: |
           uv tool install pre-commit --with pre-commit-uv
 
-      - name: Debug - Check README content before pre-commit
-        run: |
-          echo "=== README.md first 20 lines ==="
-          head -20 README.md
-          echo "=== LICENSE first 10 lines ==="
-          head -10 LICENSE
-
       - name: Run pre-commit
         run: |-
-          pre-commit run --all-files --show-diff-on-failure || true
-
-      - name: Debug - Check README content after pre-commit
-        run: |
-          echo "=== README.md first 20 lines ==="
-          head -20 README.md
-          echo "=== Git status ==="
-          git status --porcelain
+          pre-commit run --all-files --show-diff-on-failure
