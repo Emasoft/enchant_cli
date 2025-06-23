@@ -5,6 +5,7 @@
 **Transform Chinese novels into English EPUBs with AI-powered translation**
 
 [![CI Status](https://github.com/Emasoft/enchant-book-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/Emasoft/enchant-book-manager/actions/workflows/ci.yml)
+[![Lint](https://github.com/Emasoft/enchant-book-manager/actions/workflows/lint.yml/badge.svg)](https://github.com/Emasoft/enchant-book-manager/actions/workflows/lint.yml)
 [![Dependency Check](https://github.com/Emasoft/enchant-book-manager/actions/workflows/dependency-check.yml/badge.svg)](https://github.com/Emasoft/enchant-book-manager/actions/workflows/dependency-check.yml)
 [![Pre-commit](https://github.com/Emasoft/enchant-book-manager/actions/workflows/pre-commit.yml/badge.svg)](https://github.com/Emasoft/enchant-book-manager/actions/workflows/pre-commit.yml)
 [![Security Scan](https://github.com/Emasoft/enchant-book-manager/actions/workflows/gitleaks.yml/badge.svg)](https://github.com/Emasoft/enchant-book-manager/actions/workflows/gitleaks.yml)

@@ -1,0 +1,99 @@
+name: Code Metrics
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly on Sunday at midnight UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: read
+  pull-requests: read
+
+jobs:
+  metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for accurate metrics
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv sync --all-extras
+          uv add --dev radon lizard
+
+      - name: Calculate test coverage
+        run: |
+          uv run pytest tests/ --cov=src/enchant_book_manager --cov-report=json
+          COVERAGE=$(python -c "import json; data=json.load(open('coverage.json')); \
+            print(f\"{data['totals']['percent_covered']:.1f}%)\"")
+          echo "COVERAGE=$COVERAGE" >> "$GITHUB_ENV"
+
+      - name: Count lines of code
+        run: |
+          # Count Python lines of code
+          PYTHON_LOC=$(find src tests -name "*.py" -type f -exec wc -l {} + | tail -1 | awk '{print $1}')
+          echo "PYTHON_LOC=$PYTHON_LOC" >> "$GITHUB_ENV"
+
+      - name: Calculate cyclomatic complexity
+        run: |
+          # Average cyclomatic complexity
+          AVG_CC=$(uv run radon cc src -a -s | grep "Average complexity" | awk '{print $3}')
+          echo "AVG_CC=$AVG_CC" >> "$GITHUB_ENV"
+
+      - name: Count dependencies
+        run: |
+          # Count direct dependencies
+          DEPS=$(uv pip list --format json | jq '. | length')
+          echo "DEPS=$DEPS" >> "$GITHUB_ENV"
+
+      - name: Get repository stats
+        run: |
+          # Stars count
+          STARS=$(gh api repos/${{ github.repository }} --jq .stargazers_count)
+          echo "STARS=$STARS" >> "$GITHUB_ENV"
+          # Open issues count
+          ISSUES=$(gh api repos/${{ github.repository }} --jq .open_issues_count)
+          echo "ISSUES=$ISSUES" >> "$GITHUB_ENV"
+          # Repository size in KB
+          SIZE=$(gh api repos/${{ github.repository }} --jq .size)
+          echo "SIZE=$SIZE" >> "$GITHUB_ENV"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update metrics in README
+        run: |
+          # Create metrics JSON
+          cat > metrics.json << EOF
+          {
+            "coverage": "${{ env.COVERAGE }}",
+            "python_loc": "${{ env.PYTHON_LOC }}",
+            "avg_complexity": "${{ env.AVG_CC }}",
+            "dependencies": "${{ env.DEPS }}",
+            "stars": "${{ env.STARS }}",
+            "issues": "${{ env.ISSUES }}",
+            "size_kb": "${{ env.SIZE }}",
+            "last_updated": "$(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          }
+          EOF
+
+      - name: Upload metrics artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-metrics
+          path: metrics.json
