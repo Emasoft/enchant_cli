@@ -27,12 +27,18 @@ regexes = [
     '''example''',
     '''github\.com/rhysd/actionlint/releases/download''',
     '''actionlint.*tar\.gz''',
+    '''autofix\.ci''',
+    '''GIT_AUTHOR''',
+    '''GIT_COMMITTER''',
+    '''git config user\.name''',
+    '''git config user\.email''',
 ]
 
 paths = [
     '''tests/.*\.py''',
     '''.*test.*\.py''',
     '''\.gitleaks\.toml''',
+    '''\.gitleaksignore''',
     '''pyproject\.toml''',
     '''README\.md''',
     '''CLAUDE\.md''',
@@ -50,6 +56,8 @@ files = [
     '''.*\.pyc''',
     '''.*\.pyo''',
     '''.*\.log''',
+    '''requests_responses\.log''',
+    '''translated_.*\.txt''',
 ]
 
 # Custom rules to detect secrets (in addition to default rules)
@@ -103,7 +111,12 @@ paths = [
     '''.*\.lock''',
     '''.*\.sum''',
     '''\.github/workflows/.*''',
+    '''.*\.log''',
+    '''translated_.*\.txt''',
+    '''.*Chunk_.*\.txt''',
 ]
 regexes = [
     '''github\.com/rhysd/actionlint''',
+    '''tmp[a-zA-Z0-9]+/''',
+    '''folders/j5/''',
 ]

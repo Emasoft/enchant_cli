@@ -1,0 +1,79 @@
+name: Autofix
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv sync --all-extras
+          uv add --dev ruff black prettier yamlfmt
+
+      - name: Run Python formatter (ruff format)
+        run: |
+          uv run ruff format --line-length=400 src/ tests/
+
+      - name: Run Python linter with fixes (ruff check)
+        run: |
+          uv run ruff check \
+            --ignore E203,E402,E501,E266,W505,F841,F842,F401,W293,I001,UP015,C901,W291 \
+            --isolated --fix src/ tests/
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install Node dependencies
+        run: pnpm install
+        if: hashFiles('package.json') != ''
+
+      - name: Run Prettier
+        run: pnpm run format
+        if: hashFiles('package.json') != ''
+
+      - name: Install yamlfmt
+        run: |
+          go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+          echo "$HOME/go/bin" >> "$GITHUB_PATH"
+
+      - name: Format YAML files
+        run: |
+          if [ -f .yamlfmt ]; then
+            yamlfmt -path .github/workflows
+          fi
+
+      - name: Apply changes
+        uses: autofix-ci/action@v1
+        with:
+          commit-message: "fix: auto-format code and fix linting issues"
