@@ -108,12 +108,7 @@ repos:
       # Detect secrets with gitleaks
       - id: gitleaks
         name: gitleaks
-        entry: |
-          bash -c "if command -v gitleaks &> /dev/null; then
-            gitleaks protect --staged --verbose
-          else
-            echo 'Warning: gitleaks not installed, skipping check'
-          fi"
+        entry: gitleaks protect --staged --verbose
         language: system
         pass_filenames: false
         always_run: true
