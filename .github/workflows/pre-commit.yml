@@ -44,5 +44,5 @@ jobs:
           uv tool install pre-commit --with pre-commit-uv
 
       - name: Run pre-commit
-        run: |
+        run: |-
           pre-commit run --all-files --show-diff-on-failure
