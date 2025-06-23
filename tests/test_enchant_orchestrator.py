@@ -624,6 +624,12 @@ class TestEnChANTOrchestrator:
         args.skip_epub = False
         args.resume = False
         args.openai_api_key = "test_key"
+        args.rename_model = "gpt-4o-mini"
+        args.rename_temperature = 0.0
+        args.rename_dry_run = False
+        args.encoding = "utf-8"
+        args.max_chars = 2000
+        args.remote = False
 
         # Test renaming failure
         with patch("enchant_book_manager.enchant_cli.rename_novel") as mock_rename:

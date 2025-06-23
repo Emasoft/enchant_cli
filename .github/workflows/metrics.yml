@@ -45,7 +45,7 @@ jobs:
           # Check if coverage report was generated
           if [ -f coverage.json ]; then
             COVERAGE=$(python -c "import json; data=json.load(open('coverage.json')); \
-              print(f\"{data['totals']['percent_covered']:.1f}%)\"")
+              print(f\"{data['totals']['percent_covered']:.1f}%\")")
             echo "COVERAGE=$COVERAGE" >> "$GITHUB_ENV"
           else
             echo "COVERAGE=N/A" >> "$GITHUB_ENV"
