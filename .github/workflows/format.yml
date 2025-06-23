@@ -39,7 +39,7 @@ jobs:
 
       - name: Format Python with ruff
         run: |
-          uv run ruff format --line-length=400 --check src/ tests/
+          uv run ruff format --line-length=320 --check src/ tests/
 
       - name: Format YAML with yamlfmt
         run: |

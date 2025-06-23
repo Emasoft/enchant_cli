@@ -86,7 +86,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Formatting Rules
 - Use only ruff format for formatting python files. Read how here: https://docs.astral.sh/ruff/formatter/
-- Set ruff format to allows line lenght up to 400 chars, using the `--line-length=400`
+- Set ruff format to allows line lenght up to 320 chars, using the `--line-length=320` (max supported by ruff)
 - Do not use pyproject.toml or ruff.toml to configure ruff, since there are too many variations of the command used in the workflows. Aleays run it in isolated mode with `--isolated` and set all options via cli.
 - Use autofix to format pull-requests automatically. Read how here: https://autofix.ci/setup
 - Use Prettier to format all other code files (except python and yaml).

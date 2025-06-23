@@ -626,7 +626,7 @@ class TestEnChANTOrchestrator:
         args.openai_api_key = "test_key"
 
         # Test renaming failure
-        with patch("enchant_book_manager.renamenovels.process_novel_file") as mock_rename:
+        with patch("enchant_book_manager.enchant_cli.rename_novel") as mock_rename:
             mock_rename.side_effect = Exception("Renaming failed")
 
             success = process_novel_unified(chinese_test_novel, args)
@@ -634,8 +634,8 @@ class TestEnChANTOrchestrator:
 
         # Test translation failure
         with (
-            patch("enchant_book_manager.renamenovels.process_novel_file") as mock_rename,
-            patch("enchant_book_manager.cli_translator.translate_novel") as mock_translate,
+            patch("enchant_book_manager.enchant_cli.rename_novel") as mock_rename,
+            patch("enchant_book_manager.enchant_cli.translate_novel") as mock_translate,
         ):
             mock_rename.return_value = (True, chinese_test_novel, {})
             mock_translate.side_effect = Exception("Translation failed")
