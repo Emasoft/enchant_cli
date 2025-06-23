@@ -29,6 +29,9 @@ from enchant_book_manager.renamenovels import process_novel_file  # noqa: E402
 from enchant_book_manager.cli_translator import translate_novel  # noqa: E402
 from enchant_book_manager.make_epub import create_epub_from_chapters  # noqa: E402
 
+# Import test utilities for profile detection
+from test_utils import skip_local_api_tests, get_test_profile, is_ci_environment  # noqa: E402
+
 
 class TestEnChANTOrchestrator:
     """Test suite for the complete EnChANT 3-phase orchestration process"""
@@ -192,6 +195,7 @@ class TestEnChANTOrchestrator:
             assert metadata["novel_title_english"] == "Cultivation Master"
             assert metadata["author_name_english"] == "Unknown Author"
 
+    @skip_local_api_tests("Local API endpoint localhost:1234 not available in CI")
     def test_phase2_translation_success(self, temp_dir, config_file, mock_translation_response):
         """Test Phase 2: Translation from Chinese to English"""
 
@@ -289,6 +293,7 @@ class TestEnChANTOrchestrator:
             assert "Chapter 2" in toc_ncx
             assert "Chapter 3" in toc_ncx
 
+    @skip_local_api_tests("Full orchestration with local API not available in CI")
     def test_full_orchestration_success(
         self,
         temp_dir,
@@ -398,6 +403,7 @@ class TestEnChANTOrchestrator:
                 epub_file = epub_files[0]
                 assert "Cultivation" in epub_file.name and "Master" in epub_file.name
 
+    @skip_local_api_tests("Skip flags test with local API not available in CI")
     def test_orchestration_with_skip_flags(self, temp_dir, chinese_test_novel, mock_openai_response):
         """Test orchestration with different skip flags"""
 
@@ -540,6 +546,7 @@ class TestEnChANTOrchestrator:
             success = process_novel_unified(test_novel_3, args3)
             assert success is True
 
+    @skip_local_api_tests("Resume functionality with local API not available in CI")
     def test_orchestration_resume_functionality(self, temp_dir, chinese_test_novel):
         """Test resume functionality across phases"""
 
@@ -609,7 +616,7 @@ class TestEnChANTOrchestrator:
             # Should skip completed renaming phase
             assert success is True
 
-    def test_error_handling_during_phases(self, temp_dir, chinese_test_novel):
+    def test_error_handling_during_phases(self, temp_dir, chinese_test_novel, config_file):
         """Test error handling and recovery during different phases"""
 
         # Initialize logger to avoid NoneType error
@@ -638,10 +645,12 @@ class TestEnChANTOrchestrator:
             success = process_novel_unified(chinese_test_novel, args)
             assert success is False
 
-        # Test translation failure
+        # Test translation failure - mock both the rename and translate functions
+        # to avoid actual API calls
         with (
             patch("enchant_book_manager.enchant_cli.rename_novel") as mock_rename,
             patch("enchant_book_manager.enchant_cli.translate_novel") as mock_translate,
+            patch.dict(os.environ, {"ENCHANT_CONFIG": str(config_file)}),
         ):
             mock_rename.return_value = (True, chinese_test_novel, {})
             mock_translate.side_effect = Exception("Translation failed")
@@ -649,6 +658,7 @@ class TestEnChANTOrchestrator:
             success = process_novel_unified(chinese_test_novel, args)
             assert success is False
 
+    @skip_local_api_tests("Batch processing with local API not available in CI")
     def test_batch_processing(self, temp_dir, config_file):
         """Test batch processing of multiple novels"""
 

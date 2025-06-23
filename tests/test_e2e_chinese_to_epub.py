@@ -26,6 +26,9 @@ import json
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+# Import test utilities for profile detection
+from test_utils import skip_local_api_tests, get_test_profile, is_ci_environment
+
 
 class TestE2EChineseToEPUB:
     """End-to-end tests for Chinese novel to English EPUB conversion"""
@@ -380,6 +383,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             },
         }
 
+    @skip_local_api_tests("Complete pipeline test with local API not available in CI")
     def test_single_novel_complete_pipeline(self, temp_workspace, mock_openai_responses, mock_translation_responses):
         """Test complete pipeline for a single Chinese novel"""
 
@@ -502,6 +506,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             # Restore original ICLOUD value
             renamenovels.ICLOUD = original_icloud
 
+    @skip_local_api_tests("Batch processing test with local API not available in CI")
     def test_batch_processing_multiple_novels(self, temp_workspace, mock_openai_responses, mock_translation_responses):
         """Test batch processing of multiple Chinese novels"""
 
@@ -785,6 +790,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             renamenovels.ICLOUD = original_icloud
 
     @pytest.mark.timeout(420)  # 7 minutes to account for API calls
+    @skip_local_api_tests("EPUB quality test with local API not available in CI")
     def test_epub_content_quality(self, temp_workspace, mock_openai_responses, mock_translation_responses):
         """Test quality and correctness of generated EPUB content"""
 
