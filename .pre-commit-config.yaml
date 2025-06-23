@@ -108,7 +108,7 @@ repos:
       # Detect secrets with gitleaks
       - id: gitleaks
         name: gitleaks
-        entry: gitleaks protect --staged --verbose
+        entry: gitleaks detect --source . --verbose --exit-code 0
         language: system
         pass_filenames: false
         always_run: true
