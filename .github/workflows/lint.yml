@@ -38,9 +38,11 @@ jobs:
 
       - name: Install gitleaks
         run: |
+          cd /tmp
           wget https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz
           tar -xzf gitleaks_8.21.2_linux_x64.tar.gz
           sudo mv gitleaks /usr/local/bin/
+          cd -
 
       - name: Install pre-commit
         run: |
