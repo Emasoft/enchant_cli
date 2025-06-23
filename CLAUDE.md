@@ -250,6 +250,74 @@ def is_running_in_test() -> bool:
             os.environ.get("GITHUB_ACTIONS"))
 ```
 
+## pre-commit: install it with uv
+
+It is recommended to install pre-commit using uv’s tool mechanism, using this command:
+
+```
+$ uv tool install pre-commit --with pre-commit-uv
+```
+
+Running it, you’ll see output describing the installation process:
+
+```
+$ uv tool install pre-commit --with pre-commit-uv
+Resolved 11 packages in 1ms
+Installed 11 packages in 8ms
+...
+Installed 1 executable: pre-commit
+```
+
+This will put the `pre-commit` executable in `~/.local/bin` or similar (per the documentation). You should then be able to run it from anywhere:
+
+```
+$ pre-commit --version
+pre-commit 4.2.0 (pre-commit-uv=4.1.4, uv=0.7.2)
+```
+
+The install command also adds [pre-commit-uv](https://pypi.org/project/pre-commit-uv/), a plugin that patches pre-commit to use uv to install Python-based tools. This drastically speeds up using Python-based hooks, a common use case. (Unfortunately, it seems pre-commit itself won’t be adding uv support.)
+
+With pre-commit installed globally, you can now install its Git hook in relevant repositories per usual:
+
+```
+$ cd myrepo
+
+$ pre-commit install
+pre-commit installed at .git/hooks/pre-commit
+
+$ pre-commit run --all-files
+[INFO] Installing environment for https://github.com/pre-commit/pre-commit-hooks.
+[INFO] Once installed this environment will be reused.
+[INFO] This may take a few minutes...
+[INFO] Using pre-commit with uv 0.7.2 via pre-commit-uv 4.1.4
+check for added large files..............................................Passed
+check for merge conflicts................................................Passed
+trim trailing whitespace.................................................Passed
+```
+
+## Upgrade pre-commit
+
+To upgrade pre-commit installed this way, run:
+
+```
+$ uv tool upgrade pre-commit
+```
+
+For example:
+
+```
+$ uv tool upgrade pre-commit
+Updated pre-commit v4.1.0 -> v4.2.0
+ - pre-commit==4.1.0
+ + pre-commit==4.2.0
+Installed 1 executable: pre-commit
+```
+
+This command upgrades pre-commit and all of its dependencies, in its managed environment.
+For more information, read the uv tool upgrade documentation: `https://docs.astral.sh/uv/concepts/tools/`
+
+
+
 
 ### Code Quality
 

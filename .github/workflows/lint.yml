@@ -22,29 +22,30 @@ jobs:
           uv python install 3.12
           uv sync --all-extras
 
-      - name: Run ruff linting
+      - name: Install Go for yamlfmt
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: Install yamlfmt
         run: |
-          echo "::group::Running ruff check"
-          uv run ruff check . --output-format=github
+          go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+
+      - name: Install pre-commit
+        run: |
+          uv tool install pre-commit --with pre-commit-uv
+
+      - name: Run pre-commit hooks
+        run: |
+          echo "::group::Running all pre-commit hooks"
+          # Run pre-commit on all files
+          pre-commit run --all-files --show-diff-on-failure
           echo "::endgroup::"
 
-      - name: Run ruff formatting check
+      - name: Run dependency checking (deptry)
         run: |
-          echo "::group::Running ruff format check"
-          # Run the same ruff-format that pre-commit uses
-          uv run pre-commit run ruff-format --all-files || exit 1
-          echo "::endgroup::"
-
-      - name: Run mypy type checking
-        run: |
-          echo "::group::Running mypy"
-          uv run pre-commit run mypy --all-files || exit 1
-          echo "::endgroup::"
-
-      - name: Run yamllint
-        run: |
-          echo "::group::Running yamllint"
-          uv run pre-commit run yamllint --all-files || exit 1
+          echo "::group::Running deptry"
+          uv run pre-commit run deptry --all-files || exit 1
           echo "::endgroup::"
 
       - name: Install Node.js
