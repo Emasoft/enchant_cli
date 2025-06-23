@@ -156,7 +156,7 @@ jobs:
     if: always()
     steps:
       - name: Check Summary
-        run: |
+        run: |-
           {
             echo "## Check Summary"
             echo ""

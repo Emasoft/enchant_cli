@@ -42,7 +42,7 @@ jobs:
           uv run ruff format --line-length=320 --check src/ tests/
 
       - name: Format YAML with yamlfmt
-        run: |
+        run: |-
           PATH="$PATH:$(go env GOPATH)/bin"
           export PATH
           yamlfmt -lint .github/workflows/

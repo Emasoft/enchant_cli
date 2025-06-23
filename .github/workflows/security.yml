@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [main, develop]
   schedule:
-    - cron: '0 12 * * 3'  # Weekly on Wednesday at noon UTC
+    - cron: '0 12 * * 3' # Weekly on Wednesday at noon UTC
 
 permissions:
   contents: read
@@ -64,6 +64,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: security-reports
-          path: |
+          path: |-
             bandit-report.json
             safety-report.json

@@ -166,7 +166,7 @@ jobs:
     if: always()
     steps:
       - name: Generate Summary
-        run: |
+        run: |-
           {
             echo "## Generate Summary"
             echo ""
