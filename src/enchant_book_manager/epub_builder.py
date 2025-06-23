@@ -45,10 +45,7 @@ from .epub_constants import (
 )
 
 HEADING_RE = re.compile(
-    rf"^[^\w]*\s*chapter\s+"
-    rf"(?:(?P<num_d>\d+)|(?P<num_r>[ivxlcdm]+)|"
-    rf"(?P<num_w>(?:{WORD_NUMS})(?:[-\s](?:{WORD_NUMS}))*))"
-    rf"\b(?P<rest>.*)$",
+    rf"^[^\w]*\s*chapter\s+" rf"(?:(?P<num_d>\d+)|(?P<num_r>[ivxlcdm]+)|" rf"(?P<num_w>(?:{WORD_NUMS})(?:[-\s](?:{WORD_NUMS}))*))" rf"\b(?P<rest>.*)$",
     re.IGNORECASE,
 )
 
@@ -396,9 +393,7 @@ def build_epub_from_directory(
 
     # Split text and detect chapters
     chapter_blocks, chapter_nums = split_text(full_text, detect_toc)
-    chapters = [
-        (toc_title, original_heading, paragraphize(text)) for toc_title, original_heading, text in chapter_blocks
-    ]
+    chapters = [(toc_title, original_heading, paragraphize(text)) for toc_title, original_heading, text in chapter_blocks]
 
     # Detect issues
     issues = []

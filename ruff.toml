@@ -7,7 +7,7 @@ extend = "pyproject.toml"
 target-version = "py310"
 
 # Maximum line length (for formatter)
-line-length = 120
+line-length = 320
 
 # Exclude paths
 exclude = [

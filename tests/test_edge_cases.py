@@ -211,9 +211,7 @@ if __name__ == "__main__":
         # Manual test runner
 
         test_class = TestEdgeCases()
-        test_methods = [
-            method for method in dir(test_class) if method.startswith("test_") and callable(getattr(test_class, method))
-        ]
+        test_methods = [method for method in dir(test_class) if method.startswith("test_") and callable(getattr(test_class, method))]
 
         passed = 0
         failed = 0

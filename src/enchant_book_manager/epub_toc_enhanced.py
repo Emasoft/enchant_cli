@@ -217,9 +217,7 @@ class EnhancedTocBuilder:
         """
         nav_points = []
         for idx, (title, _) in enumerate(chapters, 1):
-            nav_points.append(
-                f'<navPoint id="nav{idx}" playOrder="{idx}"><navLabel><text>{html.escape(title)}</text></navLabel><content src="Text/chapter{idx}.xhtml"/></navPoint>'
-            )
+            nav_points.append(f'<navPoint id="nav{idx}" playOrder="{idx}"><navLabel><text>{html.escape(title)}</text></navLabel><content src="Text/chapter{idx}.xhtml"/></navPoint>')
         return nav_points
 
 

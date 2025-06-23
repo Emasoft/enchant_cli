@@ -481,9 +481,7 @@ def import_book_from_txt(file_path: str | Path, encoding: str = "utf-8", max_cha
             except Exception as e:
                 chunk_number = index if "index" in locals() else "unknown"
                 if tolog is not None:
-                    tolog.debug(
-                        f"An exception happened when creating a new variation original for chunk n.{chunk_number}:"
-                    )
+                    tolog.debug(f"An exception happened when creating a new variation original for chunk n.{chunk_number}:")
                     tolog.debug("ERROR: " + str(e))
         finally:
             manual_commit()
@@ -594,9 +592,7 @@ def split_on_punctuation_contextual(text: str) -> list[str]:
         if char in SENTENCE_ENDING:
             buffer += char
             # Lookahead: If the next character indicates the start of a new paragraph
-            if (next_char in paragraph_start_triggers) or (
-                next_char == " " and next_next_char in paragraph_start_triggers
-            ):
+            if (next_char in paragraph_start_triggers) or (next_char == " " and next_next_char in paragraph_start_triggers):
                 buffer = flush_buffer(buffer, paragraphs)
                 i += 1
                 continue
@@ -608,9 +604,7 @@ def split_on_punctuation_contextual(text: str) -> list[str]:
         if char in CLOSING_QUOTES:
             if buffer and buffer[-1] in SENTENCE_ENDING:
                 buffer += char
-                if (next_char in paragraph_start_triggers) or (
-                    next_char == " " and next_next_char in paragraph_start_triggers
-                ):
+                if (next_char in paragraph_start_triggers) or (next_char == " " and next_next_char in paragraph_start_triggers):
                     buffer = flush_buffer(buffer, paragraphs)
                     i += 1
                     continue
@@ -733,9 +727,7 @@ def split_chinese_text_in_parts(text: str, max_chars: int = MAXCHARS) -> list[st
         chunks_counter += 1
 
     if tolog is not None:
-        tolog.debug(
-            f"\n -> Import COMPLETE.\n  Total number of paragraphs: {str(paragraph_index)}\n  Total number of chunks: {str(chunks_counter)}\n"
-        )
+        tolog.debug(f"\n -> Import COMPLETE.\n  Total number of paragraphs: {str(paragraph_index)}\n  Total number of chunks: {str(chunks_counter)}\n")
 
     return chunks
 
@@ -1060,10 +1052,7 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
         variation = VARIATION_DB.get(chunk.original_variation_id)
         if variation:
             if resume and chunk.chunk_number in existing_chunk_nums:
-                p_existing = (
-                    book_dir
-                    / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
-                )
+                p_existing = book_dir / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
                 try:
                     translated_text = p_existing.read_text(encoding="utf-8")
                     tolog.info(f"Skipping translation for chunk {chunk.chunk_number}; using existing translation.")
@@ -1077,22 +1066,16 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
             # Use the max_chunk_retries loaded above
             chunk_translated = False
             last_error = None
-            output_filename_chunk = (
-                book_dir / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
-            )
+            output_filename_chunk = book_dir / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
 
             for chunk_attempt in range(1, max_chunk_retries + 1):
                 try:
-                    tolog.info(
-                        f"TRANSLATING CHUNK {chunk.chunk_number:06d} of {len(sorted_chunks)} (Attempt {chunk_attempt}/{max_chunk_retries})"
-                    )
+                    tolog.info(f"TRANSLATING CHUNK {chunk.chunk_number:06d} of {len(sorted_chunks)} (Attempt {chunk_attempt}/{max_chunk_retries})")
                     is_last_chunk = chunk.chunk_number == len(sorted_chunks)
 
                     # Check if translator is initialized
                     if translator is None:
-                        raise RuntimeError(
-                            "Translator not initialized. This function should be called after translator setup."
-                        )
+                        raise RuntimeError("Translator not initialized. This function should be called after translator setup.")
 
                     translated_result = translator.translate(original_text, is_last_chunk)
                     if translated_result is None:
@@ -1119,9 +1102,7 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
 
                 except Exception as e:
                     last_error = e
-                    tolog.error(
-                        f"ERROR: Translation failed for chunk {chunk.chunk_number:06d} on attempt {chunk_attempt}/{max_chunk_retries}: {str(e)}"
-                    )
+                    tolog.error(f"ERROR: Translation failed for chunk {chunk.chunk_number:06d} on attempt {chunk_attempt}/{max_chunk_retries}: {str(e)}")
 
                     if chunk_attempt < max_chunk_retries:
                         # Calculate wait time with exponential backoff
@@ -1512,9 +1493,7 @@ def translate_novel(
         elif config["pricing"]["enabled"]:
             # Cost tracking is now handled by global_cost_tracker
             summary = global_cost_tracker.get_summary()
-            tolog.info(
-                f"Cost Summary: Total cost: ${summary['total_cost']:.6f}, Total requests: {summary['request_count']}"
-            )
+            tolog.info(f"Cost Summary: Total cost: ${summary['total_cost']:.6f}, Total requests: {summary['request_count']}")
 
         return True
     except Exception:

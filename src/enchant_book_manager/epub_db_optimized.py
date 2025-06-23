@@ -254,11 +254,7 @@ def build_chapters_table() -> tuple[list[tuple[str, str]], list[int]]:
         title = chapter_line.text_content.strip()
 
         # Get chapter content using efficient aggregation
-        content_lines = (
-            TextLine.select(TextLine.text_content)
-            .where((TextLine.line_number >= start_line) & (TextLine.line_number <= end_line))
-            .order_by(TextLine.line_number)
-        )
+        content_lines = TextLine.select(TextLine.text_content).where((TextLine.line_number >= start_line) & (TextLine.line_number <= end_line)).order_by(TextLine.line_number)
 
         content = "\n".join(line.text_content for line in content_lines)
 

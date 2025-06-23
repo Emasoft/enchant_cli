@@ -221,13 +221,7 @@ def is_latin_char(char: str) -> bool:
     try:
         name = unicodedata.name(char)
         # Check for LATIN in name or common Latin-script related terms
-        return "LATIN" in name or (
-            "LETTER" in name
-            and not any(
-                script in name
-                for script in ["CJK", "HIRAGANA", "KATAKANA", "HANGUL", "ARABIC", "HEBREW", "CYRILLIC", "GREEK"]
-            )
-        )
+        return "LATIN" in name or ("LETTER" in name and not any(script in name for script in ["CJK", "HIRAGANA", "KATAKANA", "HANGUL", "ARABIC", "HEBREW", "CYRILLIC", "GREEK"]))
     except ValueError:
         # If the character has no Unicode name, assume it's not Latin.
         return False
@@ -354,12 +348,8 @@ class ChineseAITranslator:
             self.api_url = endpoint or API_URL_OPENROUTER
             self.MODEL_NAME = model or MODEL_NAME_DEEPSEEK
             self.SYSTEM_PROMPT = system_prompt if system_prompt is not None else SYSTEM_PROMPT_DEEPSEEK
-            self.USER_PROMPT_1STPASS = (
-                user_prompt_1st_pass if user_prompt_1st_pass is not None else USER_PROMPT_1STPASS_DEEPSEEK
-            )
-            self.USER_PROMPT_2NDPASS = (
-                user_prompt_2nd_pass if user_prompt_2nd_pass is not None else USER_PROMPT_2NDPASS_DEEPSEEK
-            )
+            self.USER_PROMPT_1STPASS = user_prompt_1st_pass if user_prompt_1st_pass is not None else USER_PROMPT_1STPASS_DEEPSEEK
+            self.USER_PROMPT_2NDPASS = user_prompt_2nd_pass if user_prompt_2nd_pass is not None else USER_PROMPT_2NDPASS_DEEPSEEK
             self.timeout = timeout or RESPONSE_TIMEOUT
             # Set default double_pass if not specified
             if self.double_pass is None:
@@ -368,12 +358,8 @@ class ChineseAITranslator:
             self.api_url = endpoint or API_URL_LMSTUDIO
             self.MODEL_NAME = model or MODEL_NAME_QWEN
             self.SYSTEM_PROMPT = system_prompt if system_prompt is not None else SYSTEM_PROMPT_QWEN
-            self.USER_PROMPT_1STPASS = (
-                user_prompt_1st_pass if user_prompt_1st_pass is not None else USER_PROMPT_1STPASS_QWEN
-            )
-            self.USER_PROMPT_2NDPASS = (
-                user_prompt_2nd_pass if user_prompt_2nd_pass is not None else USER_PROMPT_2NDPASS_QWEN
-            )
+            self.USER_PROMPT_1STPASS = user_prompt_1st_pass if user_prompt_1st_pass is not None else USER_PROMPT_1STPASS_QWEN
+            self.USER_PROMPT_2NDPASS = user_prompt_2nd_pass if user_prompt_2nd_pass is not None else USER_PROMPT_2NDPASS_QWEN
             self.timeout = timeout or RESPONSE_TIMEOUT
             # Set default double_pass if not specified
             if self.double_pass is None:

@@ -68,9 +68,7 @@ def detect_file_encoding(
         if confidence >= confidence_threshold and encoding:
             return encoding, confidence
         # Fall back to universal if confidence too low
-        logger.debug(
-            f"Chardet confidence {confidence} below threshold {confidence_threshold}, trying UniversalDetector"
-        )
+        logger.debug(f"Chardet confidence {confidence} below threshold {confidence_threshold}, trying UniversalDetector")
         return _detect_with_universal(file_path, logger)
     else:
         raise ValueError(f"Unknown detection method: {method}")

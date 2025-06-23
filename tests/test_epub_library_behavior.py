@@ -49,10 +49,11 @@ class TestLibraryBehavior:
         """Output validation should raise exceptions, not prompt"""
         # Test with non-writable path - use platform-appropriate invalid path
         import platform
+        import tempfile
 
         if platform.system() == "Windows":
-            # Windows: Use a path in a system directory
-            bad_path = Path("C:/Windows/System32/test.epub")
+            # Windows: Use a path with invalid characters
+            bad_path = Path("CON/test.epub")  # CON is a reserved device name in Windows
         else:
             # Unix-like: Use root directory
             bad_path = Path("/root/test.epub")

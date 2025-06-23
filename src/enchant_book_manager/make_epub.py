@@ -384,25 +384,14 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> t
             # Additional validation for chapter patterns
             # Only validate lines that start with "Chapter" (not abbreviations or other patterns)
             stripped_line = line.strip().lower()
-            if (
-                stripped_line.startswith("chapter ") or stripped_line.startswith("chapter\t")
-            ) and not is_valid_chapter_line(line):
+            if (stripped_line.startswith("chapter ") or stripped_line.startswith("chapter\t")) and not is_valid_chapter_line(line):
                 # Skip false positive (dialogue, mid-sentence, etc.)
                 buf.append(line)
                 blank_only = False
                 continue
 
             # Extract number from whichever group matched
-            num_str = (
-                m.group("num_d")
-                or m.group("num_r")
-                or m.group("num_w")
-                or m.group("part_d")
-                or m.group("part_r")
-                or m.group("part_w")
-                or m.group("sec_d")
-                or m.group("hash_d")
-            )
+            num_str = m.group("num_d") or m.group("num_r") or m.group("num_w") or m.group("part_d") or m.group("part_r") or m.group("part_w") or m.group("sec_d") or m.group("hash_d")
             num = parse_num(num_str) if num_str else None
             if num is None:
                 buf.append(line)
@@ -490,16 +479,8 @@ def split_text(text: str, detect_headings: bool, force_no_db: bool = False) -> t
                 chapter_idx: int | None = chapter_index.get((num, title))
                 if chapter_idx is not None:
                     # Check previous and next chapters
-                    prev_has_parts = (
-                        chapter_idx > 0
-                        and raw_chapters[chapter_idx - 1][2] is not None
-                        and has_part_notation(raw_chapters[chapter_idx - 1][0])
-                    )
-                    next_has_parts = (
-                        chapter_idx < len(raw_chapters) - 1
-                        and raw_chapters[chapter_idx + 1][2] is not None
-                        and has_part_notation(raw_chapters[chapter_idx + 1][0])
-                    )
+                    prev_has_parts = chapter_idx > 0 and raw_chapters[chapter_idx - 1][2] is not None and has_part_notation(raw_chapters[chapter_idx - 1][0])
+                    next_has_parts = chapter_idx < len(raw_chapters) - 1 and raw_chapters[chapter_idx + 1][2] is not None and has_part_notation(raw_chapters[chapter_idx + 1][0])
 
                     # If adjacent chapters also have part notation with different numbers,
                     # then this is likely sequential numbering, not sub-parts
@@ -940,9 +921,7 @@ def write_new_epub(
             (oebps / xhtml).write_text(build_chap_xhtml(title_, body_html), ENCODING)
             manifest.append(f"<item id='chap{idx}' href='{xhtml}' media-type='application/xhtml+xml'/>")
             spine.append(f"<itemref idref='chap{idx}'/>")
-            nav.append(
-                f"<navPoint id='nav{idx}' playOrder='{idx}'><navLabel><text>{html.escape(title_)}</text></navLabel><content src='{xhtml}'/></navPoint>"
-            )
+            nav.append(f"<navPoint id='nav{idx}' playOrder='{idx}'><navLabel><text>{html.escape(title_)}</text></navLabel><content src='{xhtml}'/></navPoint>")
 
         (oebps / "content.opf").write_text(
             build_content_opf(title, author, manifest, spine, uid, cover_id, language, metadata),
@@ -977,11 +956,7 @@ def extend_epub(epub: Path, new: list[tuple[str, str]]) -> None:
         oebps = tmp / "OEBPS"
         textdir = oebps / "Text"
         next_idx = 1 + max(
-            (
-                int(m.group(1))
-                for p in textdir.glob("chapter*.xhtml")
-                if (m := re.search(r"chapter(\d+)\.xhtml", p.name))
-            ),
+            (int(m.group(1)) for p in textdir.glob("chapter*.xhtml") if (m := re.search(r"chapter(\d+)\.xhtml", p.name))),
             default=0,
         )
 
