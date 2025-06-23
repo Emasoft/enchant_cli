@@ -47,8 +47,15 @@ class TestLibraryBehavior:
 
     def test_ensure_output_ok_no_prompts(self):
         """Output validation should raise exceptions, not prompt"""
-        # Test with non-writable path
-        bad_path = Path("/root/test.epub")
+        # Test with non-writable path - use platform-appropriate invalid path
+        import platform
+
+        if platform.system() == "Windows":
+            # Windows: Use a path in a system directory
+            bad_path = Path("C:/Windows/System32/test.epub")
+        else:
+            # Unix-like: Use root directory
+            bad_path = Path("/root/test.epub")
 
         with pytest.raises(ValidationError) as excinfo:
             ensure_output_ok(bad_path, append=False)

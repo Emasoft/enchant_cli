@@ -121,3 +121,11 @@ old_backup/
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
+
+# Backup files
+*.bak
+*.bak2
+
+# Config files with potential secrets
+*.conf.yml
+renamenovels.conf.yml

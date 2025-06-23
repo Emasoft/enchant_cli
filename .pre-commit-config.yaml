@@ -33,6 +33,7 @@ repos:
       - id: ruff
         args: ['--fix', '--ignore', 'E203,E402,E501,E266,W505,F841,F842,F401,W293,I001,UP015,C901,W291', '--isolated']
       - id: ruff-format
+        args: ['--line-length=320']
 
   # Local hooks that use uv run
   - repo: local
