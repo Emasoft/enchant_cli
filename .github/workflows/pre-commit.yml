@@ -43,6 +43,6 @@ jobs:
         run: |
           uv tool install pre-commit --with pre-commit-uv
 
-      - uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: --all-files --show-diff-on-failure
+      - name: Run pre-commit
+        run: |
+          pre-commit run --all-files --show-diff-on-failure
