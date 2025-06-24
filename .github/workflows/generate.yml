@@ -3,7 +3,7 @@ name: Generate Package
 on:
   push:
     tags:
-      - 'v*'
+    - 'v*'
   workflow_dispatch:
 
 permissions:
@@ -13,168 +13,168 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
 
-      - name: Sync dependencies
-        run: |
-          uv venv
-          uv sync --all-extras
-          uv lock --check
+    - name: Sync dependencies
+      run: |
+        uv venv
+        uv sync --all-extras
+        uv lock --check
 
   lint:
     needs: sync
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
 
-      - name: Install dependencies
-        run: |
-          uv venv
-          uv sync --all-extras
+    - name: Install dependencies
+      run: |
+        uv venv
+        uv sync --all-extras
 
-      - name: Run linters
-        run: |
-          uv run ruff check --ignore E203,E402,E501,E266,W505,F841,F842,F401,W293,I001,UP015,C901,W291 \
-            --isolated --output-format full src/ tests/
-          COLUMNS=400 uv run mypy --strict --show-error-context --pretty --install-types \
-            --no-color-output --non-interactive --show-error-codes --show-error-code-links \
-            --no-error-summary --follow-imports=normal src/
+    - name: Run linters
+      run: |
+        uv run ruff check --ignore E203,E402,E501,E266,W505,F841,F842,F401,W293,I001,UP015,C901,W291 \
+          --isolated --output-format full src/ tests/
+        COLUMNS=400 uv run mypy --strict --show-error-context --pretty --install-types \
+          --no-color-output --non-interactive --show-error-codes --show-error-code-links \
+          --no-error-summary --follow-imports=normal src/
 
   format:
     needs: sync
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: stable
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: stable
 
-      - name: Install dependencies
-        run: |
-          uv venv
-          uv sync --all-extras
-          go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+    - name: Install dependencies
+      run: |
+        uv venv
+        uv sync --all-extras
+        go install github.com/google/yamlfmt/cmd/yamlfmt@latest
 
-      - name: Check formatting
-        run: |
-          uv run ruff format --line-length=400 --check src/ tests/
-          PATH="$PATH:$(go env GOPATH)/bin"
-          export PATH
-          yamlfmt -lint .github/workflows/
+    - name: Check formatting
+      run: |
+        uv run ruff format --line-length=400 --check src/ tests/
+        PATH="$PATH:$(go env GOPATH)/bin"
+        export PATH
+        yamlfmt -lint .github/workflows/
 
   test:
     needs: [lint, format]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
 
-      - name: Install dependencies
-        run: |
-          uv venv
-          uv sync --all-extras
+    - name: Install dependencies
+      run: |
+        uv venv
+        uv sync --all-extras
 
-      - name: Run tests
-        run: |
-          uv run pytest tests/ -v --cov=src/enchant_book_manager --cov-report=term
+    - name: Run tests
+      run: |
+        uv run pytest tests/ -v --cov=src/enchant_book_manager --cov-report=term
 
   build:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
 
-      - name: Install dependencies
-        run: |
-          uv venv
-          uv sync --all-extras
+    - name: Install dependencies
+      run: |
+        uv venv
+        uv sync --all-extras
 
-      - name: Build package
-        run: |
-          uv build
+    - name: Build package
+      run: |
+        uv build
 
-      - name: Verify build
-        run: |
-          ls -la dist/
-          unzip -l dist/*.whl | head -20
+    - name: Verify build
+      run: |
+        ls -la dist/
+        unzip -l dist/*.whl | head -20
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ github.sha }}
-          path: dist/
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist-${{ github.sha }}
+        path: dist/
 
   summary:
     needs: [sync, lint, format, test, build]
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - name: Generate Summary
-        run: |-
-          {
-            echo "## Generate Summary"
-            echo ""
-            echo "| Job | Status |"
-            echo "|-----|--------|"
-            echo "| Sync | ${{ needs.sync.result }} |"
-            echo "| Lint | ${{ needs.lint.result }} |"
-            echo "| Format | ${{ needs.format.result }} |"
-            echo "| Test | ${{ needs.test.result }} |"
-            echo "| Build | ${{ needs.build.result }} |"
-          } >> "$GITHUB_STEP_SUMMARY"
+    - name: Generate Summary
+      run: |-
+        {
+          echo "## Generate Summary"
+          echo ""
+          echo "| Job | Status |"
+          echo "|-----|--------|"
+          echo "| Sync | ${{ needs.sync.result }} |"
+          echo "| Lint | ${{ needs.lint.result }} |"
+          echo "| Format | ${{ needs.format.result }} |"
+          echo "| Test | ${{ needs.test.result }} |"
+          echo "| Build | ${{ needs.build.result }} |"
+        } >> "$GITHUB_STEP_SUMMARY"

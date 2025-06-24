@@ -16,46 +16,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
-      - name: Set up Python
-        run: uv python install 3.12
+    - name: Set up Python
+      run: uv python install 3.12
 
-      - name: Install dependencies
-        run: uv sync --all-extras
+    - name: Install dependencies
+      run: uv sync --all-extras
 
-      - name: Run deptry
-        run: uv run deptry .
+    - name: Run deptry
+      run: uv run deptry .
 
-      - name: Check for security vulnerabilities
-        run: |
-          uv pip install pip-audit
-          uv run pip-audit
+    - name: Check for security vulnerabilities
+      run: |
+        uv pip install pip-audit
+        uv run pip-audit
 
-      - name: Generate dependency reports
-        if: always()
-        run: |
-          # Generate deptry JSON report
-          uv run deptry . --json-output .deptry.json || true
+    - name: Generate dependency reports
+      if: always()
+      run: |
+        # Generate deptry JSON report
+        uv run deptry . --json-output .deptry.json || true
 
-          # Generate pip-audit report
-          uv run pip-audit --format json --output pip-audit.json || true
+        # Generate pip-audit report
+        uv run pip-audit --format json --output pip-audit.json || true
 
-      - name: Upload dependency reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-reports
-          path: |
-            .deptry.json
-            pip-audit.json
-          retention-days: 7
+    - name: Upload dependency reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-reports
+        path: |
+          .deptry.json
+          pip-audit.json
+        retention-days: 7
 
   test:
     runs-on: ubuntu-latest
@@ -64,66 +64,66 @@ jobs:
         python-version: ['3.12']
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
-      - name: Set up Python environment
-        run: |
-          uv python install ${{ matrix.python-version }}
-          uv sync --all-extras
+    - name: Set up Python environment
+      run: |
+        uv python install ${{ matrix.python-version }}
+        uv sync --all-extras
 
-      - name: Run tests with coverage
-        env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          SKIP_LOCAL_MODE_TESTS: true
-          GIT_AUTHOR_NAME: Emasoft
-          GIT_AUTHOR_EMAIL: 713559+Emasoft@users.noreply.github.com
-          GIT_COMMITTER_NAME: Emasoft
-          GIT_COMMITTER_EMAIL: 713559+Emasoft@users.noreply.github.com
-        run: |
-          # Use CI-specific pytest configuration
-          uv run pytest tests -c .github/pytest.ini --cov=src/enchant_book_manager --cov-report=xml --cov-report=html
+    - name: Run tests with coverage
+      env:
+        OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        SKIP_LOCAL_MODE_TESTS: true
+        GIT_AUTHOR_NAME: Emasoft
+        GIT_AUTHOR_EMAIL: 713559+Emasoft@users.noreply.github.com
+        GIT_COMMITTER_NAME: Emasoft
+        GIT_COMMITTER_EMAIL: 713559+Emasoft@users.noreply.github.com
+      run: |
+        # Use CI-specific pytest configuration
+        uv run pytest tests -c .github/pytest.ini --cov=src/enchant_book_manager --cov-report=xml --cov-report=html
 
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
 
   build:
     needs: [dependency-check, test]
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
-          cache-dependency-glob: "uv.lock"
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
-      - name: Set up Python environment
-        run: uv python install 3.12
+    - name: Set up Python environment
+      run: uv python install 3.12
 
-      - name: Build package
-        run: uv build
+    - name: Build package
+      run: uv build
 
-      - name: Check wheel contents
-        run: |
-          unzip -l dist/*.whl | head -50
+    - name: Check wheel contents
+      run: |
+        unzip -l dist/*.whl | head -50
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist
+        path: dist/
 
   publish:
     if: github.event_name == 'release'
@@ -131,23 +131,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
 
-      - name: Set up Python environment
-        run: uv python install 3.12
+    - name: Set up Python environment
+      run: uv python install 3.12
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: dist
+        path: dist/
 
-      - name: Publish to PyPI
-        env:
-          UV_PUBLISH_USERNAME: __token__
-          UV_PUBLISH_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: |-
-          uv publish
+    - name: Publish to PyPI
+      env:
+        UV_PUBLISH_USERNAME: __token__
+        UV_PUBLISH_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: |-
+        uv publish

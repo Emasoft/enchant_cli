@@ -6,8 +6,8 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    # Run daily at 2 AM UTC
-    - cron: '0 2 * * *'
+  # Run daily at 2 AM UTC
+  - cron: '0 2 * * *'
 
 permissions:
   contents: read
@@ -20,21 +20,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Fetch all history for all branches and tags
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Fetch all history for all branches and tags
 
-      - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # Optional: for Gitleaks Enterprise
+    - name: Run Gitleaks
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # Optional: for Gitleaks Enterprise
 
-      - name: Upload SARIF report
-        # Only upload SARIF in the main repository, not in forks
-        if: always() && github.repository == 'Emasoft/enchant_cli'
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: results.sarif
-          category: secret-scanning
-        continue-on-error: true
+    - name: Upload SARIF report
+      # Only upload SARIF in the main repository, not in forks
+      if: always() && github.repository == 'Emasoft/enchant_cli'
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: results.sarif
+        category: secret-scanning
+      continue-on-error: true

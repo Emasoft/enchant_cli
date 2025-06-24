@@ -22,43 +22,43 @@ jobs:
       name: pypi
       url: https://pypi.org/p/enchant-book-manager
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
 
-      - name: Install dependencies
-        run: |
-          uv venv
-          uv sync --all-extras
-          uv add --dev twine
+    - name: Install dependencies
+      run: |
+        uv venv
+        uv sync --all-extras
+        uv add --dev twine
 
-      - name: Build package
-        run: |
-          uv build
+    - name: Build package
+      run: |
+        uv build
 
-      - name: Check distribution
-        run: |
-          uv run twine check dist/*
+    - name: Check distribution
+      run: |
+        uv run twine check dist/*
 
-      - name: Publish to Test PyPI
-        if: github.event_name == 'workflow_dispatch' && inputs.test_pypi
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        run: |
-          uv run twine upload --repository testpypi dist/*
+    - name: Publish to Test PyPI
+      if: github.event_name == 'workflow_dispatch' && inputs.test_pypi
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+      run: |
+        uv run twine upload --repository testpypi dist/*
 
-      - name: Publish to PyPI
-        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && !inputs.test_pypi)
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: dist/
+    - name: Publish to PyPI
+      if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && !inputs.test_pypi)
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        packages-dir: dist/

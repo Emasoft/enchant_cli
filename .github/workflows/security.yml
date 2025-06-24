@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [main, develop]
   schedule:
-    - cron: '0 12 * * 3' # Weekly on Wednesday at noon UTC
+  - cron: '0 12 * * 3' # Weekly on Wednesday at noon UTC
 
 permissions:
   contents: read
@@ -16,54 +16,54 @@ jobs:
   security:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
 
-      - name: Install dependencies
-        run: |
-          uv venv
-          uv sync --all-extras
-          uv add --dev bandit safety semgrep
+    - name: Install dependencies
+      run: |
+        uv venv
+        uv sync --all-extras
+        uv add --dev bandit safety semgrep
 
-      - name: Run pip-audit
-        run: |
-          uv run pip-audit --desc
+    - name: Run pip-audit
+      run: |
+        uv run pip-audit --desc
 
-      - name: Run safety check
-        run: |
-          uv run safety check --json || true
+    - name: Run safety check
+      run: |
+        uv run safety check --json || true
 
-      - name: Run bandit security scan
-        run: |
-          uv run bandit -r src/ -f json -o bandit-report.json || true
+    - name: Run bandit security scan
+      run: |
+        uv run bandit -r src/ -f json -o bandit-report.json || true
 
-      - name: Run semgrep
-        if: github.event_name == 'pull_request'
-        uses: semgrep/semgrep-action@v1
-        with:
-          config: auto
+    - name: Run semgrep
+      if: github.event_name == 'pull_request'
+      uses: semgrep/semgrep-action@v1
+      with:
+        config: auto
 
-      - name: Check for hardcoded secrets
-        run: |
-          # Check for common patterns
-          ! grep -r -E "(api_key|apikey|api-key|password|passwd|pwd|secret|token)\s*=\s*['\"][^'\"]+['\"]" \
-            src/ tests/ || echo "Warning: Potential hardcoded secrets found"
+    - name: Check for hardcoded secrets
+      run: |
+        # Check for common patterns
+        ! grep -r -E "(api_key|apikey|api-key|password|passwd|pwd|secret|token)\s*=\s*['\"][^'\"]+['\"]" \
+          src/ tests/ || echo "Warning: Potential hardcoded secrets found"
 
-      - name: Upload security reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: security-reports
-          path: |-
-            bandit-report.json
-            safety-report.json
+    - name: Upload security reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-reports
+        path: |-
+          bandit-report.json
+          safety-report.json

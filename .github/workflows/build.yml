@@ -14,51 +14,51 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          enable-cache: true
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
 
-      - name: Install dependencies
-        run: |
-          uv venv
-          uv sync --all-extras
+    - name: Install dependencies
+      run: |
+        uv venv
+        uv sync --all-extras
 
-      - name: Build package
-        run: |
-          uv build
+    - name: Build package
+      run: |
+        uv build
 
-      - name: List built artifacts
-        run: |
-          ls -la dist/
+    - name: List built artifacts
+      run: |
+        ls -la dist/
 
-      - name: Verify wheel contents
-        run: |
-          unzip -l dist/*.whl | head -30
+    - name: Verify wheel contents
+      run: |
+        unzip -l dist/*.whl | head -30
 
-      - name: Verify sdist contents
-        run: |
-          tar tzf dist/*.tar.gz | head -30
+    - name: Verify sdist contents
+      run: |
+        tar tzf dist/*.tar.gz | head -30
 
-      - name: Test installation in fresh environment
-        run: |
-          uv venv test_env
-          source test_env/bin/activate
-          uv pip install dist/*.whl
-          python -c "import enchant_book_manager; print(f'Version: {enchant_book_manager.__version__}')"
-          deactivate
-          rm -rf test_env
+    - name: Test installation in fresh environment
+      run: |
+        uv venv test_env
+        source test_env/bin/activate
+        uv pip install dist/*.whl
+        python -c "import enchant_book_manager; print(f'Version: {enchant_book_manager.__version__}')"
+        deactivate
+        rm -rf test_env
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-${{ github.sha }}
-          path: dist/
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist-${{ github.sha }}
+        path: dist/

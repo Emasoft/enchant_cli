@@ -16,7 +16,7 @@ rules:
 
   indentation:
     spaces: 2
-    indent-sequences: true
+    indent-sequences: false
     check-multi-line-strings: false
 
   truthy:

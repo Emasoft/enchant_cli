@@ -9,42 +9,42 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v3
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
 
-      - name: Set up Python
-        run: |
-          uv python install 3.12
-          uv sync --all-extras
+    - name: Set up Python
+      run: |
+        uv python install 3.12
+        uv sync --all-extras
 
-      - name: Install Go for yamlfmt
-        uses: actions/setup-go@v5
-        with:
-          go-version: 'stable'
+    - name: Install Go for yamlfmt
+      uses: actions/setup-go@v5
+      with:
+        go-version: 'stable'
 
-      - name: Install yamlfmt
-        run: |
-          go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+    - name: Install yamlfmt
+      run: |
+        go install github.com/google/yamlfmt/cmd/yamlfmt@latest
 
-      - name: Install actionlint
-        run: |
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
-          sudo mv actionlint /usr/local/bin/
+    - name: Install actionlint
+      run: |
+        bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+        sudo mv actionlint /usr/local/bin/
 
-      - name: Install gitleaks
-        run: |
-          cd /tmp
-          wget https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz
-          tar -xzf gitleaks_8.21.2_linux_x64.tar.gz
-          sudo mv gitleaks /usr/local/bin/
-          cd -
+    - name: Install gitleaks
+      run: |
+        cd /tmp
+        wget https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz
+        tar -xzf gitleaks_8.21.2_linux_x64.tar.gz
+        sudo mv gitleaks /usr/local/bin/
+        cd -
 
-      - name: Install pre-commit
-        run: |
-          uv tool install pre-commit --with pre-commit-uv
+    - name: Install pre-commit
+      run: |
+        uv tool install pre-commit --with pre-commit-uv
 
-      - name: Run pre-commit
-        run: |-
-          pre-commit run --all-files --show-diff-on-failure
+    - name: Run pre-commit
+      run: |-
+        pre-commit run --all-files --show-diff-on-failure
