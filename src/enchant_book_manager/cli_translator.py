@@ -39,8 +39,9 @@ from .icloud_sync import ICloudSync
 from .translation_service import ChineseAITranslator
 
 # Import from new modules
+from .models import Book, Chunk, VARIATION_DB
 from .book_importer import import_book_from_txt
-from .translation_orchestrator import save_translated_book
+from .translation_orchestrator import save_translated_book as _save_translated_book_impl, DEFAULT_MAX_CHUNK_RETRIES, MAX_RETRY_WAIT_SECONDS
 from .batch_processor import process_batch
 from .text_splitter import DEFAULT_MAX_CHARS
 
@@ -61,6 +62,20 @@ translator: ChineseAITranslator | None = None
 tolog: logging.Logger | None = None
 icloud_sync: ICloudSync | None = None
 _module_config: dict[str, Any] | None = None
+
+
+# Backward compatibility wrapper for save_translated_book
+def save_translated_book(book_id: str, resume: bool = False, create_epub: bool = False) -> None:
+    """
+    Backward compatibility wrapper for save_translated_book.
+    Uses the global translator instance.
+    """
+    global translator, tolog, _module_config
+    if translator is None:
+        raise RuntimeError("Translator not initialized. Call translate_novel() first.")
+    return _save_translated_book_impl(book_id=book_id, translator=translator, resume=resume, create_epub=create_epub, logger=tolog, module_config=_module_config)
+
+
 # Cost tracking is now handled by global_cost_tracker from cost_tracker module
 
 MAXCHARS = DEFAULT_MAX_CHARS  # Default value, will be updated from config in main()
@@ -187,7 +202,7 @@ def translate_novel(
 
     # Save the translated book after import
     try:
-        save_translated_book(new_book_id, translator, resume=resume, create_epub=create_epub, logger=tolog, module_config=_module_config)
+        _save_translated_book_impl(new_book_id, translator, resume=resume, create_epub=create_epub, logger=tolog, module_config=_module_config)
         tolog.info("Translated book saved successfully.")
         safe_print("[bold green]Translated book saved successfully.[/bold green]")
 
