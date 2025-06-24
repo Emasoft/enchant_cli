@@ -36,16 +36,16 @@ Example of required format:
 ```python
 def function_name(param1: str, param2: int) -> bool:
     """Brief description of function.
-    
+
     Longer description if needed.
-    
+
     Args:
         param1: Description of param1.
         param2: Description of param2.
-        
+
     Returns:
         Description of return value.
-        
+
     Raises:
         ValueError: When param1 is empty.
     """
