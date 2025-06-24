@@ -48,6 +48,16 @@ from . import icloud_sync
 from . import epub_builder
 from . import epub_utils
 
+# New refactored modules
+from . import models
+from . import text_processor
+from . import text_splitter
+from . import file_handler
+from . import book_importer
+from . import translation_orchestrator
+from . import batch_processor
+from . import cost_logger
+
 __all__ = [
     "cli_translator",
     "translation_service",
@@ -65,4 +75,12 @@ __all__ = [
     "icloud_sync",
     "epub_builder",
     "epub_utils",
+    "models",
+    "text_processor",
+    "text_splitter",
+    "file_handler",
+    "book_importer",
+    "translation_orchestrator",
+    "batch_processor",
+    "cost_logger",
 ]

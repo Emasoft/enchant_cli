@@ -68,6 +68,7 @@ translated_*.epub
 enchant_config.yml
 
 # Reports and logs
+logs/
 *_report.md
 *_summary.md
 mypy*.txt

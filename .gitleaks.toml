@@ -56,6 +56,7 @@ files = [
     '''.*\.pyc''',
     '''.*\.pyo''',
     '''.*\.log''',
+    '''logs/.*''',
     '''requests_responses\.log''',
     '''translated_.*\.txt''',
 ]
