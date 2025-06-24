@@ -86,7 +86,6 @@ dev = [
     "pytest-mock>=3.14.1",
     "mypy>=1.11.2",
     "ruff>=0.8.7",
-    "black>=24.10.0",
     "pre-commit>=4.0.1",
     "deptry>=0.23.0",
     "pip-audit>=2.7.3",
@@ -96,29 +95,3 @@ dev = [
     "types-chardet>=5.0.0",
     "types-colorama>=0.4.15",
 ]
-
-[tool.ruff]
-line-length = 400
-target-version = "py312"
-
-[tool.ruff.lint]
-select = ["E", "F", "W", "B", "I", "N", "UP", "C90"]
-ignore = ["E501", "E203", "E402", "W505", "F841", "F842", "F401", "W293", "I001", "UP015", "C901", "W291"]
-
-[tool.black]
-line-length = 400
-target-version = ['py312']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
-)/
-'''
