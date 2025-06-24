@@ -10,25 +10,30 @@
    - Fixed .yamlfmt configuration (indentless_arrays: true)
    - Updated line-length to 320 (ruff's maximum)
 3. **UTF-8 Encoding**: Verified all Python files already have proper encoding declarations
+4. **Major Refactoring Completed**:
+   - cli_translator.py: 54K → 8.7K (split into 9 modules: models, text_processor, text_splitter, file_handler, book_importer, translation_orchestrator, batch_processor, cost_logger)
+   - config_manager.py: 51K → 7.8K (split into 11 modules: config_schema, config_loader, config_validator, config_preset_validator, preset_manager, config_args_handler, config_error_reporter, config_prompts_*)
+   - make_epub.py: 45K → 10.5K (split into 4 modules: chapter_detector, epub_builders, epub_generator, epub_validation)
+   - enchant_cli.py: 41K → 3.3K (split into 4 modules: cli_parser, workflow_orchestrator, cli_batch_handler, cli_setup)
+5. **YAML Config Fix**: Converted numbered lists to dash-prefixed lists to fix parsing errors
 
 ## Remaining Work 📋
 
 ### 1. Break Down Large Python Files (>10KB) 🔧
 
-These files need to be split into smaller modules:
+These files still need to be split into smaller modules:
 
 | File | Current Size | Target Modules |
 |------|--------------|----------------|
-| cli_translator.py | 54K | ~6 modules: translation_manager, chunk_processor, api_handler, file_handler, progress_tracker, cost_calculator |
-| config_manager.py | 51K | ~5 modules: config_loader, config_validator, preset_manager, yaml_handler, config_schema |
-| make_epub.py | 45K | ~4 modules: epub_generator, chapter_detector, toc_builder, metadata_handler |
-| enchant_cli.py | 41K | ~4 modules: cli_parser, workflow_orchestrator, phase_manager, output_handler |
 | translation_service.py | 40K | ~4 modules: service_factory, api_clients, response_parser, error_handler |
 | renamenovels.py | 22K | ~2 modules: novel_renamer, metadata_extractor |
 | common_text_utils.py | 19K | ~2 modules: text_processor, encoding_handler |
+| chapter_detector.py | 17K | Consider further splitting if possible |
 | epub_builder.py | 15K | ~2 modules: epub_assembler, xml_generator |
 | common_file_utils.py | 12K | ~2 modules: file_operations, path_utilities |
-| icloud_sync.py | 11K | ~2 modules: sync_manager, icloud_handler |
+| icloud_sync.py | 11K | ~2 modules: sync_manager, file_monitor |
+| make_epub.py | 10.5K | Already refactored, but still above 10KB |
+| translation_orchestrator.py | 10.6K | May need minor splitting |
 
 ### 2. Update Docstrings to Google-Style Format 📝
 

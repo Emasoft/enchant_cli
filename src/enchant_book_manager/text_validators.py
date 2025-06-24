@@ -1,0 +1,147 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# HERE IS THE CHANGELOG FOR THIS VERSION OF THE CODE:
+# - Initial creation from translation_service.py refactoring
+# - Extracted text validation and charset detection functions
+# - Contains utilities for character set detection and validation
+#
+
+"""
+text_validators.py - Text validation utilities for translation
+=============================================================
+
+Provides utilities for validating text, detecting character sets,
+and checking for Latin/Chinese characters in translated text.
+"""
+
+from __future__ import annotations
+
+import re
+import unicodedata
+from typing import Optional, Callable
+from .translation_constants import PRESERVE_UNLIMITED, ALLOWED_ASCII
+
+# Precompile the regular expression pattern for matching repeated characters.
+_repeated_chars = re.compile(r"(.)\1+")
+
+
+def is_latin_char(char: str) -> bool:
+    """Check if a character is a Latin character.
+
+    Args:
+        char: Single character to check
+
+    Returns:
+        True if character is Latin (ASCII letter/digit/punctuation or Latin Unicode block)
+    """
+    # Check if it's ASCII (letters, digits, punctuation)
+    if char in ALLOWED_ASCII:
+        return True
+
+    # Check if it's in the Latin Unicode blocks
+    try:
+        # Get the Unicode name
+        name = unicodedata.name(char, "")
+        # Check if it's a Latin character based on its Unicode name
+        if "LATIN" in name:
+            return True
+    except ValueError:
+        pass
+
+    return False
+
+
+def is_latin_charset(text: str, threshold: float = 0.1) -> bool:
+    """Check if the text is predominantly Latin charset.
+
+    Args:
+        text: Text to analyze
+        threshold: Maximum ratio of non-Latin characters allowed (default: 0.1 = 10%)
+
+    Returns:
+        True if text is predominantly Latin charset
+    """
+    if not text:
+        return True  # Empty text is considered "Latin" by default
+
+    total_chars = 0
+    non_latin_chars = 0
+
+    for char in text:
+        # Skip whitespace and common punctuation in the count
+        if char.isspace() or char in " \t\n\r.,;:!?()[]{}\"'`~@#$%^&*-_=+\\|/<>":
+            continue
+
+        total_chars += 1
+
+        # Check if the character is not Latin
+        if not is_latin_char(char):
+            non_latin_chars += 1
+
+    # If there are no characters to check, consider it Latin
+    if total_chars == 0:
+        return True
+
+    # Calculate the ratio of non-Latin characters
+    non_latin_ratio = non_latin_chars / total_chars
+
+    # Return True if the non-Latin ratio is below the threshold
+    return non_latin_ratio <= threshold
+
+
+def clean_repeated_chars(text: str, max_allowed: int = 4) -> str:
+    """Replace excessive repeated characters while preserving allowed ones.
+
+    Args:
+        text: Text to clean
+        max_allowed: Maximum allowed repetitions (default: 4)
+
+    Returns:
+        Cleaned text with limited character repetitions
+    """
+
+    def replace_func(match: re.Match[str]) -> str:
+        char = match.group(1)
+        full_match = match.group(0)
+
+        # Allow unlimited repetition for specific characters
+        if char in PRESERVE_UNLIMITED:
+            return full_match
+
+        # For other characters, limit to max_allowed repetitions
+        return char * min(len(full_match), max_allowed)
+
+    return _repeated_chars.sub(replace_func, text)
+
+
+def validate_translation_output(text: str, logger: Optional[Callable[[str, str], None]] = None) -> tuple[bool, str]:
+    """Validate that translation output contains no Chinese characters.
+
+    Args:
+        text: Translated text to validate
+        logger: Optional logger for warnings
+
+    Returns:
+        Tuple of (is_valid, cleaned_text)
+    """
+    # Check if text is predominantly Latin
+    if not is_latin_charset(text, threshold=0.05):  # Allow up to 5% non-Latin
+        if logger:
+            logger("Translation contains too many non-Latin characters", "warning")
+
+        # Try to detect and report specific Chinese characters
+        chinese_chars = []
+        for char in text:
+            if "\u4e00" <= char <= "\u9fff":  # Common Chinese character range
+                chinese_chars.append(char)
+
+        if chinese_chars and logger:
+            logger(f"Found Chinese characters: {', '.join(set(chinese_chars[:10]))}", "warning")
+
+        return False, text
+
+    # Clean repeated characters
+    cleaned_text = clean_repeated_chars(text)
+
+    return True, cleaned_text
