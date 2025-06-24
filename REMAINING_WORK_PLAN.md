@@ -15,6 +15,7 @@
    - config_manager.py: 51K → 7.8K (split into 11 modules: config_schema, config_loader, config_validator, config_preset_validator, preset_manager, config_args_handler, config_error_reporter, config_prompts_*)
    - make_epub.py: 45K → 10.5K (split into 4 modules: chapter_detector, epub_builders, epub_generator, epub_validation)
    - enchant_cli.py: 41K → 3.3K (split into 4 modules: cli_parser, workflow_orchestrator, cli_batch_handler, cli_setup)
+   - translation_service.py: 40K → 15K (split into 4 modules: translation_constants, api_clients, text_validators)
 5. **YAML Config Fix**: Converted numbered lists to dash-prefixed lists to fix parsing errors
 
 ## Remaining Work 📋
@@ -25,7 +26,6 @@ These files still need to be split into smaller modules:
 
 | File | Current Size | Target Modules |
 |------|--------------|----------------|
-| translation_service.py | 40K | ~4 modules: service_factory, api_clients, response_parser, error_handler |
 | renamenovels.py | 22K | ~2 modules: novel_renamer, metadata_extractor |
 | common_text_utils.py | 19K | ~2 modules: text_processor, encoding_handler |
 | chapter_detector.py | 17K | Consider further splitting if possible |
@@ -69,7 +69,7 @@ Add to files missing changelog comments:
 
 ## Priority Order 🎯
 
-1. **High Priority**: Break down the largest files first (cli_translator.py, config_manager.py)
+1. **High Priority**: Break down the remaining large files (renamenovels.py, common_text_utils.py)
 2. **Medium Priority**: Update docstrings while breaking down files
 3. **Low Priority**: Add changelog comments as files are modified
 
