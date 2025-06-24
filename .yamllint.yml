@@ -44,3 +44,4 @@ ignore: |-
   htmlcov/
   test_data/
   enchant_config.yml
+  .pre-commit-config.yaml
