@@ -34,29 +34,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - If you are unsure, stop and ask the user for help or additional information.
 - if something you are trying to implement or fix does not work, do not fallback to a simpler solution and do not use workarounds to avoid implement it. Do not give up or compromise with a lesser solution. You must always attempt to implement the original planned solution, and if after many attempts it still fails, ask the user for instructions.
 - always use type annotations
-- always keep the size of source code files below 10Kb. If writing new code in a source file will make the file size bigger than 10Kb, create a new source file , write the code there, and import it as a module. Refactor big files in multiple smaller modules.
-
-### Module Splitting and Refactoring Rules
-When refactoring files larger than 10KB into smaller modules:
-
-1. **Preparation Phase**:
-   - Do not make changes before having examined the whole file! Do not read only few lines!
-   - Do not make changes before having thought long about the codebase structure and the best way to refactor it. Always think ultrahard while planning in advance the whole refactoring process.
-   - Create a backup of each file before refactoring and only delete it after you checked that no function, class or element of the code was lost in the refactoring.
-   - Create a checklist of all functions and classes and various code elements before refactoring, so you can verify the checklist and track the things that needs to be moved and their status.
-   - Let each element in the checklist having the following possible states (each entry can have multiple states): moved_to_<filename>, to_be_moved, duplicated_to_<filename>, merged_with_similar_and_moved_to_<filename>, made_public, changed_to_be_more_flexible, updated_internal_references, changed_to_class_member, changed_to_non_class_member, updated_parameters_and_docstrings, updated_comments, commented_out, added_to_wrapper, moved_inside_a_function, moved_outside_a_function, passed_as_argument_to_external_function, passed_as_argument_to_external_class, converted_to_dynamic_function.
-   - Always plan the new directory tree structure after the refactor in advance, and check at the end that it was correctly implemented without remaining temp files or duplicates.
-
-2. **Implementation Phase**:
-   - Always update the tests relative to the changed element and test it immediately after the changes, to ensure no regressions.
-   - Always verify that all references in the rest of the code are updated and correctly point to the new element position/import.
-   - Verify that if a function is moved, not duplicated or passed as an argument, the original function code was removed from the original file, since it is now placed in another module. Track all elements with the todo.
-   - Make sure all changes you make are committed after each element is refactored and the test of it passes. Do not wait for the whole refactoring process to complete to commit. You need to commits all intermediate steps relative to each refactored element (imports, data structures, constants, functions, class, meta classes, nested functions, nested classes, global elements, wrappers, helper functions, etc.), as long as the step is completed and verified by a test passing. Commit those atomic changes so that if a tests fails after a refactoring, you can immediately undo the last commit and try the refactoring again. Be sure to keep the untracked files when reverting to the previous commit.
-   - Lint, format and update tests after each change. Run the tests relative to the code changed, and if it is needed, add new tests to verify that no regressions are introduced and errors or missing elements/paths/references are causing the code to change its functionality or break it.
-
-3. **Verification Phase**:
-   - Do a final e2e test to ensure everything works exactly as before after the refactoring.
-   - Log each change in a file called refactoring_log.md, so you can trace back all code movements and changes you did and see where the issues were caused.
 - always preserve comments and add them when writing new code.
 - always write the docstrings of all functions and improve the existing ones. Use Google-style docstrings with Args/Returns sections, but do not use markdown.
 - never use markdown in comments.
@@ -98,13 +75,37 @@ When refactoring files larger than 10KB into smaller modules:
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 ```
-- always add a short changelog before the imports in of the source code to document all the changes you made to it.
+
+- always add a short changelog (just before the imports) in each modified code file to document all the changes made to it since the last commit. Each file must only contain the changelog of the changes made to it, not the changes made to other files.
 
 ```python
-# HERE IS THE CHANGELOG FOR THIS VERSION OF THE CODE:
-# <your changelog here…>
+# HERE IS THE CHANGELOG FOR THIS VERSION OF THE FILE:
+# <this file changelog here…>
 #
 ```
+- always keep the size of source code files below 10Kb. If writing new code in a source file will make the file size bigger than 10Kb, create a new source file , write the code there, and import it as a module. Refactor big files in multiple smaller modules.
+
+### Module Splitting and Refactoring Rules
+When refactoring files larger than 10KB into smaller modules:
+
+1. **Preparation**:
+   - Do not make changes before having examined the whole file! Do not read only few lines!
+   - Do not make changes before having thought long about the codebase structure and the best way to refactor it. Always think ultrahard while planning in advance the whole refactoring process.
+   - Create a backup of each file before refactoring and only delete it after you checked that no function, class or element of the code was lost in the refactoring.
+   - Create a checklist of all functions and classes and various code elements before refactoring, so you can verify the checklist and track the things that needs to be moved and their status.
+   - Let each element in the checklist having the following possible states (each entry can have multiple states): moved_to_<filename>, to_be_moved, duplicated_to_<filename>, merged_with_similar_and_moved_to_<filename>, made_public, changed_to_be_more_flexible, updated_internal_references, changed_to_class_member, changed_to_non_class_member, updated_parameters_and_docstrings, updated_comments, commented_out, added_to_wrapper, moved_inside_a_function, moved_outside_a_function, passed_as_argument_to_external_function, passed_as_argument_to_external_class, converted_to_dynamic_function.
+   - Always plan the new directory tree structure after the refactor in advance, and check at the end that it was correctly implemented without remaining temp files or duplicates.
+
+2. **Implementation**:
+   - Always update the tests relative to the changed element and test it immediately after the changes, to ensure no regressions.
+   - Always verify that all references in the rest of the code are updated and correctly point to the new element position/import.
+   - Verify that if a function is moved, not duplicated or passed as an argument, the original function code was removed from the original file, since it is now placed in another module. Track all elements with the todo.
+   - Make sure all changes you make are committed after each element is refactored and the test of it passes. Do not wait for the whole refactoring process to complete to commit. You need to commits all intermediate steps relative to each refactored element (imports, data structures, constants, functions, class, meta classes, nested functions, nested classes, global elements, wrappers, helper functions, etc.), as long as the step is completed and verified by a test passing. Commit those atomic changes so that if a tests fails after a refactoring, you can immediately undo the last commit and try the refactoring again. Be sure to keep the untracked files when reverting to the previous commit.
+   - Lint, format and update tests after each change. Run the tests relative to the code changed, and if it is needed, add new tests to verify that no regressions are introduced and errors or missing elements/paths/references are causing the code to change its functionality or break it.
+   - Log each change in a file called refactoring_log.md, so you can trace back all code movements and changes you did and see where the issues were caused.
+
+3. **Final Verification**:
+   - Do a final e2e test to ensure everything works exactly as before after the refactoring.
 
 
 ### Formatting Rules

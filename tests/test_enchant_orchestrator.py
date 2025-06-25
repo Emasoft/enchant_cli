@@ -25,7 +25,8 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from enchant_book_manager.workflow_orchestrator import process_novel_unified  # noqa: E402
-from enchant_book_manager.renamenovels import process_novel_file  # noqa: E402
+from enchant_book_manager.rename_file_processor import process_novel_file  # noqa: E402
+from enchant_book_manager.rename_api_client import RenameAPIClient  # noqa: E402
 from enchant_book_manager.cli_translator import translate_novel  # noqa: E402
 from enchant_book_manager.make_epub import create_epub_from_chapters  # noqa: E402
 
@@ -176,16 +177,17 @@ class TestEnChANTOrchestrator:
     def test_phase1_renaming_success(self, temp_dir, chinese_test_novel, mock_openai_response):
         """Test Phase 1: Novel renaming with metadata extraction"""
 
-        # Mock make_openai_request directly to avoid API calls
-        with patch("enchant_book_manager.renamenovels.make_openai_request") as mock_openai_request:
+        # Mock RenameAPIClient.make_request directly to avoid API calls
+        with patch("enchant_book_manager.rename_api_client.RenameAPIClient.make_request") as mock_openai_request:
             mock_openai_request.return_value = mock_openai_response
+
+            # Create API client
+            api_client = RenameAPIClient(api_key="test_key", model="gpt-4o-mini", temperature=0.0)
 
             # Test renaming
             success, new_path, metadata = process_novel_file(
                 chinese_test_novel,
-                api_key="test_key",
-                model="gpt-4o-mini",
-                temperature=0.0,
+                api_client=api_client,
                 dry_run=False,
             )
 
@@ -304,11 +306,10 @@ class TestEnChANTOrchestrator:
     ):
         """Test complete 3-phase orchestration process"""
 
-        # Initialize logger to avoid NoneType error
+        # Initialize logger for process_novel_unified
         import logging
-        from src.enchant_book_manager import enchant_cli
 
-        enchant_cli.tolog = logging.getLogger(__name__)
+        logger = logging.getLogger(__name__)
 
         # Create mock args object with all necessary attributes
         args = Mock()
@@ -365,9 +366,9 @@ class TestEnChANTOrchestrator:
 
             return True
 
-        # Mock the make_openai_request function directly to avoid Mock object issues
+        # Mock the RenameAPIClient.make_request function directly to avoid Mock object issues
         with (
-            patch("enchant_book_manager.renamenovels.make_openai_request") as mock_openai_request,
+            patch("enchant_book_manager.rename_api_client.RenameAPIClient.make_request") as mock_openai_request,
             patch(
                 "enchant_book_manager.cli_translator.translate_novel",
                 side_effect=mock_translate_novel,
@@ -379,7 +380,7 @@ class TestEnChANTOrchestrator:
             # Mock config loading
             with patch.dict(os.environ, {"ENCHANT_CONFIG": str(config_file)}):
                 # Test full orchestration
-                success = process_novel_unified(chinese_test_novel, args)
+                success = process_novel_unified(chinese_test_novel, args, logger)
 
                 assert success is True
 
@@ -407,11 +408,10 @@ class TestEnChANTOrchestrator:
     def test_orchestration_with_skip_flags(self, temp_dir, chinese_test_novel, mock_openai_response):
         """Test orchestration with different skip flags"""
 
-        # Initialize logger to avoid NoneType error
+        # Initialize logger for process_novel_unified
         import logging
-        from src.enchant_book_manager import enchant_cli
 
-        enchant_cli.tolog = logging.getLogger(__name__)
+        logger = logging.getLogger(__name__)
 
         # Test 1: Skip renaming (with explicit EPUB metadata since no renaming to extract it)
         args = Mock()
@@ -550,11 +550,10 @@ class TestEnChANTOrchestrator:
     def test_orchestration_resume_functionality(self, temp_dir, chinese_test_novel):
         """Test resume functionality across phases"""
 
-        # Initialize logger to avoid NoneType error
+        # Initialize logger for process_novel_unified
         import logging
-        from src.enchant_book_manager import enchant_cli
 
-        enchant_cli.tolog = logging.getLogger(__name__)
+        logger = logging.getLogger(__name__)
 
         # Create renamed file as if Phase 1 was completed
         renamed_file = temp_dir / "Test Novel by Test Author.txt"
@@ -620,11 +619,10 @@ class TestEnChANTOrchestrator:
     def test_error_handling_during_phases(self, temp_dir, chinese_test_novel, config_file):
         """Test error handling and recovery during different phases"""
 
-        # Initialize logger to avoid NoneType error
+        # Initialize logger for process_novel_unified
         import logging
-        from src.enchant_book_manager import enchant_cli
 
-        enchant_cli.tolog = logging.getLogger(__name__)
+        logger = logging.getLogger(__name__)
 
         args = Mock()
         args.skip_renaming = False

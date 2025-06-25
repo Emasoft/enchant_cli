@@ -594,3 +594,39 @@ Traceback (most recent call last):
     if current_char_count + len(para) > max_chars:
        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 TypeError: '>' not supported between instances of 'int' and 'Mock'
+2025-06-25 09:21:10,865 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 09:21:10,865 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 1/10: Translation returned None
+2025-06-25 09:21:12,870 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 09:21:12,871 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 2/10: Translation returned None
+2025-06-25 09:21:16,873 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 09:21:16,873 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 3/10: Translation returned None
+2025-06-25 09:21:24,878 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 09:21:24,879 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 4/10: Translation returned None
+2025-06-25 09:21:40,880 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 09:21:40,880 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 5/10: Translation returned None
+2025-06-25 09:22:12,885 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 09:22:12,886 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 6/10: Translation returned None
+2025-06-25 09:23:12,886 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 09:23:12,886 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 7/10: Translation returned None
+2025-06-25 09:24:12,891 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 09:24:12,892 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 8/10: Translation returned None
+2025-06-25 09:25:12,892 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 09:25:12,893 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 9/10: Translation returned None
+2025-06-25 09:26:12,898 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 09:26:12,898 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 10/10: Translation returned None
+2025-06-25 09:26:12,898 - enchant_book_manager.cli_translator - ERROR -
+
+FATAL ERROR: Failed to translate chunk 000001 after 10 attempts.
+Last error: Translation returned None
+Book: Cultivation Master by Unknown Author (Weizhi Zuozhe)
+Chunk file would have been: Cultivation Master by Unknown Author (Weizhi Zuozhe)/Cultivation Master by Unknown Author (Weizhi Zuozhe) - Chunk_000001.txt
+
+Possible causes:
+- Translation API is unreachable or returning errors
+- Network connectivity issues
+- Insufficient disk space to save translated chunks
+- File permissions preventing file write
+- API quota exceeded or authentication issues
+
+Please check the logs above for more details and resolve the issue before retrying.
+To resume translation from this point, use the --resume flag.

@@ -19,6 +19,30 @@ from .config_prompts import (
     REMOTE_USER_PROMPT_2ND,
 )
 
+
+def indent_prompt(prompt: str, indent_level: int = 6) -> str:
+    """
+    Indent a multi-line prompt for proper YAML formatting.
+
+    Args:
+        prompt: The prompt string to indent
+        indent_level: Number of spaces to indent (default: 6)
+
+    Returns:
+        Indented prompt string
+    """
+    indent = " " * indent_level
+    lines = prompt.split("\n")
+    return "\n".join(indent + line if line else "" for line in lines)
+
+
+# Pre-format the prompts with proper indentation
+_LOCAL_SYSTEM_PROMPT_INDENTED = indent_prompt(LOCAL_SYSTEM_PROMPT)
+_LOCAL_USER_PROMPT_1ST_INDENTED = indent_prompt(LOCAL_USER_PROMPT_1ST)
+_LOCAL_USER_PROMPT_2ND_INDENTED = indent_prompt(LOCAL_USER_PROMPT_2ND)
+_REMOTE_USER_PROMPT_1ST_INDENTED = indent_prompt(REMOTE_USER_PROMPT_1ST)
+_REMOTE_USER_PROMPT_2ND_INDENTED = indent_prompt(REMOTE_USER_PROMPT_2ND)
+
 # Default configuration template with extensive comments
 DEFAULT_CONFIG_TEMPLATE = f"""# ENCHANT Configuration File
 # ========================
@@ -63,14 +87,14 @@ presets:
     max_tokens: 4000
     # System prompt for the model
     system_prompt: |
-      {LOCAL_SYSTEM_PROMPT}
+{_LOCAL_SYSTEM_PROMPT_INDENTED}
     # User prompt for first translation pass
     user_prompt_1st_pass: |
-      {LOCAL_USER_PROMPT_1ST}
+{_LOCAL_USER_PROMPT_1ST_INDENTED}
 
     # User prompt for second translation pass (if double_pass is enabled)
     user_prompt_2nd_pass: |
-      {LOCAL_USER_PROMPT_2ND}
+{_LOCAL_USER_PROMPT_2ND_INDENTED}
 
 
   # Remote translation preset (OpenRouter)
@@ -101,12 +125,12 @@ presets:
     system_prompt: ""
     # User prompt for first translation pass
     user_prompt_1st_pass: |
-      {REMOTE_USER_PROMPT_1ST}
+{_REMOTE_USER_PROMPT_1ST_INDENTED}
 
 
     # User prompt for second translation pass
     user_prompt_2nd_pass: |
-      {REMOTE_USER_PROMPT_2ND}
+{_REMOTE_USER_PROMPT_2ND_INDENTED}
 
 
   # Add your custom presets here
