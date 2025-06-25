@@ -209,13 +209,17 @@ class TestEnChANTOrchestrator:
 
         renamed_file.write_text(chinese_content, encoding="utf-8")
 
-        # Mock requests to avoid actual API calls
-        with patch("requests.post") as mock_post:
-            # Mock response for local translation
-            mock_response = Mock()
-            mock_response.json.return_value = mock_translation_response
-            mock_response.raise_for_status = Mock()
-            mock_post.return_value = mock_response
+        # Mock the translator to avoid actual API calls
+        with patch("enchant_book_manager.cli_translator.ChineseAITranslator") as mock_translator_class:
+            # Create mock translator instance
+            mock_translator = Mock()
+            # Mock the translate method to return the expected translation
+            mock_translator.translate.return_value = mock_translation_response["choices"][0]["message"]["content"]
+            # Set required attributes
+            mock_translator.is_remote = False
+            mock_translator.request_count = 0
+            mock_translator.get_cost_summary.return_value = {"model": "test-model", "api_type": "local", "request_count": 0, "total_cost": 0.0, "total_tokens": 0, "total_prompt_tokens": 0, "total_completion_tokens": 0, "average_cost_per_request": 0.0}
+            mock_translator_class.return_value = mock_translator
 
             # Test translation
             success = translate_novel(
@@ -370,7 +374,7 @@ class TestEnChANTOrchestrator:
         with (
             patch("enchant_book_manager.rename_api_client.RenameAPIClient.make_request") as mock_openai_request,
             patch(
-                "enchant_book_manager.cli_translator.translate_novel",
+                "enchant_book_manager.workflow_phases.translate_novel",
                 side_effect=mock_translate_novel,
             ),
         ):
@@ -454,8 +458,8 @@ class TestEnChANTOrchestrator:
             chapter_file.write_text("Chapter 1\n\nTranslated content.", encoding="utf-8")
             return True
 
-        with patch("enchant_book_manager.cli_translator.translate_novel", side_effect=mock_translate_with_skip_rename):
-            success = process_novel_unified(chinese_test_novel, args)
+        with patch("enchant_book_manager.workflow_phases.translate_novel", side_effect=mock_translate_with_skip_rename):
+            success = process_novel_unified(chinese_test_novel, args, logger)
 
             # Should proceed with original filename
             assert success is True
@@ -488,7 +492,7 @@ class TestEnChANTOrchestrator:
         args2.validate_only = False
 
         # Mock the API call for renaming
-        with patch("enchant_book_manager.renamenovels.make_openai_request") as mock_openai_request:
+        with patch("enchant_book_manager.rename_api_client.RenameAPIClient.make_request") as mock_openai_request:
             mock_openai_request.return_value = mock_openai_response
 
             # Create translation directory that would exist from skipped translation phase
@@ -497,7 +501,7 @@ class TestEnChANTOrchestrator:
             translated_file = book_dir / "translated_Cultivation Master by Unknown Author.txt"
             translated_file.write_text("Chapter 1\n\nTranslated content.", encoding="utf-8")
 
-            success = process_novel_unified(test_novel_2, args2)
+            success = process_novel_unified(test_novel_2, args2, logger)
             assert success is True
 
         # Test 3: Skip EPUB
@@ -538,12 +542,12 @@ class TestEnChANTOrchestrator:
             return True
 
         with (
-            patch("enchant_book_manager.renamenovels.make_openai_request") as mock_openai_request,
-            patch("enchant_book_manager.enchant_cli.translate_novel", side_effect=mock_translate_novel),
+            patch("enchant_book_manager.rename_api_client.RenameAPIClient.make_request") as mock_openai_request,
+            patch("enchant_book_manager.workflow_phases.translate_novel", side_effect=mock_translate_novel),
         ):
             mock_openai_request.return_value = mock_openai_response
 
-            success = process_novel_unified(test_novel_3, args3)
+            success = process_novel_unified(test_novel_3, args3, logger)
             assert success is True
 
     @skip_local_api_tests("Resume functionality with local API not available in CI")
@@ -609,8 +613,8 @@ class TestEnChANTOrchestrator:
             chapter_file.write_text("Chapter 1\n\nTranslated content.", encoding="utf-8")
             return True
 
-        with patch("enchant_book_manager.cli_translator.translate_novel", side_effect=mock_translate_novel):
-            success = process_novel_unified(chinese_test_novel, args)
+        with patch("enchant_book_manager.workflow_phases.translate_novel", side_effect=mock_translate_novel):
+            success = process_novel_unified(chinese_test_novel, args, logger)
 
             # Should skip completed renaming phase
             assert success is True
@@ -638,23 +642,23 @@ class TestEnChANTOrchestrator:
         args.remote = False
 
         # Test renaming failure
-        with patch("enchant_book_manager.renamenovels.process_novel_file") as mock_rename:
+        with patch("enchant_book_manager.workflow_phases.rename_novel") as mock_rename:
             mock_rename.side_effect = Exception("Renaming failed")
 
-            success = process_novel_unified(chinese_test_novel, args)
+            success = process_novel_unified(chinese_test_novel, args, logger)
             assert success is False
 
         # Test translation failure - mock both the rename and translate functions
         # to avoid actual API calls
         with (
-            patch("enchant_book_manager.renamenovels.process_novel_file") as mock_rename,
-            patch("enchant_book_manager.cli_translator.translate_novel") as mock_translate,
+            patch("enchant_book_manager.workflow_phases.rename_novel") as mock_rename,
+            patch("enchant_book_manager.workflow_phases.translate_novel") as mock_translate,
             patch.dict(os.environ, {"ENCHANT_CONFIG": str(config_file)}),
         ):
             mock_rename.return_value = (True, chinese_test_novel, {})
             mock_translate.side_effect = Exception("Translation failed")
 
-            success = process_novel_unified(chinese_test_novel, args)
+            success = process_novel_unified(chinese_test_novel, args, logger)
             assert success is False
 
     @skip_local_api_tests("Batch processing with local API not available in CI")
@@ -683,7 +687,7 @@ class TestEnChANTOrchestrator:
         args.max_chars = 2000
         args.remote = False
 
-        with patch("enchant_book_manager.cli_translator.translate_novel") as mock_translate:
+        with patch("enchant_book_manager.workflow_phases.translate_novel") as mock_translate:
             mock_translate.return_value = True
 
             # This would normally be called by enchant_cli.process_batch()

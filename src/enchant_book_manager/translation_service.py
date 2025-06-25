@@ -410,7 +410,7 @@ class ChineseAITranslator:
                 lines.append(f"Average Tokens per Request: {summary['total_tokens'] // summary['request_count']:,}")
             return "\n".join(lines)
         else:
-            return f"\n=== Translation Cost Summary ===\n" f"Model: {summary['model']}\n" f"API Type: {summary['api_type']}\n" f"Local API - no costs incurred"
+            return f"\n=== Translation Cost Summary ===\nModel: {summary['model']}\nAPI Type: {summary['api_type']}\nLocal API - no costs incurred"
 
     def reset_cost_tracking(self) -> None:
         """Reset cost tracking counters."""

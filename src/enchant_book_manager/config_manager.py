@@ -87,7 +87,7 @@ class ConfigManager:
             if first_error.get("can_restore"):
                 if first_error["type"] == "missing_required_preset":
                     preset_name = first_error["preset"]
-                    response = input(f"\nRequired preset '{preset_name}' is missing. " f"Restore default values? (y/n): ")
+                    response = input(f"\nRequired preset '{preset_name}' is missing. Restore default values? (y/n): ")
                     if response.lower() == "y":
                         default_presets = defaults.get("presets", {})
                         if "presets" not in config:

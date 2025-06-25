@@ -47,7 +47,7 @@ class PresetManager:
         # Validate preset name format
         valid_name_pattern = re.compile(r"^[A-Za-z0-9_]+$")
         if not valid_name_pattern.match(preset_name):
-            self.logger.error(f"Invalid preset name '{preset_name}'. " "Preset names must contain only alphanumeric characters and underscores.")
+            self.logger.error(f"Invalid preset name '{preset_name}'. Preset names must contain only alphanumeric characters and underscores.")
             return False
 
         presets = config.get("presets", {})
