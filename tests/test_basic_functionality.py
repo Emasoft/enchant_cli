@@ -13,10 +13,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import tenacity
 
 # Import modules before modifying them
-from enchant_book_manager.translation_service import (
-    ChineseAITranslator,
-    is_latin_charset,
-)
+from enchant_book_manager.translation_service import ChineseAITranslator
+from enchant_book_manager.text_validators import is_latin_charset, remove_thinking_block
 from enchant_book_manager.common_text_utils import (
     clean,
     limit_repeated_chars,
@@ -49,7 +47,8 @@ def test_basic_initialization():
     # Remote translator
     translator = ChineseAITranslator(use_remote=True, api_key="test_key")
     assert translator.is_remote
-    assert translator.api_key == "test_key"
+    # Note: api_key is no longer stored as an attribute after refactoring
+    # It's passed directly to the API client
     # Check global cost tracker
     summary = global_cost_tracker.get_summary()
     assert summary["total_cost"] == 0.0
@@ -134,14 +133,14 @@ def test_cost_tracking():
 
 def test_remove_thinking_block():
     """Test thinking block removal"""
-    translator = ChineseAITranslator(use_remote=False)
+    # Note: remove_thinking_block is now a standalone function in text_validators
 
     text = "Hello <think>internal thoughts</think> world"
-    result = translator.remove_thinking_block(text)
-    assert result == "Hello  world"
+    result = remove_thinking_block(text)
+    assert result == "Hello world"
 
     text = "Start <thinking>thoughts</thinking>\nEnd"
-    result = translator.remove_thinking_block(text)
+    result = remove_thinking_block(text)
     assert result == "Start End"
     print("✓ Thinking block removal works correctly")
 

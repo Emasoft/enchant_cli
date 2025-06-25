@@ -22,6 +22,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from enchant_book_manager.translation_service import (
     ChineseAITranslator,
     TranslationError,
+)
+from enchant_book_manager.text_validators import (
     is_latin_char,
     is_latin_charset,
 )
@@ -48,7 +50,8 @@ class TestChineseAITranslator:
     def test_init_local(self, translator_local):
         """Test local translator initialization"""
         assert not translator_local.is_remote
-        assert translator_local.api_url == "http://localhost:1234/v1/chat/completions"
+        # Note: api_url is now in the API client
+        assert translator_local.api_client.api_url == "http://localhost:1234/v1/chat/completions"
         assert translator_local.MODEL_NAME == "qwen3-30b-a3b-mlx@8bit"
         assert translator_local.temperature == 0.05
         assert translator_local.request_count == 0
@@ -56,9 +59,10 @@ class TestChineseAITranslator:
     def test_init_remote(self, translator_remote):
         """Test remote translator initialization"""
         assert translator_remote.is_remote
-        assert translator_remote.api_url == "https://openrouter.ai/api/v1/chat/completions"
+        # Note: api_url and api_key are now in the API client
+        assert translator_remote.api_client.api_url == "https://openrouter.ai/api/v1/chat/completions"
         assert translator_remote.MODEL_NAME == "deepseek/deepseek-r1:nitro"
-        assert translator_remote.api_key == "test_key"
+        # api_key is no longer stored as an attribute
         assert translator_remote.request_count == 0
 
     def test_init_remote_no_api_key(self, mock_logger):

@@ -145,7 +145,7 @@ class LocalAPIClient(TranslationAPIClient):
             model_name: Name of the model to use
             logger: Optional logger function
         """
-        super().__init__(api_url=f"{API_URL_LMSTUDIO}/completions", model_name=model_name, logger=logger)
+        super().__init__(api_url=API_URL_LMSTUDIO, model_name=model_name, logger=logger)
 
     def prepare_request(self, messages: list[dict[str, Any]], **kwargs: Any) -> dict[str, Any]:
         """Prepare request for LM Studio API.
@@ -205,7 +205,7 @@ class RemoteAPIClient(TranslationAPIClient):
             model_name: Name of the model to use
             logger: Optional logger function
         """
-        super().__init__(api_url=f"{API_URL_OPENROUTER}/chat/completions", model_name=model_name, logger=logger)
+        super().__init__(api_url=API_URL_OPENROUTER, model_name=model_name, logger=logger)
         self.headers["Authorization"] = f"Bearer {api_key}"
         self.headers["HTTP-Referer"] = "https://github.com/enchant-novels"
         self.headers["X-Title"] = "EnChANT Book Manager"

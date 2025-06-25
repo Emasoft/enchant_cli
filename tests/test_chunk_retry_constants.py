@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.enchant_book_manager import cli_translator
+from src.enchant_book_manager.translation_orchestrator import format_chunk_error_message
 
 
 class TestChunkRetryConstants:
@@ -28,12 +29,13 @@ class TestChunkRetryConstants:
 
     def test_format_chunk_error_message_exists(self):
         """Test that error message formatter exists"""
-        assert hasattr(cli_translator, "format_chunk_error_message")
-        assert callable(cli_translator.format_chunk_error_message)
+        # Note: format_chunk_error_message moved to translation_orchestrator module
+        assert format_chunk_error_message is not None
+        assert callable(format_chunk_error_message)
 
     def test_format_chunk_error_message(self):
         """Test error message formatting"""
-        msg = cli_translator.format_chunk_error_message(
+        msg = format_chunk_error_message(
             chunk_number=5,
             max_retries=10,
             last_error="Connection refused",

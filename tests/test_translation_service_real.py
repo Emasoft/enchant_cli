@@ -14,10 +14,11 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from enchant_book_manager.translation_service import (
-    ChineseAITranslator,
+from enchant_book_manager.translation_service import ChineseAITranslator
+from enchant_book_manager.text_validators import (
     is_latin_char,
     is_latin_charset,
+    remove_thinking_block,
 )
 
 
@@ -68,7 +69,7 @@ class TestChineseAITranslatorReal:
 
     def test_remove_thinking_block_real(self):
         """Test thinking block removal with real translator"""
-        translator = ChineseAITranslator(logger=self.logger, use_remote=False, temperature=0.05)
+        # Note: remove_thinking_block is now a standalone function
 
         # Test various thinking block formats
         test_cases = [
@@ -79,7 +80,7 @@ class TestChineseAITranslatorReal:
 
         all_passed = True
         for input_text, expected in test_cases:
-            result = translator.remove_thinking_block(input_text)
+            result = remove_thinking_block(input_text)
             if result.strip() == expected.strip():
                 print("✓ Removed thinking block correctly")
             else:

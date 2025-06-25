@@ -136,7 +136,7 @@ yamlfmt -path .github/workflows
 - Use actionlint snd yamllint for yaml
 - Use jsonlint for json
 - Run ruff using this command: `uv run ruff check --ignore E203,E402,E501,E266,W505,F841,F842,F401,W293,I001,UP015,C901,W291 --isolated --fix --output-format full`
-- Run mypy using this command: `COLUMNS=400 uv run mypy --strict --show-error-context --pretty --install-types --no-color-output --non-interactive --show-error-codes --show-error-code-links --no-error-summary --follow-imports=normal <files to test or pattern...>`
+- Run mypy using this command: `COLUMNS=400 uv run mypy --strict --show-error-context --pretty --install-types --no-color-output --show-error-codes --show-error-code-links --no-error-summary --follow-imports=normal <files> >mypy_lint_log.txt`
 - use shellcheck-py if you need to use shellcheck from a python script
 - Use `pnpm run lint` to run eslint on node.js source files.
 - Add git hooks that uses uv-pre-commit to run the linting at each commit, read the guide here: `https://docs.astral.sh/uv/guides/integration/pre-commit/`
@@ -327,7 +327,7 @@ For more information, read the uv tool upgrade documentation: `https://docs.astr
 # Python formatting and linting commands syntax:
 uv run ruff format       # format with ruff
 uv run ruff check --ignore E203,E402,E501,E266,W505,F841,F842,F401,W293,I001,UP015,C901,W291 --isolated --fix --output-format full
-COLUMNS=400 uv run mypy --strict --show-error-context --pretty --install-types --no-color-output --non-interactive --show-error-codes --show-error-code-links --no-error-summary --follow-imports=normal <files to test or pattern...>
+COLUMNS=400 uv run mypy --strict --show-error-context --pretty --install-types --no-color-output --show-error-codes --show-error-code-links --no-error-summary --follow-imports=normal <files> >mypy_lint_log.txt
 
 # TypeScript/JavaScript formatting and linting commands syntax to use internally in dhtl:
 uv run pnpm run lint            # ESLint

@@ -24,7 +24,7 @@ import json
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from enchant_book_manager.enchant_cli import process_novel_unified  # noqa: E402
+from enchant_book_manager.workflow_orchestrator import process_novel_unified  # noqa: E402
 from enchant_book_manager.renamenovels import process_novel_file  # noqa: E402
 from enchant_book_manager.cli_translator import translate_novel  # noqa: E402
 from enchant_book_manager.make_epub import create_epub_from_chapters  # noqa: E402
@@ -369,7 +369,7 @@ class TestEnChANTOrchestrator:
         with (
             patch("enchant_book_manager.renamenovels.make_openai_request") as mock_openai_request,
             patch(
-                "enchant_book_manager.enchant_cli.translate_novel",
+                "enchant_book_manager.cli_translator.translate_novel",
                 side_effect=mock_translate_novel,
             ),
         ):
@@ -454,7 +454,7 @@ class TestEnChANTOrchestrator:
             chapter_file.write_text("Chapter 1\n\nTranslated content.", encoding="utf-8")
             return True
 
-        with patch("enchant_book_manager.enchant_cli.translate_novel", side_effect=mock_translate_with_skip_rename):
+        with patch("enchant_book_manager.cli_translator.translate_novel", side_effect=mock_translate_with_skip_rename):
             success = process_novel_unified(chinese_test_novel, args)
 
             # Should proceed with original filename
@@ -610,7 +610,7 @@ class TestEnChANTOrchestrator:
             chapter_file.write_text("Chapter 1\n\nTranslated content.", encoding="utf-8")
             return True
 
-        with patch("enchant_book_manager.enchant_cli.translate_novel", side_effect=mock_translate_novel):
+        with patch("enchant_book_manager.cli_translator.translate_novel", side_effect=mock_translate_novel):
             success = process_novel_unified(chinese_test_novel, args)
 
             # Should skip completed renaming phase
@@ -640,7 +640,7 @@ class TestEnChANTOrchestrator:
         args.remote = False
 
         # Test renaming failure
-        with patch("enchant_book_manager.enchant_cli.rename_novel") as mock_rename:
+        with patch("enchant_book_manager.renamenovels.process_novel_file") as mock_rename:
             mock_rename.side_effect = Exception("Renaming failed")
 
             success = process_novel_unified(chinese_test_novel, args)
@@ -649,8 +649,8 @@ class TestEnChANTOrchestrator:
         # Test translation failure - mock both the rename and translate functions
         # to avoid actual API calls
         with (
-            patch("enchant_book_manager.enchant_cli.rename_novel") as mock_rename,
-            patch("enchant_book_manager.enchant_cli.translate_novel") as mock_translate,
+            patch("enchant_book_manager.renamenovels.process_novel_file") as mock_rename,
+            patch("enchant_book_manager.cli_translator.translate_novel") as mock_translate,
             patch.dict(os.environ, {"ENCHANT_CONFIG": str(config_file)}),
         ):
             mock_rename.return_value = (True, chinese_test_novel, {})
