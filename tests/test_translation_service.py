@@ -53,7 +53,7 @@ class TestChineseAITranslator:
         # Note: api_url is now in the API client
         assert translator_local.api_client.api_url == "http://localhost:1234/v1/chat/completions"
         assert translator_local.MODEL_NAME == "qwen3-30b-a3b-mlx@8bit"
-        assert translator_local.temperature == 0.05
+        assert translator_local.temperature == 0.1
         assert translator_local.request_count == 0
 
     def test_init_remote(self, translator_remote):
