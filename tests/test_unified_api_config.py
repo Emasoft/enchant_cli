@@ -18,10 +18,16 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
 
     def test_renamenovels_uses_openrouter_endpoint(self):
         """Test that renamenovels uses OpenRouter API endpoint"""
-        from enchant_book_manager.renamenovels import make_openai_request
+        from enchant_book_manager.rename_api_client import RenameAPIClient
 
-        # Mock the requests.post to capture the URL
-        with patch("enchant_book_manager.renamenovels.requests.post") as mock_post:
+        # Create a client and verify it uses OpenRouter endpoint
+        client = RenameAPIClient(api_key="test_key", model="gpt-4o-mini")
+
+        # Verify the client uses OpenRouter endpoint
+        self.assertEqual(client.api_url, "https://openrouter.ai/api/v1/chat/completions")
+
+        # Mock the requests.post to test the actual request
+        with patch("enchant_book_manager.rename_api_client.requests.post") as mock_post:
             mock_response = Mock()
             mock_response.json.return_value = {
                 "choices": [{"message": {"content": '{"test": "data"}'}}],
@@ -30,13 +36,8 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
             mock_response.raise_for_status = Mock()
             mock_post.return_value = mock_response
 
-            # Call the function
-            make_openai_request(
-                api_key="test_key",
-                model="gpt-4o-mini",
-                temperature=0.0,
-                messages=[{"role": "user", "content": "test"}],
-            )
+            # Call the make_request method
+            client.make_request(messages=[{"role": "user", "content": "test"}])
 
             # Verify it calls OpenRouter endpoint
             args, kwargs = mock_post.call_args
@@ -48,12 +49,12 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
 
         translator = ChineseAITranslator(use_remote=True, api_key="test_key")
 
-        # Verify it uses OpenRouter endpoint
-        self.assertEqual(translator.api_url, "https://openrouter.ai/api/v1/chat/completions")
+        # Verify the API client uses OpenRouter endpoint
+        self.assertEqual(translator.api_client.api_url, "https://openrouter.ai/api/v1/chat/completions")
 
     def test_model_name_mapping(self):
         """Test that OpenAI model names are mapped correctly"""
-        from enchant_book_manager.renamenovels import OPENROUTER_MODEL_MAPPING
+        from enchant_book_manager.rename_api_client import OPENROUTER_MODEL_MAPPING
 
         # Test known mappings
         self.assertEqual(OPENROUTER_MODEL_MAPPING["gpt-4o-mini"], "openai/gpt-4o-mini")
@@ -107,17 +108,24 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
     def test_no_duplicate_cost_calculation(self):
         """Test that we don't duplicate cost calculations"""
 
-        # Ensure we're using OpenRouter's direct cost info
-        # since OpenRouter provides costs directly
-        with patch("src.enchant_book_manager.renamenovels.make_openai_request") as mock_request:
-            mock_request.return_value = {
+        # Test that we use OpenRouter's direct cost info instead of calculating separately
+        from enchant_book_manager.rename_api_client import RenameAPIClient
+
+        client = RenameAPIClient(api_key="test_key", model="gpt-4o-mini")
+
+        with patch("enchant_book_manager.rename_api_client.requests.post") as mock_post:
+            mock_response = Mock()
+            mock_response.json.return_value = {
                 "choices": [{"message": {"content": '{"novel_title_english": "Test"}'}}],
                 "usage": {"total_tokens": 100, "cost": 0.001},
             }
+            mock_response.raise_for_status = Mock()
+            mock_post.return_value = mock_response
 
-            # Process should use cost from OpenRouter response
-            # This verifies we're not calculating costs separately
-            pass
+            # The API client should use the cost directly from OpenRouter
+            # This is handled internally by global_cost_tracker
+            response = client.make_request(messages=[{"role": "user", "content": "test"}])
+            self.assertIsNotNone(response)
 
     def test_icloud_disabled_by_default(self):
         """Test that ICLOUD is disabled by default to avoid command issues"""

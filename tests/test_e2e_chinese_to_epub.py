@@ -448,17 +448,18 @@ They needed to venture deep into the forest and clear out the magical beasts the
 
                 return True
 
-            # Patch make_openai_request directly to avoid any issues
+            # Patch RenameAPIClient.extract_metadata directly to return the JSON string
             with (
-                patch("enchant_book_manager.renamenovels.make_openai_request") as mock_openai_request,
+                patch("enchant_book_manager.rename_api_client.RenameAPIClient.extract_metadata") as mock_extract_metadata,
                 patch("requests.post", side_effect=mock_requests_post),
                 patch(
-                    "enchant_book_manager.enchant_cli.translate_novel",
+                    "enchant_book_manager.cli_translator.translate_novel",
                     side_effect=mock_translate_novel,
                 ),
             ):
-                # Set the return value for make_openai_request
-                mock_openai_request.return_value = mock_openai_responses["修炼至尊.txt"]
+                # Set the return value for RenameAPIClient.extract_metadata
+                # It should return just the content string from the response
+                mock_extract_metadata.return_value = mock_openai_responses["修炼至尊.txt"]["choices"][0]["message"]["content"]
 
                 # Set environment
                 env = os.environ.copy()
@@ -572,8 +573,8 @@ They needed to venture deep into the forest and clear out the magical beasts the
 
             with (
                 patch(
-                    "enchant_book_manager.renamenovels.make_openai_request",
-                    side_effect=mock_make_openai,
+                    "enchant_book_manager.rename_api_client.RenameAPIClient.extract_metadata",
+                    side_effect=lambda content, char_limit=1500: mock_make_openai(api_key="test", model="gpt", temperature=0, messages=[{"role": "user", "content": content}])["choices"][0]["message"]["content"],
                 ),
                 patch("requests.post", side_effect=mock_requests_post),
             ):
