@@ -214,3 +214,72 @@ No functionality was lost and all imports continue to work.
 ✅ Refactoring completed successfully
 
 ---
+
+### Module: chapter_detector.py (17KB → target: ~2-3 modules under 10KB each)
+
+#### Preparation Phase:
+- [x] Read entire file (443 lines)
+- [x] Create backup: chapter_detector.py.bak
+- [x] Create element checklist
+- [x] Plan module structure
+- [ ] Identify dependencies
+
+##### Element Checklist:
+**Constants (lines 42-86):**
+- [ ] HEADING_RE (lines 42-59) - Main chapter heading regex
+- [ ] PART_PATTERNS (lines 62-83) - List of part notation patterns
+- [ ] DB_OPTIMIZATION_THRESHOLD (line 86) - Database use threshold
+
+**Helper Functions:**
+- [ ] has_part_notation() (lines 89-102) - Check for part notation in titles
+- [ ] parse_num() (lines 106-110) - Wrapper for shared parse_num function
+- [ ] is_valid_chapter_line() (lines 113-151) - Validate chapter headings
+
+**Main Functions:**
+- [ ] split_text_db() (lines 154-174) - Database-optimized text splitting
+- [ ] split_text() (lines 177-376) - Main text splitting with 3 passes
+- [ ] detect_issues() (lines 379-442) - Detect sequence issues
+
+**Dependencies:**
+- epub_constants: ENCODING, WORD_NUMS, parse_num_shared
+- epub_db_optimized: process_text_optimized (optional)
+
+#### Planned Module Structure:
+
+**Module 1: chapter_patterns.py (~3KB)**
+- HEADING_RE - Main chapter heading regex
+- PART_PATTERNS - List of part notation patterns
+- DB_OPTIMIZATION_THRESHOLD - Database use threshold
+- Reusable regex patterns for chapter detection
+
+**Module 2: chapter_validators.py (~5KB)**
+- has_part_notation() - Check for part notation in titles
+- parse_num() - Wrapper for shared parse_num function
+- is_valid_chapter_line() - Validate chapter headings
+- Helper functions for validation logic
+
+**Module 3: chapter_parser.py (~9KB)**
+- split_text_db() - Database-optimized text splitting
+- split_text() - Main text splitting with 3 passes (200 lines!)
+- detect_issues() - Detect sequence issues
+- Main parsing logic and issue detection
+
+**Updated chapter_detector.py (~1KB)**
+- Wrapper imports from all three modules for backward compatibility
+- Maintains same API for existing code
+
+#### Dependencies to Update:
+- make_epub.py imports: HEADING_RE, PART_PATTERNS, has_part_notation, is_valid_chapter_line, parse_num, split_text, split_text_db, detect_issues
+- No updates needed - will maintain backward compatibility
+
+#### Implementation Phase:
+- [ ] Move elements to new modules
+  - [ ] Create chapter_patterns.py with constants
+  - [ ] Create chapter_validators.py with validation functions
+  - [ ] Create chapter_parser.py with parsing functions
+  - [ ] Update chapter_detector.py to wrapper
+- [ ] Update imports in all dependent files
+- [ ] Test each change
+- [ ] Commit atomically
+
+---
