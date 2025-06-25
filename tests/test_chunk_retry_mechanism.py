@@ -10,12 +10,13 @@ import sys
 from pathlib import Path
 import tempfile
 import shutil
+import logging
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from enchant_book_manager.cli_translator import save_translated_book
-from enchant_book_manager.cli_translator import Book, Chunk
+from enchant_book_manager.translation_orchestrator import save_translated_book
+from enchant_book_manager.models import Book, Chunk
 
 
 class TestChunkRetryMechanism:
@@ -54,26 +55,38 @@ class TestChunkRetryMechanism:
         """Clean up test fixtures"""
         shutil.rmtree(self.test_dir, ignore_errors=True)
 
-    @patch("enchant_book_manager.cli_translator.Book.get_by_id")
-    @patch("enchant_book_manager.cli_translator.VARIATION_DB")
-    @patch("enchant_book_manager.cli_translator.translator")
-    @patch("enchant_book_manager.cli_translator.tolog")
-    def test_successful_translation_first_attempt(self, mock_tolog, mock_translator, mock_var_db, mock_get_book):
+    @patch("enchant_book_manager.models.Book.get_by_id")
+    @patch("enchant_book_manager.translation_orchestrator.VARIATION_DB")
+    def test_successful_translation_first_attempt(self, mock_var_db, mock_get_book):
         """Test successful translation on first attempt"""
         # Setup mocks
         mock_get_book.return_value = self.mock_book
         mock_var_db.get.side_effect = lambda var_id: self.mock_variations.get(var_id)
+
+        # Create mock translator and logger
+        from enchant_book_manager.translation_service import ChineseAITranslator
+
+        mock_translator = Mock(spec=ChineseAITranslator)
         mock_translator.translate.return_value = "Translated content"
-        # Configure attributes properly to avoid MagicMock comparison issues
-        mock_translator.configure_mock(is_remote=False, request_count=0, total_cost=0.0, total_tokens=0)
+        mock_translator.is_remote = False
+        mock_translator.request_count = 0
+
+        mock_logger = Mock(spec=logging.Logger)
 
         # Change to test directory
         with patch(
-            "enchant_book_manager.cli_translator.Path.cwd",
+            "enchant_book_manager.translation_orchestrator.Path.cwd",
             return_value=Path(self.test_dir),
         ):
             with patch("sys.exit") as mock_exit:
-                save_translated_book(self.book_id)
+                save_translated_book(
+                    self.book_id,
+                    translator=mock_translator,
+                    resume=False,
+                    create_epub=False,
+                    logger=mock_logger,
+                    module_config={},
+                )
 
                 # Should not exit
                 mock_exit.assert_not_called()
@@ -82,20 +95,22 @@ class TestChunkRetryMechanism:
                 assert mock_translator.translate.call_count == 3
 
                 # Check log messages
-                success_logs = [call for call in mock_tolog.info.call_args_list if "Successfully translated chunk" in str(call)]
+                success_logs = [call for call in mock_logger.info.call_args_list if "Successfully translated chunk" in str(call)]
                 assert len(success_logs) == 3
 
-    @patch("enchant_book_manager.cli_translator.Book.get_by_id")
-    @patch("enchant_book_manager.cli_translator.VARIATION_DB")
-    @patch("enchant_book_manager.cli_translator.translator")
-    @patch("enchant_book_manager.cli_translator.tolog")
-    @patch("enchant_book_manager.cli_translator.time.sleep")
-    def test_translation_retry_on_failure(self, mock_sleep, mock_tolog, mock_translator, mock_var_db, mock_get_book):
+    @patch("enchant_book_manager.models.Book.get_by_id")
+    @patch("enchant_book_manager.translation_orchestrator.VARIATION_DB")
+    @patch("enchant_book_manager.translation_orchestrator.time.sleep")
+    def test_translation_retry_on_failure(self, mock_sleep, mock_var_db, mock_get_book):
         """Test translation retries on failure and succeeds"""
         # Setup mocks
         mock_get_book.return_value = self.mock_book
         mock_var_db.get.side_effect = lambda var_id: self.mock_variations.get(var_id)
 
+        # Create mock translator and logger
+        from enchant_book_manager.translation_service import ChineseAITranslator
+
+        mock_translator = Mock(spec=ChineseAITranslator)
         # First chunk fails twice then succeeds
         mock_translator.translate.side_effect = [
             Exception("Network error"),
@@ -105,15 +120,25 @@ class TestChunkRetryMechanism:
             "Translated content 3",
         ]
         # Configure attributes properly to avoid MagicMock comparison issues
-        mock_translator.configure_mock(is_remote=False, request_count=0, total_cost=0.0, total_tokens=0)
+        mock_translator.is_remote = False
+        mock_translator.request_count = 0
+
+        mock_logger = Mock(spec=logging.Logger)
 
         # Change to test directory
         with patch(
-            "enchant_book_manager.cli_translator.Path.cwd",
+            "enchant_book_manager.translation_orchestrator.Path.cwd",
             return_value=Path(self.test_dir),
         ):
             with patch("sys.exit") as mock_exit:
-                save_translated_book(self.book_id)
+                save_translated_book(
+                    self.book_id,
+                    translator=mock_translator,
+                    resume=False,
+                    create_epub=False,
+                    logger=mock_logger,
+                    module_config={},
+                )
 
                 # Should not exit
                 mock_exit.assert_not_called()
@@ -126,30 +151,31 @@ class TestChunkRetryMechanism:
                 mock_sleep.assert_any_call(2)  # First retry
                 mock_sleep.assert_any_call(4)  # Second retry
 
-    @patch("enchant_book_manager.cli_translator.Book.get_by_id")
-    @patch("enchant_book_manager.cli_translator.VARIATION_DB")
-    @patch("enchant_book_manager.cli_translator.translator")
-    @patch("enchant_book_manager.cli_translator.tolog")
-    @patch("enchant_book_manager.cli_translator.time.sleep")
-    @patch(
-        "enchant_book_manager.cli_translator._module_config",
-        {"translation": {"max_chunk_retries": 3}},
-    )
-    def test_translation_fails_after_max_retries(self, mock_sleep, mock_tolog, mock_translator, mock_var_db, mock_get_book):
+    @patch("enchant_book_manager.models.Book.get_by_id")
+    @patch("enchant_book_manager.translation_orchestrator.VARIATION_DB")
+    @patch("enchant_book_manager.translation_orchestrator.time.sleep")
+    def test_translation_fails_after_max_retries(self, mock_sleep, mock_var_db, mock_get_book):
         """Test program exits when all retry attempts fail"""
 
         # Setup mocks
         mock_get_book.return_value = self.mock_book
         mock_var_db.get.side_effect = lambda var_id: self.mock_variations.get(var_id)
 
+        # Create mock translator and logger
+        from enchant_book_manager.translation_service import ChineseAITranslator
+
+        mock_translator = Mock(spec=ChineseAITranslator)
         # All attempts fail
         mock_translator.translate.side_effect = Exception("Persistent error")
         # Configure attributes properly to avoid MagicMock comparison issues
-        mock_translator.configure_mock(is_remote=False, request_count=0, total_cost=0.0, total_tokens=0)
+        mock_translator.is_remote = False
+        mock_translator.request_count = 0
+
+        mock_logger = Mock(spec=logging.Logger)
 
         # Change to test directory
         with patch(
-            "enchant_book_manager.cli_translator.Path.cwd",
+            "enchant_book_manager.translation_orchestrator.Path.cwd",
             return_value=Path(self.test_dir),
         ):
             with patch("sys.exit") as mock_exit:
@@ -157,7 +183,14 @@ class TestChunkRetryMechanism:
                 mock_exit.side_effect = SystemExit(1)
 
                 with pytest.raises(SystemExit) as cm:
-                    save_translated_book(self.book_id)
+                    save_translated_book(
+                        self.book_id,
+                        translator=mock_translator,
+                        resume=False,
+                        create_epub=False,
+                        logger=mock_logger,
+                        module_config={"translation": {"max_chunk_retries": 3}},
+                    )
 
                 # Check exit code
                 assert cm.value.code == 1
@@ -169,23 +202,25 @@ class TestChunkRetryMechanism:
                 assert mock_translator.translate.call_count == 3
 
                 # Check error message was logged
-                error_logs = [call for call in mock_tolog.error.call_args_list if "FATAL ERROR" in str(call)]
+                error_logs = [call for call in mock_logger.error.call_args_list if "FATAL ERROR" in str(call)]
                 assert len(error_logs) == 1
 
                 # Check sleep was called correctly
                 assert mock_sleep.call_count == 2  # No sleep after last attempt
 
-    @patch("enchant_book_manager.cli_translator.Book.get_by_id")
-    @patch("enchant_book_manager.cli_translator.VARIATION_DB")
-    @patch("enchant_book_manager.cli_translator.translator")
-    @patch("enchant_book_manager.cli_translator.tolog")
-    @patch("enchant_book_manager.cli_translator.time.sleep")
-    def test_empty_translation_triggers_retry(self, mock_sleep, mock_tolog, mock_translator, mock_var_db, mock_get_book):
+    @patch("enchant_book_manager.models.Book.get_by_id")
+    @patch("enchant_book_manager.translation_orchestrator.VARIATION_DB")
+    @patch("enchant_book_manager.translation_orchestrator.time.sleep")
+    def test_empty_translation_triggers_retry(self, mock_sleep, mock_var_db, mock_get_book):
         """Test that empty or whitespace-only translations trigger retry"""
         # Setup mocks
         mock_get_book.return_value = self.mock_book
         mock_var_db.get.side_effect = lambda var_id: self.mock_variations.get(var_id)
 
+        # Create mock translator and logger
+        from enchant_book_manager.translation_service import ChineseAITranslator
+
+        mock_translator = Mock(spec=ChineseAITranslator)
         # Return empty/whitespace translations then valid ones
         mock_translator.translate.side_effect = [
             "",  # Empty
@@ -195,15 +230,25 @@ class TestChunkRetryMechanism:
             "Valid translation 3",
         ]
         # Configure attributes properly to avoid MagicMock comparison issues
-        mock_translator.configure_mock(is_remote=False, request_count=0, total_cost=0.0, total_tokens=0)
+        mock_translator.is_remote = False
+        mock_translator.request_count = 0
+
+        mock_logger = Mock(spec=logging.Logger)
 
         # Change to test directory
         with patch(
-            "enchant_book_manager.cli_translator.Path.cwd",
+            "enchant_book_manager.translation_orchestrator.Path.cwd",
             return_value=Path(self.test_dir),
         ):
             with patch("sys.exit") as mock_exit:
-                save_translated_book(self.book_id)
+                save_translated_book(
+                    self.book_id,
+                    translator=mock_translator,
+                    resume=False,
+                    create_epub=False,
+                    logger=mock_logger,
+                    module_config={},
+                )
 
                 # Should not exit
                 mock_exit.assert_not_called()
@@ -211,19 +256,24 @@ class TestChunkRetryMechanism:
                 # Should have retried
                 assert mock_translator.translate.call_count == 5
 
-    @patch("enchant_book_manager.cli_translator.Book.get_by_id")
-    @patch("enchant_book_manager.cli_translator.VARIATION_DB")
-    @patch("enchant_book_manager.cli_translator.translator")
-    @patch("enchant_book_manager.cli_translator.tolog")
-    @patch("enchant_book_manager.cli_translator.time.sleep")
-    def test_file_write_error_triggers_retry(self, mock_sleep, mock_tolog, mock_translator, mock_var_db, mock_get_book):
+    @patch("enchant_book_manager.models.Book.get_by_id")
+    @patch("enchant_book_manager.translation_orchestrator.VARIATION_DB")
+    @patch("enchant_book_manager.translation_orchestrator.time.sleep")
+    def test_file_write_error_triggers_retry(self, mock_sleep, mock_var_db, mock_get_book):
         """Test that file write errors trigger retry"""
         # Setup mocks
         mock_get_book.return_value = self.mock_book
         mock_var_db.get.side_effect = lambda var_id: self.mock_variations.get(var_id)
+        # Create mock translator and logger
+        from enchant_book_manager.translation_service import ChineseAITranslator
+
+        mock_translator = Mock(spec=ChineseAITranslator)
         mock_translator.translate.return_value = "Translated content"
         # Configure attributes properly to avoid MagicMock comparison issues
-        mock_translator.configure_mock(is_remote=False, request_count=0, total_cost=0.0, total_tokens=0)
+        mock_translator.is_remote = False
+        mock_translator.request_count = 0
+
+        mock_logger = Mock(spec=logging.Logger)
 
         # Make first write attempt fail
         write_attempts = [0]
@@ -236,25 +286,45 @@ class TestChunkRetryMechanism:
 
         # Change to test directory
         with patch(
-            "enchant_book_manager.cli_translator.Path.cwd",
+            "enchant_book_manager.translation_orchestrator.Path.cwd",
             return_value=Path(self.test_dir),
         ):
             with patch(
-                "enchant_book_manager.cli_translator.Path.write_text",
+                "enchant_book_manager.translation_orchestrator.Path.write_text",
                 side_effect=mock_write_text,
             ):
                 with patch("sys.exit") as mock_exit:
-                    save_translated_book(self.book_id)
+                    save_translated_book(
+                        self.book_id,
+                        translator=mock_translator,
+                        resume=False,
+                        create_epub=False,
+                        logger=mock_logger,
+                        module_config={},
+                    )
 
                     # Should not exit (recovers from write error)
                     mock_exit.assert_not_called()
 
-    @patch("enchant_book_manager.cli_translator.Book.get_by_id")
+    @patch("enchant_book_manager.models.Book.get_by_id")
     def test_book_not_found_raises_error(self, mock_get_book):
         """Test that missing book raises ValueError"""
         mock_get_book.return_value = None
 
+        # Create mock translator and logger
+        from enchant_book_manager.translation_service import ChineseAITranslator
+
+        mock_translator = Mock(spec=ChineseAITranslator)
+        mock_logger = Mock(spec=logging.Logger)
+
         with pytest.raises(ValueError) as context:
-            save_translated_book("non-existent-book")
+            save_translated_book(
+                "non-existent-book",
+                translator=mock_translator,
+                resume=False,
+                create_epub=False,
+                logger=mock_logger,
+                module_config={},
+            )
 
         assert str(context.value) == "Book not found"

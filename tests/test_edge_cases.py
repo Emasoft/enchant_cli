@@ -30,7 +30,7 @@ class TestEdgeCases:
 
     def test_empty_line_reduction_edge_cases(self):
         """Test empty line reduction with various inputs"""
-        from enchant_book_manager.cli_translator import remove_excess_empty_lines
+        from enchant_book_manager.text_processor import remove_excess_empty_lines
 
         # Empty string
         assert remove_excess_empty_lines("") == ""
@@ -49,25 +49,23 @@ class TestEdgeCases:
 
     def test_character_limit_boundary(self):
         """Test character limit at exact boundary"""
-        from enchant_book_manager.cli_translator import split_chinese_text_in_parts
+        from enchant_book_manager.text_splitter import split_chinese_text_in_parts
 
         # Mock logger
-        from src.enchant_book_manager import cli_translator
-
-        cli_translator.tolog = Mock()
+        mock_logger = Mock()
 
         # Note: The function processes paragraphs and adds "\n\n" to each
         # For a single continuous text block, it becomes one paragraph
 
         # Test 1: Single paragraph that fits within limit (including "\n\n")
         text = "A" * 11997  # 11997 + "\n\n" = 11999
-        chunks = split_chinese_text_in_parts(text, max_chars=11999)
+        chunks = split_chinese_text_in_parts(text, max_chars=11999, logger=mock_logger)
         assert len(chunks) == 1
         assert len(chunks[0]) == 11999  # Including the "\n\n"
 
         # Test 2: Single paragraph that exceeds limit when "\n\n" is added
         text = "A" * 11999  # 11999 + "\n\n" = 12001, exceeds 11999
-        chunks = split_chinese_text_in_parts(text, max_chars=11999)
+        chunks = split_chinese_text_in_parts(text, max_chars=11999, logger=mock_logger)
         # This creates 1 chunk because we keep paragraphs together when possible
         # The >= check allows a single paragraph to slightly exceed the limit
         assert len(chunks) == 1
@@ -77,35 +75,26 @@ class TestEdgeCases:
         para1 = "A" * 6000
         para2 = "B" * 6000
         text = f"{para1}\n\n{para2}"  # Two paragraphs
-        chunks = split_chinese_text_in_parts(text, max_chars=11999)
+        chunks = split_chinese_text_in_parts(text, max_chars=11999, logger=mock_logger)
         # Should create 2 chunks, one for each paragraph
         assert len(chunks) == 2
         assert all(len(chunk) < 12000 for chunk in chunks)
 
     def test_none_global_variables(self):
         """Test handling of None global variables"""
-        from src.enchant_book_manager import cli_translator
+        from enchant_book_manager.text_splitter import split_chinese_text_in_parts
+        from enchant_book_manager.file_handler import load_text_file
 
-        # Save original values
-        orig_tolog = cli_translator.tolog
+        # Functions should handle None logger gracefully
+        # After our fixes, this should NOT raise AttributeError
+        result = split_chinese_text_in_parts("test text", max_chars=100, logger=None)
+        assert isinstance(result, list)
+        assert len(result) == 1
+        assert "test text" in result[0]
 
-        try:
-            # Set to None
-            cli_translator.tolog = None
-
-            # Functions that use tolog should handle None gracefully
-            # After our fixes, this should NOT raise AttributeError
-            result = cli_translator.split_chinese_text_in_parts("test text", max_chars=100)
-            assert isinstance(result, list)
-            assert len(result) == 1
-            assert "test text" in result[0]
-
-            # Test other functions too
-            cli_translator.load_text_file("nonexistent.txt")  # Should return None, not crash
-
-        finally:
-            # Restore
-            cli_translator.tolog = orig_tolog
+        # Test other functions too
+        result = load_text_file("nonexistent.txt", logger=None)  # Should return None, not crash
+        assert result is None
 
     def test_chunk_parsing_regex(self):
         """Test chunk filename parsing regex"""
@@ -133,7 +122,7 @@ class TestEdgeCases:
 
     def test_unicode_handling(self):
         """Test handling of various Unicode characters"""
-        from enchant_book_manager.cli_translator import remove_excess_empty_lines
+        from enchant_book_manager.text_processor import remove_excess_empty_lines
 
         # Chinese text with newlines
         text = "第一章\n\n\n\n\n中文内容"
@@ -163,39 +152,38 @@ class TestEdgeCases:
 
     def test_empty_book_handling(self):
         """Test handling of empty or very short books"""
-        from enchant_book_manager.cli_translator import split_chinese_text_in_parts
+        from enchant_book_manager.text_splitter import split_chinese_text_in_parts
 
         # Mock logger
-        from src.enchant_book_manager import cli_translator
-
-        cli_translator.tolog = Mock()
+        mock_logger = Mock()
 
         # Empty text
-        chunks = split_chinese_text_in_parts("", max_chars=11999)
+        chunks = split_chinese_text_in_parts("", max_chars=11999, logger=mock_logger)
         assert len(chunks) == 1
         assert chunks[0] == ""
 
         # Very short text (function adds \n\n to paragraphs)
-        chunks = split_chinese_text_in_parts("Short", max_chars=11999)
+        chunks = split_chinese_text_in_parts("Short", max_chars=11999, logger=mock_logger)
         assert len(chunks) == 1
         assert chunks[0] == "Short\n\n"
 
     def test_consistency_between_functions(self):
         """Test that different functions use consistent limits"""
-        from src.enchant_book_manager import cli_translator
+        from enchant_book_manager.text_splitter import DEFAULT_MAX_CHARS
+        from enchant_book_manager.text_splitter import split_chinese_text_in_parts
 
-        # Check MAXCHARS default
-        assert cli_translator.MAXCHARS == 11999
+        # Check DEFAULT_MAX_CHARS
+        assert DEFAULT_MAX_CHARS == 11999
 
         # Check that functions respect the limit
-        cli_translator.tolog = Mock()
+        mock_logger = Mock()
 
         # Create text that should split at paragraph boundary
         para1 = "A" * 6000
         para2 = "B" * 6000  # Total would be 12000
         text = f"{para1}\n\n{para2}"
 
-        chunks = cli_translator.split_chinese_text_in_parts(text, max_chars=11999)
+        chunks = split_chinese_text_in_parts(text, max_chars=11999, logger=mock_logger)
 
         # Should split into 2 chunks
         assert len(chunks) == 2
