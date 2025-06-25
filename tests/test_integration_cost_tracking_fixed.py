@@ -63,7 +63,6 @@ class TestCostTrackingIntegration:
             use_remote=True,
             api_key="test_key",
             temperature=0.05,  # Production override value
-            double_pass=False,  # Disable double pass for predictable cost tracking
         )
 
         # Mock API response with cost data and time.sleep to avoid test delays
@@ -109,7 +108,6 @@ class TestCostTrackingIntegration:
             use_remote=True,
             api_key="test_key",
             temperature=0.05,  # Production value
-            double_pass=False,  # Disable double pass for predictable cost tracking
         )
 
         # Mock multiple API responses
@@ -191,7 +189,6 @@ class TestCostTrackingIntegration:
             use_remote=True,
             api_key="test_key",
             temperature=0.05,  # Production value
-            double_pass=False,  # Disable double pass for predictable cost tracking
         )
 
         # Mock global_cost_tracker summary
@@ -226,7 +223,6 @@ class TestCostTrackingIntegration:
             use_remote=True,
             api_key="test_key",
             temperature=0.05,  # Production value
-            double_pass=False,  # Disable double pass for predictable cost tracking
         )
 
         with patch("requests.post") as mock_post, patch("time.sleep"):
@@ -266,7 +262,6 @@ class TestCostTrackingIntegration:
             use_remote=True,
             api_key="test_key",
             temperature=0.05,  # Production value
-            double_pass=False,  # Disable double pass for predictable cost tracking
         )
 
         # Function to simulate concurrent API calls
@@ -319,7 +314,6 @@ class TestCostTrackingIntegration:
             use_remote=True,
             api_key="test_key",
             temperature=0.05,  # Production value
-            double_pass=False,  # Disable double pass for predictable cost tracking
         )
 
         # Simulate some usage by mocking global_cost_tracker
@@ -389,7 +383,6 @@ class TestCostTrackingIntegration:
             use_remote=True,
             api_key="test_key",
             temperature=0.05,  # Production value
-            double_pass=False,  # Disable double pass for predictable cost tracking
         )
 
         # Test with zero requests

@@ -415,6 +415,88 @@ This EPUB should pass validation."""
         assert success is True
         assert epub_path.exists()
 
+    def test_missing_chapters_detection(self):
+        """Test detection and reporting of missing chapters in sequence"""
+        # Create a novel with 12 chapters but missing chapters 1, 5, and 6
+        novel_text = """The Incomplete Novel
+by Test Author
+
+Chapter 2: The Second
+
+This is chapter 2 content. We're starting from chapter 2, missing chapter 1.
+
+Chapter 3: The Third
+
+Content for chapter 3 follows naturally from chapter 2.
+
+Chapter 4: The Fourth
+
+Chapter 4 continues the story without interruption.
+
+Chapter 7: The Seventh
+
+We jump from chapter 4 to chapter 7, missing chapters 5 and 6.
+
+Chapter 8: The Eighth
+
+Chapter 8 continues from chapter 7.
+
+Chapter 9: The Ninth
+
+The story progresses through chapter 9.
+
+Chapter 10: The Tenth
+
+Double digit chapters begin with chapter 10.
+
+Chapter 11: The Eleventh
+
+Almost at the end with chapter 11.
+
+Chapter 12: The Final Chapter
+
+The story concludes with chapter 12.
+"""
+
+        text_file = Path(self.test_dir) / "missing_chapters.txt"
+        text_file.write_text(novel_text, encoding="utf-8")
+
+        epub_path = Path(self.test_dir) / "missing_chapters.epub"
+
+        # Create EPUB with validation enabled
+        success, issues = create_epub_from_txt_file(
+            txt_file_path=text_file,
+            output_path=epub_path,
+            title="The Incomplete Novel",
+            author="Test Author",
+            validate=True,
+            strict_mode=False,  # Don't abort on issues, just report them
+        )
+
+        # Should succeed but report issues
+        assert success is True
+        assert epub_path.exists()
+
+        # Check that missing chapters are detected
+        assert len(issues) > 0, "Should detect missing chapters"
+
+        # Verify specific missing chapters are reported
+        issue_messages = " ".join(issues).lower()
+        # Note: Chapter 1 is not reported as missing because the sequence starts at 2
+        # The algorithm assumes the sequence starts wherever it starts
+        assert "number 5 is missing" in issue_messages
+        assert "number 6 is missing" in issue_messages
+
+        # Verify the EPUB still contains the chapters that exist
+        with zipfile.ZipFile(epub_path, "r") as epub:
+            chapter_files = sorted([f for f in epub.namelist() if f.startswith("OEBPS/Text/chapter")])
+            # Should have 10 chapters (9 actual + 1 title section)
+            assert len(chapter_files) == 10
+
+            # Verify chapter 2 content (which is in chapter3.xhtml due to title section)
+            chapter2_content = epub.read("OEBPS/Text/chapter2.xhtml").decode("utf-8")
+            assert "Chapter 2: The Second" in chapter2_content
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
