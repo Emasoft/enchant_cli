@@ -319,6 +319,150 @@ For more information, read the uv tool upgrade documentation: `https://docs.astr
 
 
 
+### Module Splitting and Refactoring Best Practices
+
+When splitting a large file into smaller modules, ALWAYS follow these steps:
+
+#### 1. Pre-Refactoring Analysis
+- **CRITICAL: Read the ENTIRE file first** - Do not read only few lines! Examine the whole file to understand all dependencies
+- **Think ultrahard** about the codebase structure and the best way to refactor it
+- **Plan the new directory tree structure** in advance and document it
+- **Create a full backup** of each file being refactored: `cp original.py original_backup.py`
+- **Only delete backups** after verifying no function, class or element was lost
+
+#### 2. Create Comprehensive Inventory
+Create `refactoring_log.md` to track all changes and create an inventory checklist of ALL:
+- Classes and their methods
+- Functions (standalone and nested)
+- Constants and global variables
+- Type definitions and NamedTuples
+- Decorators
+- Import statements
+- Module-level code
+- Meta classes
+- Helper functions
+- Wrappers
+
+Each element can have multiple states:
+- `[ ] to_be_moved`
+- `[x] moved_to_<filename>`
+- `[x] duplicated_to_<filename>`
+- `[x] merged_with_similar_and_moved_to_<filename>`
+- `[x] made_public`
+- `[x] changed_to_be_more_flexible`
+- `[x] updated_internal_references`
+- `[x] changed_to_class_member`
+- `[x] changed_to_non_class_member`
+- `[x] updated_parameters_and_docstrings`
+- `[x] updated_comments`
+- `[x] commented_out`
+- `[x] added_to_wrapper`
+- `[x] moved_inside_a_function`
+- `[x] moved_outside_a_function`
+- `[x] passed_as_argument_to_external_function`
+- `[x] passed_as_argument_to_external_class`
+- `[x] converted_to_dynamic_function`
+
+#### 3. Planning Phase
+Create `REFACTORING_PLAN.md` with:
+```markdown
+# Refactoring Plan for [filename]
+
+## Current Directory Structure
+```
+src/
+  module.py (54KB)
+```
+
+## Target Directory Structure
+```
+src/
+  module.py (8KB)
+  module_constants.py (5KB)
+  module_utils.py (10KB)
+  module_core.py (20KB)
+```
+
+## Current Structure
+- [ ] Class A (150 lines) -> to_be_moved
+  - [ ] method1
+  - [ ] method2
+- [ ] Function B (50 lines) -> to_be_moved
+- [ ] Constant C -> to_be_moved
+- [ ] Global variable D -> to_be_moved
+
+## Target Modules
+1. module_core.py - Core functionality
+   - [ ] Class A → module_core.py
+2. module_constants.py - Constants and configuration
+   - [ ] Constant C → module_constants.py
+   - [ ] Global variable D → module_constants.py
+3. module_utils.py - Utility functions
+   - [ ] Function B → module_utils.py
+```
+
+#### 4. Execution Phase - One Element at a Time
+For EACH element:
+1. **Move the element** to target module
+2. **Update all imports** in both original and all referencing files
+3. **Update the tests** for this element immediately
+4. **Lint and format** both source and target files: `uv run ruff format && uv run ruff check --fix`
+5. **Run tests** specific to this element: `uv run pytest tests/test_<element>.py -xvs`
+6. **Verify references**: `grep -r "element_name" . --include="*.py"`
+7. **Update checklist** with new state: `[x] Function B → moved_to_module_utils.py`
+8. **Remove from original** only after tests pass
+9. **Track with TodoWrite** to monitor progress
+10. **Commit immediately** after tests pass: `git add -A && git commit -m "refactor: move Function B to module_utils.py"`
+
+#### 5. Verification After Each Move
+- **Verify element was removed** from original (not duplicated)
+- **Check all references** are updated
+- **Run mypy** to catch type errors: `uv run mypy <files>`
+- **Update refactoring_log.md** with the change details
+
+#### 6. Final Verification Phase
+- **Diff all backups** against originals: `diff -u module_backup.py module.py`
+- **Verify no lost elements** by checking inventory checklist
+- **Check for duplicates**: `grep -r "def function_name" . --include="*.py"`
+- **Verify all imports** throughout codebase
+- **Check directory structure** matches plan
+- **Run full test suite**: `uv run pytest`
+- **Run e2e tests** to ensure everything works exactly as before
+- **Check file sizes** - sum of new modules should ≈ original size
+
+#### 7. Post-Refactoring
+- **Only remove backup files** after ALL tests pass and e2e verification
+- **Update documentation** to reflect new module structure
+- **Final commit** with summary of all moves
+
+#### Critical Rules
+- **NEVER make changes before examining the WHOLE file**
+- **NEVER skip updating and running tests after each change**
+- **NEVER move multiple elements simultaneously**
+- **NEVER assume references are found** - actively search and verify
+- **NEVER delete original code** before tests confirm the move worked
+- **ALWAYS commit after each successful element refactoring**
+- **ALWAYS maintain refactoring_log.md** to trace all movements
+
+#### Refactoring Log Template
+```markdown
+# Refactoring Log for [module.py]
+
+## 2024-XX-XX HH:MM - Function calculate_total
+- Status: moved_to_module_utils.py
+- Updated imports in: main.py, tests/test_calculate.py
+- Tests updated: test_calculate_total()
+- Verified references: 3 files updated
+- Committed: abc123def
+
+## 2024-XX-XX HH:MM - Class DataProcessor
+- Status: moved_to_module_core.py, made_public, updated_parameters_and_docstrings
+- Updated imports in: 5 files
+- Tests updated: test_data_processor.py
+- Added backward compatibility wrapper
+- Committed: def456ghi
+```
+
 
 ### Code Quality
 
