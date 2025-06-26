@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from enchant_book_manager.translation_service import ChineseAITranslator
 from enchant_book_manager.rename_file_processor import process_novel_file
+from enchant_book_manager.rename_api_client import RenameAPIClient
 from enchant_book_manager.workflow_orchestrator import process_novel_unified
 from enchant_book_manager.cost_tracker import global_cost_tracker
 
@@ -33,7 +34,8 @@ class TestRemoteAPIIntegration:
 
     def test_remote_translation_basic(self):
         """Test basic translation using remote OpenRouter API"""
-        translator = ChineseAITranslator(use_remote=True, temperature=0.0)
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        translator = ChineseAITranslator(use_remote=True, temperature=0.0, api_key=api_key)
 
         # Simple Chinese text
         test_text = "你好，世界！"
@@ -53,7 +55,8 @@ class TestRemoteAPIIntegration:
 
     def test_remote_translation_with_names(self):
         """Test translation of Chinese names using remote API"""
-        translator = ChineseAITranslator(use_remote=True, temperature=0.0)
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        translator = ChineseAITranslator(use_remote=True, temperature=0.0, api_key=api_key)
 
         # Text with Chinese names
         test_text = "李明和王芳是好朋友。"
@@ -75,7 +78,8 @@ class TestRemoteAPIIntegration:
 
             # Test renaming with remote API
             api_key = os.getenv("OPENROUTER_API_KEY")
-            success, new_path, metadata = process_novel_file(novel_file, api_key=api_key, model="gpt-4o-mini", temperature=0.0, dry_run=False)
+            api_client = RenameAPIClient(api_key=api_key, model="gpt-4o-mini", temperature=0.0)
+            success, new_path, metadata = process_novel_file(novel_file, api_client=api_client, dry_run=False)
 
             assert success is True
             assert new_path is not None
@@ -119,7 +123,9 @@ class TestRemoteAPIIntegration:
                 args.translated = None
 
                 # Test orchestration with remote translation
-                success = process_novel_unified(novel_file, args)
+                import logging
+                test_logger = logging.getLogger(__name__)
+                success = process_novel_unified(novel_file, args, test_logger)
 
                 assert success is True
 
@@ -144,7 +150,8 @@ class TestRemoteAPIIntegration:
 
     def test_remote_cost_tracking_accuracy(self):
         """Test that cost tracking is accurate for remote API calls"""
-        translator = ChineseAITranslator(use_remote=True, temperature=0.0)
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        translator = ChineseAITranslator(use_remote=True, temperature=0.0, api_key=api_key)
 
         # Reset tracker
         global_cost_tracker.reset()
@@ -167,14 +174,13 @@ class TestRemoteAPIIntegration:
 
     def test_remote_error_handling(self):
         """Test error handling with invalid API key"""
-        # Temporarily set invalid API key
-        with patch.dict(os.environ, {"OPENROUTER_API_KEY": "invalid_key"}):
-            translator = ChineseAITranslator(use_remote=True, temperature=0.0)
+        # Use invalid API key directly
+        translator = ChineseAITranslator(use_remote=True, temperature=0.0, api_key="invalid_key")
 
-            # This should raise an exception due to invalid API key
-            # The retry mechanism may cause SystemExit on critical failures
-            with pytest.raises((Exception, SystemExit)):
-                translator.translate("测试文本", is_last_chunk=True)
+        # This should raise an exception due to invalid API key
+        # The retry mechanism may cause SystemExit on critical failures
+        with pytest.raises((Exception, SystemExit)):
+            translator.translate("测试文本", is_last_chunk=True)
 
 
 @pytest.mark.remote
@@ -185,7 +191,8 @@ class TestRemoteAPIPerformance:
     def test_remote_api_timeout_handling(self):
         """Test timeout handling for remote API calls"""
         # Create translator with very short timeout
-        translator = ChineseAITranslator(use_remote=True, temperature=0.0)
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        translator = ChineseAITranslator(use_remote=True, temperature=0.0, api_key=api_key)
         translator.timeout = 0.001  # 1ms timeout to force timeout
 
         # This should timeout or exit due to critical error
@@ -205,7 +212,8 @@ class TestRemoteAPIPerformance:
         import threading
         import time
 
-        translator = ChineseAITranslator(use_remote=True, temperature=0.0)
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        translator = ChineseAITranslator(use_remote=True, temperature=0.0, api_key=api_key)
         results = []
         errors = []
 
