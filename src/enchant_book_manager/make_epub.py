@@ -21,7 +21,7 @@
 # - Extracted shared constants and utilities to epub_constants.py to avoid duplication
 # - Added DB_OPTIMIZATION_THRESHOLD constant instead of magic number
 # - Simplified database fallback logic
-# - MAJOR REFACTORING: Split into smaller modules (chapter_detector, epub_builders, epub_generator, epub_validation)
+# - Split into smaller modules (chapter_detector, epub_builders, epub_generator, epub_validation)
 # - This file now serves as the main API module, importing from the smaller modules
 #
 

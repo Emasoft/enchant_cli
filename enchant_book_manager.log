@@ -1005,3 +1005,24 @@ Possible causes:
 
 Please check the logs above for more details and resolve the issue before retrying.
 To resume translation from this point, use the --resume flag.
+2025-06-25 16:04:12,825 - enchant_book_manager.cli_translator - ERROR - Request failed: HTTPConnectionPool(host='localhost', port=1234): Max retries exceeded with url: /v1/chat/completions (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x11186b590>: Failed to establish a new connection: [Errno 61] Connection refused'))
+2025-06-25 16:04:12,825 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 16:04:12,825 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 1/10: Translation returned None
+2025-06-25 16:04:14,838 - enchant_book_manager.cli_translator - ERROR - Request failed: HTTPConnectionPool(host='localhost', port=1234): Max retries exceeded with url: /v1/chat/completions (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x11186b110>: Failed to establish a new connection: [Errno 61] Connection refused'))
+2025-06-25 16:04:14,838 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 16:04:14,838 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 2/10: Translation returned None
+2025-06-25 16:04:18,841 - enchant_book_manager.cli_translator - ERROR - Request failed: HTTPConnectionPool(host='localhost', port=1234): Max retries exceeded with url: /v1/chat/completions (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x111890800>: Failed to establish a new connection: [Errno 61] Connection refused'))
+2025-06-25 16:04:18,842 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 16:04:18,842 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 3/10: Translation returned None
+2025-06-25 16:04:26,848 - enchant_book_manager.cli_translator - ERROR - Request failed: HTTPConnectionPool(host='localhost', port=1234): Max retries exceeded with url: /v1/chat/completions (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x111891100>: Failed to establish a new connection: [Errno 61] Connection refused'))
+2025-06-25 16:04:26,848 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 16:04:26,848 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 4/10: Translation returned None
+2025-06-25 16:04:42,853 - enchant_book_manager.cli_translator - ERROR - Request failed: HTTPConnectionPool(host='localhost', port=1234): Max retries exceeded with url: /v1/chat/completions (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x111891a90>: Failed to establish a new connection: [Errno 61] Connection refused'))
+2025-06-25 16:04:42,854 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 16:04:42,854 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 5/10: Translation returned None
+2025-06-25 16:05:14,859 - enchant_book_manager.cli_translator - ERROR - Request failed: HTTPConnectionPool(host='localhost', port=1234): Max retries exceeded with url: /v1/chat/completions (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x11186b590>: Failed to establish a new connection: [Errno 61] Connection refused'))
+2025-06-25 16:05:14,859 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 16:05:14,859 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 6/10: Translation returned None
+2025-06-25 16:06:14,866 - enchant_book_manager.cli_translator - ERROR - Request failed: HTTPConnectionPool(host='localhost', port=1234): Max retries exceeded with url: /v1/chat/completions (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1118912e0>: Failed to establish a new connection: [Errno 61] Connection refused'))
+2025-06-25 16:06:14,866 - enchant_book_manager.cli_translator - ERROR - Translation failed - no response
+2025-06-25 16:06:14,866 - enchant_book_manager.cli_translator - ERROR - ERROR: Translation failed for chunk 000001 on attempt 7/10: Translation returned None

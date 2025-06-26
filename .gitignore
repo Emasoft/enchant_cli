@@ -18,6 +18,8 @@ htmlcov/
 # Editor
 .vscode/
 .idea/
+
+# Error logs in root directory
 errors_*.log
 
 # GitHub Actions are tracked
@@ -32,6 +34,7 @@ temp_test_chapter_parsing/
 # Novel files and directories (too large for version control)
 *by*Author*/
 *by*Unknown*/
+*by*n.d*/
 *Cultivation*/
 *Supreme*/
 *Returning*after*/

@@ -36,6 +36,7 @@ dependencies = [
 
 [project.scripts]
 enchant-cli = "enchant_book_manager.enchant_cli:main"
+enchant = "enchant_book_manager.enchant_cli:main"  # Shorter alias
 
 [project.urls]
 Homepage = "https://github.com/Emasoft/enchant-book-manager"
@@ -67,6 +68,9 @@ exclude = [
 [tool.hatch.build.targets.wheel]
 packages = ["src/enchant_book_manager"]
 
+[tool.hatch.version]
+path = "src/enchant_book_manager/__init__.py"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
@@ -95,3 +99,32 @@ dev = [
     "types-chardet>=5.0.0",
     "types-colorama>=0.4.15",
 ]
+
+[tool.uv]
+# Package index configuration
+# index-url = "https://pypi.org/simple"  # Default
+
+# Environment constraints for cross-platform compatibility
+environments = [
+    "sys_platform == 'darwin'",  # macOS
+    "sys_platform == 'linux'",   # Linux
+    "sys_platform == 'win32'",   # Windows
+]
+
+# Development mode settings
+dev-dependencies = [
+    "ipython>=8.0.0",  # Interactive shell for development
+]
+
+# Build isolation settings (use defaults for most packages)
+# no-build-isolation-package = []
+
+# Package upgrade strategy
+upgrade-package = []  # List packages that should always be upgraded
+
+# Resolution settings
+resolution = "highest"  # Use highest compatible versions
+
+[tool.uv.sources]
+# Define custom sources for packages if needed
+# enchant-book-manager = { path = ".", editable = true }

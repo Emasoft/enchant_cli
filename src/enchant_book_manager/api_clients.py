@@ -18,7 +18,6 @@ and remote (OpenRouter) translation services.
 from __future__ import annotations
 
 import json
-import time
 from typing import Any, Optional, Callable
 import requests
 
@@ -30,8 +29,6 @@ from .translation_constants import (
     API_URL_LMSTUDIO,
     API_URL_OPENROUTER,
 )
-from .common_utils import retry_with_backoff
-from .common_constants import DEFAULT_MAX_RETRIES, DEFAULT_RETRY_WAIT_MAX
 
 
 class TranslationAPIClient:
@@ -41,7 +38,13 @@ class TranslationAPIClient:
     error handling, and response processing.
     """
 
-    def __init__(self, api_url: str, model_name: str, timeout: tuple[int, int] = (CONNECTION_TIMEOUT, RESPONSE_TIMEOUT), logger: Optional[Callable[[str, str], None]] = None):
+    def __init__(
+        self,
+        api_url: str,
+        model_name: str,
+        timeout: tuple[int, int] = (CONNECTION_TIMEOUT, RESPONSE_TIMEOUT),
+        logger: Optional[Callable[[str, str], None]] = None,
+    ):
         """Initialize API client.
 
         Args:
@@ -102,7 +105,12 @@ class TranslationAPIClient:
 
         try:
             self._log(f"Sending request to {self.api_url}")
-            response = requests.post(self.api_url, headers=self.headers, data=json.dumps(payload), timeout=self.timeout)
+            response = requests.post(
+                self.api_url,
+                headers=self.headers,
+                data=json.dumps(payload),
+                timeout=self.timeout,
+            )
 
             response.raise_for_status()
             response_data = response.json()
@@ -197,7 +205,12 @@ class LocalAPIClient(TranslationAPIClient):
 class RemoteAPIClient(TranslationAPIClient):
     """API client for remote OpenRouter service."""
 
-    def __init__(self, api_key: str, model_name: str, logger: Optional[Callable[[str, str], None]] = None):
+    def __init__(
+        self,
+        api_key: str,
+        model_name: str,
+        logger: Optional[Callable[[str, str], None]] = None,
+    ):
         """Initialize remote API client.
 
         Args:
@@ -274,7 +287,12 @@ class RemoteAPIClient(TranslationAPIClient):
             global_cost_tracker.track_usage(usage_info)
 
 
-def create_api_client(use_remote: bool, api_key: Optional[str] = None, model_name: Optional[str] = None, logger: Optional[Callable[[str, str], None]] = None) -> TranslationAPIClient:
+def create_api_client(
+    use_remote: bool,
+    api_key: Optional[str] = None,
+    model_name: Optional[str] = None,
+    logger: Optional[Callable[[str, str], None]] = None,
+) -> TranslationAPIClient:
     """Factory function to create appropriate API client.
 
     Args:

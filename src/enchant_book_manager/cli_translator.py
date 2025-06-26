@@ -29,7 +29,6 @@ import sys
 from pathlib import Path
 from typing import (
     Any,
-    Optional,
 )
 
 from .common_print_utils import safe_print
@@ -41,7 +40,11 @@ from .translation_service import ChineseAITranslator
 # Import from new modules
 from .models import Book, Chunk, VARIATION_DB
 from .book_importer import import_book_from_txt
-from .translation_orchestrator import save_translated_book as _save_translated_book_impl, DEFAULT_MAX_CHUNK_RETRIES, MAX_RETRY_WAIT_SECONDS
+from .translation_orchestrator import (
+    save_translated_book as _save_translated_book_impl,
+    DEFAULT_MAX_CHUNK_RETRIES,
+    MAX_RETRY_WAIT_SECONDS,
+)
 from .batch_processor import process_batch
 from .text_splitter import DEFAULT_MAX_CHARS
 
@@ -73,7 +76,14 @@ def save_translated_book(book_id: str, resume: bool = False, create_epub: bool =
     global translator, tolog, _module_config
     if translator is None:
         raise RuntimeError("Translator not initialized. Call translate_novel() first.")
-    return _save_translated_book_impl(book_id=book_id, translator=translator, resume=resume, create_epub=create_epub, logger=tolog, module_config=_module_config)
+    return _save_translated_book_impl(
+        book_id=book_id,
+        translator=translator,
+        resume=resume,
+        create_epub=create_epub,
+        logger=tolog,
+        module_config=_module_config,
+    )
 
 
 # Cost tracking is now handled by global_cost_tracker from cost_tracker module
@@ -202,7 +212,14 @@ def translate_novel(
 
     # Save the translated book after import
     try:
-        _save_translated_book_impl(new_book_id, translator, resume=resume, create_epub=create_epub, logger=tolog, module_config=_module_config)
+        _save_translated_book_impl(
+            new_book_id,
+            translator,
+            resume=resume,
+            create_epub=create_epub,
+            logger=tolog,
+            module_config=_module_config,
+        )
         tolog.info("Translated book saved successfully.")
         safe_print("[bold green]Translated book saved successfully.[/bold green]")
 
