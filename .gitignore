@@ -116,6 +116,7 @@ old_backup/
 
 # Lock files
 *.lock
+!uv.lock
 
 # macOS
 .DS_Store
