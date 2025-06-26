@@ -10,8 +10,11 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.enchant_book_manager import cli_translator
-from src.enchant_book_manager.translation_orchestrator import format_chunk_error_message
+from src.enchant_book_manager.translation_orchestrator import (
+    format_chunk_error_message,
+    DEFAULT_MAX_CHUNK_RETRIES,
+    MAX_RETRY_WAIT_SECONDS,
+)
 
 
 class TestChunkRetryConstants:
@@ -19,13 +22,13 @@ class TestChunkRetryConstants:
 
     def test_default_constants_exist(self):
         """Test that default constants are defined"""
-        assert hasattr(cli_translator, "DEFAULT_MAX_CHUNK_RETRIES")
-        assert hasattr(cli_translator, "MAX_RETRY_WAIT_SECONDS")
+        assert DEFAULT_MAX_CHUNK_RETRIES is not None
+        assert MAX_RETRY_WAIT_SECONDS is not None
 
     def test_default_values(self):
         """Test default constant values"""
-        assert cli_translator.DEFAULT_MAX_CHUNK_RETRIES == 10
-        assert cli_translator.MAX_RETRY_WAIT_SECONDS == 60
+        assert DEFAULT_MAX_CHUNK_RETRIES == 10
+        assert MAX_RETRY_WAIT_SECONDS == 60
 
     def test_format_chunk_error_message_exists(self):
         """Test that error message formatter exists"""
