@@ -124,6 +124,7 @@ class TestRemoteAPIIntegration:
 
                 # Test orchestration with remote translation
                 import logging
+
                 test_logger = logging.getLogger(__name__)
                 success = process_novel_unified(novel_file, args, test_logger)
 
