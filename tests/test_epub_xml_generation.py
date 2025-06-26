@@ -11,7 +11,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from enchant_book_manager.make_epub import (
+from enchant_book_manager.epub_builders import (
     build_chap_xhtml,
     build_cover_xhtml,
     build_container_xml,

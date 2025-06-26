@@ -21,7 +21,7 @@ Provides a unified interface for EPUB creation with configuration support.
 """
 
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any
 import logging
 
 # Import the make_epub module functions

@@ -228,4 +228,3 @@ A well-organized project structure:
 5. **Enables automation** - Tools can process files predictably
 
 Following these practices ensures the project remains clean, organized, and scalable as it grows.
-

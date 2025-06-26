@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import html
 from datetime import datetime, timezone
-from typing import Optional, Any
+from typing import Any
 from io import StringIO
 import xml.etree.ElementTree as ET
 

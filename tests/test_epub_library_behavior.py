@@ -13,14 +13,14 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from enchant_book_manager.make_epub import (
+from enchant_book_manager.epub_validation import (
     ensure_dir_readable,
     ensure_output_ok,
     ensure_cover_ok,
     collect_chunks,
     ValidationError,
-    create_epub_from_txt_file,
 )
+from enchant_book_manager.make_epub import create_epub_from_txt_file
 
 
 @pytest.fixture
@@ -49,7 +49,6 @@ class TestLibraryBehavior:
         """Output validation should raise exceptions, not prompt"""
         # Test with non-writable path - use platform-appropriate invalid path
         import platform
-        import tempfile
 
         if platform.system() == "Windows":
             # Windows: Use a path with invalid characters

@@ -24,7 +24,6 @@ import subprocess
 import re
 import logging
 from pathlib import Path
-from typing import Optional, Union
 import shutil
 
 # Try to import waiting, but make it optional

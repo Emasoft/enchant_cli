@@ -30,7 +30,6 @@ from pathlib import Path
 
 from .workflow_progress import (
     load_safe_yaml_wrapper,
-    save_progress,
     create_initial_progress,
     get_progress_file_path,
 )

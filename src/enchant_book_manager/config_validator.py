@@ -12,7 +12,6 @@
 config_validator.py - Configuration validation utilities for ENCHANT
 """
 
-import re
 import logging
 from typing import Any
 

@@ -24,7 +24,7 @@ import tempfile
 import uuid
 import zipfile
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any
 import xml.etree.ElementTree as ET
 
 from .epub_constants import ENCODING, MIMETYPE

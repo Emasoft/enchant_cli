@@ -11,7 +11,6 @@ import json
 import logging
 import threading
 from unittest.mock import Mock, patch
-import requests
 from requests.exceptions import HTTPError, RequestException
 
 import sys
@@ -21,7 +20,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from enchant_book_manager.translation_service import (
     ChineseAITranslator,
-    TranslationError,
     normalize_spaces,
 )
 from enchant_book_manager.text_validators import (

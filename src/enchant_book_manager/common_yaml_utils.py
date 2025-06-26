@@ -24,7 +24,7 @@ error handling and validation.
 
 import yaml
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 import logging
 
 logger = logging.getLogger(__name__)

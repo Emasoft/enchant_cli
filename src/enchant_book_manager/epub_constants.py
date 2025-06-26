@@ -21,7 +21,6 @@ Extracted to avoid code duplication.
 """
 
 import re
-from typing import Optional
 
 # Constants
 ENCODING = "utf-8"

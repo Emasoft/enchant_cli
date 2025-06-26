@@ -27,7 +27,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 # Import test utilities for profile detection
-from test_utils import skip_local_api_tests, get_test_profile, is_ci_environment
+from test_utils import skip_local_api_tests
 
 
 class TestE2EChineseToEPUB:

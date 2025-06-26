@@ -31,7 +31,7 @@ from enchant_book_manager.cli_translator import translate_novel  # noqa: E402
 from enchant_book_manager.make_epub import create_epub_from_chapters  # noqa: E402
 
 # Import test utilities for profile detection
-from test_utils import skip_local_api_tests, get_test_profile, is_ci_environment  # noqa: E402
+from test_utils import skip_local_api_tests  # noqa: E402
 
 
 class TestEnChANTOrchestrator:

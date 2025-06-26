@@ -14,7 +14,8 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from enchant_book_manager.make_epub import has_part_notation, split_text  # noqa: E402
+from enchant_book_manager.chapter_validators import has_part_notation  # noqa: E402
+from enchant_book_manager.chapter_parser import split_text  # noqa: E402
 
 
 class TestPartNotationDetection(unittest.TestCase):

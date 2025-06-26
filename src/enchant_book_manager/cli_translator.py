@@ -38,14 +38,10 @@ from .icloud_sync import ICloudSync
 from .translation_service import ChineseAITranslator
 
 # Import from new modules
-from .models import Book, Chunk, VARIATION_DB
 from .book_importer import import_book_from_txt
 from .translation_orchestrator import (
     save_translated_book as _save_translated_book_impl,
-    DEFAULT_MAX_CHUNK_RETRIES,
-    MAX_RETRY_WAIT_SECONDS,
 )
-from .batch_processor import process_batch
 from .text_splitter import DEFAULT_MAX_CHARS
 
 try:

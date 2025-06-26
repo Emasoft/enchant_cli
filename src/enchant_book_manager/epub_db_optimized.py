@@ -31,7 +31,7 @@ Uses simplified schema and two-stage search for better performance.
 from __future__ import annotations
 
 import re
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from re import Pattern
 from collections.abc import Callable
 

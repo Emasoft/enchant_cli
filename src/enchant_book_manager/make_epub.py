@@ -54,44 +54,26 @@ Pure Python ≥ 3.8.  Output EPUB passes *epubcheck*.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any
 
 # Import from refactored modules
 from .chapter_detector import (
-    HEADING_RE,
-    PART_PATTERNS,
-    has_part_notation,
-    is_valid_chapter_line,
-    parse_num,
     split_text,
-    split_text_db,
     detect_issues,
 )
 from .epub_builders import (
-    build_chap_xhtml,
-    build_container_xml,
-    build_content_opf,
-    build_cover_xhtml,
-    build_style_css,
-    build_toc_ncx,
     paragraphize,
 )
 from .epub_generator import (
     write_new_epub,
-    extend_epub,
 )
 from .epub_validation import (
     ValidationError,
-    ensure_dir_readable,
-    ensure_output_ok,
-    ensure_cover_ok,
     collect_chunks,
     log_issue,
-    set_json_log,
 )
 from .epub_constants import (
     ENCODING,
-    MIMETYPE,
     FILENAME_RE,
 )
 

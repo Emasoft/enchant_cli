@@ -19,7 +19,8 @@ src_dir = project_root / "src"
 if src_dir.exists():
     sys.path.insert(0, str(src_dir))
 
-from enchant_book_manager.make_epub import parse_num, split_text  # noqa: E402
+from enchant_book_manager.chapter_validators import parse_num  # noqa: E402
+from enchant_book_manager.chapter_parser import split_text  # noqa: E402
 from enchant_book_manager.epub_constants import (  # noqa: E402
     roman_to_int,
     words_to_int,
@@ -144,10 +145,11 @@ class TestModuleIntegrity(unittest.TestCase):
         """Test that there are no circular import issues"""
         # Import in different order
         import enchant_book_manager.epub_constants
+        import enchant_book_manager.chapter_validators
         import enchant_book_manager.make_epub
 
-        # Should be able to use functions from both
-        self.assertTrue(callable(enchant_book_manager.make_epub.parse_num))
+        # Should be able to use functions from correct modules
+        self.assertTrue(callable(enchant_book_manager.chapter_validators.parse_num))
         self.assertTrue(callable(enchant_book_manager.epub_constants.parse_num))
 
 

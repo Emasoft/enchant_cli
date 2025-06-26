@@ -20,7 +20,7 @@ cost_tracker.py - Unified cost tracking module for OpenRouter API responses
 """
 
 import threading
-from typing import Any, Optional
+from typing import Any
 import logging
 
 logger = logging.getLogger(__name__)

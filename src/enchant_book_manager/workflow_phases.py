@@ -25,7 +25,6 @@ import os
 from pathlib import Path
 from typing import Any
 
-from .common_utils import extract_book_info_from_path, sanitize_filename
 from .workflow_progress import save_progress
 
 # Import modules for the three phases
@@ -45,7 +44,7 @@ except ImportError:
     translation_available = False
 
 try:
-    from .epub_utils import create_epub_with_config, get_epub_config_from_book_info
+    from .epub_utils import create_epub_with_config  # noqa: F401
 
     epub_available = True
 except ImportError:

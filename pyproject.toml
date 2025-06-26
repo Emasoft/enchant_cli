@@ -76,6 +76,9 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+markers = [
+    "remote: marks tests that require remote API access",
+]
 
 [tool.deptry]
 known_first_party = ["enchant_book_manager"]

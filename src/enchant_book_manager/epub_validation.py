@@ -19,10 +19,9 @@ from __future__ import annotations
 
 import json
 import os
-import re
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Any
+from typing import Any
 
 from .epub_constants import FILENAME_RE
 

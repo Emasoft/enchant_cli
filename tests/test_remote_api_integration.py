@@ -15,8 +15,8 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from enchant_book_manager.translation_service import ChineseAITranslator
-from enchant_book_manager.renamenovels import process_novel_file
-from enchant_book_manager.enchant_cli import process_novel_unified
+from enchant_book_manager.rename_file_processor import process_novel_file
+from enchant_book_manager.workflow_orchestrator import process_novel_unified
 from enchant_book_manager.cost_tracker import global_cost_tracker
 
 

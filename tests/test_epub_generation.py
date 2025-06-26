@@ -10,7 +10,7 @@ import tempfile
 import shutil
 import zipfile
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock
 import xml.etree.ElementTree as ET
 
 import pytest

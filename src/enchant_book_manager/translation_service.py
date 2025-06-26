@@ -18,22 +18,16 @@
 
 from __future__ import annotations
 
-import os
 import logging
-import re
 import threading
 from typing import Any, Optional, Callable
-import functools
-import time
 
 from .cost_tracker import global_cost_tracker
 from .common_text_utils import clean, normalize_spaces as common_normalize_spaces
-from .common_utils import retry_with_backoff
 from .common_constants import DEFAULT_MAX_RETRIES, DEFAULT_RETRY_WAIT_MAX
 
 # Import from refactored modules
 from .translation_constants import (
-    DEFAULT_CHUNK_SIZE,
     DEFAULT_MAX_TOKENS,
     MODEL_NAME_DEEPSEEK,
     MODEL_NAME_QWEN,
@@ -47,9 +41,8 @@ from .translation_constants import (
 from .text_validators import (
     is_latin_charset,
     validate_translation_output,
-    clean_repeated_chars,
 )
-from .api_clients import create_api_client, TranslationAPIClient
+from .api_clients import create_api_client
 
 
 # Define a custom exception for translation failures
