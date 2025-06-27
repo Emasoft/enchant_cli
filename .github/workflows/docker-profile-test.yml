@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 name: Docker Profile Tests
 
 on:
@@ -48,7 +45,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./docker/Dockerfile.test
+        file: ./Dockerfile.profiles
         target: ${{ matrix.profile }}-test
         push: false
         tags: enchant-${{ matrix.profile }}-test:latest
@@ -97,7 +94,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./docker/Dockerfile.test
+        file: ./Dockerfile.profiles
         target: full-test
         push: false
         tags: enchant-build-test:latest
