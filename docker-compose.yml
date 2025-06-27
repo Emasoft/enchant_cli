@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+services:
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      # Mount test results
+      - ./htmlcov:/app/htmlcov
+      - ./.coverage:/app/.coverage
+      - ./test-results:/app/test-results
+    environment:
+      # Pass environment variables for API testing
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - SKIP_LOCAL_MODE_TESTS=true
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    command: >
+      uv run pytest tests
+      -c .github/pytest.ini
+      --cov=src/enchant_book_manager
+      --cov-report=term
+      --cov-report=html
+      --cov-report=xml:test-results/coverage.xml
+      --junit-xml=test-results/junit.xml
+      -v
+
+  test-specific:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./htmlcov:/app/htmlcov
+      - ./.coverage:/app/.coverage
+      - ./test-results:/app/test-results
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - SKIP_LOCAL_MODE_TESTS=true
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    # Override command to run specific tests
+    # Usage: docker-compose run test-specific uv run pytest tests/test_translation_service.py -v
+
+  shell:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./htmlcov:/app/htmlcov
+      - ./.coverage:/app/.coverage
+      - ./src:/app/src
+      - ./tests:/app/tests
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - SKIP_LOCAL_MODE_TESTS=true
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    command: /bin/bash
+    stdin_open: true
+    tty: true

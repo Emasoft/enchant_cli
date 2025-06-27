@@ -163,6 +163,23 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -e .
 ```
 
+### Docker Installation
+
+Run EnChANT in a containerized environment:
+
+```bash
+# Run tests in Docker
+./scripts/docker-test.sh
+
+# Run the application
+docker-compose run --rm shell enchant-cli --help
+
+# Build production image
+docker build -f Dockerfile.prod -t enchant-book-manager:latest .
+```
+
+See [Docker Usage Guide](docs/docker-usage.md) for detailed instructions.
+
 ### Development Setup
 
 For development with all testing and linting tools:

@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Git files
+.git/
+.gitignore
+.github/workflows/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test coverage
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+test-results/
+junit.xml
+coverage.xml
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Logs
+*.log
+logs/
+
+# Local development files
+.env
+.env.local
+.env.*.local
+
+# macOS
+.DS_Store
+
+# Build artifacts
+*.whl
+*.tar.gz
+
+# Temporary files
+*.tmp
+*.bak
+*.bak2
+temp/
+tmp/
+
+# Project specific
+novels/
+translations/
+epubs/
+ENCHANT_*/
+.claude/
+CLAUDE.md
+tasks_checklist.md
+.*.*.log
+refactoring_log.md
+DEVELOPMENT_PLAN.md
+
+# Docker files themselves (no need to copy)
+Dockerfile
+docker-compose.yml
+.dockerignore

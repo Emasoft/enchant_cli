@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# syntax=docker/dockerfile:1.10
+# Production Dockerfile - optimized for running the application
+
+# The following Dockerfile is optimized for production use with a multi-stage build
+# that minimizes the final image size and includes only runtime dependencies
+
+# Build stage
+FROM python:3.12-slim AS builder
+
+# Install uv
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+ADD https://astral.sh/uv/install.sh /uv-installer.sh
+RUN sh /uv-installer.sh && rm /uv-installer.sh
+
+ENV PATH="/root/.local/bin:$PATH"
+
+# Set up build directory
+WORKDIR /app
+
+# Enable bytecode compilation
+ENV UV_COMPILE_BYTECODE=1
+
+# Copy from the cache instead of linking
+ENV UV_LINK_MODE=copy
+
+# Install production dependencies
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-install-project --no-group dev
+
+# Copy the project files
+COPY pyproject.toml uv.lock ./
+COPY src/ ./src/
+
+# Build the project
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-group dev
+
+# Final stage - smaller image for production
+FROM python:3.12-slim
+
+# Install only runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy uv from builder
+COPY --from=builder /root/.local/bin/uv /usr/local/bin/uv
+
+# Create non-root user
+RUN useradd -m -u 1000 enchant
+
+# Set up app directory
+WORKDIR /app
+
+# Copy the virtual environment and app from builder
+COPY --from=builder --chown=enchant:enchant /app /app
+
+# Switch to non-root user
+USER enchant
+
+# Add the virtual environment to PATH
+ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH="/app/src:$PYTHONPATH"
+
+# Set Python to run in unbuffered mode
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Default command runs the CLI
+ENTRYPOINT ["uv", "run", "enchant-cli"]
+CMD ["--help"]
