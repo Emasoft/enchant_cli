@@ -126,20 +126,22 @@ jobs:
 
     - name: Generate summary
       run: |-
-        echo "## Docker Test Results Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
+        {
+          echo "## Docker Test Results Summary"
+          echo ""
 
-        for profile in remote full; do
-          if [ -f "junit.xml" ]; then
-            tests=$(grep -o 'tests="[0-9]*"' junit.xml | grep -o '[0-9]*' || echo "0")
-            failures=$(grep -o 'failures="[0-9]*"' junit.xml | grep -o '[0-9]*' || echo "0")
-            errors=$(grep -o 'errors="[0-9]*"' junit.xml | grep -o '[0-9]*' || echo "0")
+          for profile in remote full; do
+            if [ -f "junit.xml" ]; then
+              tests=$(grep -o 'tests="[0-9]*"' junit.xml | grep -o '[0-9]*' || echo "0")
+              failures=$(grep -o 'failures="[0-9]*"' junit.xml | grep -o '[0-9]*' || echo "0")
+              errors=$(grep -o 'errors="[0-9]*"' junit.xml | grep -o '[0-9]*' || echo "0")
 
-            echo "### Profile: $profile" >> $GITHUB_STEP_SUMMARY
-            echo "- Total tests: $tests" >> $GITHUB_STEP_SUMMARY
-            echo "- Passed: $((tests - failures - errors))" >> $GITHUB_STEP_SUMMARY
-            echo "- Failed: $failures" >> $GITHUB_STEP_SUMMARY
-            echo "- Errors: $errors" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-          fi
-        done
+              echo "### Profile: $profile"
+              echo "- Total tests: $tests"
+              echo "- Passed: $((tests - failures - errors))"
+              echo "- Failed: $failures"
+              echo "- Errors: $errors"
+              echo ""
+            fi
+          done
+        } >> "$GITHUB_STEP_SUMMARY"
