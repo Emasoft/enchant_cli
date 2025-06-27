@@ -36,9 +36,12 @@ class TestRemoteAPIIntegration:
         # Reset global cost tracker
         global_cost_tracker.reset()
 
+    @pytest.mark.timeout(30)  # 30 seconds for basic translation
     def test_remote_translation_basic(self):
         """Test basic translation using remote OpenRouter API"""
         api_key = os.getenv("OPENROUTER_API_KEY")
+        if not api_key:
+            pytest.skip("OPENROUTER_API_KEY not set")
         translator = ChineseAITranslator(use_remote=True, temperature=0.0, api_key=api_key)
 
         # Simple Chinese text
@@ -62,6 +65,8 @@ class TestRemoteAPIIntegration:
     def test_remote_translation_with_names(self):
         """Test translation of Chinese names using remote API"""
         api_key = os.getenv("OPENROUTER_API_KEY")
+        if not api_key:
+            pytest.skip("OPENROUTER_API_KEY not set")
         translator = ChineseAITranslator(use_remote=True, temperature=0.0, api_key=api_key)
 
         # Text with Chinese names
@@ -100,6 +105,7 @@ class TestRemoteAPIIntegration:
             # Just verify that request was tracked
             assert summary["total_tokens"] >= 0
 
+    @pytest.mark.timeout(120)  # 2 minutes for full orchestration
     def test_remote_full_orchestration(self):
         """Test full orchestration with remote API for translation"""
         import os
@@ -159,9 +165,12 @@ class TestRemoteAPIIntegration:
             # Restore original directory
             os.chdir(original_cwd)
 
+    @pytest.mark.timeout(60)  # 1 minute for cost tracking test
     def test_remote_cost_tracking_accuracy(self):
         """Test that cost tracking is accurate for remote API calls"""
         api_key = os.getenv("OPENROUTER_API_KEY")
+        if not api_key:
+            pytest.skip("OPENROUTER_API_KEY not set")
         translator = ChineseAITranslator(use_remote=True, temperature=0.0, api_key=api_key)
 
         # Reset tracker

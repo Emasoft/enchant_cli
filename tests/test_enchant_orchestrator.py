@@ -619,6 +619,7 @@ class TestEnChANTOrchestrator:
             # Should skip completed renaming phase
             assert success is True
 
+    @pytest.mark.timeout(600)  # 10 minutes for error handling test
     @skip_local_api_tests("Local API endpoint localhost:1234 not available in CI")
     def test_error_handling_during_phases(self, temp_dir, chinese_test_novel, config_file):
         """Test error handling and recovery during different phases"""

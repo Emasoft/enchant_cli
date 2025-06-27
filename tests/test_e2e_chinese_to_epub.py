@@ -383,6 +383,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             },
         }
 
+    @pytest.mark.timeout(600)  # 10 minutes for complete pipeline
     @skip_local_api_tests("Complete pipeline test with local API not available in CI")
     def test_single_novel_complete_pipeline(self, temp_workspace, mock_openai_responses, mock_translation_responses):
         """Test complete pipeline for a single Chinese novel"""
@@ -448,6 +449,16 @@ They needed to venture deep into the forest and clear out the magical beasts the
 
                 return True
 
+            # Mock the translation service's translate method
+            def mock_translate(text, is_last_chunk=False):
+                # Return appropriate translation based on content
+                if "林凡" in text or "修炼" in text:
+                    return mock_translation_responses["cultivation"]["choices"][0]["message"]["content"]
+                elif "魔法" in text or "艾莉" in text:
+                    return mock_translation_responses["fantasy"]["choices"][0]["message"]["content"]
+                else:
+                    return mock_translation_responses["urban"]["choices"][0]["message"]["content"]
+
             # Patch RenameAPIClient.extract_metadata directly to return the JSON string
             with (
                 patch("enchant_book_manager.rename_api_client.RenameAPIClient.extract_metadata") as mock_extract_metadata,
@@ -455,6 +466,10 @@ They needed to venture deep into the forest and clear out the magical beasts the
                 patch(
                     "enchant_book_manager.cli_translator.translate_novel",
                     side_effect=mock_translate_novel,
+                ),
+                patch(
+                    "enchant_book_manager.translation_service.ChineseAITranslator.translate",
+                    side_effect=mock_translate,
                 ),
             ):
                 # Set the return value for RenameAPIClient.extract_metadata
@@ -507,6 +522,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             # Restore original ICLOUD value
             renamenovels.ICLOUD = original_icloud
 
+    @pytest.mark.timeout(900)  # 15 minutes for batch processing
     @skip_local_api_tests("Batch processing test with local API not available in CI")
     def test_batch_processing_multiple_novels(self, temp_workspace, mock_openai_responses, mock_translation_responses):
         """Test batch processing of multiple Chinese novels"""
@@ -864,7 +880,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
 
         try:
             # Mock the OpenAI request for metadata extraction
-            with patch("enchant_book_manager.renamenovels.make_openai_request") as mock_openai:
+            with patch("enchant_book_manager.rename_api_client.RenameAPIClient.make_request") as mock_openai:
                 mock_openai.return_value = mock_openai_responses["魔法学院.txt"]
 
                 # Mock the translation function to create files
@@ -946,6 +962,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             # Restore original ICLOUD value
             renamenovels.ICLOUD = original_icloud
 
+    @pytest.mark.timeout(600)  # 10 minutes for error handling test
     def test_error_handling_and_recovery(self, temp_workspace):
         """Test error handling and graceful recovery"""
 

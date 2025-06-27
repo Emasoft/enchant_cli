@@ -54,8 +54,9 @@ class TestLibraryBehavior:
             # Windows: Use a path with invalid characters
             bad_path = Path("CON/test.epub")  # CON is a reserved device name in Windows
         else:
-            # Unix-like: Use root directory
-            bad_path = Path("/root/test.epub")
+            # Unix-like: Use a directory that definitely requires root permissions
+            # /sys is a pseudo-filesystem that cannot be written to
+            bad_path = Path("/sys/test.epub")
 
         with pytest.raises(ValidationError) as excinfo:
             ensure_output_ok(bad_path, append=False)
