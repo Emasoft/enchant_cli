@@ -75,5 +75,5 @@ jobs:
         cache-to: type=gha,mode=max
 
     - name: Test production image
-      run: |
+      run: |-
         docker run --rm enchant-book-manager:latest --help
