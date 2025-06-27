@@ -41,6 +41,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Copy the project files
 COPY pyproject.toml uv.lock ./
+COPY README.md ./
 COPY src/ ./src/
 COPY tests/ ./tests/
 COPY .github/pytest.ini ./.github/

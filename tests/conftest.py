@@ -16,6 +16,9 @@ from unittest.mock import Mock, patch
 src_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src")
 sys.path.insert(0, src_dir)
 
+# Import test configuration
+from test_config import TEST_CONFIG, should_skip_test
+
 
 @pytest.fixture
 def temp_dir():
@@ -139,12 +142,24 @@ def pytest_configure(config):
 
 # Coverage configuration
 def pytest_collection_modifyitems(config, items):
-    """Add markers to tests based on their names"""
+    """Add markers to tests based on their names and skip based on profile"""
     for item in items:
         # Mark integration tests
         if "integration" in item.nodeid:
             item.add_marker(pytest.mark.integration)
+            if should_skip_test("integration"):
+                item.add_marker(pytest.mark.skip(reason="Skipping integration tests in this profile"))
 
         # Mark slow tests
         if "slow" in item.nodeid or "stress" in item.nodeid:
             item.add_marker(pytest.mark.slow)
+            if should_skip_test("heavy"):
+                item.add_marker(pytest.mark.skip(reason="Skipping heavy tests in this profile"))
+
+        # Skip remote tests if configured
+        if "remote" in item.nodeid and should_skip_test("remote"):
+            item.add_marker(pytest.mark.skip(reason="Skipping remote tests in this profile"))
+
+        # Skip local tests if configured
+        if "local" in item.nodeid and should_skip_test("local"):
+            item.add_marker(pytest.mark.skip(reason="Skipping local tests in this profile"))

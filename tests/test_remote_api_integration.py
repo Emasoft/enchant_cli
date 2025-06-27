@@ -20,9 +20,13 @@ from enchant_book_manager.rename_api_client import RenameAPIClient
 from enchant_book_manager.workflow_orchestrator import process_novel_unified
 from enchant_book_manager.cost_tracker import global_cost_tracker
 
+# Import test configuration
+from test_config import should_skip_test, get_timeout, get_retry_count
+
 
 @pytest.mark.remote
 @pytest.mark.skipif(not os.getenv("OPENROUTER_API_KEY"), reason="OPENROUTER_API_KEY environment variable not set")
+@pytest.mark.skipif(should_skip_test("remote"), reason="Skipping remote tests in this profile")
 class TestRemoteAPIIntegration:
     """Test suite for remote API integration with OpenRouter"""
 

@@ -9,7 +9,6 @@ services:
     volumes:
       # Mount test results
     - ./htmlcov:/app/htmlcov
-    - ./.coverage:/app/.coverage
     - ./test-results:/app/test-results
     environment:
       # Pass environment variables for API testing
@@ -33,7 +32,6 @@ services:
       dockerfile: Dockerfile
     volumes:
     - ./htmlcov:/app/htmlcov
-    - ./.coverage:/app/.coverage
     - ./test-results:/app/test-results
     environment:
     - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
@@ -49,7 +47,6 @@ services:
       dockerfile: Dockerfile
     volumes:
     - ./htmlcov:/app/htmlcov
-    - ./.coverage:/app/.coverage
     - ./src:/app/src
     - ./tests:/app/tests
     environment:

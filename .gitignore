@@ -28,6 +28,10 @@ errors_*.log
 # Test temporary directories
 temp_test_chapter_parsing/
 
+# Test results
+test-results/
+*.log
+
 # Cleanup archive
 .cleanup_archive/
 

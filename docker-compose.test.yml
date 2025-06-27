@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+services:
+  # Local test profile - for development
+  test-local:
+    build:
+      context: .
+      dockerfile: Dockerfile.profiles
+      target: local-test
+    volumes:
+    - ./htmlcov:/app/htmlcov
+    - ./test-results:/app/test-results
+    - ./.coverage:/app/.coverage:rw
+    environment:
+    - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    - TEST_PROFILE=local
+    - PYTHONDONTWRITEBYTECODE=1
+    - PYTHONUNBUFFERED=1
+
+  # Remote test profile - mimics GitHub Actions
+  test-remote:
+    build:
+      context: .
+      dockerfile: Dockerfile.profiles
+      target: remote-test
+    volumes:
+    - ./test-results:/app/test-results
+    environment:
+    - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-test_key}
+    - TEST_PROFILE=remote
+    - CI=true
+    - GITHUB_ACTIONS=true
+    - PYTHONDONTWRITEBYTECODE=1
+    - PYTHONUNBUFFERED=1
+
+  # Full test profile - all tests with coverage
+  test-full:
+    build:
+      context: .
+      dockerfile: Dockerfile.profiles
+      target: full-test
+    volumes:
+    - ./htmlcov:/app/htmlcov
+    - ./test-results:/app/test-results
+    - ./.coverage:/app/.coverage:rw
+    environment:
+    - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    - TEST_PROFILE=full
+    - PYTHONDONTWRITEBYTECODE=1
+    - PYTHONUNBUFFERED=1
+
+  # Interactive shell for debugging
+  test-shell:
+    build:
+      context: .
+      dockerfile: Dockerfile.profiles
+      target: full-test
+    volumes:
+    - ./src:/app/src
+    - ./tests:/app/tests
+    - ./htmlcov:/app/htmlcov
+    - ./test-results:/app/test-results
+    environment:
+    - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    - PYTHONDONTWRITEBYTECODE=1
+    - PYTHONUNBUFFERED=1
+    command: /bin/bash
+    stdin_open: true
+    tty: true
+
+  # Test for cloning and building a project
+  test-project-build:
+    build:
+      context: .
+      dockerfile: Dockerfile.profiles
+      target: full-test
+    volumes:
+    - ./test-results:/app/test-results
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+    - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-test_key}
+    - TEST_PROFILE=build
+    - PYTHONDONTWRITEBYTECODE=1
+    - PYTHONUNBUFFERED=1
+    command: ["uv", "run", "pytest", "tests/test_project_build.py", "-v"]
