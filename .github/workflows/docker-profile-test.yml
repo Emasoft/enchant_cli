@@ -48,6 +48,7 @@ jobs:
         file: ./Dockerfile.profiles
         target: ${{ matrix.profile }}-test
         push: false
+        load: true
         tags: enchant-${{ matrix.profile }}-test:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
@@ -97,6 +98,7 @@ jobs:
         file: ./Dockerfile.profiles
         target: full-test
         push: false
+        load: true
         tags: enchant-build-test:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
