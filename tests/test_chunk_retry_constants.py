@@ -10,7 +10,7 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.enchant_book_manager.translation_orchestrator import (
+from enchant_book_manager.translation_orchestrator import (
     format_chunk_error_message,
     DEFAULT_MAX_CHUNK_RETRIES,
     MAX_RETRY_WAIT_SECONDS,

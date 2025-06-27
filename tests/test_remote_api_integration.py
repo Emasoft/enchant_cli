@@ -227,6 +227,7 @@ class TestRemoteAPIPerformance:
         # Both outcomes are acceptable - we're testing that it doesn't raise an exception
         assert result is None or isinstance(result, str)
 
+    @pytest.mark.timeout(120)  # 2 minutes for concurrent requests
     def test_remote_concurrent_requests(self):
         """Test concurrent requests to remote API"""
         import threading

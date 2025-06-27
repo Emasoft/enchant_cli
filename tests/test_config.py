@@ -42,7 +42,7 @@ def get_test_config() -> Dict[str, Any]:
         config.update(
             {
                 "max_retries": 2,
-                "timeout": 5,
+                "timeout": 30,  # Increased from 5 to 30 seconds for API calls
                 "skip_heavy_tests": True,
                 "skip_integration_tests": False,
                 "verbose": False,

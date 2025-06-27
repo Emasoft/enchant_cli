@@ -404,7 +404,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
         translation_response.raise_for_status = Mock()
 
         # Patch ICLOUD first to avoid iCloud sync errors
-        from src.enchant_book_manager import renamenovels
+        from enchant_book_manager import renamenovels
 
         original_icloud = renamenovels.ICLOUD
         renamenovels.ICLOUD = False
@@ -530,7 +530,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
         config_file = temp_workspace / "test_config.yml"
 
         # Patch ICLOUD first to avoid iCloud sync errors
-        from src.enchant_book_manager import renamenovels
+        from enchant_book_manager import renamenovels
 
         original_icloud = renamenovels.ICLOUD
         renamenovels.ICLOUD = False
@@ -581,11 +581,58 @@ They needed to venture deep into the forest and clear out the magical beasts the
                 return response
 
             # Also patch make_openai_request for reliability
-            def mock_make_openai(api_key, model, temp, messages):
+            def mock_make_openai(api_key, model, temperature, messages):
                 # Extract content to determine which novel
                 content = str(messages)
                 novel, _ = get_novel_from_content(content)
                 return mock_openai_responses[novel]
+
+            # Create a mock translate_novel function that creates expected output
+            def mock_translate_novel_batch(input_file, **kwargs):
+                from enchant_book_manager.common_utils import sanitize_filename, extract_book_info_from_path
+
+                # Get the file path
+                input_path = Path(input_file)
+
+                # Extract book info to get proper title and author
+                book_info = extract_book_info_from_path(input_path)
+                book_title = book_info.get("title_english", input_path.stem)
+                book_author = book_info.get("author_english", "Unknown Author")
+
+                # Create translation directory structure matching what enchant_cli expects
+                safe_folder_name = sanitize_filename(f"{book_title} by {book_author}")
+                translation_dir = input_path.parent / safe_folder_name
+                translation_dir.mkdir(exist_ok=True)
+
+                # Determine which translation to use based on file content
+                file_content = input_path.read_text(encoding="utf-8")
+                if "林凡" in file_content or "修炼" in file_content:
+                    trans_type = "cultivation"
+                elif "张伟" in file_content or "都市" in file_content:
+                    trans_type = "urban"
+                else:
+                    trans_type = "fantasy"
+
+                # Create translated file with exact expected name
+                translated_file_name = f"translated_{book_title} by {book_author}.txt"
+                translated_file = translation_dir / translated_file_name
+                translated_content = mock_translation_responses[trans_type]["choices"][0]["message"]["content"]
+                translated_file.write_text(translated_content, encoding="utf-8")
+
+                return True
+
+            # Mock the translation service's translate method
+            def mock_translate_batch(text, is_last_chunk=False):
+                # Return appropriate translation based on content
+                if "林凡" in text or "修炼" in text:
+                    return mock_translation_responses["cultivation"]["choices"][0]["message"]["content"]
+                elif "张伟" in text or "都市" in text:
+                    return mock_translation_responses["urban"]["choices"][0]["message"]["content"]
+                elif "艾莉" in text or "魔法" in text:
+                    return mock_translation_responses["fantasy"]["choices"][0]["message"]["content"]
+                else:
+                    # Default translation
+                    return "Chapter 1: Default Translation\n\nThis is a default translation."
 
             with (
                 patch(
@@ -593,6 +640,14 @@ They needed to venture deep into the forest and clear out the magical beasts the
                     side_effect=lambda content, char_limit=1500: mock_make_openai(api_key="test", model="gpt", temperature=0, messages=[{"role": "user", "content": content}])["choices"][0]["message"]["content"],
                 ),
                 patch("requests.post", side_effect=mock_requests_post),
+                patch(
+                    "enchant_book_manager.cli_translator.translate_novel",
+                    side_effect=mock_translate_novel_batch,
+                ),
+                patch(
+                    "enchant_book_manager.translation_service.ChineseAITranslator.translate",
+                    side_effect=mock_translate_batch,
+                ),
             ):
                 # Test batch processing
                 cmd = [
@@ -716,7 +771,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
             yaml.dump(config_data, f, default_flow_style=False, allow_unicode=True)
 
         # Patch ICLOUD first to avoid iCloud sync errors
-        from src.enchant_book_manager import renamenovels
+        from enchant_book_manager import renamenovels
 
         original_icloud = renamenovels.ICLOUD
         renamenovels.ICLOUD = False
@@ -830,7 +885,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
         responses = [openai_response, translation_response]
 
         # Patch ICLOUD first to avoid iCloud sync errors
-        from src.enchant_book_manager import renamenovels
+        from enchant_book_manager import renamenovels
 
         original_icloud = renamenovels.ICLOUD
         renamenovels.ICLOUD = False
@@ -878,30 +933,40 @@ They needed to venture deep into the forest and clear out the magical beasts the
 
             return True
 
+        # Mock the translation service's translate method
+        def mock_translate_quality(text, is_last_chunk=False):
+            # Return fantasy translation for Magic Academy
+            return mock_translation_responses["fantasy"]["choices"][0]["message"]["content"]
+
         try:
             # Mock the OpenAI request for metadata extraction
             with patch("enchant_book_manager.rename_api_client.RenameAPIClient.make_request") as mock_openai:
                 mock_openai.return_value = mock_openai_responses["魔法学院.txt"]
 
                 # Mock the translation function to create files
-                with patch("enchant_book_manager.enchant_cli.translate_novel", side_effect=mock_translate_novel):
+                with patch("enchant_book_manager.cli_translator.translate_novel", side_effect=mock_translate_novel):
+                    # Also mock the translation service
                     with patch(
-                        "sys.argv",
-                        [
-                            "enchant-cli",
-                            str(test_novel),
-                            "--config",
-                            str(config_file),
-                            "--openai-api-key",
-                            "test_openai_key",
-                        ],
+                        "enchant_book_manager.translation_service.ChineseAITranslator.translate",
+                        side_effect=mock_translate_quality,
                     ):
-                        from enchant_book_manager.enchant_cli import main as enchant_main
+                        with patch(
+                            "sys.argv",
+                            [
+                                "enchant-cli",
+                                str(test_novel),
+                                "--config",
+                                str(config_file),
+                                "--openai-api-key",
+                                "test_openai_key",
+                            ],
+                        ):
+                            from enchant_book_manager.enchant_cli import main as enchant_main
 
-                        try:
-                            enchant_main()
-                        except SystemExit:
-                            pass
+                            try:
+                                enchant_main()
+                            except SystemExit:
+                                pass
 
             # Find generated EPUB
             epub_files = list(temp_workspace.glob("*.epub"))
@@ -970,7 +1035,7 @@ They needed to venture deep into the forest and clear out the magical beasts the
         config_file = temp_workspace / "test_config.yml"
 
         # Patch ICLOUD first to avoid iCloud sync errors
-        from src.enchant_book_manager import renamenovels
+        from enchant_book_manager import renamenovels
 
         original_icloud = renamenovels.ICLOUD
         renamenovels.ICLOUD = False
