@@ -304,7 +304,7 @@ class TestSaveTranslatedBook:
                         save_translated_book(book_id="test_book_id", translator=self.mock_translator, logger=mock_logger)
 
         # Verify error was logged
-        assert any("Error creating directory" in str(call) for call in mock_logger.error.call_args_list)
+        assert any("Error creating directory" in str(log_call) for log_call in mock_logger.error.call_args_list)
 
     @patch("enchant_book_manager.translation_orchestrator.Book")
     @patch("enchant_book_manager.translation_orchestrator.VARIATION_DB")
@@ -535,7 +535,7 @@ class TestSaveTranslatedBook:
         mock_exit.assert_called_once_with(1)
 
         # Verify error was logged
-        assert any("Translator not initialized" in str(call) for call in mock_logger.error.call_args_list)
+        assert any("Translator not initialized" in str(log_call) for log_call in mock_logger.error.call_args_list)
 
     @patch("enchant_book_manager.translation_orchestrator.Book")
     @patch("enchant_book_manager.translation_orchestrator.VARIATION_DB")
@@ -568,4 +568,4 @@ class TestSaveTranslatedBook:
                         save_translated_book(book_id="test_book_id", translator=self.mock_translator, logger=mock_logger)
 
         # Verify error was logged
-        assert any("Error saving translated book" in str(call) for call in mock_logger.error.call_args_list)
+        assert any("Error saving translated book" in str(log_call) for log_call in mock_logger.error.call_args_list)
