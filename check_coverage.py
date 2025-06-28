@@ -19,6 +19,6 @@ for line in lines:
 
 print("\n" + "=" * 70)
 print("Total coverage summary:")
-total_line = [l for l in lines if l.startswith("TOTAL")]
+total_line = [line for line in lines if line.startswith("TOTAL")]
 if total_line:
     print(total_line[0])

@@ -276,8 +276,8 @@ class TestSaveTranslatedBook:
         self.mock_translator.translate.assert_called_once_with("Original text 2", True)
 
         # Verify log messages
-        assert any("Autoresume active" in str(call) for call in mock_logger.info.call_args_list)
-        assert any("Skipping translation for chunk 1" in str(call) for call in mock_logger.info.call_args_list)
+        assert any("Autoresume active" in str(log_call) for log_call in mock_logger.info.call_args_list)
+        assert any("Skipping translation for chunk 1" in str(log_call) for log_call in mock_logger.info.call_args_list)
 
     @patch("enchant_book_manager.translation_orchestrator.Book")
     @patch("enchant_book_manager.translation_orchestrator.Path")
@@ -475,8 +475,8 @@ class TestSaveTranslatedBook:
             save_translated_book(book_id="test_book_id", translator=self.mock_translator, logger=mock_logger, module_config={"translation": {"max_chunk_retries": 10}})
 
         # Verify wait times are capped
-        for call in mock_sleep.call_args_list[5:]:  # After 5th retry
-            assert call[0][0] <= MAX_RETRY_WAIT_SECONDS
+        for sleep_call in mock_sleep.call_args_list[5:]:  # After 5th retry
+            assert sleep_call[0][0] <= MAX_RETRY_WAIT_SECONDS
 
     def test_default_logger_creation(self):
         """Test that a logger is created if none is provided."""

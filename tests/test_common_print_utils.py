@@ -7,6 +7,7 @@ Test suite for common_print_utils module.
 
 import pytest
 import sys
+import builtins
 from pathlib import Path
 from unittest.mock import patch, Mock, call
 from io import StringIO
