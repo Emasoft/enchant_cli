@@ -1,0 +1,60 @@
+---
+created: '2025-06-29T05:14:49.344031'
+files:
+- end_time: '2025-06-29T05:14:49.344652'
+  path: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-62/test_process_batch_success0/novels/book1.txt
+  retry_count: 0
+  start_time: '2025-06-29T05:14:49.344193'
+  status: completed
+- end_time: '2025-06-29T05:14:49.345241'
+  path: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-62/test_process_batch_success0/novels/book2.txt
+  retry_count: 0
+  start_time: '2025-06-29T05:14:49.344955'
+  status: completed
+input_folder: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-62/test_process_batch_success0/novels
+---
+created: '2025-06-29T05:14:49.347335'
+files:
+- end_time: '2025-06-29T05:14:49.347805'
+  path: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-62/test_process_batch_with_failur0/novels/book1.txt
+  retry_count: 0
+  start_time: '2025-06-29T05:14:49.347431'
+  status: completed
+- end_time: '2025-06-29T05:14:49.348562'
+  error: Import failed
+  path: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-62/test_process_batch_with_failur0/novels/book2.txt
+  retry_count: 1
+  start_time: '2025-06-29T05:14:49.348168'
+  status: failed/skipped
+input_folder: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-62/test_process_batch_with_failur0/novels
+---
+created: '2024-01-01T00:00:00'
+files:
+- end_time: '2024-01-01T01:00:00'
+  path: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-62/test_process_batch_resume0/novels/book1.txt
+  retry_count: 0
+  status: completed
+- end_time: '2025-06-29T05:14:49.352005'
+  path: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-62/test_process_batch_resume0/novels/book2.txt
+  retry_count: 0
+  start_time: '2025-06-29T05:14:49.351673'
+  status: completed
+input_folder: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-62/test_process_batch_resume0/novels
+---
+created: '2025-06-29T05:14:49.359339'
+files:
+- end_time: '2025-06-29T05:14:49.359692'
+  path: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-62/test_process_batch_no_logger0/novels/book1.txt
+  retry_count: 0
+  start_time: '2025-06-29T05:14:49.359410'
+  status: completed
+input_folder: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-62/test_process_batch_no_logger0/novels
+---
+created: '2025-06-29T05:14:49.362131'
+files:
+- end_time: '2025-06-29T05:14:49.362464'
+  path: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-62/test_process_batch_cost_summar0/novels/book1.txt
+  retry_count: 0
+  start_time: '2025-06-29T05:14:49.362199'
+  status: completed
+input_folder: /private/var/folders/j5/4vmcr_496wsbmt3dl3k8f11r0000gn/T/pytest-of-emanuelesabetta/pytest-62/test_process_batch_cost_summar0/novels
