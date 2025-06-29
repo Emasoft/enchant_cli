@@ -305,9 +305,9 @@ Content here
 End"""
         # Note: spam patterns are replaced with a single space
         expected = """Chapter 1
- 
+
 Content here
- 
+
 End"""
         assert clean_adverts(text) == expected
 
@@ -349,8 +349,8 @@ End content"""
         # Spam patterns are replaced with a single space
         # Note: "网址:www.34gc.net" becomes a space which leaves trailing space after "Middle content"
         expected = """Start
- 
-Middle content 
+
+Middle content
 End content"""
         result = clean_adverts(text)
         assert result == expected

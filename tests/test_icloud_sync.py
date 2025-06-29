@@ -183,7 +183,7 @@ class TestICloudSync:
         sync.sync_command = "finder"
 
         test_path = Path("/test/folder")
-        
+
         with patch.object(Path, "exists", return_value=True):
             with patch.object(Path, "is_dir", return_value=True):
                 with patch.object(sync, "_sync_folder") as mock_sync_folder:
@@ -199,7 +199,7 @@ class TestICloudSync:
         sync.sync_command = "finder"
 
         test_path = Path("/test/file.txt")
-        
+
         with patch.object(Path, "exists", return_value=True):
             with patch.object(Path, "is_dir", return_value=False):
                 with patch.object(Path, "is_file", return_value=True):
@@ -217,7 +217,7 @@ class TestICloudSync:
 
         test_path = Path("/test/file.txt")
         icloud_path = Path("/test/.file.txt.icloud")
-        
+
         # Mock the path to not exist, but icloud placeholder to exist
         def exists_side_effect(self):
             if str(self) == str(test_path):
@@ -225,7 +225,7 @@ class TestICloudSync:
             elif str(self) == str(icloud_path):
                 return True
             return False
-            
+
         with patch.object(Path, "exists", exists_side_effect):
             with patch.object(sync, "_sync_file") as mock_sync_file:
                 mock_sync_file.return_value = test_path
@@ -241,7 +241,7 @@ class TestICloudSync:
 
         test_path = Path("/test/missing.txt")
         icloud_path = Path("/test/.missing.txt.icloud")
-        
+
         # Neither path exists
         with patch.object(Path, "exists", return_value=False):
             with patch.object(Path, "is_dir", return_value=False):
@@ -256,16 +256,12 @@ class TestICloudSync:
         sync.sync_command = "finder"
 
         folder_path = Path("/test/folder")
-        
+
         with patch("subprocess.run") as mock_run:
             result = sync._sync_folder(folder_path, recursive=False)
-            
+
             assert result == folder_path
-            mock_run.assert_called_once_with(
-                ["downloadFolder", str(folder_path)], 
-                capture_output=True, 
-                check=True
-            )
+            mock_run.assert_called_once_with(["downloadFolder", str(folder_path)], capture_output=True, check=True)
 
     def test_sync_folder_brctl_command(self):
         """Test _sync_folder with brctl command."""
@@ -273,16 +269,12 @@ class TestICloudSync:
         sync.sync_command = "brctl"
 
         folder_path = Path("/test/folder")
-        
+
         with patch("subprocess.run") as mock_run:
             result = sync._sync_folder(folder_path, recursive=False)
-            
+
             assert result == folder_path
-            mock_run.assert_called_once_with(
-                ["brctl", "download", str(folder_path)], 
-                capture_output=True, 
-                check=True
-            )
+            mock_run.assert_called_once_with(["brctl", "download", str(folder_path)], capture_output=True, check=True)
 
     def test_sync_folder_icloud_command(self):
         """Test _sync_folder with iOS icloud command."""
@@ -290,16 +282,12 @@ class TestICloudSync:
         sync.sync_command = "icloud"
 
         folder_path = Path("/test/folder")
-        
+
         with patch("subprocess.run") as mock_run:
             result = sync._sync_folder(folder_path, recursive=False)
-            
+
             assert result == folder_path
-            mock_run.assert_called_once_with(
-                ["icloud", "sync", str(folder_path)], 
-                capture_output=True, 
-                check=True
-            )
+            mock_run.assert_called_once_with(["icloud", "sync", str(folder_path)], capture_output=True, check=True)
 
     def test_sync_folder_error_handling(self):
         """Test _sync_folder handles subprocess errors."""
@@ -309,10 +297,10 @@ class TestICloudSync:
         sync.logger = logger
 
         folder_path = Path("/test/folder")
-        
+
         with patch("subprocess.run") as mock_run:
             mock_run.side_effect = subprocess.CalledProcessError(1, "cmd", b"error")
-            
+
             # Should not raise, just log error
             result = sync._sync_folder(folder_path, recursive=False)
 
@@ -325,13 +313,13 @@ class TestICloudSync:
         sync.sync_command = "finder"
 
         folder_path = Path("/test/folder")
-        
+
         with patch("subprocess.run"):
             with patch("enchant_book_manager.icloud_sync.HAS_WAITING", True):
                 with patch("enchant_book_manager.icloud_sync.waiting") as mock_waiting:
                     with patch.object(sync, "_is_folder_synced", return_value=True):
                         result = sync._sync_folder(folder_path, recursive=True)
-                        
+
                         assert result == folder_path
                         mock_waiting.wait.assert_called_once()
 
@@ -343,7 +331,7 @@ class TestICloudSync:
         sync.logger = logger
 
         folder_path = Path("/test/folder")
-        
+
         with patch("subprocess.run"):
             with patch("enchant_book_manager.icloud_sync.HAS_WAITING", True):
                 with patch("enchant_book_manager.icloud_sync.waiting") as mock_waiting:
@@ -353,7 +341,7 @@ class TestICloudSync:
 
                     mock_waiting.TimeoutExpired = MockTimeoutExpired
                     mock_waiting.wait.side_effect = MockTimeoutExpired("Timeout")
-                    
+
                     result = sync._sync_folder(folder_path, recursive=True)
 
                     assert result == folder_path
@@ -373,17 +361,13 @@ class TestICloudSync:
         sync.sync_command = "finder"
 
         file_path = Path("/test/.document.pdf.icloud")
-        
+
         with patch("subprocess.run") as mock_run:
             result = sync._sync_file(file_path)
-            
+
             # Without waiting module, should return original path
             assert result == file_path
-            mock_run.assert_called_once_with(
-                ["downloadFile", str(file_path)], 
-                capture_output=True, 
-                check=True
-            )
+            mock_run.assert_called_once_with(["downloadFile", str(file_path)], capture_output=True, check=True)
 
     def test_sync_file_icloud_placeholder_brctl(self):
         """Test _sync_file with .icloud placeholder using brctl."""
@@ -392,10 +376,10 @@ class TestICloudSync:
 
         file_path = Path("/test/.document.pdf.icloud")
         expected_actual_path = file_path.parent / "document.pdf"
-        
+
         with patch("subprocess.run") as mock_run:
             result = sync._sync_file(file_path)
-            
+
             # Without waiting module, should return original path
             assert result == file_path
             mock_run.assert_called_once_with(
@@ -411,17 +395,17 @@ class TestICloudSync:
 
         file_path = Path("/test/.document.pdf.icloud")
         actual_path = Path("/test/document.pdf")
-        
+
         with patch("subprocess.run"):
             with patch("enchant_book_manager.icloud_sync.HAS_WAITING", True):
                 with patch("enchant_book_manager.icloud_sync.waiting") as mock_waiting:
                     # Mock the waiting condition - it succeeds
                     mock_waiting.wait.return_value = None
-                    
+
                     # Mock path existence - actual file exists after download
                     def exists_side_effect(self):
                         return str(self) == str(actual_path)
-                    
+
                     with patch.object(Path, "exists", exists_side_effect):
                         result = sync._sync_file(file_path)
                         # Should return actual path after successful download
@@ -468,11 +452,11 @@ class TestICloudSync:
         sync = ICloudSync(enabled=True)
 
         path = Path("/test/folder/new_file.txt")
-        
+
         with patch.object(Path, "exists", return_value=True):
             with patch.object(sync, "ensure_synced") as mock_ensure:
                 mock_ensure.return_value = path.parent
-                
+
                 result = sync.prepare_for_write(path)
 
                 assert result == path
@@ -563,10 +547,10 @@ class TestICloudSyncEdgeCases:
         sync.sync_command = "icloud"
 
         file_path = Path("/test/.document.pdf.icloud")
-        
+
         with patch("subprocess.run") as mock_run:
             result = sync._sync_file(file_path)
-            
+
             # Should return original path without waiting module
             assert result == file_path
             mock_run.assert_called_once_with(
@@ -583,10 +567,10 @@ class TestICloudSyncEdgeCases:
         sync.logger = logger
 
         file_path = Path("/test/.document.pdf.icloud")
-        
+
         with patch("subprocess.run") as mock_run:
             mock_run.side_effect = subprocess.CalledProcessError(1, "cmd", b"error")
-            
+
             result = sync._sync_file(file_path)
 
             # Should still return the file path on error
@@ -634,7 +618,7 @@ class TestICloudSyncEdgeCases:
         sync.sync_command = "finder"
 
         folder_path = Path("/test/folder")
-        
+
         with patch("subprocess.run") as mock_run:
             with patch("enchant_book_manager.icloud_sync.HAS_WAITING", False):
                 result = sync._sync_folder(folder_path, recursive=True)
