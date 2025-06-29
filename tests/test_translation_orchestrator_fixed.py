@@ -22,7 +22,7 @@ from enchant_book_manager.translation_orchestrator import (
 )
 from enchant_book_manager.models import Chunk, VARIATION_DB
 
-from test_helpers import TestDatabaseHelper, MockTranslator, create_test_logger
+from test_helpers import DatabaseTestHelper, MockTranslator, create_test_logger
 
 
 class TestSaveTranslatedBookFixed:
@@ -30,7 +30,7 @@ class TestSaveTranslatedBookFixed:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.db_helper = TestDatabaseHelper()
+        self.db_helper = DatabaseTestHelper()
         self.temp_dir = self.db_helper.setup()
 
     def teardown_method(self):

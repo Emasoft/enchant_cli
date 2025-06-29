@@ -281,10 +281,12 @@ class TestSaveTranslatedBook:
 
     @patch("enchant_book_manager.translation_orchestrator.Book")
     @patch("enchant_book_manager.translation_orchestrator.Path")
-    def test_directory_creation_error_non_exist(self, mock_path_class, mock_book_class):
+    @patch("enchant_book_manager.translation_orchestrator.sys.exit")
+    def test_directory_creation_error_non_exist(self, mock_exit, mock_path_class, mock_book_class):
         """Test handling of directory creation errors (non-EEXIST)."""
         # Setup mocks
         mock_book_class.get_by_id.return_value = self.mock_book
+        self.mock_book.chunks = []  # No chunks to process
 
         # Mock path to raise OSError with non-EEXIST errno
         mock_book_dir = MagicMock()
@@ -296,7 +298,7 @@ class TestSaveTranslatedBook:
 
         mock_logger = Mock()
 
-        # Execute - should continue with current directory
+        # Execute - should log error and use current directory
         with patch("enchant_book_manager.translation_orchestrator.VARIATION_DB"):
             with patch("enchant_book_manager.translation_orchestrator.save_translation_cost_log"):
                 with patch("enchant_book_manager.translation_orchestrator.prepare_for_write", return_value=Mock()):

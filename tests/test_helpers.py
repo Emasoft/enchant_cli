@@ -14,8 +14,11 @@ import logging
 from enchant_book_manager.models import Book, Chunk, Variation, VARIATION_DB, BOOK_DB, CHUNK_DB
 
 
-class TestDatabaseHelper:
-    """Helper class for setting up test databases with realistic data."""
+class DatabaseTestHelper:
+    """Helper class for setting up test databases with realistic data.
+
+    Note: Class name doesn't start with 'Test' to avoid pytest collection warnings.
+    """
 
     def __init__(self):
         self.temp_dir = None
