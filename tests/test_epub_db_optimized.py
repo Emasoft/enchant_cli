@@ -183,6 +183,147 @@ This is the final chapter."""
         # Should be very fast (under 1 second for 10k lines)
         self.assertLess(duration, 1.0)
 
+    def test_empty_text_handling(self):
+        """Test handling of empty or whitespace-only text"""
+        # Test completely empty text
+        import_text_optimized("")
+        count = TextLine.select().count()
+        self.assertEqual(count, 0)
+
+        # Test whitespace-only text
+        setup_database()  # Reset
+        import_text_optimized("   \n  \t  ")
+        count = TextLine.select().count()
+        self.assertEqual(count, 0)
+
+        # Test text with only newlines - splitlines() removes empty lines
+        setup_database()  # Reset
+        import_text_optimized("\n\n\n")
+        count = TextLine.select().count()
+        self.assertEqual(count, 0)  # splitlines() removes empty lines
+
+    def test_import_exception_handling(self):
+        """Test exception handling in import_text_optimized"""
+        # Close the database to force an error
+        close_database()
+
+        with self.assertRaises(RuntimeError) as context:
+            import_text_optimized("Some text")
+
+        self.assertIn("Failed to import text to database", str(context.exception))
+
+        # Re-setup for other tests
+        setup_database()
+
+    def test_duplicate_chapter_skipping(self):
+        """Test that duplicate chapters within 4-line window are skipped"""
+        text = """Chapter 1: First
+Line 2
+Line 3
+Chapter 1: First
+Line 5
+Chapter 2: Second"""
+
+        import_text_optimized(text)
+
+        heading_re = re.compile(r"^Chapter\s+(?P<num_d>\d+)(?:\s*:\s*(?P<rest>.+))?", re.IGNORECASE)
+
+        def parse_num(s):
+            return int(s) if s and s.isdigit() else None
+
+        def is_valid(line):
+            return True
+
+        chapters = find_chapters_two_stage(heading_re, parse_num, is_valid)
+
+        # Should only find 2 chapters (duplicate Chapter 1 should be skipped)
+        self.assertEqual(len(chapters), 2)
+        self.assertEqual(chapters[0].chapter_number, 1)
+        self.assertEqual(chapters[1].chapter_number, 2)
+
+    def test_invalid_chapter_validation(self):
+        """Test that chapters failing validation are skipped"""
+        text = """Chapter 1: Valid
+Chapter 2: Invalid
+Chapter 3: Valid"""
+
+        import_text_optimized(text)
+
+        heading_re = re.compile(r"^Chapter\s+(?P<num_d>\d+)(?:\s*:\s*(?P<rest>.+))?", re.IGNORECASE)
+
+        def parse_num(s):
+            return int(s) if s and s.isdigit() else None
+
+        def is_valid(line):
+            # Mark Chapter 2 as invalid
+            return "Invalid" not in line
+
+        chapters = find_chapters_two_stage(heading_re, parse_num, is_valid)
+
+        # Should only find chapters 1 and 3
+        self.assertEqual(len(chapters), 2)
+        self.assertEqual(chapters[0].chapter_number, 1)
+        self.assertEqual(chapters[1].chapter_number, 3)
+
+    def test_regex_group_exception_handling(self):
+        """Test handling of regex groups that don't exist"""
+        text = "Chapter 1: Test"
+        import_text_optimized(text)
+
+        # Regex without the expected groups
+        heading_re = re.compile(r"^Chapter\s+(\d+)")
+
+        def parse_num(s):
+            return int(s) if s and s.isdigit() else None
+
+        def is_valid(line):
+            return True
+
+        # Should handle missing groups gracefully
+        chapters = find_chapters_two_stage(heading_re, parse_num, is_valid)
+        self.assertEqual(len(chapters), 0)
+
+    def test_chapter_with_none_number(self):
+        """Test chapters where parse_num returns None"""
+        text = """Chapter One: First
+Chapter 2: Second
+Chapter Three: Third"""
+
+        import_text_optimized(text)
+
+        heading_re = re.compile(r"^Chapter\s+(?P<num_d>\w+)(?:\s*:\s*(?P<rest>.+))?", re.IGNORECASE)
+
+        def parse_num(s):
+            # Only parse numeric chapters
+            return int(s) if s and s.isdigit() else None
+
+        def is_valid(line):
+            return True
+
+        chapters = find_chapters_two_stage(heading_re, parse_num, is_valid)
+
+        # Should only find Chapter 2
+        self.assertEqual(len(chapters), 1)
+        self.assertEqual(chapters[0].chapter_number, 2)
+
+    def test_no_chapters_found(self):
+        """Test build_chapters_table when no chapters are found"""
+        text = """This is just regular text
+Without any chapter headings
+Just normal content"""
+
+        import_text_optimized(text)
+
+        # Don't mark any chapters
+        chapters, seq = build_chapters_table()
+
+        # Should return all content as single chapter
+        self.assertEqual(len(chapters), 1)
+        self.assertEqual(chapters[0][0], "Content")
+        self.assertIn("This is just regular text", chapters[0][1])
+        self.assertIn("Just normal content", chapters[0][1])
+        self.assertEqual(seq, [])
+
 
 if __name__ == "__main__":
     unittest.main()
