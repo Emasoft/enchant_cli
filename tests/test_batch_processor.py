@@ -68,6 +68,34 @@ class TestLoadSafeYaml:
         assert result == {"key": "value"}
         assert logger.error.call_count == 0
 
+    def test_load_value_error_with_logger(self, tmp_path):
+        """Test loading with ValueError and logger."""
+        yaml_file = tmp_path / "error.yaml"
+        logger = Mock(spec=logging.Logger)
+
+        # Mock load_yaml_safe to raise ValueError
+        with patch("enchant_book_manager.batch_processor.load_yaml_safe", side_effect=ValueError("Test error")):
+            result = load_safe_yaml(yaml_file, logger)
+
+        assert result is None
+        logger.error.assert_called_once()
+        assert "Error loading YAML" in str(logger.error.call_args)
+        assert "Test error" in str(logger.error.call_args)
+
+    def test_load_general_exception_with_logger(self, tmp_path):
+        """Test loading with general Exception and logger."""
+        yaml_file = tmp_path / "error.yaml"
+        logger = Mock(spec=logging.Logger)
+
+        # Mock load_yaml_safe to raise general Exception
+        with patch("enchant_book_manager.batch_processor.load_yaml_safe", side_effect=Exception("Unexpected error")):
+            result = load_safe_yaml(yaml_file, logger)
+
+        assert result is None
+        logger.error.assert_called_once()
+        assert "Unexpected error loading YAML" in str(logger.error.call_args)
+        assert "Unexpected error" in str(logger.error.call_args)
+
 
 class TestProcessBatch:
     """Test the main process_batch function."""
@@ -320,3 +348,154 @@ class TestProcessBatch:
         assert any("Error saving batch cost log" in str(call) for call in logger.error.call_args_list)
         assert mock_import.call_count == 1
         assert mock_save.call_count == 1
+
+    @patch("enchant_book_manager.batch_processor.filelock.FileLock")
+    @patch("enchant_book_manager.batch_processor.save_translated_book")
+    @patch("enchant_book_manager.batch_processor.import_book_from_txt")
+    def test_process_batch_finally_block_errors(self, mock_import, mock_save, mock_filelock, tmp_path):
+        """Test batch processing with errors in finally block."""
+        input_dir = tmp_path / "novels"
+        input_dir.mkdir()
+        file1 = input_dir / "book1.txt"
+        file1.write_text("Chinese text 1")
+
+        mock_import.side_effect = Exception("Import error")
+        mock_translator = Mock()
+        mock_translator.is_remote = False
+        logger = Mock(spec=logging.Logger)
+
+        # Ensure progress file doesn't exist
+        progress_file = Path("translation_batch_progress.yml")
+        if progress_file.exists():
+            progress_file.unlink()
+
+        # Make yaml.safe_dump fail in the finally block
+        original_yaml_dump = yaml.safe_dump
+        yaml_dump_call_count = 0
+
+        def mock_yaml_dump(*args, **kwargs):
+            nonlocal yaml_dump_call_count
+            yaml_dump_call_count += 1
+            # First call succeeds (initial save), second fails (in finally block)
+            if yaml_dump_call_count == 2:
+                raise yaml.YAMLError("Save failed in finally")
+            return original_yaml_dump(*args, **kwargs)
+
+        with patch("enchant_book_manager.batch_processor.yaml.safe_dump", side_effect=mock_yaml_dump):
+            process_batch(input_path=input_dir, translator=mock_translator, logger=logger)
+
+        # Should log error from finally block
+        assert any("Error saving progress file in finally block" in str(call) for call in logger.error.call_args_list)
+
+    @patch("enchant_book_manager.batch_processor.filelock.FileLock")
+    @patch("enchant_book_manager.batch_processor.save_translated_book")
+    @patch("enchant_book_manager.batch_processor.import_book_from_txt")
+    def test_process_batch_history_file_errors(self, mock_import, mock_save, mock_filelock, tmp_path):
+        """Test batch processing with history file write errors."""
+        # Ensure progress file doesn't exist
+        progress_file = Path("translation_batch_progress.yml")
+        if progress_file.exists():
+            progress_file.unlink()
+
+        input_dir = tmp_path / "novels"
+        input_dir.mkdir()
+        file1 = input_dir / "book1.txt"
+        file1.write_text("Chinese text 1")
+
+        mock_import.return_value = "book_id_1"
+        mock_translator = Mock()
+        mock_translator.is_remote = False
+        logger = Mock(spec=logging.Logger)
+
+        # Mock yaml.safe_dump to fail when writing to history file
+        original_yaml_dump = yaml.safe_dump
+
+        def mock_yaml_dump(data, stream, **kwargs):
+            # Check if we're writing to history file by checking if stream has name attribute
+            if hasattr(stream, "name") and "translations_chronology.yml" in stream.name:
+                raise yaml.YAMLError("Cannot write history file")
+            return original_yaml_dump(data, stream, **kwargs)
+
+        with patch("enchant_book_manager.batch_processor.yaml.safe_dump", side_effect=mock_yaml_dump):
+            process_batch(input_path=input_dir, translator=mock_translator, logger=logger)
+
+        # Verify error was logged
+        assert logger.error.call_count > 0
+        assert any("Error writing to history file" in str(call) for call in logger.error.call_args_list)
+
+    @patch("enchant_book_manager.batch_processor.filelock.FileLock")
+    @patch("enchant_book_manager.batch_processor.save_translated_book")
+    @patch("enchant_book_manager.batch_processor.import_book_from_txt")
+    def test_process_batch_progress_file_delete_error(self, mock_import, mock_save, mock_filelock, tmp_path):
+        """Test batch processing when progress file deletion fails."""
+        # Ensure progress file doesn't exist
+        progress_file = Path("translation_batch_progress.yml")
+        if progress_file.exists():
+            progress_file.unlink()
+
+        input_dir = tmp_path / "novels"
+        input_dir.mkdir()
+        file1 = input_dir / "book1.txt"
+        file1.write_text("Chinese text 1")
+
+        mock_import.return_value = "book_id_1"
+        mock_translator = Mock()
+        mock_translator.is_remote = False
+        logger = Mock(spec=logging.Logger)
+
+        # Mock Path.unlink to fail only for progress file
+        original_unlink = Path.unlink
+
+        def mock_unlink(self):
+            if "translation_batch_progress.yml" in str(self):
+                raise PermissionError("Cannot delete file")
+            return original_unlink(self)
+
+        with patch.object(Path, "unlink", mock_unlink):
+            process_batch(input_path=input_dir, translator=mock_translator, logger=logger)
+
+        # Should log error but continue
+        assert any("Error deleting progress file" in str(call) for call in logger.error.call_args_list)
+
+    @patch("enchant_book_manager.batch_processor.filelock.FileLock")
+    @patch("enchant_book_manager.batch_processor.save_translated_book")
+    @patch("enchant_book_manager.batch_processor.import_book_from_txt")
+    def test_process_batch_with_error_details_in_summary(self, mock_import, mock_save, mock_filelock, tmp_path):
+        """Test batch processing writes error details in cost summary."""
+        # Ensure progress file doesn't exist
+        progress_file = Path("translation_batch_progress.yml")
+        if progress_file.exists():
+            progress_file.unlink()
+
+        input_dir = tmp_path / "novels"
+        input_dir.mkdir()
+        file1 = input_dir / "book1.txt"
+        file2 = input_dir / "book2.txt"
+        file1.write_text("Chinese text 1")
+        file2.write_text("Chinese text 2")
+
+        # First import succeeds, second fails
+        mock_import.side_effect = ["book_id_1", Exception("Import failed with details")]
+        mock_translator = Mock()
+        mock_translator.is_remote = True
+        mock_translator.request_count = 5
+        mock_translator.MODEL_NAME = "gpt-4"
+        mock_translator.format_cost_summary.return_value = "Cost: $0.05"
+        logger = Mock(spec=logging.Logger)
+
+        # Mock global_cost_tracker
+        with patch("enchant_book_manager.batch_processor.global_cost_tracker") as mock_cost_tracker:
+            mock_cost_tracker.get_summary.return_value = {"total_cost": 0.05, "total_tokens": 500, "total_prompt_tokens": 250, "total_completion_tokens": 250}
+
+            # Mock prepare_for_write to return the same path
+            with patch("enchant_book_manager.batch_processor.prepare_for_write", side_effect=lambda x: x):
+                process_batch(input_path=input_dir, translator=mock_translator, logger=logger)
+
+        # Check that cost summary was written with error details
+        cost_log = input_dir / "BATCH_AI_COSTS.log"
+        assert cost_log.exists()
+
+        # Read and verify the content includes error details
+        content = cost_log.read_text()
+        assert "book2.txt: failed/skipped" in content
+        assert "Error: Import failed with details" in content
