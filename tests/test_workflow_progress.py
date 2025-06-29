@@ -161,7 +161,7 @@ class TestCreateInitialProgress:
 
         result = create_initial_progress(file_path)
 
-        assert result["original_file"] == "/test/novel.txt"
+        assert result["original_file"] == str(file_path)
         assert "phases" in result
         assert result["phases"]["renaming"]["status"] == "pending"
         assert result["phases"]["renaming"]["result"] is None
@@ -187,7 +187,7 @@ class TestCreateInitialProgress:
         result = create_initial_progress(file_path)
 
         # Path normalization may remove leading ./
-        assert result["original_file"] == "novels/test.txt"
+        assert result["original_file"] == str(file_path).replace("./", "")
 
     def test_path_with_unicode(self):
         """Test with Unicode characters in path."""
@@ -195,7 +195,7 @@ class TestCreateInitialProgress:
 
         result = create_initial_progress(file_path)
 
-        assert result["original_file"] == "/test/中文小说.txt"
+        assert result["original_file"] == str(file_path)
 
     def test_structure_integrity(self):
         """Test that the structure is complete and correct."""

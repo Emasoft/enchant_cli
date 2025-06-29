@@ -146,13 +146,15 @@ class TestCreateEpubFromTranslated:
         result = create_epub_from_translated(self.translated_file, self.current_path, self.book_title, self.book_author, self.book_info, self.args, self.progress, self.logger)
 
         assert result is True
-        assert self.progress["phases"]["epub"]["result"] == "/test/Test Novel.epub"
+        # Use Path to handle platform differences
+        expected_path = str(Path("/test") / "Test Novel.epub")
+        assert self.progress["phases"]["epub"]["result"] == expected_path
 
         # Verify create_epub_with_config was called
         mock_create.assert_called_once()
         call_args = mock_create.call_args
         assert call_args.kwargs["txt_file_path"] == self.translated_file
-        assert call_args.kwargs["output_path"] == Path("/test/Test Novel.epub")
+        assert call_args.kwargs["output_path"] == Path("/test") / "Test Novel.epub"
 
     @patch("enchant_book_manager.workflow_epub.get_config")
     @patch("enchant_book_manager.workflow_epub.get_epub_config_from_book_info")
@@ -167,7 +169,9 @@ class TestCreateEpubFromTranslated:
         result = create_epub_from_translated(self.translated_file, self.current_path, self.book_title, self.book_author, self.book_info, self.args, self.progress, self.logger)
 
         assert result is True
-        assert self.progress["phases"]["epub"]["result"] == "/test/Test Novel.epub"
+        # Use Path to handle platform differences
+        expected_path = str(Path("/test") / "Test Novel.epub")
+        assert self.progress["phases"]["epub"]["result"] == expected_path
 
     @patch("enchant_book_manager.workflow_epub.get_config")
     @patch("enchant_book_manager.workflow_epub.get_epub_config_from_book_info")
