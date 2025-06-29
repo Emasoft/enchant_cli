@@ -191,6 +191,8 @@ class TestCostTracker:
     def test_global_cost_tracker_instance(self):
         """Test that global_cost_tracker is properly initialized."""
         assert isinstance(global_cost_tracker, CostTracker)
+        # Reset the global tracker in case other tests have used it
+        global_cost_tracker.reset()
         assert global_cost_tracker.total_cost == 0.0
         assert global_cost_tracker.request_count == 0
 

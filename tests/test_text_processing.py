@@ -303,6 +303,7 @@ class TestCleanAdverts:
 Content here
 本电子书由果茶小说网（www.34gc.com）网友上传分享
 End"""
+        # Note: spam patterns are replaced with a single space
         expected = """Chapter 1
 
 Content here
@@ -345,12 +346,14 @@ End"""
 Middle content
 网址:www.34gc.net
 End content"""
-        # The replacement adds a space, so "Middle content\n网址:..." becomes "Middle content \n..."
+        # Spam patterns are replaced with a single space
+        # Note: "网址:www.34gc.net" becomes a space which leaves trailing space after "Middle content"
         expected = """Start
 
 Middle content
 End content"""
-        assert clean_adverts(text) == expected
+        result = clean_adverts(text)
+        assert result == expected
 
     def test_preserve_normal_parentheses(self):
         """Test that normal content in parentheses is preserved."""
