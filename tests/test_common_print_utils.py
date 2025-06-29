@@ -164,6 +164,25 @@ class TestSafePrint:
         else:
             assert print_utils.print == builtins.print
 
+    @patch.dict("sys.modules", {"rich": None})
+    def test_import_without_rich(self):
+        """Test module initialization when rich is not available."""
+        # Remove common_print_utils from sys.modules to force reimport
+        import sys
+
+        if "enchant_book_manager.common_print_utils" in sys.modules:
+            del sys.modules["enchant_book_manager.common_print_utils"]
+
+        # Now import it with rich unavailable
+        import enchant_book_manager.common_print_utils as print_utils
+
+        # Verify rich is not available
+        assert print_utils.rich_available is False
+        assert print_utils.print == builtins.print
+
+        # Clean up
+        del sys.modules["enchant_book_manager.common_print_utils"]
+
     @patch("enchant_book_manager.common_print_utils.rich_available", False)
     def test_regex_pattern_coverage(self):
         """Test the regex pattern strips various markup formats."""

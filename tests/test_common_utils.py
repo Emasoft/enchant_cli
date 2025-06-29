@@ -306,3 +306,184 @@ class TestRetryWithBackoff:
         result = obj.logged_func()
         assert result == "success"
         obj.logger.warning.assert_called()  # Should log retry attempt
+
+    def test_exit_on_failure(self):
+        """Test retry with exit_on_failure=True."""
+        mock_logger = Mock()
+
+        @retry_with_backoff(max_attempts=2, base_wait=0.01, exit_on_failure=True)
+        def always_fails():
+            raise ValueError("Always fails")
+
+        # Mock sys.exit to prevent actual exit
+        with patch("sys.exit") as mock_exit:
+            with patch("builtins.print") as mock_print:
+                # When exit_on_failure is True, the function should handle the exception
+                always_fails()
+
+                # Check that sys.exit was called
+                mock_exit.assert_called_once_with(1)
+                # Check that error message was printed
+                mock_print.assert_called()
+                assert "FATAL ERROR" in str(mock_print.call_args)
+
+    def test_exit_on_failure_with_logger(self):
+        """Test retry with exit_on_failure=True and logger."""
+        mock_logger = Mock()
+
+        class TestClass:
+            def __init__(self):
+                self.logger = mock_logger
+
+            @retry_with_backoff(max_attempts=1, base_wait=0.01, exit_on_failure=True)
+            def method_that_fails(self):
+                raise RuntimeError("Method fails")
+
+        obj = TestClass()
+
+        with patch("sys.exit") as mock_exit:
+            with patch("builtins.print") as mock_print:
+                # When exit_on_failure is True, the function should handle the exception
+                obj.method_that_fails()
+
+                # Logger should be used
+                mock_logger.error.assert_called()
+                # Exit should be called
+                mock_exit.assert_called_once_with(1)
+
+    def test_time_limit_exceeded(self):
+        """Test retry with time limit."""
+
+        @retry_with_backoff(
+            max_attempts=10,
+            base_wait=0.5,
+            time_limit=0.1,  # Very short time limit
+        )
+        def slow_func():
+            raise ValueError("Always fails")
+
+        with pytest.raises(ValueError):
+            slow_func()
+
+    def test_time_limit_with_logger(self):
+        """Test retry with time limit and logger."""
+        mock_logger = Mock()
+
+        class TestClass:
+            def __init__(self):
+                self.logger = mock_logger
+
+            @retry_with_backoff(
+                max_attempts=10,
+                base_wait=0.5,
+                time_limit=0.1,  # Very short time limit
+            )
+            def slow_method(self):
+                raise ValueError("Always fails")
+
+        obj = TestClass()
+
+        with pytest.raises(ValueError):
+            obj.slow_method()
+
+        # Logger should have error about time limit
+        assert any("Time limit" in str(call) for call in mock_logger.error.call_args_list)
+
+    def test_on_retry_callback(self):
+        """Test retry with on_retry callback."""
+        from enchant_book_manager.common_utils import exponential_backoff_retry
+
+        callback_calls = []
+
+        def on_retry_func(attempt, exception, wait_time):
+            callback_calls.append((attempt, str(exception), wait_time))
+
+        call_count = 0
+
+        def failing_func():
+            nonlocal call_count
+            call_count += 1
+            if call_count < 3:
+                raise ValueError(f"Attempt {call_count}")
+            return "success"
+
+        result = exponential_backoff_retry(
+            failing_func,
+            max_attempts=5,
+            base_wait=0.01,
+            on_retry=on_retry_func,
+        )
+
+        assert result == "success"
+        assert len(callback_calls) == 2  # Called on first two failures
+        assert callback_calls[0][0] == 1  # First attempt
+        assert "Attempt 1" in callback_calls[0][1]
+        assert callback_calls[1][0] == 2  # Second attempt
+        assert "Attempt 2" in callback_calls[1][1]
+
+    def test_max_attempts_logger(self):
+        """Test logger message when max attempts exceeded."""
+        from enchant_book_manager.common_utils import exponential_backoff_retry
+
+        mock_logger = Mock()
+
+        def always_fails():
+            raise ValueError("Always fails")
+
+        with pytest.raises(ValueError):
+            exponential_backoff_retry(
+                always_fails,
+                max_attempts=2,
+                base_wait=0.01,
+                logger=mock_logger,
+            )
+
+        # Check logger was called with max attempts error
+        mock_logger.error.assert_called()
+        assert "All 2 attempts failed" in str(mock_logger.error.call_args)
+
+    def test_test_specific_defaults(self):
+        """Test that test-specific defaults are used in test environment."""
+        from enchant_book_manager.common_utils import (
+            DEFAULT_MAX_RETRIES,
+            DEFAULT_MAX_RETRIES_TEST,
+            DEFAULT_RETRY_WAIT_MAX,
+            DEFAULT_RETRY_WAIT_MAX_TEST,
+        )
+
+        call_count = 0
+
+        @retry_with_backoff(
+            max_attempts=DEFAULT_MAX_RETRIES,
+            max_wait=DEFAULT_RETRY_WAIT_MAX,
+            base_wait=0.01,
+        )
+        def test_func():
+            nonlocal call_count
+            call_count += 1
+            if call_count < DEFAULT_MAX_RETRIES_TEST:
+                raise ValueError("Test")
+            return "success"
+
+        # Should use test defaults since we're in test environment
+        result = test_func()
+        assert result == "success"
+        # Should have tried DEFAULT_MAX_RETRIES_TEST times
+        assert call_count == DEFAULT_MAX_RETRIES_TEST
+
+    def test_final_exception_handling(self):
+        """Test edge case in exponential_backoff_retry."""
+        from enchant_book_manager.common_utils import exponential_backoff_retry
+
+        # Test the edge case where no exception is stored
+        # This is hard to trigger normally, but we can test the logic
+        with patch("enchant_book_manager.common_utils.time.sleep"):
+            # Mock a function that somehow completes all retries without raising
+            mock_func = Mock(side_effect=[ValueError("Error")] * 3)
+
+            with pytest.raises(ValueError):
+                exponential_backoff_retry(
+                    mock_func,
+                    max_attempts=3,
+                    base_wait=0.01,
+                )
