@@ -87,7 +87,8 @@ jobs:
         GIT_COMMITTER_EMAIL: 713559+Emasoft@users.noreply.github.com
       run: |
         # Use CI-specific pytest configuration
-        uv run pytest tests -c .github/pytest.ini --cov=src/enchant_book_manager --cov-report=xml --cov-report=html
+        # Run from project root with explicit config file path
+        uv run pytest tests --rootdir=. -c .github/pytest.ini --cov=src/enchant_book_manager --cov-report=xml --cov-report=html
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
