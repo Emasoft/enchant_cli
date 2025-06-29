@@ -46,7 +46,8 @@ class TestTranslationAPIClient:
         """Test initialization with defaults."""
         client = TranslationAPIClient(api_url="http://test.com", model_name="test-model")
         assert client.timeout == (CONNECTION_TIMEOUT, RESPONSE_TIMEOUT)
-        assert client.logger is None
+        # Logger is now a noop function if not provided
+        assert callable(client.logger)
 
     @patch("enchant_book_manager.api_clients.requests.post")
     def test_make_request_success(self, mock_post):
