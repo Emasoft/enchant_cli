@@ -47,6 +47,25 @@ class TestEnhancedTocBuilder(unittest.TestCase):
         self.assertIn("<text>Chapter 1: Test</text>", ncx)
         self.assertIn('<content src="Text/chapter1.xhtml"/>', ncx)
 
+    def test_toc_entry_to_nav_li(self):
+        """Test TocEntry EPUB3 navigation list item generation"""
+        # Test simple entry
+        entry = TocEntry(title="Chapter 1: Test", href="Text/chapter1.xhtml", play_order=1, level=1)
+        nav_li = entry.to_nav_li(depth=2)
+
+        self.assertIn("    <li>", nav_li)  # depth=2 gives 4 spaces indent
+        self.assertIn('<a href="Text/chapter1.xhtml">Chapter 1: Test</a>', nav_li)
+        self.assertIn("</li>", nav_li)
+
+        # Test entry with children
+        child_entry = TocEntry(title="Section 1.1", href="Text/section1_1.xhtml", play_order=2, level=2)
+        entry.children.append(child_entry)
+
+        nav_li_with_children = entry.to_nav_li(depth=2)
+        self.assertIn("<ol>", nav_li_with_children)
+        self.assertIn("Section 1.1", nav_li_with_children)
+        self.assertIn("</ol>", nav_li_with_children)
+
     def test_hierarchical_structure(self):
         """Test hierarchical TOC structure creation"""
         entries = self.builder.analyze_chapters(self.test_chapters)
@@ -98,6 +117,40 @@ class TestEnhancedTocBuilder(unittest.TestCase):
         # Check basic structure
         self.assertIn("<?xml version='1.0' encoding='utf-8'?>", toc)
         self.assertIn("<ncx xmlns='http://www.daisy.org/z3986/2005/ncx/'", toc)
+
+    def test_build_nav_xhtml(self):
+        """Test EPUB3 navigation document generation"""
+        nav_html = self.builder.build_nav_xhtml(self.test_chapters, "Test Book")
+
+        # Check basic XHTML structure
+        self.assertIn('<?xml version="1.0" encoding="utf-8"?>', nav_html)
+        self.assertIn("<!DOCTYPE html>", nav_html)
+        self.assertIn('<html xmlns="http://www.w3.org/1999/xhtml"', nav_html)
+        self.assertIn('xmlns:epub="http://www.idpf.org/2007/ops"', nav_html)
+
+        # Check navigation structure
+        self.assertIn('<nav epub:type="toc" id="toc">', nav_html)
+        self.assertIn("<h1>Table of Contents</h1>", nav_html)
+        self.assertIn("<ol>", nav_html)
+        self.assertIn("</ol>", nav_html)
+
+        # Check title is properly escaped
+        self.assertIn("<title>Test Book - Navigation</title>", nav_html)
+
+        # Check that chapters are included
+        self.assertIn("Part I: The Beginning", nav_html)
+        self.assertIn("Chapter 1: Introduction", nav_html)
+
+    def test_build_enhanced_toc_ncx_content(self):
+        """Test NCX content details"""
+        toc = build_enhanced_toc_ncx(
+            self.test_chapters,
+            "Test Book",
+            "Test Author",
+            "test-uid-123",
+            hierarchical=True,
+        )
+
         self.assertIn("<docTitle><text>Test Book</text></docTitle>", toc)
         self.assertIn("<docAuthor><text>Test Author</text></docAuthor>", toc)
 

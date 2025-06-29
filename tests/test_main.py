@@ -125,6 +125,20 @@ class TestMain:
         # Should not print anything when imported (only when run as __main__)
         assert output == ""
 
+    def test_main_as_script_simple(self):
+        """Test the if __name__ == '__main__' block."""
+        import runpy
+        from unittest.mock import patch
+
+        with patch("builtins.print") as mock_print:
+            # Run the module as a script
+            runpy.run_module("enchant_book_manager.main", run_name="__main__")
+
+        # Should have called print twice
+        assert mock_print.call_count == 2
+        assert mock_print.call_args_list[0].args[0] == "Hello from enchant-book-manager!"
+        assert mock_print.call_args_list[1].args[0] == "Use 'enchant-cli' or 'cli-translator' commands instead."
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
