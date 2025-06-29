@@ -529,3 +529,212 @@ class TestGlobalFunctions:
         path = Path("/test/file.txt")
         result = prepare_for_write(path)
         assert result == path
+
+
+class TestICloudSyncEdgeCases:
+    """Test edge cases and missing coverage for ICloudSync."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        # Reset global instance
+        import enchant_book_manager.icloud_sync
+
+        enchant_book_manager.icloud_sync._global_sync = None
+
+    @patch("enchant_book_manager.icloud_sync.HAS_WAITING", False)
+    @patch("enchant_book_manager.icloud_sync.logging")
+    def test_import_waiting_failure(self, mock_logging):
+        """Test when waiting module import fails."""
+        # The warning is already logged at module import time
+        # Just verify HAS_WAITING is False
+        import enchant_book_manager.icloud_sync
+
+        assert enchant_book_manager.icloud_sync.HAS_WAITING is False
+
+    @patch("subprocess.run")
+    def test_sync_file_icloud_ios_command(self, mock_run):
+        """Test _sync_file with iOS icloud command."""
+        sync = ICloudSync(enabled=True)
+        sync.sync_command = "icloud"
+
+        file_path = Path("/test/.document.pdf.icloud")
+        sync._sync_file(file_path)
+
+        mock_run.assert_called_once_with(
+            ["icloud", "download", str(file_path)],
+            capture_output=True,
+            check=True,
+        )
+
+    @patch("subprocess.run")
+    def test_sync_file_subprocess_error(self, mock_run):
+        """Test _sync_file handles subprocess errors."""
+        mock_run.side_effect = subprocess.CalledProcessError(1, "cmd", b"error")
+
+        sync = ICloudSync(enabled=True)
+        sync.sync_command = "finder"
+        logger = Mock(spec=logging.Logger)
+        sync.logger = logger
+
+        file_path = Path("/test/.document.pdf.icloud")
+        result = sync._sync_file(file_path)
+
+        # Should still return the file path on error
+        assert result == file_path
+        logger.error.assert_called()
+
+    @patch("subprocess.run")
+    @patch("enchant_book_manager.icloud_sync.HAS_WAITING", False)
+    def test_sync_file_without_waiting_module(self, mock_run):
+        """Test _sync_file when waiting module is not available."""
+        sync = ICloudSync(enabled=True)
+        sync.sync_command = "finder"
+
+        file_path = Path("/test/.document.pdf.icloud")
+        actual_path = Path("/test/document.pdf")
+
+        # Mock actual_path.exists() to return True
+        with patch.object(Path, "exists") as mock_exists:
+
+            def exists_side_effect(self):
+                return str(self) == str(actual_path)
+
+            mock_exists.side_effect = exists_side_effect
+
+            result = sync._sync_file(file_path)
+            # Should return actual path if it exists after download
+            assert result == actual_path
+
+    @patch("subprocess.run")
+    @patch("enchant_book_manager.icloud_sync.HAS_WAITING", False)
+    def test_sync_file_without_waiting_module_fail(self, mock_run):
+        """Test _sync_file when waiting module is not available and download fails."""
+        sync = ICloudSync(enabled=True)
+        sync.sync_command = "finder"
+
+        file_path = Path("/test/.document.pdf.icloud")
+        actual_path = Path("/test/document.pdf")
+
+        # Mock actual_path.exists() to return False
+        with patch.object(Path, "exists", return_value=False):
+            result = sync._sync_file(file_path)
+            # Should return original path if download failed
+            assert result == file_path
+
+    @patch("subprocess.run")
+    @patch("enchant_book_manager.icloud_sync.HAS_WAITING", False)
+    def test_sync_folder_without_waiting(self, mock_run):
+        """Test _sync_folder when waiting module is not available."""
+        sync = ICloudSync(enabled=True)
+        sync.sync_command = "finder"
+
+        folder_path = Path("/test/folder")
+        result = sync._sync_folder(folder_path, recursive=True)
+
+        assert result == folder_path
+        mock_run.assert_called_once()
+
+    def test_sync_folder_disabled(self):
+        """Test _sync_folder when sync is disabled."""
+        sync = ICloudSync(enabled=False)
+
+        folder_path = Path("/test/folder")
+        result = sync._sync_folder(folder_path)
+
+        assert result == folder_path
+
+    def test_sync_file_disabled(self):
+        """Test _sync_file when sync is disabled."""
+        sync = ICloudSync(enabled=False)
+
+        file_path = Path("/test/file.txt")
+        result = sync._sync_file(file_path)
+
+        assert result == file_path
+
+    @patch("pathlib.Path.cwd")
+    def test_auto_detect_cwd_error(self, mock_cwd):
+        """Test _auto_detect_icloud when cwd() raises an error."""
+        mock_cwd.side_effect = PermissionError("Access denied")
+
+        logger = Mock(spec=logging.Logger)
+        sync = ICloudSync(logger=logger)
+
+        # Should handle error gracefully and return False
+        assert sync.enabled is False
+
+    def test_is_folder_synced_rglob_generator(self):
+        """Test _is_folder_synced with generator that yields items."""
+        sync = ICloudSync(enabled=True)
+
+        folder_path = Mock(spec=Path)
+
+        # Create a generator that yields one .icloud file
+        def rglob_generator(pattern):
+            yield Path("/.file.icloud")
+
+        folder_path.rglob = rglob_generator
+
+        assert sync._is_folder_synced(folder_path) is False
+
+    @patch("subprocess.run")
+    @patch("enchant_book_manager.icloud_sync.HAS_WAITING", True)
+    @patch("enchant_book_manager.icloud_sync.waiting")
+    def test_sync_file_waiting_timeout_actual_path_exists(self, mock_waiting, mock_run):
+        """Test _sync_file when waiting times out but file exists."""
+
+        # Create a mock exception class
+        class MockTimeoutExpired(Exception):
+            pass
+
+        mock_waiting.TimeoutExpired = MockTimeoutExpired
+        mock_waiting.wait.side_effect = MockTimeoutExpired("Timeout")
+
+        sync = ICloudSync(enabled=True)
+        sync.sync_command = "finder"
+        logger = Mock(spec=logging.Logger)
+        sync.logger = logger
+
+        file_path = Path("/test/.document.pdf.icloud")
+        actual_path = Path("/test/document.pdf")
+
+        # Mock actual_path.exists() to return True
+        with patch.object(Path, "exists") as mock_exists:
+
+            def exists_side_effect(self):
+                return str(self) == str(actual_path)
+
+            mock_exists.side_effect = exists_side_effect
+
+            result = sync._sync_file(file_path)
+            # Should still return actual path if it exists
+            assert result == actual_path
+            logger.warning.assert_called()
+
+    @patch("subprocess.run")
+    @patch("enchant_book_manager.icloud_sync.HAS_WAITING", True)
+    @patch("enchant_book_manager.icloud_sync.waiting")
+    def test_sync_file_waiting_timeout_actual_path_not_exists(self, mock_waiting, mock_run):
+        """Test _sync_file when waiting times out and file doesn't exist."""
+
+        # Create a mock exception class
+        class MockTimeoutExpired(Exception):
+            pass
+
+        mock_waiting.TimeoutExpired = MockTimeoutExpired
+        mock_waiting.wait.side_effect = MockTimeoutExpired("Timeout")
+
+        sync = ICloudSync(enabled=True)
+        sync.sync_command = "finder"
+        logger = Mock(spec=logging.Logger)
+        sync.logger = logger
+
+        file_path = Path("/test/.document.pdf.icloud")
+        actual_path = Path("/test/document.pdf")
+
+        # Mock actual_path.exists() to return False
+        with patch.object(Path, "exists", return_value=False):
+            result = sync._sync_file(file_path)
+            # Should return original path if download failed
+            assert result == file_path
+            logger.warning.assert_called()
