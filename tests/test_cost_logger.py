@@ -53,7 +53,13 @@ class TestSaveTranslationCostLog:
 
         mock_prepare.return_value = self.output_dir / "translated_Test Novel by Test Author_AI_COSTS.log"
 
-        mock_tracker.get_summary.return_value = {"total_cost": 1.50, "total_tokens": 5000, "total_prompt_tokens": 3000, "total_completion_tokens": 2000, "request_count": 5}
+        mock_tracker.get_summary.return_value = {
+            "total_cost": 1.50,
+            "total_tokens": 5000,
+            "total_prompt_tokens": 3000,
+            "total_completion_tokens": 2000,
+            "request_count": 5,
+        }
 
         # Call function
         save_translation_cost_log(self.book, self.translator, self.output_dir, self.total_chunks, self.logger)
@@ -92,7 +98,13 @@ class TestSaveTranslationCostLog:
         self.translator.is_remote = False
 
         with patch("enchant_book_manager.cost_logger.prepare_for_write") as mock_prepare:
-            save_translation_cost_log(self.book, self.translator, self.output_dir, self.total_chunks, self.logger)
+            save_translation_cost_log(
+                self.book,
+                self.translator,
+                self.output_dir,
+                self.total_chunks,
+                self.logger,
+            )
 
         # Should not prepare or write any file
         mock_prepare.assert_not_called()
@@ -103,7 +115,13 @@ class TestSaveTranslationCostLog:
         self.translator.request_count = 0
 
         with patch("enchant_book_manager.cost_logger.prepare_for_write") as mock_prepare:
-            save_translation_cost_log(self.book, self.translator, self.output_dir, self.total_chunks, self.logger)
+            save_translation_cost_log(
+                self.book,
+                self.translator,
+                self.output_dir,
+                self.total_chunks,
+                self.logger,
+            )
 
         # Should not prepare or write any file
         mock_prepare.assert_not_called()
@@ -135,7 +153,13 @@ class TestSaveTranslationCostLog:
 
         # Call function and expect exception
         with pytest.raises(PermissionError):
-            save_translation_cost_log(self.book, self.translator, self.output_dir, self.total_chunks, self.logger)
+            save_translation_cost_log(
+                self.book,
+                self.translator,
+                self.output_dir,
+                self.total_chunks,
+                self.logger,
+            )
 
         # Verify error was logged
         self.logger.error.assert_called_once()
@@ -189,7 +213,11 @@ class TestSaveTranslationCostLog:
         mock_get_logger.return_value = default_logger
 
         mock_prepare.return_value = self.output_dir / "test.log"
-        mock_tracker.get_summary.return_value = {"total_cost": 1.0, "total_tokens": 1000, "request_count": 1}
+        mock_tracker.get_summary.return_value = {
+            "total_cost": 1.0,
+            "total_tokens": 1000,
+            "request_count": 1,
+        }
 
         # Call without logger
         save_translation_cost_log(
@@ -216,13 +244,18 @@ class TestSaveTranslationCostLog:
         self.book.translated_author = "Author<>Name"
 
         mock_prepare.return_value = self.output_dir / "sanitized_filename.log"
-        mock_tracker.get_summary.return_value = {"total_cost": 1.0, "total_tokens": 1000, "request_count": 1}
+        mock_tracker.get_summary.return_value = {
+            "total_cost": 1.0,
+            "total_tokens": 1000,
+            "request_count": 1,
+        }
 
         # Call function
         save_translation_cost_log(self.book, self.translator, self.output_dir, self.total_chunks, self.logger)
 
-        # Verify prepare_for_write was called with the filename containing special chars
-        expected_path = self.output_dir / "translated_Test: Novel/With\\Special by Author<>Name_AI_COSTS.log"
+        # Verify prepare_for_write was called with sanitized filename
+        # Special characters are replaced with underscores by sanitize_filename
+        expected_path = self.output_dir / "translated_Test_ Novel_With_Special by Author__Name_AI_COSTS.log"
         mock_prepare.assert_called_once_with(expected_path)
 
     @patch("enchant_book_manager.cost_logger.global_cost_tracker")
