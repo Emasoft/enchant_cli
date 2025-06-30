@@ -25,7 +25,10 @@ from test_config import should_skip_test, get_timeout, get_retry_count
 
 
 @pytest.mark.remote
-@pytest.mark.skipif(not os.getenv("OPENROUTER_API_KEY"), reason="OPENROUTER_API_KEY environment variable not set")
+@pytest.mark.skipif(
+    not os.getenv("OPENROUTER_API_KEY"),
+    reason="OPENROUTER_API_KEY environment variable not set",
+)
 @pytest.mark.skipif(should_skip_test("remote"), reason="Skipping remote tests in this profile")
 class TestRemoteAPIIntegration:
     """Test suite for remote API integration with OpenRouter"""
@@ -121,7 +124,10 @@ class TestRemoteAPIIntegration:
 
                 # Create test Chinese novel file
                 novel_file = temp_path / "测试小说.txt"
-                novel_file.write_text("第一章 开始\n\n这是一个测试。\n\n第二章 继续\n\n故事继续发展。", encoding="utf-8")
+                novel_file.write_text(
+                    "第一章 开始\n\n这是一个测试。\n\n第二章 继续\n\n故事继续发展。",
+                    encoding="utf-8",
+                )
 
                 # Mock args for orchestration
                 from unittest.mock import Mock
@@ -208,7 +214,10 @@ class TestRemoteAPIIntegration:
 
 
 @pytest.mark.remote
-@pytest.mark.skipif(not os.getenv("OPENROUTER_API_KEY"), reason="OPENROUTER_API_KEY environment variable not set")
+@pytest.mark.skipif(
+    not os.getenv("OPENROUTER_API_KEY"),
+    reason="OPENROUTER_API_KEY environment variable not set",
+)
 class TestRemoteAPIPerformance:
     """Performance tests for remote API"""
 
@@ -249,7 +258,11 @@ class TestRemoteAPIPerformance:
 
         # Create threads for concurrent requests
         threads = []
-        test_texts = ["这是第一个并发测试。", "这是第二个并发测试。", "这是第三个并发测试。"]
+        test_texts = [
+            "这是第一个并发测试。",
+            "这是第二个并发测试。",
+            "这是第三个并发测试。",
+        ]
 
         for i, text in enumerate(test_texts):
             thread = threading.Thread(target=translate_text, args=(text, i))

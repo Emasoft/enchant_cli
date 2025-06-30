@@ -33,7 +33,11 @@ except ImportError:
     DB_OPTIMIZED = False
 
 
-def split_text_db(text: str, detect_headings: bool, log_issue_func: Optional[Callable[[str], None]] = None) -> tuple[list[tuple[str, str]], list[int]]:
+def split_text_db(
+    text: str,
+    detect_headings: bool,
+    log_issue_func: Optional[Callable[[str], None]] = None,
+) -> tuple[list[tuple[str, str]], list[int]]:
     """
     Database-optimized version for fast chapter parsing.
     Uses SQLite with indexes for efficient processing of large files.

@@ -43,7 +43,14 @@ class TestProcessNovelUnified:
     @patch("enchant_book_manager.workflow_orchestrator.process_renaming_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_translation_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_epub_phase")
-    def test_process_novel_all_phases_success(self, mock_epub, mock_translation, mock_renaming, mock_create_progress, mock_get_progress_path):
+    def test_process_novel_all_phases_success(
+        self,
+        mock_epub,
+        mock_translation,
+        mock_renaming,
+        mock_create_progress,
+        mock_get_progress_path,
+    ):
         """Test successful processing through all phases."""
         # Mock progress file path
         mock_progress_file = MagicMock()
@@ -51,7 +58,13 @@ class TestProcessNovelUnified:
         mock_get_progress_path.return_value = mock_progress_file
 
         # Mock initial progress
-        initial_progress = {"phases": {"renaming": {"status": "pending", "result": None}, "translation": {"status": "pending", "result": None}, "epub": {"status": "pending", "result": None}}}
+        initial_progress = {
+            "phases": {
+                "renaming": {"status": "pending", "result": None},
+                "translation": {"status": "pending", "result": None},
+                "epub": {"status": "pending", "result": None},
+            }
+        }
         mock_create_progress.return_value = initial_progress
 
         # Mock phase results - simulate successful completion
@@ -62,7 +75,14 @@ class TestProcessNovelUnified:
         result = process_novel_unified(self.file_path, self.args, self.logger)
 
         # Verify all phases were called
-        mock_renaming.assert_called_once_with(self.file_path, self.file_path, self.args, initial_progress, mock_progress_file, self.logger)
+        mock_renaming.assert_called_once_with(
+            self.file_path,
+            self.file_path,
+            self.args,
+            initial_progress,
+            mock_progress_file,
+            self.logger,
+        )
         mock_translation.assert_called_once_with(renamed_path, self.args, initial_progress, mock_progress_file, self.logger)
         mock_epub.assert_called_once_with(renamed_path, self.args, initial_progress, mock_progress_file, self.logger)
 
@@ -75,7 +95,15 @@ class TestProcessNovelUnified:
     @patch("enchant_book_manager.workflow_orchestrator.process_renaming_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_translation_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_epub_phase")
-    def test_process_novel_resume_mode(self, mock_epub, mock_translation, mock_renaming, mock_create_progress, mock_load_yaml, mock_get_progress_path):
+    def test_process_novel_resume_mode(
+        self,
+        mock_epub,
+        mock_translation,
+        mock_renaming,
+        mock_create_progress,
+        mock_load_yaml,
+        mock_get_progress_path,
+    ):
         """Test resuming from existing progress."""
         # Enable resume mode
         self.args.resume = True
@@ -87,7 +115,13 @@ class TestProcessNovelUnified:
 
         # Mock existing progress - renaming already completed
         renamed_path = "/test/renamed_novel.txt"
-        existing_progress = {"phases": {"renaming": {"status": "completed", "result": renamed_path}, "translation": {"status": "pending", "result": None}, "epub": {"status": "pending", "result": None}}}
+        existing_progress = {
+            "phases": {
+                "renaming": {"status": "completed", "result": renamed_path},
+                "translation": {"status": "pending", "result": None},
+                "epub": {"status": "pending", "result": None},
+            }
+        }
         mock_load_yaml.return_value = existing_progress
 
         # Mock renamed file exists
@@ -114,7 +148,14 @@ class TestProcessNovelUnified:
     @patch("enchant_book_manager.workflow_orchestrator.process_renaming_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_translation_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_epub_phase")
-    def test_process_novel_skip_renaming(self, mock_epub, mock_translation, mock_renaming, mock_create_progress, mock_get_progress_path):
+    def test_process_novel_skip_renaming(
+        self,
+        mock_epub,
+        mock_translation,
+        mock_renaming,
+        mock_create_progress,
+        mock_get_progress_path,
+    ):
         """Test skipping the renaming phase."""
         # Skip renaming
         self.args.skip_renaming = True
@@ -125,7 +166,13 @@ class TestProcessNovelUnified:
         mock_get_progress_path.return_value = mock_progress_file
 
         # Mock initial progress
-        initial_progress = {"phases": {"renaming": {"status": "pending", "result": None}, "translation": {"status": "pending", "result": None}, "epub": {"status": "pending", "result": None}}}
+        initial_progress = {
+            "phases": {
+                "renaming": {"status": "pending", "result": None},
+                "translation": {"status": "pending", "result": None},
+                "epub": {"status": "pending", "result": None},
+            }
+        }
         mock_create_progress.return_value = initial_progress
 
         # Mock renaming returns original path (no renaming)
@@ -145,7 +192,14 @@ class TestProcessNovelUnified:
     @patch("enchant_book_manager.workflow_orchestrator.process_renaming_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_translation_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_epub_phase")
-    def test_process_novel_all_phases_completed_cleanup(self, mock_epub, mock_translation, mock_renaming, mock_create_progress, mock_get_progress_path):
+    def test_process_novel_all_phases_completed_cleanup(
+        self,
+        mock_epub,
+        mock_translation,
+        mock_renaming,
+        mock_create_progress,
+        mock_get_progress_path,
+    ):
         """Test progress file cleanup when all phases complete."""
         # Mock progress file path
         mock_progress_file = MagicMock()
@@ -153,7 +207,16 @@ class TestProcessNovelUnified:
         mock_get_progress_path.return_value = mock_progress_file
 
         # Mock initial progress that will be updated to completed
-        progress = {"phases": {"renaming": {"status": "completed", "result": "/test/renamed.txt"}, "translation": {"status": "completed", "result": "/test/translated.txt"}, "epub": {"status": "completed", "result": "/test/book.epub"}}}
+        progress = {
+            "phases": {
+                "renaming": {"status": "completed", "result": "/test/renamed.txt"},
+                "translation": {
+                    "status": "completed",
+                    "result": "/test/translated.txt",
+                },
+                "epub": {"status": "completed", "result": "/test/book.epub"},
+            }
+        }
         mock_create_progress.return_value = progress
 
         # Mock phase results
@@ -174,7 +237,14 @@ class TestProcessNovelUnified:
     @patch("enchant_book_manager.workflow_orchestrator.process_renaming_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_translation_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_epub_phase")
-    def test_process_novel_cleanup_permission_error(self, mock_epub, mock_translation, mock_renaming, mock_create_progress, mock_get_progress_path):
+    def test_process_novel_cleanup_permission_error(
+        self,
+        mock_epub,
+        mock_translation,
+        mock_renaming,
+        mock_create_progress,
+        mock_get_progress_path,
+    ):
         """Test handling permission error during progress file cleanup."""
         # Mock progress file path
         mock_progress_file = MagicMock()
@@ -183,7 +253,16 @@ class TestProcessNovelUnified:
         mock_get_progress_path.return_value = mock_progress_file
 
         # Mock progress with all phases completed
-        progress = {"phases": {"renaming": {"status": "completed", "result": "/test/renamed.txt"}, "translation": {"status": "completed", "result": "/test/translated.txt"}, "epub": {"status": "completed", "result": "/test/book.epub"}}}
+        progress = {
+            "phases": {
+                "renaming": {"status": "completed", "result": "/test/renamed.txt"},
+                "translation": {
+                    "status": "completed",
+                    "result": "/test/translated.txt",
+                },
+                "epub": {"status": "completed", "result": "/test/book.epub"},
+            }
+        }
         mock_create_progress.return_value = progress
 
         # Mock phase results
@@ -203,7 +282,14 @@ class TestProcessNovelUnified:
     @patch("enchant_book_manager.workflow_orchestrator.process_renaming_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_translation_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_epub_phase")
-    def test_process_novel_mixed_status(self, mock_epub, mock_translation, mock_renaming, mock_create_progress, mock_get_progress_path):
+    def test_process_novel_mixed_status(
+        self,
+        mock_epub,
+        mock_translation,
+        mock_renaming,
+        mock_create_progress,
+        mock_get_progress_path,
+    ):
         """Test with mixed phase statuses (some completed, some skipped)."""
         # Mock progress file path
         mock_progress_file = MagicMock()
@@ -211,7 +297,16 @@ class TestProcessNovelUnified:
         mock_get_progress_path.return_value = mock_progress_file
 
         # Mock progress with mixed statuses
-        progress = {"phases": {"renaming": {"status": "skipped", "result": None}, "translation": {"status": "completed", "result": "/test/translated.txt"}, "epub": {"status": "skipped", "result": None}}}
+        progress = {
+            "phases": {
+                "renaming": {"status": "skipped", "result": None},
+                "translation": {
+                    "status": "completed",
+                    "result": "/test/translated.txt",
+                },
+                "epub": {"status": "skipped", "result": None},
+            }
+        }
         mock_create_progress.return_value = progress
 
         # Mock phase results
@@ -229,7 +324,15 @@ class TestProcessNovelUnified:
     @patch("enchant_book_manager.workflow_orchestrator.process_renaming_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_translation_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_epub_phase")
-    def test_process_novel_resume_renamed_file_missing(self, mock_epub, mock_translation, mock_renaming, mock_create_progress, mock_load_yaml, mock_get_progress_path):
+    def test_process_novel_resume_renamed_file_missing(
+        self,
+        mock_epub,
+        mock_translation,
+        mock_renaming,
+        mock_create_progress,
+        mock_load_yaml,
+        mock_get_progress_path,
+    ):
         """Test resuming when renamed file no longer exists."""
         # Enable resume mode
         self.args.resume = True
@@ -241,7 +344,13 @@ class TestProcessNovelUnified:
 
         # Mock existing progress - renaming completed but file missing
         renamed_path = "/test/renamed_novel.txt"
-        existing_progress = {"phases": {"renaming": {"status": "completed", "result": renamed_path}, "translation": {"status": "pending", "result": None}, "epub": {"status": "pending", "result": None}}}
+        existing_progress = {
+            "phases": {
+                "renaming": {"status": "completed", "result": renamed_path},
+                "translation": {"status": "pending", "result": None},
+                "epub": {"status": "pending", "result": None},
+            }
+        }
         mock_load_yaml.return_value = existing_progress
 
         # Mock renamed file does not exist
@@ -257,7 +366,13 @@ class TestProcessNovelUnified:
             result = process_novel_unified(self.file_path, self.args, self.logger)
 
             # Verify it fell back to original path
-            mock_translation.assert_called_once_with(self.file_path, self.args, existing_progress, mock_progress_file, self.logger)
+            mock_translation.assert_called_once_with(
+                self.file_path,
+                self.args,
+                existing_progress,
+                mock_progress_file,
+                self.logger,
+            )
 
     @patch("enchant_book_manager.workflow_orchestrator.get_progress_file_path")
     @patch("enchant_book_manager.workflow_orchestrator.load_safe_yaml_wrapper")
@@ -265,7 +380,15 @@ class TestProcessNovelUnified:
     @patch("enchant_book_manager.workflow_orchestrator.process_renaming_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_translation_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_epub_phase")
-    def test_process_novel_resume_with_null_progress(self, mock_epub, mock_translation, mock_renaming, mock_create_progress, mock_load_yaml, mock_get_progress_path):
+    def test_process_novel_resume_with_null_progress(
+        self,
+        mock_epub,
+        mock_translation,
+        mock_renaming,
+        mock_create_progress,
+        mock_load_yaml,
+        mock_get_progress_path,
+    ):
         """Test resuming when yaml load returns None."""
         # Enable resume mode
         self.args.resume = True
@@ -279,7 +402,13 @@ class TestProcessNovelUnified:
         mock_load_yaml.return_value = None
 
         # Mock initial progress
-        initial_progress = {"phases": {"renaming": {"status": "pending", "result": None}, "translation": {"status": "pending", "result": None}, "epub": {"status": "pending", "result": None}}}
+        initial_progress = {
+            "phases": {
+                "renaming": {"status": "pending", "result": None},
+                "translation": {"status": "pending", "result": None},
+                "epub": {"status": "pending", "result": None},
+            }
+        }
         mock_create_progress.return_value = initial_progress
 
         # Mock phase results
@@ -292,14 +421,28 @@ class TestProcessNovelUnified:
         mock_create_progress.assert_called_once_with(self.file_path)
 
         # Verify phases were called with initial progress
-        mock_renaming.assert_called_once_with(self.file_path, self.file_path, self.args, initial_progress, mock_progress_file, self.logger)
+        mock_renaming.assert_called_once_with(
+            self.file_path,
+            self.file_path,
+            self.args,
+            initial_progress,
+            mock_progress_file,
+            self.logger,
+        )
 
     @patch("enchant_book_manager.workflow_orchestrator.get_progress_file_path")
     @patch("enchant_book_manager.workflow_orchestrator.create_initial_progress")
     @patch("enchant_book_manager.workflow_orchestrator.process_renaming_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_translation_phase")
     @patch("enchant_book_manager.workflow_orchestrator.process_epub_phase")
-    def test_process_novel_with_translated_option(self, mock_epub, mock_translation, mock_renaming, mock_create_progress, mock_get_progress_path):
+    def test_process_novel_with_translated_option(
+        self,
+        mock_epub,
+        mock_translation,
+        mock_renaming,
+        mock_create_progress,
+        mock_get_progress_path,
+    ):
         """Test processing with --translated option."""
         # Set translated option
         self.args.translated = "/test/already_translated.txt"
@@ -310,7 +453,13 @@ class TestProcessNovelUnified:
         mock_get_progress_path.return_value = mock_progress_file
 
         # Mock initial progress
-        initial_progress = {"phases": {"renaming": {"status": "pending", "result": None}, "translation": {"status": "pending", "result": None}, "epub": {"status": "pending", "result": None}}}
+        initial_progress = {
+            "phases": {
+                "renaming": {"status": "pending", "result": None},
+                "translation": {"status": "pending", "result": None},
+                "epub": {"status": "pending", "result": None},
+            }
+        }
         mock_create_progress.return_value = initial_progress
 
         # Mock phase results

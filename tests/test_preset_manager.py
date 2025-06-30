@@ -92,7 +92,13 @@ class TestPresetManager:
         }
 
         # All these should be valid
-        for preset_name in ["LOCAL", "REMOTE_API", "Custom123", "test_preset", "_private"]:
+        for preset_name in [
+            "LOCAL",
+            "REMOTE_API",
+            "Custom123",
+            "test_preset",
+            "_private",
+        ]:
             result = manager.apply_preset(preset_name, config)
             assert result is True
             assert manager.active_preset == preset_name

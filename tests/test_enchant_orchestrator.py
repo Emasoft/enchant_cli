@@ -218,7 +218,16 @@ class TestEnChANTOrchestrator:
             # Set required attributes
             mock_translator.is_remote = False
             mock_translator.request_count = 0
-            mock_translator.get_cost_summary.return_value = {"model": "test-model", "api_type": "local", "request_count": 0, "total_cost": 0.0, "total_tokens": 0, "total_prompt_tokens": 0, "total_completion_tokens": 0, "average_cost_per_request": 0.0}
+            mock_translator.get_cost_summary.return_value = {
+                "model": "test-model",
+                "api_type": "local",
+                "request_count": 0,
+                "total_cost": 0.0,
+                "total_tokens": 0,
+                "total_prompt_tokens": 0,
+                "total_completion_tokens": 0,
+                "average_cost_per_request": 0.0,
+            }
             mock_translator_class.return_value = mock_translator
 
             # Test translation
@@ -342,7 +351,10 @@ class TestEnChANTOrchestrator:
 
         # Create a mock translate_novel function that creates expected output
         def mock_translate_novel(input_file, **kwargs):
-            from enchant_book_manager.common_utils import sanitize_filename, extract_book_info_from_path
+            from enchant_book_manager.common_utils import (
+                sanitize_filename,
+                extract_book_info_from_path,
+            )
 
             # Get the renamed file path
             input_path = Path(input_file)
@@ -439,7 +451,10 @@ class TestEnChANTOrchestrator:
         args.validate_only = False
 
         def mock_translate_with_skip_rename(input_file, **kwargs):
-            from enchant_book_manager.common_utils import sanitize_filename, extract_book_info_from_path
+            from enchant_book_manager.common_utils import (
+                sanitize_filename,
+                extract_book_info_from_path,
+            )
 
             # When renaming is skipped, the system uses the original filename for directory
             input_path = Path(input_file)
@@ -458,7 +473,10 @@ class TestEnChANTOrchestrator:
             chapter_file.write_text("Chapter 1\n\nTranslated content.", encoding="utf-8")
             return True
 
-        with patch("enchant_book_manager.workflow_phases.translate_novel", side_effect=mock_translate_with_skip_rename):
+        with patch(
+            "enchant_book_manager.workflow_phases.translate_novel",
+            side_effect=mock_translate_with_skip_rename,
+        ):
             success = process_novel_unified(chinese_test_novel, args, logger)
 
             # Should proceed with original filename
@@ -543,7 +561,10 @@ class TestEnChANTOrchestrator:
 
         with (
             patch("enchant_book_manager.rename_api_client.RenameAPIClient.make_request") as mock_openai_request,
-            patch("enchant_book_manager.workflow_phases.translate_novel", side_effect=mock_translate_novel),
+            patch(
+                "enchant_book_manager.workflow_phases.translate_novel",
+                side_effect=mock_translate_novel,
+            ),
         ):
             mock_openai_request.return_value = mock_openai_response
 
@@ -613,7 +634,10 @@ class TestEnChANTOrchestrator:
             chapter_file.write_text("Chapter 1\n\nTranslated content.", encoding="utf-8")
             return True
 
-        with patch("enchant_book_manager.workflow_phases.translate_novel", side_effect=mock_translate_novel):
+        with patch(
+            "enchant_book_manager.workflow_phases.translate_novel",
+            side_effect=mock_translate_novel,
+        ):
             success = process_novel_unified(chinese_test_novel, args, logger)
 
             # Should skip completed renaming phase

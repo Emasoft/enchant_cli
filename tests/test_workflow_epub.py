@@ -46,7 +46,10 @@ class TestFindTranslatedFile:
         # Don't set args.translated
 
         with patch("enchant_book_manager.workflow_epub.extract_book_info_from_path") as mock_extract:
-            mock_extract.return_value = {"title_english": "Test Novel", "author_english": "Test Author"}
+            mock_extract.return_value = {
+                "title_english": "Test Novel",
+                "author_english": "Test Author",
+            }
 
             result = find_translated_file(self.current_path, self.args, self.logger)
 
@@ -60,7 +63,10 @@ class TestFindTranslatedFile:
         self.current_path = tmp_path / "Novel by Author.txt"
         self.current_path.write_text("content")
 
-        mock_extract.return_value = {"title_english": "Novel", "author_english": "Author"}
+        mock_extract.return_value = {
+            "title_english": "Novel",
+            "author_english": "Author",
+        }
 
         # Create expected directory structure
         book_dir = tmp_path / "Novel by Author"
@@ -78,7 +84,10 @@ class TestFindTranslatedFile:
         self.current_path = tmp_path / "novel.txt"
         self.current_path.write_text("content")
 
-        mock_extract.return_value = {"title_english": "Novel", "author_english": "Author"}
+        mock_extract.return_value = {
+            "title_english": "Novel",
+            "author_english": "Author",
+        }
 
         # Don't create the expected directory
         result = find_translated_file(self.current_path, self.args, self.logger)
@@ -91,7 +100,10 @@ class TestFindTranslatedFile:
         self.current_path = tmp_path / "novel.txt"
         self.current_path.write_text("content")
 
-        mock_extract.return_value = {"title_english": "Novel", "author_english": "Author"}
+        mock_extract.return_value = {
+            "title_english": "Novel",
+            "author_english": "Author",
+        }
 
         # Create directory but not the translated file
         book_dir = tmp_path / "Novel by Author"
@@ -143,7 +155,16 @@ class TestCreateEpubFromTranslated:
         mock_get_config.return_value = {"language": "en", "generate_toc": True}
         mock_create.return_value = (True, [])
 
-        result = create_epub_from_translated(self.translated_file, self.current_path, self.book_title, self.book_author, self.book_info, self.args, self.progress, self.logger)
+        result = create_epub_from_translated(
+            self.translated_file,
+            self.current_path,
+            self.book_title,
+            self.book_author,
+            self.book_info,
+            self.args,
+            self.progress,
+            self.logger,
+        )
 
         assert result is True
         # Use Path to handle platform differences
@@ -166,7 +187,16 @@ class TestCreateEpubFromTranslated:
         mock_get_config.return_value = {}
         mock_create.return_value = (True, ["Warning 1", "Warning 2"])
 
-        result = create_epub_from_translated(self.translated_file, self.current_path, self.book_title, self.book_author, self.book_info, self.args, self.progress, self.logger)
+        result = create_epub_from_translated(
+            self.translated_file,
+            self.current_path,
+            self.book_title,
+            self.book_author,
+            self.book_info,
+            self.args,
+            self.progress,
+            self.logger,
+        )
 
         assert result is True
         # Use Path to handle platform differences
@@ -183,7 +213,16 @@ class TestCreateEpubFromTranslated:
         mock_get_config.return_value = {}
         mock_create.return_value = (False, ["Error 1", "Error 2", "Error 3", "Error 4"])
 
-        result = create_epub_from_translated(self.translated_file, self.current_path, self.book_title, self.book_author, self.book_info, self.args, self.progress, self.logger)
+        result = create_epub_from_translated(
+            self.translated_file,
+            self.current_path,
+            self.book_title,
+            self.book_author,
+            self.book_info,
+            self.args,
+            self.progress,
+            self.logger,
+        )
 
         assert result is False
         assert "EPUB creation failed" in self.progress["phases"]["epub"]["error"]
@@ -200,7 +239,16 @@ class TestCreateEpubFromTranslated:
         mock_get_config.return_value = {}
         mock_validate.return_value = True
 
-        result = create_epub_from_translated(self.translated_file, self.current_path, self.book_title, self.book_author, self.book_info, self.args, self.progress, self.logger)
+        result = create_epub_from_translated(
+            self.translated_file,
+            self.current_path,
+            self.book_title,
+            self.book_author,
+            self.book_info,
+            self.args,
+            self.progress,
+            self.logger,
+        )
 
         assert result is True
         mock_validate.assert_called_once()
@@ -216,7 +264,16 @@ class TestCreateEpubFromTranslated:
         mock_get_config.return_value = {}
         mock_create.return_value = (True, [])
 
-        result = create_epub_from_translated(self.translated_file, self.current_path, self.book_title, self.book_author, self.book_info, self.args, self.progress, self.logger)
+        result = create_epub_from_translated(
+            self.translated_file,
+            self.current_path,
+            self.book_title,
+            self.book_author,
+            self.book_info,
+            self.args,
+            self.progress,
+            self.logger,
+        )
 
         assert result is True
         # Verify apply_epub_overrides was called
@@ -229,7 +286,12 @@ class TestApplyEpubOverrides:
 
     def setup_method(self):
         """Set up test fixtures."""
-        self.epub_config = {"language": "en", "generate_toc": True, "validate_chapters": True, "strict_mode": False}
+        self.epub_config = {
+            "language": "en",
+            "generate_toc": True,
+            "validate_chapters": True,
+            "strict_mode": False,
+        }
         self.args = argparse.Namespace()
         self.logger = logging.getLogger("test")
 
@@ -350,7 +412,11 @@ class TestValidateEpubOnly:
         self.epub_path = Path("/test/book.epub")
         self.book_title = "Test Book"
         self.book_author = "Test Author"
-        self.epub_config = {"language": "en", "generate_toc": True, "strict_mode": False}
+        self.epub_config = {
+            "language": "en",
+            "generate_toc": True,
+            "strict_mode": False,
+        }
         self.progress = {"phases": {"epub": {}}}
         self.logger = logging.getLogger("test")
 
@@ -359,7 +425,15 @@ class TestValidateEpubOnly:
         """Test validation with no issues."""
         mock_create.return_value = (True, [])
 
-        result = validate_epub_only(self.translated_file, self.epub_path, self.book_title, self.book_author, self.epub_config, self.progress, self.logger)
+        result = validate_epub_only(
+            self.translated_file,
+            self.epub_path,
+            self.book_title,
+            self.book_author,
+            self.epub_config,
+            self.progress,
+            self.logger,
+        )
 
         assert result is True
         assert self.progress["phases"]["epub"]["status"] == "skipped"
@@ -375,7 +449,15 @@ class TestValidateEpubOnly:
         """Test validation with issues."""
         mock_create.return_value = (False, ["Issue 1", "Issue 2"])
 
-        result = validate_epub_only(self.translated_file, self.epub_path, self.book_title, self.book_author, self.epub_config, self.progress, self.logger)
+        result = validate_epub_only(
+            self.translated_file,
+            self.epub_path,
+            self.book_title,
+            self.book_author,
+            self.epub_config,
+            self.progress,
+            self.logger,
+        )
 
         assert result is False
         assert self.progress["phases"]["epub"]["status"] == "skipped"
@@ -390,7 +472,15 @@ class TestValidateEpubOnly:
         self.epub_config["custom_css"] = "body { color: red; }"
         self.epub_config["metadata"] = {"publisher": "Test"}
 
-        result = validate_epub_only(self.translated_file, self.epub_path, self.book_title, self.book_author, self.epub_config, self.progress, self.logger)
+        result = validate_epub_only(
+            self.translated_file,
+            self.epub_path,
+            self.book_title,
+            self.book_author,
+            self.epub_config,
+            self.progress,
+            self.logger,
+        )
 
         assert result is True
 
@@ -426,7 +516,10 @@ class TestProcessEpubGeneration:
         translated_file.exists.return_value = True
         mock_find.return_value = translated_file
 
-        mock_extract.return_value = {"title_english": "Novel", "author_english": "Author"}
+        mock_extract.return_value = {
+            "title_english": "Novel",
+            "author_english": "Author",
+        }
         mock_create.return_value = True
 
         result = process_epub_generation(self.current_path, self.args, self.progress, self.logger)
@@ -467,7 +560,10 @@ class TestProcessEpubGeneration:
         translated_file.exists.return_value = True
         mock_find.return_value = translated_file
 
-        mock_extract.return_value = {"title_english": "Original Title", "author_english": "Original Author"}
+        mock_extract.return_value = {
+            "title_english": "Original Title",
+            "author_english": "Original Author",
+        }
         mock_create.return_value = True
 
         # Set overrides
@@ -494,7 +590,10 @@ class TestProcessEpubGeneration:
         translated_file.exists.return_value = True
         mock_find.return_value = translated_file
 
-        mock_extract.return_value = {"title_english": "Novel", "author_english": "Author"}
+        mock_extract.return_value = {
+            "title_english": "Novel",
+            "author_english": "Author",
+        }
         mock_create.return_value = True
 
         result = process_epub_generation(self.current_path, self.args, self.progress, self.logger)
@@ -535,7 +634,10 @@ class TestProcessEpubGeneration:
         translated_file.exists.return_value = True
         mock_find.return_value = translated_file
 
-        mock_extract.return_value = {"title_english": "Novel", "author_english": "Author"}
+        mock_extract.return_value = {
+            "title_english": "Novel",
+            "author_english": "Author",
+        }
         mock_create.return_value = False
 
         result = process_epub_generation(self.current_path, self.args, self.progress, self.logger)

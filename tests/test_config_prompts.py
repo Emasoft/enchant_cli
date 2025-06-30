@@ -120,7 +120,16 @@ class TestConfigPrompts:
         public_attrs = [attr for attr in dir(config_prompts) if not attr.startswith("_")]
 
         # Remove module metadata
-        module_metadata = ["__builtins__", "__cached__", "__doc__", "__file__", "__loader__", "__name__", "__package__", "__spec__"]
+        module_metadata = [
+            "__builtins__",
+            "__cached__",
+            "__doc__",
+            "__file__",
+            "__loader__",
+            "__name__",
+            "__package__",
+            "__spec__",
+        ]
         for meta in module_metadata:
             if meta in public_attrs:
                 public_attrs.remove(meta)

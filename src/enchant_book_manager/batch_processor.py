@@ -146,7 +146,13 @@ def process_batch(
             try:
                 logger.info(f"Processing: {Path(item['path']).name}")
                 book_id = import_book_from_txt(item["path"], encoding=encoding, max_chars=max_chars, logger=logger)
-                save_translated_book(book_id, translator, resume=resume, create_epub=create_epub, logger=logger)
+                save_translated_book(
+                    book_id,
+                    translator,
+                    resume=resume,
+                    create_epub=create_epub,
+                    logger=logger,
+                )
                 item["status"] = "completed"
             except Exception as e:
                 logger.error(f"Failed to translate {item['path']}: {str(e)}")

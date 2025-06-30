@@ -13,7 +13,12 @@ import logging
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from enchant_book_manager.enchant_cli import main, APP_NAME, APP_VERSION, MIN_PYTHON_VERSION_REQUIRED
+from enchant_book_manager.enchant_cli import (
+    main,
+    APP_NAME,
+    APP_VERSION,
+    MIN_PYTHON_VERSION_REQUIRED,
+)
 
 
 class TestEnchantCliMain:
@@ -30,7 +35,20 @@ class TestEnchantCliMain:
     @patch("enchant_book_manager.enchant_cli.Path")
     @patch("enchant_book_manager.enchant_cli.safe_print")
     @patch("enchant_book_manager.enchant_cli.sys.exit")
-    def test_main_single_file_success(self, mock_exit, mock_print, mock_path_class, mock_process_novel, mock_validate_args, mock_create_parser, mock_setup_config, mock_setup_logging, mock_setup_global, mock_check_colorama, mock_signal_handler):
+    def test_main_single_file_success(
+        self,
+        mock_exit,
+        mock_print,
+        mock_path_class,
+        mock_process_novel,
+        mock_validate_args,
+        mock_create_parser,
+        mock_setup_config,
+        mock_setup_logging,
+        mock_setup_global,
+        mock_check_colorama,
+        mock_signal_handler,
+    ):
         """Test successful single file processing."""
         # Mock configuration
         mock_config_manager = Mock()
@@ -88,7 +106,19 @@ class TestEnchantCliMain:
     @patch("enchant_book_manager.enchant_cli.process_novel_unified")
     @patch("enchant_book_manager.enchant_cli.Path")
     @patch("enchant_book_manager.enchant_cli.safe_print")
-    def test_main_file_not_found(self, mock_print, mock_path_class, mock_process_novel, mock_validate_args, mock_create_parser, mock_setup_config, mock_setup_logging, mock_setup_global, mock_check_colorama, mock_signal_handler):
+    def test_main_file_not_found(
+        self,
+        mock_print,
+        mock_path_class,
+        mock_process_novel,
+        mock_validate_args,
+        mock_create_parser,
+        mock_setup_config,
+        mock_setup_logging,
+        mock_setup_global,
+        mock_check_colorama,
+        mock_signal_handler,
+    ):
         """Test handling of non-existent file."""
         # Mock configuration
         mock_config_manager = Mock()
@@ -138,7 +168,18 @@ class TestEnchantCliMain:
     @patch("enchant_book_manager.enchant_cli.validate_args")
     @patch("enchant_book_manager.enchant_cli.process_batch")
     @patch("enchant_book_manager.enchant_cli.safe_print")
-    def test_main_batch_mode(self, mock_print, mock_process_batch, mock_validate_args, mock_create_parser, mock_setup_config, mock_setup_logging, mock_setup_global, mock_check_colorama, mock_signal_handler):
+    def test_main_batch_mode(
+        self,
+        mock_print,
+        mock_process_batch,
+        mock_validate_args,
+        mock_create_parser,
+        mock_setup_config,
+        mock_setup_logging,
+        mock_setup_global,
+        mock_check_colorama,
+        mock_signal_handler,
+    ):
         """Test batch mode processing."""
         # Mock configuration
         mock_config_manager = Mock()
@@ -176,7 +217,20 @@ class TestEnchantCliMain:
     @patch("enchant_book_manager.enchant_cli.Path")
     @patch("enchant_book_manager.enchant_cli.safe_print")
     @patch("enchant_book_manager.enchant_cli.sys.exit")
-    def test_main_with_translated_option(self, mock_exit, mock_print, mock_path_class, mock_process_novel, mock_validate_args, mock_create_parser, mock_setup_config, mock_setup_logging, mock_setup_global, mock_check_colorama, mock_signal_handler):
+    def test_main_with_translated_option(
+        self,
+        mock_exit,
+        mock_print,
+        mock_path_class,
+        mock_process_novel,
+        mock_validate_args,
+        mock_create_parser,
+        mock_setup_config,
+        mock_setup_logging,
+        mock_setup_global,
+        mock_check_colorama,
+        mock_signal_handler,
+    ):
         """Test processing with --translated option."""
         # Mock configuration
         mock_config_manager = Mock()
@@ -227,7 +281,20 @@ class TestEnchantCliMain:
     @patch("enchant_book_manager.enchant_cli.Path")
     @patch("enchant_book_manager.enchant_cli.safe_print")
     @patch("enchant_book_manager.enchant_cli.sys.exit")
-    def test_main_processing_failure(self, mock_exit, mock_print, mock_path_class, mock_process_novel, mock_validate_args, mock_create_parser, mock_setup_config, mock_setup_logging, mock_setup_global, mock_check_colorama, mock_signal_handler):
+    def test_main_processing_failure(
+        self,
+        mock_exit,
+        mock_print,
+        mock_path_class,
+        mock_process_novel,
+        mock_validate_args,
+        mock_create_parser,
+        mock_setup_config,
+        mock_setup_logging,
+        mock_setup_global,
+        mock_check_colorama,
+        mock_signal_handler,
+    ):
         """Test handling of processing failure."""
         # Mock configuration
         mock_config_manager = Mock()
@@ -274,7 +341,20 @@ class TestEnchantCliMain:
     @patch("enchant_book_manager.enchant_cli.Path")
     @patch("enchant_book_manager.enchant_cli.safe_print")
     @patch("enchant_book_manager.enchant_cli.sys.exit")
-    def test_main_exception_handling(self, mock_exit, mock_print, mock_path_class, mock_process_novel, mock_validate_args, mock_create_parser, mock_setup_config, mock_setup_logging, mock_setup_global, mock_check_colorama, mock_signal_handler):
+    def test_main_exception_handling(
+        self,
+        mock_exit,
+        mock_print,
+        mock_path_class,
+        mock_process_novel,
+        mock_validate_args,
+        mock_create_parser,
+        mock_setup_config,
+        mock_setup_logging,
+        mock_setup_global,
+        mock_check_colorama,
+        mock_signal_handler,
+    ):
         """Test handling of exceptions during processing."""
         # Mock configuration
         mock_config_manager = Mock()

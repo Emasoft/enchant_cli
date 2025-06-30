@@ -50,7 +50,10 @@ class TestUnifiedAPIConfiguration(unittest.TestCase):
         translator = ChineseAITranslator(use_remote=True, api_key="test_key")
 
         # Verify the API client uses OpenRouter endpoint
-        self.assertEqual(translator.api_client.api_url, "https://openrouter.ai/api/v1/chat/completions")
+        self.assertEqual(
+            translator.api_client.api_url,
+            "https://openrouter.ai/api/v1/chat/completions",
+        )
 
     def test_model_name_mapping(self):
         """Test that OpenAI model names are mapped correctly"""

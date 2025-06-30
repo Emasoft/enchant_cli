@@ -36,7 +36,12 @@ class TestTranslationAPIClient:
 
     def test_init(self):
         """Test initialization of TranslationAPIClient."""
-        client = TranslationAPIClient(api_url="http://test.com", model_name="test-model", timeout=(10, 20), logger=print)
+        client = TranslationAPIClient(
+            api_url="http://test.com",
+            model_name="test-model",
+            timeout=(10, 20),
+            logger=print,
+        )
         assert client.api_url == "http://test.com"
         assert client.model_name == "test-model"
         assert client.timeout == (10, 20)
@@ -69,7 +74,11 @@ class TestTranslationAPIClient:
                 return None, {}
 
         client = TestClient("http://test.com", "test-model")
-        result = client.make_request(messages=[{"role": "user", "content": "test"}], temperature=0.5, max_tokens=100)
+        result = client.make_request(
+            messages=[{"role": "user", "content": "test"}],
+            temperature=0.5,
+            max_tokens=100,
+        )
 
         assert result == "translated"
         mock_post.assert_called_once()
@@ -162,7 +171,10 @@ class TestLocalAPIClient:
     def test_prepare_request(self):
         """Test request data preparation for local API."""
         client = LocalAPIClient("test-model")
-        messages = [{"role": "system", "content": "You are a translator"}, {"role": "user", "content": "test"}]
+        messages = [
+            {"role": "system", "content": "You are a translator"},
+            {"role": "user", "content": "test"},
+        ]
 
         data = client.prepare_request(messages, temperature=0.5, max_tokens=100)
 
@@ -179,7 +191,10 @@ class TestLocalAPIClient:
         client = LocalAPIClient("test-model")
 
         # Test successful response
-        response = {"choices": [{"text": "  translated text  "}], "usage": {"total_tokens": 100}}
+        response = {
+            "choices": [{"text": "  translated text  "}],
+            "usage": {"total_tokens": 100},
+        }
 
         text, usage = client.parse_response(response)
         assert text == "translated text"
@@ -215,7 +230,15 @@ class TestRemoteAPIClient:
         client = RemoteAPIClient(api_key="test-key", model_name="test-model")
         messages = [{"role": "user", "content": "test"}]
 
-        data = client.prepare_request(messages, temperature=0.5, max_tokens=100, top_p=0.9, frequency_penalty=0.1, presence_penalty=0.2, repetition_penalty=1.5)
+        data = client.prepare_request(
+            messages,
+            temperature=0.5,
+            max_tokens=100,
+            top_p=0.9,
+            frequency_penalty=0.1,
+            presence_penalty=0.2,
+            repetition_penalty=1.5,
+        )
 
         assert data["model"] == "test-model"
         assert data["messages"] == messages
@@ -230,7 +253,10 @@ class TestRemoteAPIClient:
     def test_make_request_with_headers(self, mock_post):
         """Test that remote API includes auth headers."""
         mock_response = Mock()
-        mock_response.json.return_value = {"choices": [{"message": {"content": "test"}}], "usage": {}}
+        mock_response.json.return_value = {
+            "choices": [{"message": {"content": "test"}}],
+            "usage": {},
+        }
         mock_response.raise_for_status.return_value = None
         mock_post.return_value = mock_response
 
@@ -247,11 +273,22 @@ class TestRemoteAPIClient:
         client = RemoteAPIClient(api_key="test-key", model_name="test-model")
 
         # Test successful response
-        response = {"choices": [{"message": {"content": "  translated  "}}], "usage": {"total_tokens": 100, "prompt_tokens": 50, "completion_tokens": 50}}
+        response = {
+            "choices": [{"message": {"content": "  translated  "}}],
+            "usage": {
+                "total_tokens": 100,
+                "prompt_tokens": 50,
+                "completion_tokens": 50,
+            },
+        }
 
         text, usage = client.parse_response(response)
         assert text == "translated"
-        assert usage == {"total_tokens": 100, "prompt_tokens": 50, "completion_tokens": 50}
+        assert usage == {
+            "total_tokens": 100,
+            "prompt_tokens": 50,
+            "completion_tokens": 50,
+        }
 
         # Test error response
         error_response = {"error": {"code": "rate_limit", "message": "Rate limit exceeded"}}
@@ -266,7 +303,11 @@ class TestRemoteAPIClient:
         """Test that remote API tracks costs."""
         with patch("enchant_book_manager.api_clients.global_cost_tracker.track_usage") as mock_track:
             client = RemoteAPIClient(api_key="test-key", model_name="test-model")
-            usage_info = {"total_tokens": 100, "prompt_tokens": 50, "completion_tokens": 50}
+            usage_info = {
+                "total_tokens": 100,
+                "prompt_tokens": 50,
+                "completion_tokens": 50,
+            }
 
             client._track_usage(usage_info)
 

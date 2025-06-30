@@ -165,7 +165,14 @@ class TestCreateEpubFromTxtFile:
     @patch("enchant_book_manager.make_epub.paragraphize")
     @patch("enchant_book_manager.make_epub.detect_issues")
     @patch("enchant_book_manager.make_epub.log_issue")
-    def test_create_epub_from_txt_file_with_validation_issues(self, mock_log_issue, mock_detect_issues, mock_paragraphize, mock_split_text, mock_write_epub):
+    def test_create_epub_from_txt_file_with_validation_issues(
+        self,
+        mock_log_issue,
+        mock_detect_issues,
+        mock_paragraphize,
+        mock_split_text,
+        mock_write_epub,
+    ):
         """Test handling of validation issues in strict mode."""
         # Setup
         txt_path = MagicMock(spec=Path)
@@ -173,13 +180,23 @@ class TestCreateEpubFromTxtFile:
         txt_path.read_text.return_value = "Chapter 1\nContent"
 
         # Mock split_text
-        mock_split_text.return_value = ([("Chapter 1", "Content")], [1, 3])  # Missing chapter 2
+        mock_split_text.return_value = (
+            [("Chapter 1", "Content")],
+            [1, 3],
+        )  # Missing chapter 2
 
         # Mock detect_issues to return issues
         mock_detect_issues.return_value = ["Chapter 2 is missing"]
 
         # Execute in strict mode
-        success, issues = create_epub_from_txt_file(txt_path, MagicMock(spec=Path), "Title", "Author", validate=True, strict_mode=True)
+        success, issues = create_epub_from_txt_file(
+            txt_path,
+            MagicMock(spec=Path),
+            "Title",
+            "Author",
+            validate=True,
+            strict_mode=True,
+        )
 
         # Verify
         assert success is False
@@ -226,9 +243,25 @@ class TestCreateEpubFromTxtFile:
         mock_paragraphize.return_value = "<p>Content</p>"
 
         # Execute with all options
-        metadata = {"publisher": "Test Publisher", "description": "Test Description", "series": "Test Series", "series_index": "1"}
+        metadata = {
+            "publisher": "Test Publisher",
+            "description": "Test Description",
+            "series": "Test Series",
+            "series_index": "1",
+        }
 
-        success, issues = create_epub_from_txt_file(txt_path, output_path, "Title", "Author", cover_path=cover_path, generate_toc=False, validate=False, language="zh", custom_css="body { font-size: 16px; }", metadata=metadata)
+        success, issues = create_epub_from_txt_file(
+            txt_path,
+            output_path,
+            "Title",
+            "Author",
+            cover_path=cover_path,
+            generate_toc=False,
+            validate=False,
+            language="zh",
+            custom_css="body { font-size: 16px; }",
+            metadata=metadata,
+        )
 
         # Verify
         assert success is True
@@ -275,7 +308,15 @@ class TestCreateEpubFromDirectory:
     @patch("enchant_book_manager.make_epub.paragraphize")
     @patch("enchant_book_manager.make_epub.detect_issues")
     @patch("enchant_book_manager.make_epub.FILENAME_RE")
-    def test_create_epub_from_directory_success(self, mock_filename_re, mock_detect_issues, mock_paragraphize, mock_split_text, mock_collect_chunks, mock_write_epub):
+    def test_create_epub_from_directory_success(
+        self,
+        mock_filename_re,
+        mock_detect_issues,
+        mock_paragraphize,
+        mock_split_text,
+        mock_collect_chunks,
+        mock_write_epub,
+    ):
         """Test successful EPUB creation from directory."""
         # Setup
         input_dir = MagicMock(spec=Path)
@@ -295,7 +336,10 @@ class TestCreateEpubFromDirectory:
         mock_collect_chunks.return_value = {1: chunk1, 2: chunk2}
 
         # Mock split_text
-        mock_split_text.return_value = ([("Chapter 1", "Content 1"), ("Chapter 2", "Content 2")], [1, 2])
+        mock_split_text.return_value = (
+            [("Chapter 1", "Content 1"), ("Chapter 2", "Content 2")],
+            [1, 2],
+        )
 
         # Mock paragraphize
         mock_paragraphize.side_effect = lambda text: f"<p>{text}</p>"
@@ -350,7 +394,13 @@ class TestCreateEpubFromDirectory:
     @patch("enchant_book_manager.make_epub.split_text")
     @patch("enchant_book_manager.make_epub.paragraphize")
     @patch("enchant_book_manager.make_epub.detect_issues")
-    def test_create_epub_from_directory_validate_only(self, mock_detect_issues, mock_paragraphize, mock_split_text, mock_collect_chunks):
+    def test_create_epub_from_directory_validate_only(
+        self,
+        mock_detect_issues,
+        mock_paragraphize,
+        mock_split_text,
+        mock_collect_chunks,
+    ):
         """Test validate-only mode."""
         # Setup
         input_dir = MagicMock(spec=Path)
@@ -382,7 +432,13 @@ class TestCreateEpubFromDirectory:
     @patch("enchant_book_manager.make_epub.split_text")
     @patch("enchant_book_manager.make_epub.paragraphize")
     @patch("enchant_book_manager.make_epub.detect_issues")
-    def test_create_epub_from_directory_strict_mode_with_issues(self, mock_detect_issues, mock_paragraphize, mock_split_text, mock_collect_chunks):
+    def test_create_epub_from_directory_strict_mode_with_issues(
+        self,
+        mock_detect_issues,
+        mock_paragraphize,
+        mock_split_text,
+        mock_collect_chunks,
+    ):
         """Test strict mode with validation issues."""
         # Setup
         input_dir = MagicMock(spec=Path)
@@ -409,7 +465,14 @@ class TestCreateEpubFromDirectory:
     @patch("enchant_book_manager.make_epub.split_text")
     @patch("enchant_book_manager.make_epub.paragraphize")
     @patch("enchant_book_manager.make_epub.detect_issues")
-    def test_create_epub_from_directory_manual_title_author(self, mock_detect_issues, mock_paragraphize, mock_split_text, mock_collect_chunks, mock_write_epub):
+    def test_create_epub_from_directory_manual_title_author(
+        self,
+        mock_detect_issues,
+        mock_paragraphize,
+        mock_split_text,
+        mock_collect_chunks,
+        mock_write_epub,
+    ):
         """Test providing manual title and author."""
         # Setup
         input_dir = MagicMock(spec=Path)
@@ -428,7 +491,12 @@ class TestCreateEpubFromDirectory:
         mock_detect_issues.return_value = []
 
         # Execute with manual title/author
-        issues = create_epub_from_directory(input_dir, MagicMock(spec=Path), title="Manual Title", author="Manual Author")
+        issues = create_epub_from_directory(
+            input_dir,
+            MagicMock(spec=Path),
+            title="Manual Title",
+            author="Manual Author",
+        )
 
         # Verify manual title/author were used
         mock_write_epub.assert_called_once()

@@ -103,7 +103,10 @@ class TestMain:
         with patch("sys.stdout", captured_output):
             # Execute the module's code
             exec_globals = {"__name__": "__main__"}
-            with open(Path(__file__).parent.parent / "src" / "enchant_book_manager" / "main.py", "r") as f:
+            with open(
+                Path(__file__).parent.parent / "src" / "enchant_book_manager" / "main.py",
+                "r",
+            ) as f:
                 code = compile(f.read(), "main.py", "exec")
                 exec(code, exec_globals)
 

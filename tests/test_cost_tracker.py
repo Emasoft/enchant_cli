@@ -34,7 +34,12 @@ class TestCostTracker:
     def test_track_usage_with_cost(self):
         """Test tracking usage with cost information."""
         tracker = CostTracker()
-        usage = {"cost": 0.001234, "prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150}
+        usage = {
+            "cost": 0.001234,
+            "prompt_tokens": 100,
+            "completion_tokens": 50,
+            "total_tokens": 150,
+        }
 
         cost = tracker.track_usage(usage, "test.txt")
 
@@ -64,11 +69,21 @@ class TestCostTracker:
         tracker = CostTracker()
 
         # First request
-        usage1 = {"cost": 0.001, "prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150}
+        usage1 = {
+            "cost": 0.001,
+            "prompt_tokens": 100,
+            "completion_tokens": 50,
+            "total_tokens": 150,
+        }
         tracker.track_usage(usage1)
 
         # Second request
-        usage2 = {"cost": 0.002, "prompt_tokens": 200, "completion_tokens": 100, "total_tokens": 300}
+        usage2 = {
+            "cost": 0.002,
+            "prompt_tokens": 200,
+            "completion_tokens": 100,
+            "total_tokens": 300,
+        }
         tracker.track_usage(usage2)
 
         assert tracker.total_cost == 0.003
@@ -82,7 +97,12 @@ class TestCostTracker:
         tracker = CostTracker()
 
         # Track some usage
-        usage = {"cost": 0.005, "prompt_tokens": 500, "completion_tokens": 250, "total_tokens": 750}
+        usage = {
+            "cost": 0.005,
+            "prompt_tokens": 500,
+            "completion_tokens": 250,
+            "total_tokens": 750,
+        }
         tracker.track_usage(usage)
         tracker.track_usage(usage)  # Track twice
 
@@ -110,7 +130,12 @@ class TestCostTracker:
         tracker = CostTracker()
 
         # Track some usage
-        usage = {"cost": 0.005, "prompt_tokens": 500, "completion_tokens": 250, "total_tokens": 750}
+        usage = {
+            "cost": 0.005,
+            "prompt_tokens": 500,
+            "completion_tokens": 250,
+            "total_tokens": 750,
+        }
         tracker.track_usage(usage)
 
         # Reset
@@ -130,7 +155,12 @@ class TestCostTracker:
 
         def track_usage_thread():
             for _ in range(requests_per_thread):
-                usage = {"cost": 0.001, "prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15}
+                usage = {
+                    "cost": 0.001,
+                    "prompt_tokens": 10,
+                    "completion_tokens": 5,
+                    "total_tokens": 15,
+                }
                 tracker.track_usage(usage)
 
         threads = []
@@ -151,7 +181,12 @@ class TestCostTracker:
     def test_logging_with_file_path(self, mock_logger):
         """Test logging behavior with file path."""
         tracker = CostTracker()
-        usage = {"cost": 0.001234, "prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150}
+        usage = {
+            "cost": 0.001234,
+            "prompt_tokens": 100,
+            "completion_tokens": 50,
+            "total_tokens": 150,
+        }
 
         tracker.track_usage(usage, "test_file.txt")
 
@@ -166,7 +201,12 @@ class TestCostTracker:
     def test_logging_without_file_path(self, mock_logger):
         """Test logging behavior without file path."""
         tracker = CostTracker()
-        usage = {"cost": 0.001234, "prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150}
+        usage = {
+            "cost": 0.001234,
+            "prompt_tokens": 100,
+            "completion_tokens": 50,
+            "total_tokens": 150,
+        }
 
         tracker.track_usage(usage)
 

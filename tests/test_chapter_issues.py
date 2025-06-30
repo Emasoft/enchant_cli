@@ -40,43 +40,85 @@ class TestDetectIssues:
     def test_missing_numbers_at_end(self):
         """Test detection of missing numbers at the end."""
         result = detect_issues([1, 2, 3, 7])
-        assert result == ["number 4 is missing", "number 5 is missing", "number 6 is missing"]
+        assert result == [
+            "number 4 is missing",
+            "number 5 is missing",
+            "number 6 is missing",
+        ]
 
     def test_repeated_numbers_simple(self):
         """Test detection of repeated numbers."""
         result = detect_issues([1, 2, 2, 3])
-        assert result == ["number 2 is repeated 1 time after number 1", "number 2 is out of place after number 2"]
+        assert result == [
+            "number 2 is repeated 1 time after number 1",
+            "number 2 is out of place after number 2",
+        ]
 
     def test_repeated_numbers_multiple_times(self):
         """Test detection of numbers repeated multiple times."""
         result = detect_issues([1, 2, 3, 3, 3, 4])
-        assert result == ["number 3 is repeated 2 times after number 2", "number 3 is out of place after number 3", "number 3 is repeated 1 time after number 2", "number 3 is out of place after number 3"]
+        assert result == [
+            "number 3 is repeated 2 times after number 2",
+            "number 3 is out of place after number 3",
+            "number 3 is repeated 1 time after number 2",
+            "number 3 is out of place after number 3",
+        ]
 
     def test_repeated_numbers_non_consecutive(self):
         """Test repeated numbers that are not consecutive."""
         result = detect_issues([1, 2, 3, 2, 4])
-        assert result == ["number 2 is repeated 1 time after number 3", "number 2 is switched in place with number 3", "number 3 is switched in place with number 2", "number 3 is missing"]
+        assert result == [
+            "number 2 is repeated 1 time after number 3",
+            "number 2 is switched in place with number 3",
+            "number 3 is switched in place with number 2",
+            "number 3 is missing",
+        ]
 
     def test_swapped_adjacent_numbers(self):
         """Test detection of swapped adjacent numbers."""
         result = detect_issues([1, 3, 2, 4])
-        assert result == ["number 2 is missing", "number 2 is switched in place with number 3", "number 3 is switched in place with number 2", "number 3 is missing"]
+        assert result == [
+            "number 2 is missing",
+            "number 2 is switched in place with number 3",
+            "number 3 is switched in place with number 2",
+            "number 3 is missing",
+        ]
 
     def test_out_of_place_number(self):
         """Test detection of out-of-place numbers."""
         result = detect_issues([1, 2, 5, 3, 4])
-        assert result == ["number 3 is missing", "number 4 is missing", "number 3 is out of place after number 5"]
+        assert result == [
+            "number 3 is missing",
+            "number 4 is missing",
+            "number 3 is out of place after number 5",
+        ]
 
     def test_complex_sequence(self):
         """Test complex sequence with multiple issues."""
         # Missing 2, repeated 3, out of place 1
         result = detect_issues([1, 3, 3, 5, 1, 6])
-        assert result == ["number 2 is missing", "number 3 is repeated 1 time after number 1", "number 3 is out of place after number 3", "number 4 is missing", "number 1 is repeated 1 time after number 5", "number 1 is out of place after number 5", "number 3 is missing", "number 5 is missing"]
+        assert result == [
+            "number 2 is missing",
+            "number 3 is repeated 1 time after number 1",
+            "number 3 is out of place after number 3",
+            "number 4 is missing",
+            "number 1 is repeated 1 time after number 5",
+            "number 1 is out of place after number 5",
+            "number 3 is missing",
+            "number 5 is missing",
+        ]
 
     def test_all_same_numbers(self):
         """Test sequence with all same numbers."""
         result = detect_issues([2, 2, 2, 2])
-        assert result == ["number 2 is repeated 3 times after number 0", "number 2 is out of place after number 2", "number 2 is repeated 2 times after number 0", "number 2 is out of place after number 2", "number 2 is repeated 1 time after number 0", "number 2 is out of place after number 2"]
+        assert result == [
+            "number 2 is repeated 3 times after number 0",
+            "number 2 is out of place after number 2",
+            "number 2 is repeated 2 times after number 0",
+            "number 2 is out of place after number 2",
+            "number 2 is repeated 1 time after number 0",
+            "number 2 is out of place after number 2",
+        ]
 
     def test_descending_sequence(self):
         """Test descending sequence (all out of place)."""
@@ -137,13 +179,25 @@ class TestDetectIssues:
     def test_repeated_at_beginning(self):
         """Test repeated number at the beginning."""
         result = detect_issues([1, 1, 2, 3])
-        assert result == ["number 1 is repeated 1 time after number 0", "number 1 is out of place after number 1"]
+        assert result == [
+            "number 1 is repeated 1 time after number 0",
+            "number 1 is out of place after number 1",
+        ]
 
     def test_mixed_issues_comprehensive(self):
         """Test comprehensive mix of all issue types."""
         # 1, missing 2, 3, 3 (repeat), 5 (missing 4), 2 (out of place), 7 (missing 6)
         result = detect_issues([1, 3, 3, 5, 2, 7])
-        expected = ["number 2 is missing", "number 3 is repeated 1 time after number 1", "number 3 is out of place after number 3", "number 4 is missing", "number 2 is out of place after number 5", "number 3 is missing", "number 5 is missing", "number 6 is missing"]
+        expected = [
+            "number 2 is missing",
+            "number 3 is repeated 1 time after number 1",
+            "number 3 is out of place after number 3",
+            "number 4 is missing",
+            "number 2 is out of place after number 5",
+            "number 3 is missing",
+            "number 5 is missing",
+            "number 6 is missing",
+        ]
         assert result == expected
 
     def test_sequence_with_zero_gap(self):
@@ -154,7 +208,10 @@ class TestDetectIssues:
     def test_single_out_of_place_at_end(self):
         """Test single out of place number at the end."""
         result = detect_issues([1, 2, 3, 4, 1])
-        assert result == ["number 1 is repeated 1 time after number 4", "number 1 is out of place after number 4"]
+        assert result == [
+            "number 1 is repeated 1 time after number 4",
+            "number 1 is out of place after number 4",
+        ]
 
     def test_performance_with_large_sequence(self):
         """Test performance with large sequence."""

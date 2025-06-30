@@ -57,7 +57,13 @@ class TestLoadConfig:
         mock_exists.return_value = True
 
         # Mock config content
-        test_config = {"model": "gpt-4", "temperature": 0.5, "kb_to_read": 10, "max_workers": 4, "api_key": "test-key"}
+        test_config = {
+            "model": "gpt-4",
+            "temperature": 0.5,
+            "kb_to_read": 10,
+            "max_workers": 4,
+            "api_key": "test-key",
+        }
         mock_load_yaml.return_value = test_config
 
         # Execute
@@ -255,7 +261,13 @@ class TestProcessFiles:
     @patch("enchant_book_manager.renamenovels.RenameAPIClient")
     @patch("enchant_book_manager.renamenovels.ThreadPoolExecutor")
     @patch("enchant_book_manager.renamenovels.process_single_file")
-    def test_process_files_success(self, mock_process_single, mock_executor_class, mock_api_client_class, mock_find_files):
+    def test_process_files_success(
+        self,
+        mock_process_single,
+        mock_executor_class,
+        mock_api_client_class,
+        mock_find_files,
+    ):
         """Test successful batch processing."""
         # Mock found files
         test_files = [Path("/test/file1.txt"), Path("/test/file2.txt")]
@@ -281,7 +293,16 @@ class TestProcessFiles:
             mock_as_completed.return_value = [mock_future1, mock_future2]
 
             # Execute
-            process_files(self.folder_path, recursive=True, kb_to_read=5, api_key=self.api_key, model=self.model, temperature=self.temperature, max_workers=self.max_workers, icloud_sync=self.icloud_sync)
+            process_files(
+                self.folder_path,
+                recursive=True,
+                kb_to_read=5,
+                api_key=self.api_key,
+                model=self.model,
+                temperature=self.temperature,
+                max_workers=self.max_workers,
+                icloud_sync=self.icloud_sync,
+            )
 
         # Verify
         mock_find_files.assert_called_once_with(self.folder_path, recursive=True)
@@ -295,7 +316,16 @@ class TestProcessFiles:
         mock_find_files.return_value = []
 
         # Execute
-        process_files(self.folder_path, recursive=False, kb_to_read=5, api_key=self.api_key, model=self.model, temperature=self.temperature, max_workers=self.max_workers, icloud_sync=self.icloud_sync)
+        process_files(
+            self.folder_path,
+            recursive=False,
+            kb_to_read=5,
+            api_key=self.api_key,
+            model=self.model,
+            temperature=self.temperature,
+            max_workers=self.max_workers,
+            icloud_sync=self.icloud_sync,
+        )
 
         # Verify early return
         mock_find_files.assert_called_once()
@@ -326,7 +356,16 @@ class TestProcessFiles:
 
             # Execute
             with pytest.raises(SystemExit) as exc_info:
-                process_files(self.folder_path, recursive=True, kb_to_read=5, api_key=self.api_key, model=self.model, temperature=self.temperature, max_workers=self.max_workers, icloud_sync=self.icloud_sync)
+                process_files(
+                    self.folder_path,
+                    recursive=True,
+                    kb_to_read=5,
+                    api_key=self.api_key,
+                    model=self.model,
+                    temperature=self.temperature,
+                    max_workers=self.max_workers,
+                    icloud_sync=self.icloud_sync,
+                )
 
             assert exc_info.value.code == 1
 
@@ -337,7 +376,13 @@ class TestProcessFiles:
     @patch("enchant_book_manager.renamenovels.RenameAPIClient")
     @patch("enchant_book_manager.renamenovels.ThreadPoolExecutor")
     @patch("enchant_book_manager.renamenovels.global_cost_tracker")
-    def test_process_files_with_error(self, mock_cost_tracker, mock_executor_class, mock_api_client_class, mock_find_files):
+    def test_process_files_with_error(
+        self,
+        mock_cost_tracker,
+        mock_executor_class,
+        mock_api_client_class,
+        mock_find_files,
+    ):
         """Test handling of processing errors."""
         # Mock found files
         mock_find_files.return_value = [Path("/test/file1.txt")]
@@ -362,7 +407,16 @@ class TestProcessFiles:
             mock_as_completed.return_value = [mock_future]
 
             # Execute - should handle error gracefully
-            process_files(self.folder_path, recursive=True, kb_to_read=5, api_key=self.api_key, model=self.model, temperature=self.temperature, max_workers=self.max_workers, icloud_sync=self.icloud_sync)
+            process_files(
+                self.folder_path,
+                recursive=True,
+                kb_to_read=5,
+                api_key=self.api_key,
+                model=self.model,
+                temperature=self.temperature,
+                max_workers=self.max_workers,
+                icloud_sync=self.icloud_sync,
+            )
 
         # Verify cost summary still logged
         mock_cost_tracker.get_summary.assert_called_once()
@@ -371,7 +425,13 @@ class TestProcessFiles:
     @patch("enchant_book_manager.renamenovels.RenameAPIClient")
     @patch("enchant_book_manager.renamenovels.ThreadPoolExecutor")
     @patch("enchant_book_manager.renamenovels.global_cost_tracker")
-    def test_process_files_cost_tracking(self, mock_cost_tracker, mock_executor_class, mock_api_client_class, mock_find_files):
+    def test_process_files_cost_tracking(
+        self,
+        mock_cost_tracker,
+        mock_executor_class,
+        mock_api_client_class,
+        mock_find_files,
+    ):
         """Test cost tracking summary."""
         # Mock found files
         mock_find_files.return_value = [Path("/test/file1.txt")]
@@ -396,7 +456,16 @@ class TestProcessFiles:
             mock_as_completed.return_value = [mock_future]
 
             # Execute
-            process_files(self.folder_path, recursive=False, kb_to_read=5, api_key=self.api_key, model=self.model, temperature=self.temperature, max_workers=1, icloud_sync=self.icloud_sync)
+            process_files(
+                self.folder_path,
+                recursive=False,
+                kb_to_read=5,
+                api_key=self.api_key,
+                model=self.model,
+                temperature=self.temperature,
+                max_workers=1,
+                icloud_sync=self.icloud_sync,
+            )
 
         # Verify cost summary retrieved
         mock_cost_tracker.get_summary.assert_called_once()

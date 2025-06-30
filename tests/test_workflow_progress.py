@@ -75,7 +75,14 @@ class TestLoadSafeYamlWrapper:
     @patch("enchant_book_manager.workflow_progress.load_safe_yaml")
     def test_complex_data(self, mock_load):
         """Test with complex nested data structure."""
-        complex_data = {"phases": {"renaming": {"status": "completed", "result": "/path/to/renamed.txt"}, "translation": {"status": "in_progress", "chunks": 5}, "epub": {"status": "pending"}}, "metadata": {"version": "1.0"}}
+        complex_data = {
+            "phases": {
+                "renaming": {"status": "completed", "result": "/path/to/renamed.txt"},
+                "translation": {"status": "in_progress", "chunks": 5},
+                "epub": {"status": "pending"},
+            },
+            "metadata": {"version": "1.0"},
+        }
         mock_load.return_value = complex_data
 
         result = load_safe_yaml_wrapper(self.path, self.logger)
@@ -89,7 +96,14 @@ class TestSaveProgress:
     def setup_method(self):
         """Set up test fixtures."""
         self.progress_file = Path("/test/progress.yml")
-        self.progress = {"original_file": "/test/novel.txt", "phases": {"renaming": {"status": "completed"}, "translation": {"status": "pending"}, "epub": {"status": "pending"}}}
+        self.progress = {
+            "original_file": "/test/novel.txt",
+            "phases": {
+                "renaming": {"status": "completed"},
+                "translation": {"status": "pending"},
+                "epub": {"status": "pending"},
+            },
+        }
         self.logger = logging.getLogger("test")
 
     def test_successful_save(self):
@@ -138,9 +152,21 @@ class TestSaveProgress:
         complex_progress = {
             "original_file": "/test/novel.txt",
             "phases": {
-                "renaming": {"status": "completed", "result": "/test/Novel by Author.txt", "metadata": {"title": "Novel", "author": "Author"}},
-                "translation": {"status": "in_progress", "chunks_completed": 5, "total_chunks": 10},
-                "epub": {"status": "failed", "error": "Chapter validation failed", "issues": ["Missing chapter 3", "Duplicate chapter 7"]},
+                "renaming": {
+                    "status": "completed",
+                    "result": "/test/Novel by Author.txt",
+                    "metadata": {"title": "Novel", "author": "Author"},
+                },
+                "translation": {
+                    "status": "in_progress",
+                    "chunks_completed": 5,
+                    "total_chunks": 10,
+                },
+                "epub": {
+                    "status": "failed",
+                    "error": "Chapter validation failed",
+                    "issues": ["Missing chapter 3", "Duplicate chapter 7"],
+                },
             },
             "timestamp": "2024-01-01T12:00:00",
         }
@@ -220,25 +246,49 @@ class TestIsPhaseCompleted:
 
     def test_completed_phase(self):
         """Test with completed phase."""
-        progress = {"phases": {"renaming": {"status": "completed", "result": "/renamed.txt"}, "translation": {"status": "pending"}, "epub": {"status": "pending"}}}
+        progress = {
+            "phases": {
+                "renaming": {"status": "completed", "result": "/renamed.txt"},
+                "translation": {"status": "pending"},
+                "epub": {"status": "pending"},
+            }
+        }
 
         assert is_phase_completed(progress, "renaming") is True
 
     def test_pending_phase(self):
         """Test with pending phase."""
-        progress = {"phases": {"renaming": {"status": "pending"}, "translation": {"status": "pending"}, "epub": {"status": "pending"}}}
+        progress = {
+            "phases": {
+                "renaming": {"status": "pending"},
+                "translation": {"status": "pending"},
+                "epub": {"status": "pending"},
+            }
+        }
 
         assert is_phase_completed(progress, "renaming") is False
 
     def test_skipped_phase(self):
         """Test with skipped phase."""
-        progress = {"phases": {"renaming": {"status": "skipped"}, "translation": {"status": "pending"}, "epub": {"status": "pending"}}}
+        progress = {
+            "phases": {
+                "renaming": {"status": "skipped"},
+                "translation": {"status": "pending"},
+                "epub": {"status": "pending"},
+            }
+        }
 
         assert is_phase_completed(progress, "renaming") is False
 
     def test_failed_phase(self):
         """Test with failed phase."""
-        progress = {"phases": {"renaming": {"status": "failed", "error": "API error"}, "translation": {"status": "pending"}, "epub": {"status": "pending"}}}
+        progress = {
+            "phases": {
+                "renaming": {"status": "failed", "error": "API error"},
+                "translation": {"status": "pending"},
+                "epub": {"status": "pending"},
+            }
+        }
 
         assert is_phase_completed(progress, "renaming") is False
 
@@ -277,7 +327,13 @@ class TestIsPhaseCompleted:
 
     def test_all_phases(self):
         """Test checking all phase names."""
-        progress = {"phases": {"renaming": {"status": "completed"}, "translation": {"status": "completed"}, "epub": {"status": "pending"}}}
+        progress = {
+            "phases": {
+                "renaming": {"status": "completed"},
+                "translation": {"status": "completed"},
+                "epub": {"status": "pending"},
+            }
+        }
 
         assert is_phase_completed(progress, "renaming") is True
         assert is_phase_completed(progress, "translation") is True
@@ -289,31 +345,61 @@ class TestAreAllPhasesCompleted:
 
     def test_all_completed(self):
         """Test when all phases are completed."""
-        progress = {"phases": {"renaming": {"status": "completed"}, "translation": {"status": "completed"}, "epub": {"status": "completed"}}}
+        progress = {
+            "phases": {
+                "renaming": {"status": "completed"},
+                "translation": {"status": "completed"},
+                "epub": {"status": "completed"},
+            }
+        }
 
         assert are_all_phases_completed(progress) is True
 
     def test_all_skipped(self):
         """Test when all phases are skipped."""
-        progress = {"phases": {"renaming": {"status": "skipped"}, "translation": {"status": "skipped"}, "epub": {"status": "skipped"}}}
+        progress = {
+            "phases": {
+                "renaming": {"status": "skipped"},
+                "translation": {"status": "skipped"},
+                "epub": {"status": "skipped"},
+            }
+        }
 
         assert are_all_phases_completed(progress) is True
 
     def test_mixed_completed_skipped(self):
         """Test with mix of completed and skipped."""
-        progress = {"phases": {"renaming": {"status": "completed"}, "translation": {"status": "skipped"}, "epub": {"status": "completed"}}}
+        progress = {
+            "phases": {
+                "renaming": {"status": "completed"},
+                "translation": {"status": "skipped"},
+                "epub": {"status": "completed"},
+            }
+        }
 
         assert are_all_phases_completed(progress) is True
 
     def test_one_pending(self):
         """Test when one phase is pending."""
-        progress = {"phases": {"renaming": {"status": "completed"}, "translation": {"status": "completed"}, "epub": {"status": "pending"}}}
+        progress = {
+            "phases": {
+                "renaming": {"status": "completed"},
+                "translation": {"status": "completed"},
+                "epub": {"status": "pending"},
+            }
+        }
 
         assert are_all_phases_completed(progress) is False
 
     def test_one_failed(self):
         """Test when one phase failed."""
-        progress = {"phases": {"renaming": {"status": "completed"}, "translation": {"status": "failed"}, "epub": {"status": "skipped"}}}
+        progress = {
+            "phases": {
+                "renaming": {"status": "completed"},
+                "translation": {"status": "failed"},
+                "epub": {"status": "skipped"},
+            }
+        }
 
         assert are_all_phases_completed(progress) is False
 
@@ -343,7 +429,13 @@ class TestAreAllPhasesCompleted:
 
     def test_invalid_status(self):
         """Test with invalid status value."""
-        progress = {"phases": {"renaming": {"status": "completed"}, "translation": {"status": "in_progress"}, "epub": {"status": "skipped"}}}
+        progress = {
+            "phases": {
+                "renaming": {"status": "completed"},
+                "translation": {"status": "in_progress"},
+                "epub": {"status": "skipped"},
+            }
+        }
 
         assert are_all_phases_completed(progress) is False
 

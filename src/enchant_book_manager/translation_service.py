@@ -125,7 +125,12 @@ class ChineseAITranslator:
             self.USER_PROMPT_2NDPASS = USER_PROMPT_2NDPASS_QWEN
 
         # Create API client
-        self.api_client = create_api_client(use_remote=use_remote, api_key=api_key, model_name=self.MODEL_NAME, logger=self.log)
+        self.api_client = create_api_client(
+            use_remote=use_remote,
+            api_key=api_key,
+            model_name=self.MODEL_NAME,
+            logger=self.log,
+        )
 
         # Override endpoint if provided
         if endpoint:
@@ -240,7 +245,10 @@ class ChineseAITranslator:
         is_valid, cleaned_text = validate_translation_output(response_text, self.log)
 
         if not is_valid and attempt == 1:
-            self.log("Response contains non-Latin characters, will attempt cleanup", "warning")
+            self.log(
+                "Response contains non-Latin characters, will attempt cleanup",
+                "warning",
+            )
 
         return is_valid, cleaned_text
 
@@ -294,7 +302,10 @@ class ChineseAITranslator:
 
         # Final validation
         if not is_latin_charset(cleaned_text, threshold=0.05):
-            self.log("Translation still contains non-Latin characters after cleanup", "warning")
+            self.log(
+                "Translation still contains non-Latin characters after cleanup",
+                "warning",
+            )
 
         return cleaned_text
 

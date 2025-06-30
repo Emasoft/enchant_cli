@@ -128,7 +128,12 @@ class PresetManager:
                 # Map preset keys to config paths
                 if key == "max_chars_per_chunk":
                     self._set_config_value(updated_config, "text_processing.max_chars_per_chunk", value)
-                elif key in ["model", "endpoint", "connection_timeout", "response_timeout"]:
+                elif key in [
+                    "model",
+                    "endpoint",
+                    "connection_timeout",
+                    "response_timeout",
+                ]:
                     service = "remote" if self.active_preset == "REMOTE" else "local"
                     if key == "response_timeout":
                         self._set_config_value(updated_config, f"translation.{service}.timeout", value)

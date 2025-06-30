@@ -102,7 +102,17 @@ class TestImportBookFromTxt:
     @patch("enchant_book_manager.book_importer.split_chinese_text_in_parts")
     @patch("enchant_book_manager.book_importer.remove_excess_empty_lines")
     @patch("enchant_book_manager.book_importer.decode_input_file_content")
-    def test_import_new_book(self, mock_decode, mock_remove_lines, mock_split, mock_book, mock_chunk, mock_variation, mock_commit, mock_uuid):
+    def test_import_new_book(
+        self,
+        mock_decode,
+        mock_remove_lines,
+        mock_split,
+        mock_book,
+        mock_chunk,
+        mock_variation,
+        mock_commit,
+        mock_uuid,
+    ):
         """Test importing a new book successfully."""
         # Setup mocks
         mock_decode.return_value = "Original Chinese text content"
@@ -115,12 +125,23 @@ class TestImportBookFromTxt:
         mock_book.get_by_id.return_value = mock_book_instance
 
         # Generate different UUIDs for book, chunks, and variations
-        mock_uuid.side_effect = ["book-uuid", "chunk1-uuid", "variation1-uuid", "chunk2-uuid", "variation2-uuid"]
+        mock_uuid.side_effect = [
+            "book-uuid",
+            "chunk1-uuid",
+            "variation1-uuid",
+            "chunk2-uuid",
+            "variation2-uuid",
+        ]
 
         logger = Mock(spec=logging.Logger)
 
         # Call function
-        book_id = import_book_from_txt("The Journey by John Doe - 修炼之旅 by 张三.txt", encoding="utf-8", max_chars=1000, logger=logger)
+        book_id = import_book_from_txt(
+            "The Journey by John Doe - 修炼之旅 by 张三.txt",
+            encoding="utf-8",
+            max_chars=1000,
+            logger=logger,
+        )
 
         # Verify book was created
         assert book_id == "book-uuid"
@@ -215,7 +236,16 @@ class TestImportBookFromTxt:
     @patch("enchant_book_manager.book_importer.Book")
     @patch("enchant_book_manager.book_importer.split_chinese_text_in_parts")
     @patch("enchant_book_manager.book_importer.decode_input_file_content")
-    def test_import_chunk_create_exception(self, mock_decode, mock_split, mock_book, mock_chunk, mock_variation, mock_commit, mock_uuid):
+    def test_import_chunk_create_exception(
+        self,
+        mock_decode,
+        mock_split,
+        mock_book,
+        mock_chunk,
+        mock_variation,
+        mock_commit,
+        mock_uuid,
+    ):
         """Test handling exception during chunk creation."""
         # Setup mocks
         mock_decode.return_value = "Text"
@@ -226,7 +256,13 @@ class TestImportBookFromTxt:
         # First chunk fails, second succeeds
         mock_chunk.create.side_effect = [Exception("Chunk error"), None]
 
-        mock_uuid.side_effect = ["book-id", "chunk1-id", "var1-id", "chunk2-id", "var2-id"]
+        mock_uuid.side_effect = [
+            "book-id",
+            "chunk1-id",
+            "var1-id",
+            "chunk2-id",
+            "var2-id",
+        ]
 
         logger = Mock(spec=logging.Logger)
 
@@ -248,7 +284,16 @@ class TestImportBookFromTxt:
     @patch("enchant_book_manager.book_importer.Book")
     @patch("enchant_book_manager.book_importer.split_chinese_text_in_parts")
     @patch("enchant_book_manager.book_importer.decode_input_file_content")
-    def test_import_variation_create_exception(self, mock_decode, mock_split, mock_book, mock_chunk, mock_variation, mock_commit, mock_uuid):
+    def test_import_variation_create_exception(
+        self,
+        mock_decode,
+        mock_split,
+        mock_book,
+        mock_chunk,
+        mock_variation,
+        mock_commit,
+        mock_uuid,
+    ):
         """Test handling exception during variation creation."""
         # Setup mocks
         mock_decode.return_value = "Text"
@@ -283,7 +328,10 @@ class TestImportBookFromTxt:
                 with patch("enchant_book_manager.book_importer.split_chinese_text_in_parts") as mock_split:
                     mock_split.return_value = []
 
-                    with patch("enchant_book_manager.book_importer.uuid.uuid4", return_value="test-uuid"):
+                    with patch(
+                        "enchant_book_manager.book_importer.uuid.uuid4",
+                        return_value="test-uuid",
+                    ):
                         # Call with Path object
                         path = Path("/home/user/book.txt")
                         result = import_book_from_txt(path)

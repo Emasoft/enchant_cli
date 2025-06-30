@@ -110,7 +110,18 @@ class TestLoadSafeYaml:
     def test_complex_yaml_structure(self, tmp_path):
         """Test loading complex YAML structures."""
         yaml_file = tmp_path / "complex.yaml"
-        yaml_content = {"top_level": {"nested": {"deep": {"value": "test", "list": [1, 2, 3], "bool": True, "float": 3.14}}}}
+        yaml_content = {
+            "top_level": {
+                "nested": {
+                    "deep": {
+                        "value": "test",
+                        "list": [1, 2, 3],
+                        "bool": True,
+                        "float": 3.14,
+                    }
+                }
+            }
+        }
         yaml_file.write_text(yaml.dump(yaml_content))
 
         result = load_safe_yaml(yaml_file)
@@ -165,7 +176,15 @@ class TestSaveSafeYaml:
     def test_save_complex_structure(self, tmp_path):
         """Test saving complex nested structures."""
         yaml_file = tmp_path / "complex.yaml"
-        data = {"config": {"nested": {"list": [1, 2, {"inner": "value"}], "bool": True, "none": None}}}
+        data = {
+            "config": {
+                "nested": {
+                    "list": [1, 2, {"inner": "value"}],
+                    "bool": True,
+                    "none": None,
+                }
+            }
+        }
 
         save_safe_yaml(data, yaml_file)
 

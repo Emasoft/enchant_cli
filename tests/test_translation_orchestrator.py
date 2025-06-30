@@ -29,7 +29,14 @@ class TestFormatChunkErrorMessage:
 
     def test_format_error_message_complete(self):
         """Test formatting a complete error message with all details."""
-        message = format_chunk_error_message(chunk_number=42, max_retries=10, last_error="Connection timeout", book_title="Test Book", book_author="Test Author", output_path="/path/to/chunk_000042.txt")
+        message = format_chunk_error_message(
+            chunk_number=42,
+            max_retries=10,
+            last_error="Connection timeout",
+            book_title="Test Book",
+            book_author="Test Author",
+            output_path="/path/to/chunk_000042.txt",
+        )
 
         # Check key elements are present
         assert "chunk 000042" in message
@@ -43,7 +50,14 @@ class TestFormatChunkErrorMessage:
 
     def test_format_error_message_escaping(self):
         """Test that special characters in inputs are handled properly."""
-        message = format_chunk_error_message(chunk_number=1, max_retries=3, last_error="Error: 'test' failed\n\twith newlines", book_title='Book\'s "Title"', book_author="O'Author", output_path="C:\\path\\to\\file.txt")
+        message = format_chunk_error_message(
+            chunk_number=1,
+            max_retries=3,
+            last_error="Error: 'test' failed\n\twith newlines",
+            book_title='Book\'s "Title"',
+            book_author="O'Author",
+            output_path="C:\\path\\to\\file.txt",
+        )
 
         # Check that special characters are preserved
         assert "'test' failed" in message
@@ -84,7 +98,10 @@ class TestSaveTranslatedBook:
 
         # Create mock translator
         self.mock_translator = Mock()
-        self.mock_translator.translate.side_effect = ["Translated text 1", "Translated text 2"]
+        self.mock_translator.translate.side_effect = [
+            "Translated text 1",
+            "Translated text 2",
+        ]
 
     @patch("enchant_book_manager.translation_orchestrator.Book")
     @patch("enchant_book_manager.translation_orchestrator.VARIATION_DB")
@@ -92,7 +109,15 @@ class TestSaveTranslatedBook:
     @patch("enchant_book_manager.translation_orchestrator.save_translation_cost_log")
     @patch("enchant_book_manager.translation_orchestrator.prepare_for_write")
     @patch("enchant_book_manager.translation_orchestrator.remove_excess_empty_lines")
-    def test_successful_translation(self, mock_remove_lines, mock_prepare, mock_save_cost, mock_path, mock_var_db, mock_book_class):
+    def test_successful_translation(
+        self,
+        mock_remove_lines,
+        mock_prepare,
+        mock_save_cost,
+        mock_path,
+        mock_var_db,
+        mock_book_class,
+    ):
         """Test successful translation of a book."""
         # Setup mocks
         mock_book_class.get_by_id.return_value = self.mock_book
@@ -128,7 +153,12 @@ class TestSaveTranslatedBook:
 
         # Execute
         with patch("builtins.open", mock_open()) as mock_file:
-            save_translated_book(book_id="test_book_id", translator=self.mock_translator, resume=False, logger=mock_logger)
+            save_translated_book(
+                book_id="test_book_id",
+                translator=self.mock_translator,
+                resume=False,
+                logger=mock_logger,
+            )
 
         # Verify
         mock_book_class.get_by_id.assert_called_once_with("test_book_id")
@@ -162,7 +192,16 @@ class TestSaveTranslatedBook:
     @patch("enchant_book_manager.translation_orchestrator.time.sleep")
     @patch("enchant_book_manager.translation_orchestrator.prepare_for_write")
     @patch("enchant_book_manager.translation_orchestrator.save_translation_cost_log")
-    def test_translation_retry_and_failure(self, mock_save_cost, mock_prepare, mock_sleep, mock_exit, mock_path, mock_var_db, mock_book_class):
+    def test_translation_retry_and_failure(
+        self,
+        mock_save_cost,
+        mock_prepare,
+        mock_sleep,
+        mock_exit,
+        mock_path,
+        mock_var_db,
+        mock_book_class,
+    ):
         """Test retry mechanism and ultimate failure."""
         # Setup mocks
         mock_book_class.get_by_id.return_value = self.mock_book
@@ -191,7 +230,12 @@ class TestSaveTranslatedBook:
 
         # Execute
         with patch("builtins.open", mock_open()):
-            save_translated_book(book_id="test_book_id", translator=self.mock_translator, logger=mock_logger, module_config=module_config)
+            save_translated_book(
+                book_id="test_book_id",
+                translator=self.mock_translator,
+                logger=mock_logger,
+                module_config=module_config,
+            )
 
         # Verify retries happened (2 chunks * 3 attempts each = 6)
         assert self.mock_translator.translate.call_count == 6
@@ -219,15 +263,26 @@ class TestSaveTranslatedBook:
         mock_path.cwd.return_value = Path("/current/dir")
 
         # Make translator fail twice then succeed
-        self.mock_translator.translate.side_effect = [Exception("Temporary error"), Exception("Another temporary error"), "Translated text 1"]
+        self.mock_translator.translate.side_effect = [
+            Exception("Temporary error"),
+            Exception("Another temporary error"),
+            "Translated text 1",
+        ]
 
         mock_logger = Mock()
 
         # Execute
         with patch("enchant_book_manager.translation_orchestrator.save_translation_cost_log"):
-            with patch("enchant_book_manager.translation_orchestrator.prepare_for_write", return_value=Mock()):
+            with patch(
+                "enchant_book_manager.translation_orchestrator.prepare_for_write",
+                return_value=Mock(),
+            ):
                 with patch("builtins.open", mock_open()):
-                    save_translated_book(book_id="test_book_id", translator=self.mock_translator, logger=mock_logger)
+                    save_translated_book(
+                        book_id="test_book_id",
+                        translator=self.mock_translator,
+                        logger=mock_logger,
+                    )
 
         # Verify retries happened
         assert self.mock_translator.translate.call_count == 3
@@ -268,9 +323,17 @@ class TestSaveTranslatedBook:
 
         # Execute with resume=True
         with patch("enchant_book_manager.translation_orchestrator.save_translation_cost_log"):
-            with patch("enchant_book_manager.translation_orchestrator.prepare_for_write", return_value=Mock()):
+            with patch(
+                "enchant_book_manager.translation_orchestrator.prepare_for_write",
+                return_value=Mock(),
+            ):
                 with patch("builtins.open", mock_open()):
-                    save_translated_book(book_id="test_book_id", translator=self.mock_translator, resume=True, logger=mock_logger)
+                    save_translated_book(
+                        book_id="test_book_id",
+                        translator=self.mock_translator,
+                        resume=True,
+                        logger=mock_logger,
+                    )
 
         # Verify only second chunk was translated
         self.mock_translator.translate.assert_called_once_with("Original text 2", True)
@@ -301,9 +364,16 @@ class TestSaveTranslatedBook:
         # Execute - should log error and use current directory
         with patch("enchant_book_manager.translation_orchestrator.VARIATION_DB"):
             with patch("enchant_book_manager.translation_orchestrator.save_translation_cost_log"):
-                with patch("enchant_book_manager.translation_orchestrator.prepare_for_write", return_value=Mock()):
+                with patch(
+                    "enchant_book_manager.translation_orchestrator.prepare_for_write",
+                    return_value=Mock(),
+                ):
                     with patch("builtins.open", mock_open()):
-                        save_translated_book(book_id="test_book_id", translator=self.mock_translator, logger=mock_logger)
+                        save_translated_book(
+                            book_id="test_book_id",
+                            translator=self.mock_translator,
+                            logger=mock_logger,
+                        )
 
         # Verify error was logged
         assert any("Error creating directory" in str(log_call) for log_call in mock_logger.error.call_args_list)
@@ -347,9 +417,16 @@ class TestSaveTranslatedBook:
 
         # Execute
         with patch("enchant_book_manager.translation_orchestrator.save_translation_cost_log"):
-            with patch("enchant_book_manager.translation_orchestrator.prepare_for_write", return_value=Mock()):
+            with patch(
+                "enchant_book_manager.translation_orchestrator.prepare_for_write",
+                return_value=Mock(),
+            ):
                 with patch("builtins.open", mock_open()):
-                    save_translated_book(book_id="test_book_id", translator=self.mock_translator, logger=mock_logger)
+                    save_translated_book(
+                        book_id="test_book_id",
+                        translator=self.mock_translator,
+                        logger=mock_logger,
+                    )
 
         # Verify is_last_chunk flag
         calls = self.mock_translator.translate.call_args_list
@@ -411,12 +488,19 @@ class TestSaveTranslatedBook:
 
         # Execute
         with patch("enchant_book_manager.translation_orchestrator.save_translation_cost_log"):
-            with patch("enchant_book_manager.translation_orchestrator.prepare_for_write", return_value=mock_output_path):
+            with patch(
+                "enchant_book_manager.translation_orchestrator.prepare_for_write",
+                return_value=mock_output_path,
+            ):
                 with patch("builtins.open", mock_open()) as mock_file:
                     mock_file.side_effect = PermissionError("Cannot write final file")
 
                     with pytest.raises(PermissionError):
-                        save_translated_book(book_id="test_book_id", translator=self.mock_translator, logger=mock_logger)
+                        save_translated_book(
+                            book_id="test_book_id",
+                            translator=self.mock_translator,
+                            logger=mock_logger,
+                        )
 
         # Verify error was logged
         assert any("Error saving translated book" in str(log_call) for log_call in mock_logger.error.call_args_list)

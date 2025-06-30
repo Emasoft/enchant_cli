@@ -426,7 +426,10 @@ They needed to venture deep into the forest and clear out the magical beasts the
 
             # Create a mock translate_novel function that creates expected output
             def mock_translate_novel(input_file, **kwargs):
-                from enchant_book_manager.common_utils import sanitize_filename, extract_book_info_from_path
+                from enchant_book_manager.common_utils import (
+                    sanitize_filename,
+                    extract_book_info_from_path,
+                )
 
                 # Get the renamed file path
                 input_path = Path(input_file)
@@ -589,7 +592,10 @@ They needed to venture deep into the forest and clear out the magical beasts the
 
             # Create a mock translate_novel function that creates expected output
             def mock_translate_novel_batch(input_file, **kwargs):
-                from enchant_book_manager.common_utils import sanitize_filename, extract_book_info_from_path
+                from enchant_book_manager.common_utils import (
+                    sanitize_filename,
+                    extract_book_info_from_path,
+                )
 
                 # Get the file path
                 input_path = Path(input_file)
@@ -637,7 +643,12 @@ They needed to venture deep into the forest and clear out the magical beasts the
             with (
                 patch(
                     "enchant_book_manager.rename_api_client.RenameAPIClient.extract_metadata",
-                    side_effect=lambda content, char_limit=1500: mock_make_openai(api_key="test", model="gpt", temperature=0, messages=[{"role": "user", "content": content}])["choices"][0]["message"]["content"],
+                    side_effect=lambda content, char_limit=1500: mock_make_openai(
+                        api_key="test",
+                        model="gpt",
+                        temperature=0,
+                        messages=[{"role": "user", "content": content}],
+                    )["choices"][0]["message"]["content"],
                 ),
                 patch("requests.post", side_effect=mock_requests_post),
                 patch(
@@ -944,7 +955,10 @@ They needed to venture deep into the forest and clear out the magical beasts the
                 mock_openai.return_value = mock_openai_responses["魔法学院.txt"]
 
                 # Mock the translation function to create files
-                with patch("enchant_book_manager.cli_translator.translate_novel", side_effect=mock_translate_novel):
+                with patch(
+                    "enchant_book_manager.cli_translator.translate_novel",
+                    side_effect=mock_translate_novel,
+                ):
                     # Also mock the translation service
                     with patch(
                         "enchant_book_manager.translation_service.ChineseAITranslator.translate",
@@ -961,7 +975,9 @@ They needed to venture deep into the forest and clear out the magical beasts the
                                 "test_openai_key",
                             ],
                         ):
-                            from enchant_book_manager.enchant_cli import main as enchant_main
+                            from enchant_book_manager.enchant_cli import (
+                                main as enchant_main,
+                            )
 
                             try:
                                 enchant_main()

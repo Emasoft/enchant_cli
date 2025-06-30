@@ -81,7 +81,13 @@ class TestConfigManager:
     def test_get_config_value(self):
         """Test getting configuration values with dot notation."""
         manager = ConfigManager.__new__(ConfigManager)
-        manager.config = {"translation": {"local": {"endpoint": "http://localhost:1234", "model": "test-model"}, "remote": {"api_key": "test-key"}}, "simple_value": "test"}
+        manager.config = {
+            "translation": {
+                "local": {"endpoint": "http://localhost:1234", "model": "test-model"},
+                "remote": {"api_key": "test-key"},
+            },
+            "simple_value": "test",
+        }
 
         # Test nested access
         assert manager.get("translation.local.endpoint") == "http://localhost:1234"
@@ -110,7 +116,12 @@ class TestConfigManager:
         # Setup mocks
         mock_loader_instance = MagicMock()
         mock_loader_instance.load_config.return_value = {"presets": {}}
-        mock_loader_instance.get_default_config.return_value = {"presets": {"LOCAL": {"api_type": "local"}, "REMOTE": {"api_type": "remote"}}}
+        mock_loader_instance.get_default_config.return_value = {
+            "presets": {
+                "LOCAL": {"api_type": "local"},
+                "REMOTE": {"api_type": "remote"},
+            }
+        }
         mock_loader_instance.get_config_lines.return_value = []
         mock_loader_instance.merge_with_defaults.return_value = {"test": "config"}
         mock_loader.return_value = mock_loader_instance
@@ -144,7 +155,11 @@ class TestConfigManager:
         mock_loader.return_value = mock_loader_instance
 
         mock_validator_instance = MagicMock()
-        mock_validator_instance.validate_config_first_error.return_value = {"type": "invalid_value", "key": "test.key", "message": "Invalid value"}
+        mock_validator_instance.validate_config_first_error.return_value = {
+            "type": "invalid_value",
+            "key": "test.key",
+            "message": "Invalid value",
+        }
         mock_validator.return_value = mock_validator_instance
 
         # Create manager - should exit due to validation error
@@ -209,7 +224,10 @@ class TestConfigManager:
         # Clear any existing environment variables
         with patch.dict("os.environ", {}, clear=True):
             manager = ConfigManager.__new__(ConfigManager)
-            manager.config = {"translation": {"remote": {"api_key": "remote-key"}}, "novel_renaming": {"openai": {"api_key": "openai-key"}}}
+            manager.config = {
+                "translation": {"remote": {"api_key": "remote-key"}},
+                "novel_renaming": {"openai": {"api_key": "openai-key"}},
+            }
 
             # Test getting from config
             assert manager.get_api_key("openrouter") == "remote-key"
@@ -226,7 +244,11 @@ class TestConfigManager:
         manager.config = {"presets": {"LOCAL": {}, "REMOTE": {}, "CUSTOM": {}}}
 
         mock_preset_mgr = MagicMock()
-        mock_preset_mgr.get_available_presets.return_value = ["LOCAL", "REMOTE", "CUSTOM"]
+        mock_preset_mgr.get_available_presets.return_value = [
+            "LOCAL",
+            "REMOTE",
+            "CUSTOM",
+        ]
         manager.preset_manager = mock_preset_mgr
 
         presets = manager.get_available_presets()

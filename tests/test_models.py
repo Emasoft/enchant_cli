@@ -257,7 +257,12 @@ class TestChunk:
 
     def test_chunk_initialization(self):
         """Test Chunk initialization."""
-        chunk = Chunk(chunk_id="chunk-id", book_id="book-id", chunk_number=1, original_variation_id="var-id")
+        chunk = Chunk(
+            chunk_id="chunk-id",
+            book_id="book-id",
+            chunk_number=1,
+            original_variation_id="var-id",
+        )
 
         assert chunk.chunk_id == "chunk-id"
         assert chunk.book_id == "book-id"
@@ -270,7 +275,12 @@ class TestChunk:
         book = Book.create(book_id="test-book")
 
         # Create chunk
-        chunk = Chunk.create(chunk_id="test-chunk", book_id="test-book", chunk_number=1, original_variation_id="test-var")
+        chunk = Chunk.create(
+            chunk_id="test-chunk",
+            book_id="test-book",
+            chunk_number=1,
+            original_variation_id="test-var",
+        )
 
         assert isinstance(chunk, Chunk)
         assert chunk.chunk_id == "test-chunk"
@@ -288,7 +298,12 @@ class TestChunk:
         """Test Chunk.create() when book doesn't exist."""
         # This should raise KeyError from Book.get_by_id
         with pytest.raises(KeyError, match="Book with id non-existent-book not found"):
-            Chunk.create(chunk_id="orphan-chunk", book_id="non-existent-book", chunk_number=1, original_variation_id="var")
+            Chunk.create(
+                chunk_id="orphan-chunk",
+                book_id="non-existent-book",
+                chunk_number=1,
+                original_variation_id="var",
+            )
 
 
 class TestVariation:
@@ -302,7 +317,15 @@ class TestVariation:
 
     def test_variation_initialization(self):
         """Test Variation initialization."""
-        variation = Variation(variation_id="var-id", book_id="book-id", chunk_id="chunk-id", chunk_number=1, language="original", category="original", text_content="Test content")
+        variation = Variation(
+            variation_id="var-id",
+            book_id="book-id",
+            chunk_id="chunk-id",
+            chunk_number=1,
+            language="original",
+            category="original",
+            text_content="Test content",
+        )
 
         assert variation.variation_id == "var-id"
         assert variation.book_id == "book-id"
@@ -314,7 +337,15 @@ class TestVariation:
 
     def test_variation_create(self):
         """Test Variation.create() method."""
-        variation = Variation.create(variation_id="created-var", book_id="test-book", chunk_id="test-chunk", chunk_number=2, language="english", category="translated", text_content="Translated text")
+        variation = Variation.create(
+            variation_id="created-var",
+            book_id="test-book",
+            chunk_id="test-chunk",
+            chunk_number=2,
+            language="english",
+            category="translated",
+            text_content="Translated text",
+        )
 
         assert isinstance(variation, Variation)
         assert variation.variation_id == "created-var"
@@ -412,21 +443,49 @@ class TestIntegration:
     def test_complete_book_structure(self):
         """Test creating a complete book with chunks and variations."""
         # Create a book
-        book = Book.create(book_id="full-book", title="Complete Book", original_title="完整的书", author="Test Author", source_file="complete.txt", total_characters=10000)
+        book = Book.create(
+            book_id="full-book",
+            title="Complete Book",
+            original_title="完整的书",
+            author="Test Author",
+            source_file="complete.txt",
+            total_characters=10000,
+        )
 
         # Create chunks for the book
         chunks = []
         for i in range(3):
-            chunk = Chunk.create(chunk_id=f"chunk-{i}", book_id="full-book", chunk_number=i + 1, original_variation_id=f"orig-var-{i}")
+            chunk = Chunk.create(
+                chunk_id=f"chunk-{i}",
+                book_id="full-book",
+                chunk_number=i + 1,
+                original_variation_id=f"orig-var-{i}",
+            )
             chunks.append(chunk)
 
         # Create original variations
         for i, chunk in enumerate(chunks):
-            Variation.create(variation_id=f"orig-var-{i}", book_id="full-book", chunk_id=chunk.chunk_id, chunk_number=chunk.chunk_number, language="chinese", category="original", text_content=f"原始文本 {i}")
+            Variation.create(
+                variation_id=f"orig-var-{i}",
+                book_id="full-book",
+                chunk_id=chunk.chunk_id,
+                chunk_number=chunk.chunk_number,
+                language="chinese",
+                category="original",
+                text_content=f"原始文本 {i}",
+            )
 
         # Create translated variations
         for i, chunk in enumerate(chunks):
-            Variation.create(variation_id=f"trans-var-{i}", book_id="full-book", chunk_id=chunk.chunk_id, chunk_number=chunk.chunk_number, language="english", category="translated", text_content=f"Translated text {i}")
+            Variation.create(
+                variation_id=f"trans-var-{i}",
+                book_id="full-book",
+                chunk_id=chunk.chunk_id,
+                chunk_number=chunk.chunk_number,
+                language="english",
+                category="translated",
+                text_content=f"Translated text {i}",
+            )
 
         # Verify complete structure
         assert len(book.chunks) == 3
@@ -440,9 +499,24 @@ class TestIntegration:
     def test_field_descriptor_in_queries(self):
         """Test using Field descriptor for complex queries."""
         # Create books with different attributes
-        Book.create(book_id="book1", source_file="novel1.txt", title="Short", total_characters=1000)
-        Book.create(book_id="book2", source_file="novel2.txt", title="Medium Length Title", total_characters=5000)
-        Book.create(book_id="book3", source_file="novel3.txt", title="Very Very Long Title Indeed", total_characters=10000)
+        Book.create(
+            book_id="book1",
+            source_file="novel1.txt",
+            title="Short",
+            total_characters=1000,
+        )
+        Book.create(
+            book_id="book2",
+            source_file="novel2.txt",
+            title="Medium Length Title",
+            total_characters=5000,
+        )
+        Book.create(
+            book_id="book3",
+            source_file="novel3.txt",
+            title="Very Very Long Title Indeed",
+            total_characters=10000,
+        )
 
         # Test various query conditions
 

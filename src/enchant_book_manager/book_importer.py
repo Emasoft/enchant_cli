@@ -92,7 +92,12 @@ def foreign_book_title_splitter(
     )
 
 
-def import_book_from_txt(file_path: str | Path, encoding: str = "utf-8", max_chars: int = DEFAULT_MAX_CHARS, logger: Optional[Any] = None) -> str:
+def import_book_from_txt(
+    file_path: str | Path,
+    encoding: str = "utf-8",
+    max_chars: int = DEFAULT_MAX_CHARS,
+    logger: Optional[Any] = None,
+) -> str:
     """
     Import a book from text file and split into chunks.
 

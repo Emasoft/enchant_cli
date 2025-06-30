@@ -74,7 +74,10 @@ class TestLoadSafeYaml:
         logger = Mock(spec=logging.Logger)
 
         # Mock load_yaml_safe to raise ValueError
-        with patch("enchant_book_manager.batch_processor.load_yaml_safe", side_effect=ValueError("Test error")):
+        with patch(
+            "enchant_book_manager.batch_processor.load_yaml_safe",
+            side_effect=ValueError("Test error"),
+        ):
             result = load_safe_yaml(yaml_file, logger)
 
         assert result is None
@@ -88,7 +91,10 @@ class TestLoadSafeYaml:
         logger = Mock(spec=logging.Logger)
 
         # Mock load_yaml_safe to raise general Exception
-        with patch("enchant_book_manager.batch_processor.load_yaml_safe", side_effect=Exception("Unexpected error")):
+        with patch(
+            "enchant_book_manager.batch_processor.load_yaml_safe",
+            side_effect=Exception("Unexpected error"),
+        ):
             result = load_safe_yaml(yaml_file, logger)
 
         assert result is None
@@ -129,11 +135,27 @@ class TestProcessBatch:
 
         # Mock global_cost_tracker
         with patch("enchant_book_manager.batch_processor.global_cost_tracker") as mock_cost_tracker:
-            mock_cost_tracker.get_summary.return_value = {"total_cost": 0.10, "total_tokens": 1000, "total_prompt_tokens": 500, "total_completion_tokens": 500}
+            mock_cost_tracker.get_summary.return_value = {
+                "total_cost": 0.10,
+                "total_tokens": 1000,
+                "total_prompt_tokens": 500,
+                "total_completion_tokens": 500,
+            }
 
             # Mock prepare_for_write to return the same path
-            with patch("enchant_book_manager.batch_processor.prepare_for_write", side_effect=lambda x: x):
-                process_batch(input_path=input_dir, translator=mock_translator, encoding="utf-8", max_chars=1000, resume=False, create_epub=False, logger=logger)
+            with patch(
+                "enchant_book_manager.batch_processor.prepare_for_write",
+                side_effect=lambda x: x,
+            ):
+                process_batch(
+                    input_path=input_dir,
+                    translator=mock_translator,
+                    encoding="utf-8",
+                    max_chars=1000,
+                    resume=False,
+                    create_epub=False,
+                    logger=logger,
+                )
 
         assert mock_import.call_count == 2
         assert mock_save.call_count == 2
@@ -164,7 +186,15 @@ class TestProcessBatch:
         mock_translator.is_remote = False  # Don't trigger cost summary
         logger = Mock(spec=logging.Logger)
 
-        process_batch(input_path=input_dir, translator=mock_translator, encoding="utf-8", max_chars=1000, resume=False, create_epub=False, logger=logger)
+        process_batch(
+            input_path=input_dir,
+            translator=mock_translator,
+            encoding="utf-8",
+            max_chars=1000,
+            resume=False,
+            create_epub=False,
+            logger=logger,
+        )
 
         assert mock_import.call_count == 2
         assert mock_save.call_count == 1  # Only called for successful import
@@ -183,7 +213,24 @@ class TestProcessBatch:
 
         # Create a real progress file
         progress_file = Path("translation_batch_progress.yml")
-        progress_data = {"created": "2024-01-01T00:00:00", "input_folder": str(input_dir), "files": [{"path": str(file1), "status": "completed", "end_time": "2024-01-01T01:00:00", "retry_count": 0}, {"path": str(file2), "status": "planned", "end_time": None, "retry_count": 0}]}
+        progress_data = {
+            "created": "2024-01-01T00:00:00",
+            "input_folder": str(input_dir),
+            "files": [
+                {
+                    "path": str(file1),
+                    "status": "completed",
+                    "end_time": "2024-01-01T01:00:00",
+                    "retry_count": 0,
+                },
+                {
+                    "path": str(file2),
+                    "status": "planned",
+                    "end_time": None,
+                    "retry_count": 0,
+                },
+            ],
+        }
         with open(progress_file, "w") as f:
             yaml.safe_dump(progress_data, f)
 
@@ -193,7 +240,15 @@ class TestProcessBatch:
             mock_translator.is_remote = False
             logger = Mock(spec=logging.Logger)
 
-            process_batch(input_path=input_dir, translator=mock_translator, encoding="utf-8", max_chars=1000, resume=True, create_epub=False, logger=logger)
+            process_batch(
+                input_path=input_dir,
+                translator=mock_translator,
+                encoding="utf-8",
+                max_chars=1000,
+                resume=True,
+                create_epub=False,
+                logger=logger,
+            )
 
             # Should only process book2
             assert mock_import.call_count == 1
@@ -237,7 +292,18 @@ class TestProcessBatch:
 
         # Create a real progress file with retry count at max
         progress_file = Path("translation_batch_progress.yml")
-        progress_data = {"created": "2024-01-01T00:00:00", "input_folder": str(input_dir), "files": [{"path": str(input_dir / "book1.txt"), "status": "failed", "retry_count": 3, "end_time": None}]}
+        progress_data = {
+            "created": "2024-01-01T00:00:00",
+            "input_folder": str(input_dir),
+            "files": [
+                {
+                    "path": str(input_dir / "book1.txt"),
+                    "status": "failed",
+                    "retry_count": 3,
+                    "end_time": None,
+                }
+            ],
+        }
         with open(progress_file, "w") as f:
             yaml.safe_dump(progress_data, f)
 
@@ -325,10 +391,16 @@ class TestProcessBatch:
 
         # Mock global_cost_tracker
         with patch("enchant_book_manager.batch_processor.global_cost_tracker") as mock_cost_tracker:
-            mock_cost_tracker.get_summary.return_value = {"total_cost": 0.10, "total_tokens": 1000}
+            mock_cost_tracker.get_summary.return_value = {
+                "total_cost": 0.10,
+                "total_tokens": 1000,
+            }
 
             # Mock prepare_for_write to return the same path
-            with patch("enchant_book_manager.batch_processor.prepare_for_write", side_effect=lambda x: x):
+            with patch(
+                "enchant_book_manager.batch_processor.prepare_for_write",
+                side_effect=lambda x: x,
+            ):
                 # Use a custom open that works normally until we try to write the cost log
                 original_open = open
                 open_call_count = 0
@@ -381,7 +453,10 @@ class TestProcessBatch:
                 raise yaml.YAMLError("Save failed in finally")
             return original_yaml_dump(*args, **kwargs)
 
-        with patch("enchant_book_manager.batch_processor.yaml.safe_dump", side_effect=mock_yaml_dump):
+        with patch(
+            "enchant_book_manager.batch_processor.yaml.safe_dump",
+            side_effect=mock_yaml_dump,
+        ):
             process_batch(input_path=input_dir, translator=mock_translator, logger=logger)
 
         # Should log error from finally block
@@ -416,7 +491,10 @@ class TestProcessBatch:
                 raise yaml.YAMLError("Cannot write history file")
             return original_yaml_dump(data, stream, **kwargs)
 
-        with patch("enchant_book_manager.batch_processor.yaml.safe_dump", side_effect=mock_yaml_dump):
+        with patch(
+            "enchant_book_manager.batch_processor.yaml.safe_dump",
+            side_effect=mock_yaml_dump,
+        ):
             process_batch(input_path=input_dir, translator=mock_translator, logger=logger)
 
         # Verify error was logged
@@ -485,10 +563,18 @@ class TestProcessBatch:
 
         # Mock global_cost_tracker
         with patch("enchant_book_manager.batch_processor.global_cost_tracker") as mock_cost_tracker:
-            mock_cost_tracker.get_summary.return_value = {"total_cost": 0.05, "total_tokens": 500, "total_prompt_tokens": 250, "total_completion_tokens": 250}
+            mock_cost_tracker.get_summary.return_value = {
+                "total_cost": 0.05,
+                "total_tokens": 500,
+                "total_prompt_tokens": 250,
+                "total_completion_tokens": 250,
+            }
 
             # Mock prepare_for_write to return the same path
-            with patch("enchant_book_manager.batch_processor.prepare_for_write", side_effect=lambda x: x):
+            with patch(
+                "enchant_book_manager.batch_processor.prepare_for_write",
+                side_effect=lambda x: x,
+            ):
                 process_batch(input_path=input_dir, translator=mock_translator, logger=logger)
 
         # Check that cost summary was written with error details

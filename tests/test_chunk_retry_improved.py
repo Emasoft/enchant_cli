@@ -115,7 +115,14 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
         self.mock_translator.translate.return_value = "Translated content"
 
         with patch("sys.exit") as mock_exit:
-            save_translated_book(self.book_id, translator=self.mock_translator, resume=False, create_epub=False, logger=self.mock_logger, module_config={})
+            save_translated_book(
+                self.book_id,
+                translator=self.mock_translator,
+                resume=False,
+                create_epub=False,
+                logger=self.mock_logger,
+                module_config={},
+            )
 
             # Should not exit
             mock_exit.assert_not_called()
@@ -140,7 +147,14 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
         ]
 
         with patch("sys.exit") as mock_exit:
-            save_translated_book(self.book_id, translator=self.mock_translator, resume=False, create_epub=False, logger=self.mock_logger, module_config={})
+            save_translated_book(
+                self.book_id,
+                translator=self.mock_translator,
+                resume=False,
+                create_epub=False,
+                logger=self.mock_logger,
+                module_config={},
+            )
 
             # Should not exit
             mock_exit.assert_not_called()
@@ -163,7 +177,14 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
             mock_exit.side_effect = SystemExit(1)
 
             with pytest.raises(SystemExit) as cm:
-                save_translated_book(self.book_id, translator=self.mock_translator, resume=False, create_epub=False, logger=self.mock_logger, module_config={"translation": {"max_chunk_retries": 3}})
+                save_translated_book(
+                    self.book_id,
+                    translator=self.mock_translator,
+                    resume=False,
+                    create_epub=False,
+                    logger=self.mock_logger,
+                    module_config={"translation": {"max_chunk_retries": 3}},
+                )
 
             # Check exit code
             assert cm.value.code == 1
@@ -194,7 +215,14 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
         ]
 
         with patch("sys.exit") as mock_exit:
-            save_translated_book(self.book_id, translator=self.mock_translator, resume=False, create_epub=False, logger=self.mock_logger, module_config={})
+            save_translated_book(
+                self.book_id,
+                translator=self.mock_translator,
+                resume=False,
+                create_epub=False,
+                logger=self.mock_logger,
+                module_config={},
+            )
 
             # Should not exit
             mock_exit.assert_not_called()
@@ -234,7 +262,14 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
         self.mock_translator.translate.side_effect = errors + ["Translated"] * 3
 
         with patch("sys.exit"):
-            save_translated_book(self.book_id, translator=self.mock_translator, resume=False, create_epub=False, logger=self.mock_logger, module_config={"translation": {"max_chunk_retries": 10}})
+            save_translated_book(
+                self.book_id,
+                translator=self.mock_translator,
+                resume=False,
+                create_epub=False,
+                logger=self.mock_logger,
+                module_config={"translation": {"max_chunk_retries": 10}},
+            )
 
             # Check that no sleep call exceeds MAX_RETRY_WAIT_SECONDS
             for call in mock_sleep.call_args_list:

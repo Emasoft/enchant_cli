@@ -164,7 +164,28 @@ class TestCreateParser:
 
         parser = create_parser(config)
         args = parser.parse_args(
-            ["test.txt", "--epub", "--epub-title", "My Title", "--epub-author", "My Author", "--cover", "cover.jpg", "--epub-language", "zh", "--no-toc", "--no-validate", "--epub-strict", "--custom-css", "style.css", "--epub-metadata", '{"publisher": "Test"}', "--json-log", "log.json", "--validate-only"]
+            [
+                "test.txt",
+                "--epub",
+                "--epub-title",
+                "My Title",
+                "--epub-author",
+                "My Author",
+                "--cover",
+                "cover.jpg",
+                "--epub-language",
+                "zh",
+                "--no-toc",
+                "--no-validate",
+                "--epub-strict",
+                "--custom-css",
+                "style.css",
+                "--epub-metadata",
+                '{"publisher": "Test"}',
+                "--json-log",
+                "log.json",
+                "--validate-only",
+            ]
         )
 
         assert args.epub
@@ -190,7 +211,22 @@ class TestCreateParser:
         }
 
         parser = create_parser(config)
-        args = parser.parse_args(["test.txt", "--model", "gpt-4", "--temperature", "0.5", "--max-tokens", "2000", "--double-pass", "--rename-model", "gpt-3.5-turbo", "--rename-temperature", "0.7"])
+        args = parser.parse_args(
+            [
+                "test.txt",
+                "--model",
+                "gpt-4",
+                "--temperature",
+                "0.5",
+                "--max-tokens",
+                "2000",
+                "--double-pass",
+                "--rename-model",
+                "gpt-3.5-turbo",
+                "--rename-temperature",
+                "0.7",
+            ]
+        )
 
         assert args.model == "gpt-4"
         assert args.temperature == 0.5
@@ -360,7 +396,27 @@ class TestParserIntegration:
         }
 
         parser = create_parser(config)
-        args = parser.parse_args(["chinese_novel.txt", "--openai-api-key", "test_key", "--remote", "--epub", "--model", "gpt-4", "--temperature", "0.3", "--max-chars", "5000", "--epub-title", "My Novel", "--epub-author", "Test Author", "--cover", "cover.jpg"])
+        args = parser.parse_args(
+            [
+                "chinese_novel.txt",
+                "--openai-api-key",
+                "test_key",
+                "--remote",
+                "--epub",
+                "--model",
+                "gpt-4",
+                "--temperature",
+                "0.3",
+                "--max-chars",
+                "5000",
+                "--epub-title",
+                "My Novel",
+                "--epub-author",
+                "Test Author",
+                "--cover",
+                "cover.jpg",
+            ]
+        )
 
         assert args.filepath == "chinese_novel.txt"
         assert args.openai_api_key == "test_key"
@@ -383,7 +439,16 @@ class TestParserIntegration:
         }
 
         parser = create_parser(config)
-        args = parser.parse_args(["chinese_novel.txt", "--skip-translating", "--skip-epub", "--openai-api-key", "test_key", "--rename-dry-run"])
+        args = parser.parse_args(
+            [
+                "chinese_novel.txt",
+                "--skip-translating",
+                "--skip-epub",
+                "--openai-api-key",
+                "test_key",
+                "--rename-dry-run",
+            ]
+        )
 
         assert args.skip_translating
         assert args.skip_epub
@@ -401,7 +466,16 @@ class TestParserIntegration:
         }
 
         parser = create_parser(config)
-        args = parser.parse_args(["novels/", "--batch", "--preset", "REMOTE", "--config", "custom_config.yml"])
+        args = parser.parse_args(
+            [
+                "novels/",
+                "--batch",
+                "--preset",
+                "REMOTE",
+                "--config",
+                "custom_config.yml",
+            ]
+        )
 
         assert args.filepath == "novels/"
         assert args.batch

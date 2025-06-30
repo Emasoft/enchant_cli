@@ -143,7 +143,14 @@ class TestSetupLogging:
     @patch("enchant_book_manager.cli_setup.logging.getLogger")
     def test_setup_logging_basic(self, mock_get_logger, mock_basic_config):
         """Test basic logging setup without file logging."""
-        config = {"logging": {"level": "INFO", "format": "%(asctime)s - %(levelname)s - %(message)s", "file_enabled": False, "file_path": "test.log"}}
+        config = {
+            "logging": {
+                "level": "INFO",
+                "format": "%(asctime)s - %(levelname)s - %(message)s",
+                "file_enabled": False,
+                "file_path": "test.log",
+            }
+        }
 
         mock_logger = Mock(spec=logging.Logger)
         mock_get_logger.return_value = mock_logger
@@ -164,7 +171,14 @@ class TestSetupLogging:
     @patch("enchant_book_manager.cli_setup.logging.getLogger")
     def test_setup_logging_with_file(self, mock_get_logger, mock_basic_config, mock_file_handler_class):
         """Test logging setup with file logging enabled."""
-        config = {"logging": {"level": "DEBUG", "format": "%(message)s", "file_enabled": True, "file_path": "app.log"}}
+        config = {
+            "logging": {
+                "level": "DEBUG",
+                "format": "%(message)s",
+                "file_enabled": True,
+                "file_path": "app.log",
+            }
+        }
 
         mock_logger = Mock(spec=logging.Logger)
         mock_get_logger.return_value = mock_logger
@@ -187,7 +201,14 @@ class TestSetupLogging:
     @patch("enchant_book_manager.cli_setup.logging.getLogger")
     def test_setup_logging_file_error(self, mock_get_logger, mock_basic_config, mock_file_handler_class):
         """Test logging setup when file handler fails."""
-        config = {"logging": {"level": "INFO", "format": "%(message)s", "file_enabled": True, "file_path": "/invalid/path/test.log"}}
+        config = {
+            "logging": {
+                "level": "INFO",
+                "format": "%(message)s",
+                "file_enabled": True,
+                "file_path": "/invalid/path/test.log",
+            }
+        }
 
         mock_logger = Mock(spec=logging.Logger)
         mock_get_logger.return_value = mock_logger
@@ -206,7 +227,14 @@ class TestSetupLogging:
 
     def test_setup_logging_invalid_level(self):
         """Test logging setup with invalid log level."""
-        config = {"logging": {"level": "INVALID_LEVEL", "format": "%(message)s", "file_enabled": False, "file_path": "test.log"}}
+        config = {
+            "logging": {
+                "level": "INVALID_LEVEL",
+                "format": "%(message)s",
+                "file_enabled": False,
+                "file_path": "test.log",
+            }
+        }
 
         with patch("enchant_book_manager.cli_setup.logging.basicConfig") as mock_basic_config:
             with patch("enchant_book_manager.cli_setup.logging.getLogger") as mock_get_logger:
@@ -327,7 +355,13 @@ class TestIntegration:
     @patch("enchant_book_manager.cli_setup.logging")
     @patch("enchant_book_manager.cli_setup.ConfigManager")
     @patch("enchant_book_manager.cli_setup.argparse.ArgumentParser")
-    def test_full_setup_flow(self, mock_parser_class, mock_config_manager_class, mock_logging, mock_icloud_sync_class):
+    def test_full_setup_flow(
+        self,
+        mock_parser_class,
+        mock_config_manager_class,
+        mock_logging,
+        mock_icloud_sync_class,
+    ):
         """Test complete setup flow."""
         # Mock argument parser
         mock_parser = Mock()
@@ -339,7 +373,15 @@ class TestIntegration:
 
         # Mock ConfigManager
         mock_config_manager = Mock()
-        mock_config = {"logging": {"level": "INFO", "format": "%(message)s", "file_enabled": False, "file_path": "app.log"}, "icloud": {"enabled": True}}
+        mock_config = {
+            "logging": {
+                "level": "INFO",
+                "format": "%(message)s",
+                "file_enabled": False,
+                "file_path": "app.log",
+            },
+            "icloud": {"enabled": True},
+        }
         mock_config_manager.config = mock_config
         mock_config_manager_class.return_value = mock_config_manager
 

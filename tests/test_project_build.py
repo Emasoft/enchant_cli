@@ -40,7 +40,11 @@ class TestProjectBuild(unittest.TestCase):
         test_project_dir = Path(self.temp_dir) / "enchant_test"
 
         # Copy the project to simulate a clone
-        shutil.copytree(project_root, test_project_dir, ignore=shutil.ignore_patterns(".git", "__pycache__", "*.pyc", ".venv", "htmlcov"))
+        shutil.copytree(
+            project_root,
+            test_project_dir,
+            ignore=shutil.ignore_patterns(".git", "__pycache__", "*.pyc", ".venv", "htmlcov"),
+        )
 
         os.chdir(test_project_dir)
 
@@ -78,7 +82,17 @@ class TestProjectBuild(unittest.TestCase):
         self.assertEqual(result.returncode, 0, f"Failed to install wheel: {result.stderr}")
 
         # Test 6: Verify the package can be imported
-        result = subprocess.run(["uv", "run", "python", "-c", "import enchant_book_manager; print(enchant_book_manager.__version__)"], capture_output=True, text=True)
+        result = subprocess.run(
+            [
+                "uv",
+                "run",
+                "python",
+                "-c",
+                "import enchant_book_manager; print(enchant_book_manager.__version__)",
+            ],
+            capture_output=True,
+            text=True,
+        )
         self.assertEqual(result.returncode, 0, f"Failed to import package: {result.stderr}")
         self.assertTrue(result.stdout.strip(), "Should output version")
 

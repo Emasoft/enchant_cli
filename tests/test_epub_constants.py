@@ -45,15 +45,45 @@ class TestEpubConstants:
         assert isinstance(WORD_NUMS, str)
 
         # Check basic numbers
-        for num in ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]:
+        for num in [
+            "one",
+            "two",
+            "three",
+            "four",
+            "five",
+            "six",
+            "seven",
+            "eight",
+            "nine",
+            "ten",
+        ]:
             assert num in WORD_NUMS
 
         # Check teens
-        for num in ["eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"]:
+        for num in [
+            "eleven",
+            "twelve",
+            "thirteen",
+            "fourteen",
+            "fifteen",
+            "sixteen",
+            "seventeen",
+            "eighteen",
+            "nineteen",
+        ]:
             assert num in WORD_NUMS
 
         # Check tens
-        for num in ["twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]:
+        for num in [
+            "twenty",
+            "thirty",
+            "forty",
+            "fifty",
+            "sixty",
+            "seventy",
+            "eighty",
+            "ninety",
+        ]:
             assert num in WORD_NUMS
 
         # Check scales

@@ -200,7 +200,14 @@ class TestBuildContentOpf:
         manifest = ['<item id="ch1" href="ch1.xhtml" media-type="application/xhtml+xml"/>']
         spine = ['<itemref idref="ch1"/>']
 
-        result = build_content_opf(title="Test Book", author="Test Author", manifest=manifest, spine=spine, uid="12345", cover_id=None)
+        result = build_content_opf(
+            title="Test Book",
+            author="Test Author",
+            manifest=manifest,
+            spine=spine,
+            uid="12345",
+            cover_id=None,
+        )
 
         assert "<?xml version='1.0' encoding='utf-8'?>" in result
         assert "<dc:title>Test Book</dc:title>" in result
@@ -215,21 +222,49 @@ class TestBuildContentOpf:
         manifest = ['<item id="cover" href="cover.jpg" media-type="image/jpeg"/>']
         spine = []
 
-        result = build_content_opf(title="Book", author="Author", manifest=manifest, spine=spine, uid="12345", cover_id="cover")
+        result = build_content_opf(
+            title="Book",
+            author="Author",
+            manifest=manifest,
+            spine=spine,
+            uid="12345",
+            cover_id="cover",
+        )
 
         assert "<meta name='cover' content='cover'/>" in result
 
     def test_build_content_opf_custom_language(self):
         """Test building OPF with custom language."""
-        result = build_content_opf(title="Book", author="Author", manifest=[], spine=[], uid="12345", cover_id=None, language="zh")
+        result = build_content_opf(
+            title="Book",
+            author="Author",
+            manifest=[],
+            spine=[],
+            uid="12345",
+            cover_id=None,
+            language="zh",
+        )
 
         assert "<dc:language>zh</dc:language>" in result
 
     def test_build_content_opf_with_metadata(self):
         """Test building OPF with additional metadata."""
-        metadata = {"publisher": "Test Publisher", "description": "Test Description", "series": "Test Series", "series_index": "1"}
+        metadata = {
+            "publisher": "Test Publisher",
+            "description": "Test Description",
+            "series": "Test Series",
+            "series_index": "1",
+        }
 
-        result = build_content_opf(title="Book", author="Author", manifest=[], spine=[], uid="12345", cover_id=None, metadata=metadata)
+        result = build_content_opf(
+            title="Book",
+            author="Author",
+            manifest=[],
+            spine=[],
+            uid="12345",
+            cover_id=None,
+            metadata=metadata,
+        )
 
         assert "<dc:publisher>Test Publisher</dc:publisher>" in result
         assert "<dc:description>Test Description</dc:description>" in result
@@ -238,7 +273,14 @@ class TestBuildContentOpf:
 
     def test_build_content_opf_html_escaping(self):
         """Test that special characters are escaped in OPF."""
-        result = build_content_opf(title="Book & Title <Test>", author="Author & Name", manifest=[], spine=[], uid="12345", cover_id=None)
+        result = build_content_opf(
+            title="Book & Title <Test>",
+            author="Author & Name",
+            manifest=[],
+            spine=[],
+            uid="12345",
+            cover_id=None,
+        )
 
         assert "<dc:title>Book &amp; Title &lt;Test&gt;</dc:title>" in result
         assert "<dc:creator opf:role='aut'>Author &amp; Name</dc:creator>" in result
@@ -274,7 +316,12 @@ class TestBuildTocNcx:
 
     def test_build_toc_ncx_html_escaping(self):
         """Test that special characters are escaped in TOC."""
-        result = build_toc_ncx(title="Book & Title <Test>", author="Author & Name", nav_points=[], uid="12345")
+        result = build_toc_ncx(
+            title="Book & Title <Test>",
+            author="Author & Name",
+            nav_points=[],
+            uid="12345",
+        )
 
         assert "<text>Book &amp; Title &lt;Test&gt;</text>" in result
         assert "<text>Author &amp; Name</text>" in result

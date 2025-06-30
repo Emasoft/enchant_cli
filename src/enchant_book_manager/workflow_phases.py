@@ -51,7 +51,14 @@ except ImportError:
     epub_available = False
 
 
-def process_renaming_phase(file_path: Path, current_path: Path, args: argparse.Namespace, progress: dict[str, Any], progress_file: Path, logger: logging.Logger) -> Path:
+def process_renaming_phase(
+    file_path: Path,
+    current_path: Path,
+    args: argparse.Namespace,
+    progress: dict[str, Any],
+    progress_file: Path,
+    logger: logging.Logger,
+) -> Path:
     """
     Process the renaming phase of workflow.
 
@@ -93,7 +100,11 @@ def process_renaming_phase(file_path: Path, current_path: Path, args: argparse.N
                     rename_dry_run = getattr(args, "rename_dry_run", False)
 
                     # Create API client
-                    api_client = RenameAPIClient(api_key=api_key, model=rename_model, temperature=rename_temperature)
+                    api_client = RenameAPIClient(
+                        api_key=api_key,
+                        model=rename_model,
+                        temperature=rename_temperature,
+                    )
 
                     # Process the file
                     success, new_path, metadata = rename_novel(
@@ -122,7 +133,13 @@ def process_renaming_phase(file_path: Path, current_path: Path, args: argparse.N
     return current_path
 
 
-def process_translation_phase(current_path: Path, args: argparse.Namespace, progress: dict[str, Any], progress_file: Path, logger: logging.Logger) -> None:
+def process_translation_phase(
+    current_path: Path,
+    args: argparse.Namespace,
+    progress: dict[str, Any],
+    progress_file: Path,
+    logger: logging.Logger,
+) -> None:
     """
     Process the translation phase of workflow.
 
@@ -174,7 +191,13 @@ def process_translation_phase(current_path: Path, args: argparse.Namespace, prog
         save_progress(progress_file, progress, logger)
 
 
-def process_epub_phase(current_path: Path, args: argparse.Namespace, progress: dict[str, Any], progress_file: Path, logger: logging.Logger) -> None:
+def process_epub_phase(
+    current_path: Path,
+    args: argparse.Namespace,
+    progress: dict[str, Any],
+    progress_file: Path,
+    logger: logging.Logger,
+) -> None:
     """
     Process the EPUB generation phase of workflow.
 

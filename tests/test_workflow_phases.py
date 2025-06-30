@@ -37,7 +37,14 @@ class TestProcessRenamingPhase:
         """Test skipping the renaming phase."""
         self.args.skip_renaming = True
 
-        result = process_renaming_phase(self.file_path, self.current_path, self.args, self.progress, self.progress_file, self.logger)
+        result = process_renaming_phase(
+            self.file_path,
+            self.current_path,
+            self.args,
+            self.progress,
+            self.progress_file,
+            self.logger,
+        )
 
         assert result == self.current_path
         assert self.progress["phases"]["renaming"]["status"] == "skipped"
@@ -47,7 +54,14 @@ class TestProcessRenamingPhase:
         self.args.skip_renaming = True
         self.progress["phases"]["renaming"]["status"] = "completed"
 
-        result = process_renaming_phase(self.file_path, self.current_path, self.args, self.progress, self.progress_file, self.logger)
+        result = process_renaming_phase(
+            self.file_path,
+            self.current_path,
+            self.args,
+            self.progress,
+            self.progress_file,
+            self.logger,
+        )
 
         # Status should remain completed
         assert result == self.current_path
@@ -59,7 +73,14 @@ class TestProcessRenamingPhase:
         """Test when renaming module is not available."""
         self.args.skip_renaming = False
 
-        result = process_renaming_phase(self.file_path, self.current_path, self.args, self.progress, self.progress_file, self.logger)
+        result = process_renaming_phase(
+            self.file_path,
+            self.current_path,
+            self.args,
+            self.progress,
+            self.progress_file,
+            self.logger,
+        )
 
         assert result == self.current_path
         assert self.progress["phases"]["renaming"]["status"] == "failed"
@@ -73,7 +94,14 @@ class TestProcessRenamingPhase:
         self.args.openai_api_key = None
 
         with patch("os.getenv", return_value=None):
-            result = process_renaming_phase(self.file_path, self.current_path, self.args, self.progress, self.progress_file, self.logger)
+            result = process_renaming_phase(
+                self.file_path,
+                self.current_path,
+                self.args,
+                self.progress,
+                self.progress_file,
+                self.logger,
+            )
 
         assert result == self.current_path
         assert self.progress["phases"]["renaming"]["status"] == "failed"
@@ -92,9 +120,20 @@ class TestProcessRenamingPhase:
         self.args.rename_dry_run = False
 
         new_path = Path("/test/Novel by Author.txt")
-        mock_rename.return_value = (True, new_path, {"title": "Novel", "author": "Author"})
+        mock_rename.return_value = (
+            True,
+            new_path,
+            {"title": "Novel", "author": "Author"},
+        )
 
-        result = process_renaming_phase(self.file_path, self.current_path, self.args, self.progress, self.progress_file, self.logger)
+        result = process_renaming_phase(
+            self.file_path,
+            self.current_path,
+            self.args,
+            self.progress,
+            self.progress_file,
+            self.logger,
+        )
 
         assert result == new_path
         assert self.progress["phases"]["renaming"]["status"] == "completed"
@@ -117,7 +156,14 @@ class TestProcessRenamingPhase:
 
         mock_rename.return_value = (False, None, None)
 
-        result = process_renaming_phase(self.file_path, self.current_path, self.args, self.progress, self.progress_file, self.logger)
+        result = process_renaming_phase(
+            self.file_path,
+            self.current_path,
+            self.args,
+            self.progress,
+            self.progress_file,
+            self.logger,
+        )
 
         assert result == self.current_path
         assert self.progress["phases"]["renaming"]["status"] == "failed"
@@ -132,7 +178,14 @@ class TestProcessRenamingPhase:
 
         mock_api_client.side_effect = Exception("API error")
 
-        result = process_renaming_phase(self.file_path, self.current_path, self.args, self.progress, self.progress_file, self.logger)
+        result = process_renaming_phase(
+            self.file_path,
+            self.current_path,
+            self.args,
+            self.progress,
+            self.progress_file,
+            self.logger,
+        )
 
         assert result == self.current_path
         assert self.progress["phases"]["renaming"]["status"] == "failed"
@@ -151,7 +204,14 @@ class TestProcessRenamingPhase:
         new_path = Path("/test/renamed.txt")
         mock_rename.return_value = (True, new_path, {})
 
-        result = process_renaming_phase(self.file_path, self.current_path, self.args, self.progress, self.progress_file, self.logger)
+        result = process_renaming_phase(
+            self.file_path,
+            self.current_path,
+            self.args,
+            self.progress,
+            self.progress_file,
+            self.logger,
+        )
 
         # Verify defaults are used
         mock_api_client.assert_called_once_with(
@@ -180,7 +240,14 @@ class TestProcessRenamingPhase:
         new_path = Path("/test/renamed.txt")
         mock_rename.return_value = (True, new_path, {})
 
-        result = process_renaming_phase(self.file_path, self.current_path, self.args, self.progress, self.progress_file, self.logger)
+        result = process_renaming_phase(
+            self.file_path,
+            self.current_path,
+            self.args,
+            self.progress,
+            self.progress_file,
+            self.logger,
+        )
 
         mock_getenv.assert_called_with("OPENROUTER_API_KEY")
         mock_api_client.assert_called_once_with(api_key="env-api-key", model="gpt-4o-mini", temperature=0.0)
@@ -244,7 +311,14 @@ class TestProcessTranslationPhase:
         assert self.progress["phases"]["translation"]["result"] == "success"
 
         # Verify translation call
-        mock_translate.assert_called_once_with(str(self.current_path), encoding="utf-8", max_chars=10000, resume=False, create_epub=False, remote=True)
+        mock_translate.assert_called_once_with(
+            str(self.current_path),
+            encoding="utf-8",
+            max_chars=10000,
+            resume=False,
+            create_epub=False,
+            remote=True,
+        )
 
     @patch("enchant_book_manager.workflow_phases.translation_available", True)
     @patch("enchant_book_manager.workflow_phases.translate_novel")
@@ -346,7 +420,13 @@ class TestProcessEpubPhase:
         with patch("enchant_book_manager.workflow_epub.process_epub_generation") as mock_epub_gen:
             mock_epub_gen.return_value = True
 
-            process_epub_phase(self.current_path, self.args, self.progress, self.progress_file, self.logger)
+            process_epub_phase(
+                self.current_path,
+                self.args,
+                self.progress,
+                self.progress_file,
+                self.logger,
+            )
 
         assert self.progress["phases"]["epub"]["status"] == "completed"
 
@@ -362,7 +442,13 @@ class TestProcessEpubPhase:
         with patch("enchant_book_manager.workflow_epub.process_epub_generation") as mock_epub_gen:
             mock_epub_gen.return_value = False
 
-            process_epub_phase(self.current_path, self.args, self.progress, self.progress_file, self.logger)
+            process_epub_phase(
+                self.current_path,
+                self.args,
+                self.progress,
+                self.progress_file,
+                self.logger,
+            )
 
         assert self.progress["phases"]["epub"]["status"] == "failed"
 
@@ -375,7 +461,13 @@ class TestProcessEpubPhase:
         with patch("enchant_book_manager.workflow_epub.process_epub_generation") as mock_epub_gen:
             mock_epub_gen.side_effect = Exception("EPUB error")
 
-            process_epub_phase(self.current_path, self.args, self.progress, self.progress_file, self.logger)
+            process_epub_phase(
+                self.current_path,
+                self.args,
+                self.progress,
+                self.progress_file,
+                self.logger,
+            )
 
         assert self.progress["phases"]["epub"]["status"] == "failed"
         assert self.progress["phases"]["epub"]["error"] == "EPUB error"
@@ -387,8 +479,17 @@ class TestProcessEpubPhase:
         self.args.skip_epub = False
 
         # Mock the import to raise ImportError
-        with patch("builtins.__import__", side_effect=ImportError("Cannot import workflow_epub")):
-            process_epub_phase(self.current_path, self.args, self.progress, self.progress_file, self.logger)
+        with patch(
+            "builtins.__import__",
+            side_effect=ImportError("Cannot import workflow_epub"),
+        ):
+            process_epub_phase(
+                self.current_path,
+                self.args,
+                self.progress,
+                self.progress_file,
+                self.logger,
+            )
 
         assert self.progress["phases"]["epub"]["status"] == "failed"
         assert "Cannot import workflow_epub" in self.progress["phases"]["epub"]["error"]

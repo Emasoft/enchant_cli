@@ -71,7 +71,16 @@ def find_translated_file(current_path: Path, args: argparse.Namespace, logger: l
     return None
 
 
-def create_epub_from_translated(translated_file: Path, current_path: Path, book_title: str, book_author: str, book_info: dict[str, Any], args: argparse.Namespace, progress: dict[str, Any], logger: logging.Logger) -> bool:
+def create_epub_from_translated(
+    translated_file: Path,
+    current_path: Path,
+    book_title: str,
+    book_author: str,
+    book_info: dict[str, Any],
+    args: argparse.Namespace,
+    progress: dict[str, Any],
+    logger: logging.Logger,
+) -> bool:
     """
     Create EPUB from translated file.
 
@@ -112,7 +121,15 @@ def create_epub_from_translated(translated_file: Path, current_path: Path, book_
 
     # Handle validate-only mode
     if hasattr(args, "validate_only") and args.validate_only:
-        return validate_epub_only(translated_file, epub_path, book_title, book_author, epub_config, progress, logger)
+        return validate_epub_only(
+            translated_file,
+            epub_path,
+            book_title,
+            book_author,
+            epub_config,
+            progress,
+            logger,
+        )
 
     # Create EPUB using the common utility
     success, issues = create_epub_with_config(
@@ -181,7 +198,15 @@ def apply_epub_overrides(epub_config: dict[str, Any], args: argparse.Namespace, 
             logger.warning(f"Invalid JSON in epub-metadata: {e}")
 
 
-def validate_epub_only(translated_file: Path, epub_path: Path, book_title: str, book_author: str, epub_config: dict[str, Any], progress: dict[str, Any], logger: logging.Logger) -> bool:
+def validate_epub_only(
+    translated_file: Path,
+    epub_path: Path,
+    book_title: str,
+    book_author: str,
+    epub_config: dict[str, Any],
+    progress: dict[str, Any],
+    logger: logging.Logger,
+) -> bool:
     """
     Validate EPUB without creating it.
 
@@ -227,7 +252,12 @@ def validate_epub_only(translated_file: Path, epub_path: Path, book_title: str, 
     return success
 
 
-def process_epub_generation(current_path: Path, args: argparse.Namespace, progress: dict[str, Any], logger: logging.Logger) -> bool:
+def process_epub_generation(
+    current_path: Path,
+    args: argparse.Namespace,
+    progress: dict[str, Any],
+    logger: logging.Logger,
+) -> bool:
     """
     Process EPUB generation with all necessary steps.
 
@@ -267,4 +297,13 @@ def process_epub_generation(current_path: Path, args: argparse.Namespace, progre
         book_author = args.epub_author
 
     # Create EPUB
-    return create_epub_from_translated(translated_file, current_path, book_title, book_author, book_info, args, progress, logger)
+    return create_epub_from_translated(
+        translated_file,
+        current_path,
+        book_title,
+        book_author,
+        book_info,
+        args,
+        progress,
+        logger,
+    )

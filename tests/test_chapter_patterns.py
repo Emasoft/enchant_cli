@@ -299,7 +299,21 @@ class TestConstants:
     def test_word_nums_in_heading_re(self):
         """Test that WORD_NUMS are properly included in HEADING_RE."""
         # Test some standard word numbers
-        word_numbers = ["One", "Two", "Three", "Four", "Five", "Ten", "Twenty", "Thirty", "Forty", "Fifty", "Twenty-One", "Thirty-Two", "Ninety-Nine"]
+        word_numbers = [
+            "One",
+            "Two",
+            "Three",
+            "Four",
+            "Five",
+            "Ten",
+            "Twenty",
+            "Thirty",
+            "Forty",
+            "Fifty",
+            "Twenty-One",
+            "Thirty-Two",
+            "Ninety-Nine",
+        ]
 
         for num in word_numbers:
             assert HEADING_RE.match(f"Chapter {num}")

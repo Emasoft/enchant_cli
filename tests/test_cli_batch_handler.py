@@ -90,7 +90,14 @@ class TestProcessBatch:
     @patch("enchant_book_manager.cli_batch_handler.filelock.FileLock")
     @patch("enchant_book_manager.cli_batch_handler.process_novel_unified")
     @patch("enchant_book_manager.cli_batch_handler.load_safe_yaml")
-    def test_process_batch_resume(self, mock_load_yaml, mock_process_novel, mock_filelock, mock_path_class, tmp_path):
+    def test_process_batch_resume(
+        self,
+        mock_load_yaml,
+        mock_process_novel,
+        mock_filelock,
+        mock_path_class,
+        tmp_path,
+    ):
         """Test resuming batch processing."""
         # Setup test directory
         test_dir = tmp_path / "test_novels"
@@ -186,7 +193,14 @@ class TestProcessBatch:
     @patch("enchant_book_manager.cli_batch_handler.filelock.FileLock")
     @patch("enchant_book_manager.cli_batch_handler.process_novel_unified")
     @patch("enchant_book_manager.cli_batch_handler.load_safe_yaml")
-    def test_process_batch_max_retries(self, mock_load_yaml, mock_process_novel, mock_filelock, mock_path_class, tmp_path):
+    def test_process_batch_max_retries(
+        self,
+        mock_load_yaml,
+        mock_process_novel,
+        mock_filelock,
+        mock_path_class,
+        tmp_path,
+    ):
         """Test batch processing respects max retries."""
         test_dir = tmp_path / "test_novels"
         test_dir.mkdir()
@@ -459,7 +473,10 @@ class TestEdgeCases:
             nonlocal saved_progress
             saved_progress = progress
 
-        with patch("enchant_book_manager.cli_batch_handler._save_batch_progress", side_effect=capture_progress):
+        with patch(
+            "enchant_book_manager.cli_batch_handler._save_batch_progress",
+            side_effect=capture_progress,
+        ):
             with patch("enchant_book_manager.cli_batch_handler._archive_batch_history"):
                 with patch("enchant_book_manager.cli_batch_handler._cleanup_progress_file"):
                     process_batch(args, logger)

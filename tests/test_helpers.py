@@ -11,7 +11,14 @@ from pathlib import Path
 from typing import Tuple, Optional
 import logging
 
-from enchant_book_manager.models import Book, Chunk, Variation, VARIATION_DB, BOOK_DB, CHUNK_DB
+from enchant_book_manager.models import (
+    Book,
+    Chunk,
+    Variation,
+    VARIATION_DB,
+    BOOK_DB,
+    CHUNK_DB,
+)
 
 
 class DatabaseTestHelper:
@@ -61,13 +68,32 @@ class DatabaseTestHelper:
         if self.temp_dir:
             shutil.rmtree(self.temp_dir, ignore_errors=True)
 
-    def create_test_book(self, title: str = "Test Novel", author: str = "Test Author", language: str = "zh", num_chunks: int = 3, chunk_size: int = 100) -> Tuple[Book, list[Chunk]]:
+    def create_test_book(
+        self,
+        title: str = "Test Novel",
+        author: str = "Test Author",
+        language: str = "zh",
+        num_chunks: int = 3,
+        chunk_size: int = 100,
+    ) -> Tuple[Book, list[Chunk]]:
         """Create a test book with chunks containing realistic Chinese text."""
         # Generate a unique book ID
         book_id = f"book_{len(BOOK_DB) + 1}"
 
         # Create book
-        book = Book(book_id=book_id, title=title, original_title=title, translated_title=title, transliterated_title=title, author=author, original_author=author, translated_author=author, transliterated_author=author, source_file=f"/test/{title}.txt", total_characters=0)
+        book = Book(
+            book_id=book_id,
+            title=title,
+            original_title=title,
+            translated_title=title,
+            transliterated_title=title,
+            author=author,
+            original_author=author,
+            translated_author=author,
+            transliterated_author=author,
+            source_file=f"/test/{title}.txt",
+            total_characters=0,
+        )
 
         # Save book to database
         BOOK_DB[book_id] = book
@@ -90,12 +116,25 @@ class DatabaseTestHelper:
             # Create variation for the original text
             variation_id = f"var_{book_id}_chunk_{i + 1}"
             chunk_id = f"chunk_{book_id}_{i + 1}"
-            variation = Variation(variation_id=variation_id, book_id=book_id, chunk_id=chunk_id, chunk_number=i + 1, language=language, category="original", text_content=content[:chunk_size])
+            variation = Variation(
+                variation_id=variation_id,
+                book_id=book_id,
+                chunk_id=chunk_id,
+                chunk_number=i + 1,
+                language=language,
+                category="original",
+                text_content=content[:chunk_size],
+            )
             VARIATION_DB[variation_id] = variation
 
             # Create chunk
             chunk_id = f"chunk_{book_id}_{i + 1}"
-            chunk = Chunk(chunk_id=chunk_id, book_id=book_id, chunk_number=i + 1, original_variation_id=variation_id)
+            chunk = Chunk(
+                chunk_id=chunk_id,
+                book_id=book_id,
+                chunk_number=i + 1,
+                original_variation_id=variation_id,
+            )
             chunk.char_count = len(content[:chunk_size])
             CHUNK_DB[chunk_id] = chunk
             chunks.append(chunk)
@@ -109,7 +148,11 @@ class DatabaseTestHelper:
 class MockTranslator:
     """A mock translator that returns realistic translations."""
 
-    def __init__(self, fail_on_chunks: Optional[list[int]] = None, return_empty_on_chunks: Optional[list[int]] = None):
+    def __init__(
+        self,
+        fail_on_chunks: Optional[list[int]] = None,
+        return_empty_on_chunks: Optional[list[int]] = None,
+    ):
         self.fail_on_chunks = fail_on_chunks or []
         self.return_empty_on_chunks = return_empty_on_chunks or []
         self.translation_count = 0

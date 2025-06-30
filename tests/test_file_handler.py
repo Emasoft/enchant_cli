@@ -214,7 +214,10 @@ class TestDecodeInputFileContent:
         mock_decode.assert_called_once_with(input_path, logger=None)
 
     @patch("enchant_book_manager.file_handler.ensure_synced")
-    @patch("enchant_book_manager.file_handler.decode_full_file", side_effect=Exception("Decode error"))
+    @patch(
+        "enchant_book_manager.file_handler.decode_full_file",
+        side_effect=Exception("Decode error"),
+    )
     def test_decode_file_error(self, mock_decode, mock_sync):
         """Test decoding file with error."""
         input_path = Path("error.txt")
@@ -278,7 +281,10 @@ class TestDetectFileEncoding:
 
         assert result == "iso-8859-1"  # Still returns the encoding
 
-    @patch("enchant_book_manager.file_handler.ensure_synced", side_effect=Exception("Sync error"))
+    @patch(
+        "enchant_book_manager.file_handler.ensure_synced",
+        side_effect=Exception("Sync error"),
+    )
     def test_detect_encoding_sync_error(self, mock_sync):
         """Test detecting encoding when sync fails."""
         file_path = Path("error.txt")
@@ -287,7 +293,10 @@ class TestDetectFileEncoding:
             detect_file_encoding(file_path)
 
     @patch("enchant_book_manager.file_handler.ensure_synced")
-    @patch("enchant_book_manager.file_handler.common_detect_encoding", side_effect=Exception("Detection failed"))
+    @patch(
+        "enchant_book_manager.file_handler.common_detect_encoding",
+        side_effect=Exception("Detection failed"),
+    )
     def test_detect_encoding_detection_error(self, mock_detect, mock_sync):
         """Test detecting encoding when detection fails."""
         file_path = Path("error.txt")

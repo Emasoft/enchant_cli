@@ -161,7 +161,10 @@ def validate_translation_output(text: str, logger: Optional[Callable[[str, str],
                 chinese_chars.append(char)
 
         if chinese_chars and logger:
-            logger(f"Found Chinese characters: {', '.join(set(chinese_chars[:10]))}", "warning")
+            logger(
+                f"Found Chinese characters: {', '.join(set(chinese_chars[:10]))}",
+                "warning",
+            )
 
         return False, text
 

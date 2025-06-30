@@ -250,7 +250,13 @@ class TestCreateNewFilename:
 
     def test_complete_metadata(self):
         """Test with complete metadata."""
-        metadata = {"novel_title_english": "Great Novel", "author_name_english": "John Doe", "author_name_romanized": "Doe John", "novel_title_original": "偉大小說", "author_name_original": "約翰·多伊"}
+        metadata = {
+            "novel_title_english": "Great Novel",
+            "author_name_english": "John Doe",
+            "author_name_romanized": "Doe John",
+            "novel_title_original": "偉大小說",
+            "author_name_original": "約翰·多伊",
+        }
 
         result = create_new_filename(metadata)
         expected = "Great Novel by John Doe (Doe John) - 偉大小說 by 約翰·多伊.txt"
@@ -269,7 +275,13 @@ class TestCreateNewFilename:
 
     def test_special_characters(self):
         """Test filename sanitization of special characters."""
-        metadata = {"novel_title_english": "Novel: Part 1/2", "author_name_english": "Author <Name>", "author_name_romanized": "Name|Author", "novel_title_original": "小説：第一部", "author_name_original": "作者名"}
+        metadata = {
+            "novel_title_english": "Novel: Part 1/2",
+            "author_name_english": "Author <Name>",
+            "author_name_romanized": "Name|Author",
+            "novel_title_original": "小説：第一部",
+            "author_name_original": "作者名",
+        }
 
         result = create_new_filename(metadata)
         # Special characters should be sanitized in English parts
@@ -282,7 +294,13 @@ class TestCreateNewFilename:
 
     def test_empty_values(self):
         """Test with empty string values."""
-        metadata = {"novel_title_english": "", "author_name_english": "", "author_name_romanized": "", "novel_title_original": "", "author_name_original": ""}
+        metadata = {
+            "novel_title_english": "",
+            "author_name_english": "",
+            "author_name_romanized": "",
+            "novel_title_original": "",
+            "author_name_original": "",
+        }
 
         result = create_new_filename(metadata)
         # Empty strings are sanitized to "unnamed"
@@ -298,7 +316,13 @@ class TestRenameFileWithMetadata:
         old_file = tmp_path / "old_name.txt"
         old_file.write_text("content")
 
-        metadata = {"novel_title_english": "New Novel", "author_name_english": "Author", "author_name_romanized": "Author", "novel_title_original": "新小説", "author_name_original": "作者"}
+        metadata = {
+            "novel_title_english": "New Novel",
+            "author_name_english": "Author",
+            "author_name_romanized": "Author",
+            "novel_title_original": "新小説",
+            "author_name_original": "作者",
+        }
 
         new_path = rename_file_with_metadata(old_file, metadata)
 
@@ -309,7 +333,13 @@ class TestRenameFileWithMetadata:
     def test_naming_collision(self, tmp_path):
         """Test handling of naming collisions."""
         # Create existing file with target name
-        metadata = {"novel_title_english": "Novel", "author_name_english": "Author", "author_name_romanized": "Author", "novel_title_original": "小説", "author_name_original": "作者"}
+        metadata = {
+            "novel_title_english": "Novel",
+            "author_name_english": "Author",
+            "author_name_romanized": "Author",
+            "novel_title_original": "小説",
+            "author_name_original": "作者",
+        }
 
         expected_name = create_new_filename(metadata)
         existing_file = tmp_path / expected_name
@@ -328,7 +358,13 @@ class TestRenameFileWithMetadata:
 
     def test_multiple_collisions(self, tmp_path):
         """Test handling of multiple naming collisions."""
-        metadata = {"novel_title_english": "Novel", "author_name_english": "Author", "author_name_romanized": "Author", "novel_title_original": "小説", "author_name_original": "作者"}
+        metadata = {
+            "novel_title_english": "Novel",
+            "author_name_english": "Author",
+            "author_name_romanized": "Author",
+            "novel_title_original": "小説",
+            "author_name_original": "作者",
+        }
 
         # Create existing files to force collision
         expected_name = create_new_filename(metadata)
@@ -350,7 +386,13 @@ class TestRenameFileWithMetadata:
         old_file = tmp_path / "old_name.txt"
         old_file.write_text("content")
 
-        metadata = {"novel_title_english": "Novel", "author_name_english": "Author", "author_name_romanized": "Author", "novel_title_original": "小説", "author_name_original": "作者"}
+        metadata = {
+            "novel_title_english": "Novel",
+            "author_name_english": "Author",
+            "author_name_romanized": "Author",
+            "novel_title_original": "小説",
+            "author_name_original": "作者",
+        }
 
         # Mock rename to fail
         with patch.object(Path, "rename", side_effect=OSError("Permission denied")):
@@ -365,7 +407,14 @@ class TestValidateMetadata:
 
     def test_valid_metadata(self):
         """Test with valid metadata containing all required keys."""
-        metadata = {"detected_language": "zh", "novel_title_original": "原始标题", "author_name_original": "原始作者", "novel_title_english": "English Title", "author_name_english": "English Author", "author_name_romanized": "Romanized Author"}
+        metadata = {
+            "detected_language": "zh",
+            "novel_title_original": "原始标题",
+            "author_name_original": "原始作者",
+            "novel_title_english": "English Title",
+            "author_name_english": "English Author",
+            "author_name_romanized": "Romanized Author",
+        }
 
         assert validate_metadata(metadata) is True
 
@@ -385,13 +434,29 @@ class TestValidateMetadata:
 
     def test_extra_keys(self):
         """Test that extra keys don't affect validation."""
-        metadata = {"detected_language": "zh", "novel_title_original": "原始标题", "author_name_original": "原始作者", "novel_title_english": "English Title", "author_name_english": "English Author", "author_name_romanized": "Romanized Author", "extra_key": "Extra Value", "another_extra": 123}
+        metadata = {
+            "detected_language": "zh",
+            "novel_title_original": "原始标题",
+            "author_name_original": "原始作者",
+            "novel_title_english": "English Title",
+            "author_name_english": "English Author",
+            "author_name_romanized": "Romanized Author",
+            "extra_key": "Extra Value",
+            "another_extra": 123,
+        }
 
         assert validate_metadata(metadata) is True
 
     def test_none_values(self):
         """Test that None values are considered present."""
-        metadata = {"detected_language": None, "novel_title_original": None, "author_name_original": None, "novel_title_english": None, "author_name_english": None, "author_name_romanized": None}
+        metadata = {
+            "detected_language": None,
+            "novel_title_original": None,
+            "author_name_original": None,
+            "novel_title_english": None,
+            "author_name_english": None,
+            "author_name_romanized": None,
+        }
 
         assert validate_metadata(metadata) is True
 
@@ -414,7 +479,16 @@ class TestProcessNovelFile:
 
         mock_decode.return_value = "Novel content"
 
-        self.api_client.extract_metadata.return_value = json.dumps({"detected_language": "zh", "novel_title_original": "原始标题", "author_name_original": "原始作者", "novel_title_english": "English Title", "author_name_english": "English Author", "author_name_romanized": "Romanized Author"})
+        self.api_client.extract_metadata.return_value = json.dumps(
+            {
+                "detected_language": "zh",
+                "novel_title_original": "原始标题",
+                "author_name_original": "原始作者",
+                "novel_title_english": "English Title",
+                "author_name_english": "English Author",
+                "author_name_romanized": "Romanized Author",
+            }
+        )
 
         with patch("enchant_book_manager.rename_file_processor.rename_file_with_metadata") as mock_rename:
             new_path = Path("/test/English Title by English Author.txt")
@@ -441,7 +515,16 @@ class TestProcessNovelFile:
 
         mock_decode.return_value = "Novel content"
 
-        self.api_client.extract_metadata.return_value = json.dumps({"detected_language": "zh", "novel_title_original": "原始标题", "author_name_original": "原始作者", "novel_title_english": "English Title", "author_name_english": "English Author", "author_name_romanized": "Romanized Author"})
+        self.api_client.extract_metadata.return_value = json.dumps(
+            {
+                "detected_language": "zh",
+                "novel_title_original": "原始标题",
+                "author_name_original": "原始作者",
+                "novel_title_english": "English Title",
+                "author_name_english": "English Author",
+                "author_name_romanized": "Romanized Author",
+            }
+        )
 
         with patch("enchant_book_manager.rename_file_processor.rename_file_with_metadata") as mock_rename:
             success, result_path, metadata = process_novel_file(self.file_path, self.api_client, dry_run=True)

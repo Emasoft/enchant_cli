@@ -76,7 +76,12 @@ class TestSaveTranslatedBookFixed:
         # Mock sys.exit to capture the call
         with patch("sys.exit") as mock_exit:
             # Run the function
-            save_translated_book(book_id=book.book_id, translator=translator, logger=logger, module_config={"translation": {"max_chunk_retries": 1}})
+            save_translated_book(
+                book_id=book.book_id,
+                translator=translator,
+                logger=logger,
+                module_config={"translation": {"max_chunk_retries": 1}},
+            )
 
         # Verify system exit was called
         mock_exit.assert_called_once_with(1)
@@ -103,7 +108,12 @@ class TestSaveTranslatedBookFixed:
         # Mock sys.exit to capture the call
         with patch("sys.exit") as mock_exit:
             # Run the function
-            save_translated_book(book_id=book.book_id, translator=translator, logger=logger, module_config={"translation": {"max_chunk_retries": 1}})
+            save_translated_book(
+                book_id=book.book_id,
+                translator=translator,
+                logger=logger,
+                module_config={"translation": {"max_chunk_retries": 1}},
+            )
 
         # Verify system exit was called
         mock_exit.assert_called_once_with(1)
@@ -164,7 +174,12 @@ class TestSaveTranslatedBookFixed:
         with patch("time.sleep", mock_sleep):
             with patch("sys.exit"):
                 # Run with high retry count
-                save_translated_book(book_id=book.book_id, translator=translator, logger=logger, module_config={"translation": {"max_chunk_retries": 10}})
+                save_translated_book(
+                    book_id=book.book_id,
+                    translator=translator,
+                    logger=logger,
+                    module_config={"translation": {"max_chunk_retries": 10}},
+                )
 
         # Verify sleep times don't exceed maximum
         assert all(t <= 60 for t in sleep_times)  # MAX_RETRY_WAIT_SECONDS = 60
@@ -201,7 +216,14 @@ class TestFormatChunkErrorMessage:
 
     def test_error_message_formatting(self):
         """Test that error message is formatted correctly."""
-        message = format_chunk_error_message(chunk_number=5, max_retries=10, last_error="Connection timeout", book_title="Test Novel", book_author="Test Author", output_path="/test/path/chunk_000005.txt")
+        message = format_chunk_error_message(
+            chunk_number=5,
+            max_retries=10,
+            last_error="Connection timeout",
+            book_title="Test Novel",
+            book_author="Test Author",
+            output_path="/test/path/chunk_000005.txt",
+        )
 
         # Verify key components are in the message
         assert "Failed to translate chunk 000005" in message
