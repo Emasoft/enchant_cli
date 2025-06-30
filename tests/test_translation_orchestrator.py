@@ -402,6 +402,8 @@ class TestSaveTranslatedBook:
         mock_book_dir = MagicMock()
         mock_book_dir.mkdir.return_value = None
         mock_book_dir.glob.return_value = []
+        mock_output_path = MagicMock()
+        mock_book_dir.__truediv__.return_value = mock_output_path
         mock_path.return_value = mock_book_dir
         mock_path.cwd.return_value = Path("/current/dir")
 
@@ -409,12 +411,9 @@ class TestSaveTranslatedBook:
 
         # Execute
         with patch("enchant_book_manager.translation_orchestrator.save_translation_cost_log"):
-            with patch("enchant_book_manager.translation_orchestrator.prepare_for_write", return_value=Mock()):
+            with patch("enchant_book_manager.translation_orchestrator.prepare_for_write", return_value=mock_output_path):
                 with patch("builtins.open", mock_open()) as mock_file:
-                    mock_file.side_effect = [
-                        mock_open()(),  # First call succeeds (for chunks)
-                        PermissionError("Cannot write final file"),  # Final file write fails
-                    ]
+                    mock_file.side_effect = PermissionError("Cannot write final file")
 
                     with pytest.raises(PermissionError):
                         save_translated_book(book_id="test_book_id", translator=self.mock_translator, logger=mock_logger)

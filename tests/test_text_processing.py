@@ -304,11 +304,8 @@ Content here
 本电子书由果茶小说网（www.34gc.com）网友上传分享
 End"""
         # Note: spam patterns are replaced with a single space
-        expected = """Chapter 1
-
-Content here
-
-End"""
+        # Using concatenation to preserve spaces that would be stripped by linter
+        expected = "Chapter 1\n \nContent here\n \nEnd"
         assert clean_adverts(text) == expected
 
     def test_url_variations(self):
@@ -348,10 +345,8 @@ Middle content
 End content"""
         # Spam patterns are replaced with a single space
         # Note: "网址:www.34gc.net" becomes a space which leaves trailing space after "Middle content"
-        expected = """Start
-
-Middle content
-End content"""
+        # Using string concatenation to preserve trailing space that linter strips
+        expected = "Start\n \nMiddle content \nEnd content"
         result = clean_adverts(text)
         assert result == expected
 

@@ -179,81 +179,139 @@ class TestICloudSync:
 
     def test_ensure_synced_directory(self):
         """Test ensure_synced with a directory."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "finder"
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "finder"
 
-        test_path = Path("/test/folder")
+            test_path = Path("/test/folder")
 
-        with patch.object(Path, "exists", return_value=True):
-            with patch.object(Path, "is_dir", return_value=True):
+            # Create a mock path that behaves correctly
+            mock_path = MagicMock(spec=Path)
+            mock_path.exists.return_value = True
+            mock_path.is_dir.return_value = True
+            mock_path.is_file.return_value = False
+            mock_path.parent = Path("/test")
+            mock_path.name = "folder"
+            mock_path.__str__.return_value = "/test/folder"
+
+            with patch("enchant_book_manager.icloud_sync.Path", return_value=mock_path):
                 with patch.object(sync, "_sync_folder") as mock_sync_folder:
-                    mock_sync_folder.return_value = test_path
+                    mock_sync_folder.return_value = mock_path
 
                     result = sync.ensure_synced("/test/folder")
-                    assert result == test_path
-                    mock_sync_folder.assert_called_once_with(test_path)
+                    assert result == mock_path
+                    mock_sync_folder.assert_called_once_with(mock_path)
 
     def test_ensure_synced_file(self):
         """Test ensure_synced with a file."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "finder"
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "finder"
 
-        test_path = Path("/test/file.txt")
+            test_path = Path("/test/file.txt")
 
-        with patch.object(Path, "exists", return_value=True):
-            with patch.object(Path, "is_dir", return_value=False):
-                with patch.object(Path, "is_file", return_value=True):
-                    with patch.object(sync, "_sync_file") as mock_sync_file:
-                        mock_sync_file.return_value = test_path
+            # Create a mock path that behaves correctly
+            mock_path = MagicMock(spec=Path)
+            mock_path.exists.return_value = True
+            mock_path.is_dir.return_value = False
+            mock_path.is_file.return_value = True
+            mock_path.parent = Path("/test")
+            mock_path.name = "file.txt"
+            mock_path.__str__.return_value = "/test/file.txt"
 
-                        result = sync.ensure_synced("/test/file.txt")
-                        assert result == test_path
-                        mock_sync_file.assert_called_once_with(test_path)
+            with patch("enchant_book_manager.icloud_sync.Path", return_value=mock_path):
+                with patch.object(sync, "_sync_file") as mock_sync_file:
+                    mock_sync_file.return_value = mock_path
+
+                    result = sync.ensure_synced("/test/file.txt")
+                    assert result == mock_path
+                    mock_sync_file.assert_called_once_with(mock_path)
 
     def test_ensure_synced_icloud_placeholder(self):
         """Test ensure_synced with .icloud placeholder file."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "finder"
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "finder"
 
-        test_path = Path("/test/file.txt")
-        icloud_path = Path("/test/.file.txt.icloud")
+            # Create mock paths
+            mock_test_path = MagicMock(spec=Path)
+            mock_test_path.exists.return_value = False
+            mock_parent = MagicMock(spec=Path)
+            mock_test_path.parent = mock_parent
+            mock_test_path.name = "file.txt"
+            mock_test_path.__str__.return_value = "/test/file.txt"
 
-        # Mock the path to not exist, but icloud placeholder to exist
-        def exists_side_effect(self):
-            if str(self) == str(test_path):
-                return False
-            elif str(self) == str(icloud_path):
-                return True
-            return False
+            mock_icloud_path = MagicMock(spec=Path)
+            mock_icloud_path.exists.return_value = True
+            mock_icloud_path.is_file.return_value = True
+            mock_icloud_path.is_dir.return_value = False
+            mock_icloud_path.__str__.return_value = "/test/.file.txt.icloud"
 
-        with patch.object(Path, "exists", exists_side_effect):
-            with patch.object(sync, "_sync_file") as mock_sync_file:
-                mock_sync_file.return_value = test_path
+            # Mock the path constructor to return appropriate mocks
+            def path_constructor(path):
+                if str(path) == "/test/file.txt":
+                    return mock_test_path
+                elif str(path) == "/test/.file.txt.icloud":
+                    return mock_icloud_path
+                else:
+                    return Path(path)
 
-                result = sync.ensure_synced(test_path)
-                mock_sync_file.assert_called_once_with(icloud_path)
+            with patch("enchant_book_manager.icloud_sync.Path", side_effect=path_constructor):
+                # Mock parent / operator to return icloud path
+                mock_parent.__truediv__ = Mock(return_value=mock_icloud_path)
+
+                with patch.object(sync, "_sync_file") as mock_sync_file:
+                    mock_sync_file.return_value = mock_icloud_path
+
+                    result = sync.ensure_synced("/test/file.txt")
+                    mock_sync_file.assert_called_once_with(mock_icloud_path)
 
     def test_ensure_synced_not_found(self):
         """Test ensure_synced when path doesn't exist."""
-        sync = ICloudSync(enabled=True)
-        logger = Mock(spec=logging.Logger)
-        sync.logger = logger
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            logger = Mock(spec=logging.Logger)
+            sync.logger = logger
 
-        test_path = Path("/test/missing.txt")
-        icloud_path = Path("/test/.missing.txt.icloud")
+            test_path = Path("/test/missing.txt")
 
-        # Neither path exists
-        with patch.object(Path, "exists", return_value=False):
-            with patch.object(Path, "is_dir", return_value=False):
-                with patch.object(Path, "is_file", return_value=False):
-                    result = sync.ensure_synced(test_path)
-                    assert result == test_path
-                    logger.warning.assert_called()
+            # Create mock paths that don't exist
+            mock_test_path = MagicMock(spec=Path)
+            mock_test_path.exists.return_value = False
+            mock_test_path.is_dir.return_value = False
+            mock_test_path.is_file.return_value = False
+            mock_parent = MagicMock(spec=Path)
+            mock_test_path.parent = mock_parent
+            mock_test_path.name = "missing.txt"
+            mock_test_path.__str__.return_value = "/test/missing.txt"
+            # Add endswith method
+            mock_test_path.endswith = lambda x: str(mock_test_path).endswith(x)
+
+            mock_icloud_path = MagicMock(spec=Path)
+            mock_icloud_path.exists.return_value = False
+
+            # Mock the path constructor
+            def path_constructor(path):
+                if str(path) == "/test/missing.txt":
+                    return mock_test_path
+                elif str(path) == "/test/.missing.txt.icloud":
+                    return mock_icloud_path
+                else:
+                    return Path(path)
+
+            with patch("enchant_book_manager.icloud_sync.Path", side_effect=path_constructor):
+                # Mock parent / operator
+                mock_parent.__truediv__ = Mock(return_value=mock_icloud_path)
+
+                result = sync.ensure_synced("/test/missing.txt")
+                assert result == mock_test_path
+                logger.warning.assert_called()
 
     def test_sync_folder_finder_command(self):
         """Test _sync_folder with Finder command."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "finder"
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "finder"
 
         folder_path = Path("/test/folder")
 
@@ -265,8 +323,9 @@ class TestICloudSync:
 
     def test_sync_folder_brctl_command(self):
         """Test _sync_folder with brctl command."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "brctl"
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "brctl"
 
         folder_path = Path("/test/folder")
 
@@ -278,8 +337,9 @@ class TestICloudSync:
 
     def test_sync_folder_icloud_command(self):
         """Test _sync_folder with iOS icloud command."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "icloud"
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "icloud"
 
         folder_path = Path("/test/folder")
 
@@ -291,10 +351,11 @@ class TestICloudSync:
 
     def test_sync_folder_error_handling(self):
         """Test _sync_folder handles subprocess errors."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "finder"
-        logger = Mock(spec=logging.Logger)
-        sync.logger = logger
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "finder"
+            logger = Mock(spec=logging.Logger)
+            sync.logger = logger
 
         folder_path = Path("/test/folder")
 
@@ -309,8 +370,9 @@ class TestICloudSync:
 
     def test_sync_folder_with_waiting(self):
         """Test _sync_folder with waiting for completion."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "finder"
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "finder"
 
         folder_path = Path("/test/folder")
 
@@ -325,10 +387,11 @@ class TestICloudSync:
 
     def test_sync_folder_waiting_timeout(self):
         """Test _sync_folder handles waiting timeout."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "finder"
-        logger = Mock(spec=logging.Logger)
-        sync.logger = logger
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "finder"
+            logger = Mock(spec=logging.Logger)
+            sync.logger = logger
 
         folder_path = Path("/test/folder")
 
@@ -349,7 +412,8 @@ class TestICloudSync:
 
     def test_sync_file_regular_file(self):
         """Test _sync_file with a regular file."""
-        sync = ICloudSync(enabled=True)
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
 
         file_path = Path("/test/file.txt")
         result = sync._sync_file(file_path)
@@ -357,8 +421,9 @@ class TestICloudSync:
 
     def test_sync_file_icloud_placeholder_finder(self):
         """Test _sync_file with .icloud placeholder using Finder."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "finder"
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "finder"
 
         file_path = Path("/test/.document.pdf.icloud")
 
@@ -371,8 +436,9 @@ class TestICloudSync:
 
     def test_sync_file_icloud_placeholder_brctl(self):
         """Test _sync_file with .icloud placeholder using brctl."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "brctl"
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "brctl"
 
         file_path = Path("/test/.document.pdf.icloud")
         expected_actual_path = file_path.parent / "document.pdf"
@@ -390,8 +456,9 @@ class TestICloudSync:
 
     def test_sync_file_wait_for_download(self):
         """Test _sync_file waits for download completion."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "finder"
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "finder"
 
         file_path = Path("/test/.document.pdf.icloud")
         actual_path = Path("/test/document.pdf")
@@ -413,7 +480,8 @@ class TestICloudSync:
 
     def test_is_folder_synced_no_icloud_files(self):
         """Test _is_folder_synced when no .icloud files present."""
-        sync = ICloudSync(enabled=True)
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
 
         folder_path = Mock(spec=Path)
         folder_path.rglob.return_value = []
@@ -422,7 +490,8 @@ class TestICloudSync:
 
     def test_is_folder_synced_has_icloud_files(self):
         """Test _is_folder_synced when .icloud files are present."""
-        sync = ICloudSync(enabled=True)
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
 
         folder_path = Mock(spec=Path)
         folder_path.rglob.return_value = [Path("/.file.icloud")]
@@ -431,7 +500,8 @@ class TestICloudSync:
 
     def test_is_folder_synced_error_handling(self):
         """Test _is_folder_synced handles errors gracefully."""
-        sync = ICloudSync(enabled=True)
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
 
         folder_path = Mock(spec=Path)
         folder_path.rglob.side_effect = Exception("Permission denied")
@@ -449,22 +519,24 @@ class TestICloudSync:
 
     def test_prepare_for_write_parent_exists(self):
         """Test prepare_for_write when parent directory exists."""
-        sync = ICloudSync(enabled=True)
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
 
-        path = Path("/test/folder/new_file.txt")
+            path = Path("/test/folder/new_file.txt")
 
-        with patch.object(Path, "exists", return_value=True):
-            with patch.object(sync, "ensure_synced") as mock_ensure:
-                mock_ensure.return_value = path.parent
+            with patch.object(Path, "exists", return_value=True):
+                with patch.object(sync, "ensure_synced") as mock_ensure:
+                    mock_ensure.return_value = path.parent
 
-                result = sync.prepare_for_write(path)
+                    result = sync.prepare_for_write(path)
 
-                assert result == path
-                mock_ensure.assert_called_once_with(path.parent)
+                    assert result == path
+                    mock_ensure.assert_called_once_with(path.parent)
 
     def test_prepare_for_write_parent_not_exists(self):
         """Test prepare_for_write when parent directory doesn't exist."""
-        sync = ICloudSync(enabled=True)
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
 
         # Mock path with non-existent parent
         path = Mock(spec=Path)
@@ -543,8 +615,9 @@ class TestICloudSyncEdgeCases:
 
     def test_sync_file_icloud_ios_command(self):
         """Test _sync_file with iOS icloud command."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "icloud"
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "icloud"
 
         file_path = Path("/test/.document.pdf.icloud")
 
@@ -561,10 +634,11 @@ class TestICloudSyncEdgeCases:
 
     def test_sync_file_subprocess_error(self):
         """Test _sync_file handles subprocess errors."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "finder"
-        logger = Mock(spec=logging.Logger)
-        sync.logger = logger
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "finder"
+            logger = Mock(spec=logging.Logger)
+            sync.logger = logger
 
         file_path = Path("/test/.document.pdf.icloud")
 
@@ -579,8 +653,9 @@ class TestICloudSyncEdgeCases:
 
     def test_sync_file_without_waiting_module(self):
         """Test _sync_file when waiting module is not available."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "finder"
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "finder"
 
         file_path = Path("/test/.document.pdf.icloud")
         actual_path = Path("/test/document.pdf")
@@ -598,8 +673,9 @@ class TestICloudSyncEdgeCases:
 
     def test_sync_file_without_waiting_module_fail(self):
         """Test _sync_file when waiting module is not available and download fails."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "finder"
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "finder"
 
         file_path = Path("/test/.document.pdf.icloud")
         actual_path = Path("/test/document.pdf")
@@ -614,8 +690,9 @@ class TestICloudSyncEdgeCases:
 
     def test_sync_folder_without_waiting(self):
         """Test _sync_folder when waiting module is not available."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "finder"
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "finder"
 
         folder_path = Path("/test/folder")
 
@@ -657,7 +734,8 @@ class TestICloudSyncEdgeCases:
 
     def test_is_folder_synced_rglob_generator(self):
         """Test _is_folder_synced with generator that yields items."""
-        sync = ICloudSync(enabled=True)
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
 
         folder_path = Mock(spec=Path)
 
@@ -671,10 +749,11 @@ class TestICloudSyncEdgeCases:
 
     def test_sync_file_waiting_timeout_actual_path_exists(self):
         """Test _sync_file when waiting times out but file exists."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "finder"
-        logger = Mock(spec=logging.Logger)
-        sync.logger = logger
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "finder"
+            logger = Mock(spec=logging.Logger)
+            sync.logger = logger
 
         file_path = Path("/test/.document.pdf.icloud")
         actual_path = Path("/test/document.pdf")
@@ -701,10 +780,11 @@ class TestICloudSyncEdgeCases:
 
     def test_sync_file_waiting_timeout_actual_path_not_exists(self):
         """Test _sync_file when waiting times out and file doesn't exist."""
-        sync = ICloudSync(enabled=True)
-        sync.sync_command = "finder"
-        logger = Mock(spec=logging.Logger)
-        sync.logger = logger
+        with patch.object(ICloudSync, "_validate_commands"):
+            sync = ICloudSync(enabled=True)
+            sync.sync_command = "finder"
+            logger = Mock(spec=logging.Logger)
+            sync.logger = logger
 
         file_path = Path("/test/.document.pdf.icloud")
         actual_path = Path("/test/document.pdf")
