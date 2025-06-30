@@ -33,6 +33,7 @@ from .models import Book
 from .icloud_sync import prepare_for_write
 from .cost_tracker import global_cost_tracker
 from .translation_service import ChineseAITranslator
+from .common_utils import sanitize_filename as common_sanitize_filename
 
 
 def save_translation_cost_log(
@@ -58,7 +59,10 @@ def save_translation_cost_log(
     if not (translator and translator.is_remote and translator.request_count > 0):
         return
 
-    cost_log_filename = f"translated_{book.translated_title} by {book.translated_author}_AI_COSTS.log"
+    # Sanitize the filename to avoid OS filename length errors
+    sanitized_title = common_sanitize_filename(book.translated_title, max_length=50)
+    sanitized_author = common_sanitize_filename(book.translated_author, max_length=50)
+    cost_log_filename = f"translated_{sanitized_title} by {sanitized_author}_AI_COSTS.log"
     cost_log_path = output_dir / cost_log_filename
     cost_log_path = prepare_for_write(cost_log_path)
 

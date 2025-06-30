@@ -83,7 +83,7 @@ class TestSaveTranslatedBookFixed:
 
         # Verify error was logged
         error_messages = [msg for level, msg in logger.messages if level == logging.ERROR]
-        assert any("validation failed" in msg.lower() for msg in error_messages)
+        assert any("translation returned empty or whitespace-only text" in msg.lower() for msg in error_messages)
 
     def test_none_translation_result(self):
         """Test handling of None translation results with real fixtures."""
@@ -136,12 +136,13 @@ class TestSaveTranslatedBookFixed:
             return original_open(path, mode, *args, **kwargs)
 
         with patch("builtins.open", mock_open):
-            with patch("sys.exit") as mock_exit:
-                # Run the function
+            # Run the function and expect PermissionError to be raised
+            with pytest.raises(PermissionError):
                 save_translated_book(book_id=book.book_id, translator=translator, logger=logger)
 
-        # Should exit due to write error
-        mock_exit.assert_called()
+        # Verify error was logged
+        error_messages = [msg for level, msg in logger.messages if level == logging.ERROR]
+        assert any("Error saving translated book" in msg for msg in error_messages)
 
     def test_max_retry_wait_limit(self):
         """Test that retry wait time is capped at maximum."""

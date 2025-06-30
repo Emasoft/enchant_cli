@@ -241,7 +241,10 @@ def save_translated_book(
     full_translated_text = remove_excess_empty_lines(full_translated_text)
 
     # Save to a file named with the book_id
-    output_filename = book_dir / f"translated_{book.translated_title} by {book.translated_author}.txt"
+    # Sanitize the filename to avoid OS filename length errors
+    sanitized_title = common_sanitize_filename(book.translated_title, max_length=50)
+    sanitized_author = common_sanitize_filename(book.translated_author, max_length=50)
+    output_filename = book_dir / f"translated_{sanitized_title} by {sanitized_author}.txt"
     # Prepare path for writing (ensures parent directory is synced)
     output_filename = prepare_for_write(output_filename)
     try:
