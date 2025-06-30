@@ -135,7 +135,7 @@ def load_config() -> dict[str, Any]:
     if not os.path.exists(config_path):
         try:
             with open(config_path, "w") as config_file:
-                yaml.dump(default_config, config_file)
+                yaml.safe_dump(default_config, config_file, allow_unicode=True)
             logger.info(f"Default configuration file created at '{config_path}'. Please update it with your settings.")
         except Exception as e:
             logger.error(f"Failed to create default config file: {e}")

@@ -275,7 +275,7 @@ class ChineseAITranslator:
 
         # Clean input text
         chinese_text = clean(chinese_text)
-        chinese_text = normalize_spaces(chinese_text)
+        chinese_text = common_normalize_spaces(chinese_text)
 
         # Prepare messages
         messages = self.get_api_messages(chinese_text, double_translation=False)
@@ -424,14 +424,6 @@ class ChineseAITranslator:
         # Reset local counter
         with self._cost_lock:
             self.request_count = 0
-
-
-# Import normalize_spaces function
-def normalize_spaces(text: str, preserve_paragraphs: bool = True) -> str:
-    """Wrapper for common_normalize_spaces with translator-specific defaults."""
-    # Note: common_normalize_spaces doesn't have preserve_paragraphs parameter
-    # Just call it directly
-    return common_normalize_spaces(text)
 
 
 # Example usage:

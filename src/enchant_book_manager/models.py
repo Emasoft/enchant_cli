@@ -200,9 +200,12 @@ class Chunk:
         chunk = cls(chunk_id, book_id, chunk_number, original_variation_id)
         CHUNK_DB[chunk_id] = chunk
         # Also add the chunk to the corresponding Book's chunks list
-        book = Book.get_by_id(book_id)
-        if book:
+        try:
+            book = Book.get_by_id(book_id)
             book.chunks.append(chunk)
+        except KeyError:
+            # Book might not exist yet in some edge cases
+            pass
         return chunk
 
 

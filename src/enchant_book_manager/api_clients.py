@@ -283,8 +283,12 @@ class RemoteAPIClient(TranslationAPIClient):
             completion_tokens = usage_info.get("completion_tokens", 0)
             total_tokens = usage_info.get("total_tokens", 0)
 
-            # Track usage in global cost tracker
-            global_cost_tracker.track_usage(usage_info)
+            # Track usage in global cost tracker with error handling
+            try:
+                global_cost_tracker.track_usage(usage_info)
+            except Exception as e:
+                self._log(f"Failed to track usage: {e}", "error")
+                # Continue processing - don't fail translation due to tracking error
 
 
 def create_api_client(
