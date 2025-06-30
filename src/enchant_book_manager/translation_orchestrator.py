@@ -133,7 +133,10 @@ def save_translated_book(
     # Prepare autoresume data
     existing_chunk_nums: set[int] = set()
     if resume:
-        pattern = f"{book.translated_title} by {book.translated_author} - Chunk_*.txt"
+        # Use sanitized names for pattern matching
+        sanitized_title = common_sanitize_filename(book.translated_title, max_length=50)
+        sanitized_author = common_sanitize_filename(book.translated_author, max_length=50)
+        pattern = f"{sanitized_title} by {sanitized_author} - Chunk_*.txt"
         for p in sorted(book_dir.glob(pattern), key=lambda x: x.name):
             match = re.search(r"Chunk_(\d{6})\.txt$", p.name)
             if match:
@@ -151,7 +154,10 @@ def save_translated_book(
         variation = VARIATION_DB.get(chunk.original_variation_id)
         if variation:
             if resume and chunk.chunk_number in existing_chunk_nums:
-                p_existing = book_dir / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
+                # Use same sanitized names as used in chunk filename creation
+                sanitized_title = common_sanitize_filename(book.translated_title, max_length=50)
+                sanitized_author = common_sanitize_filename(book.translated_author, max_length=50)
+                p_existing = book_dir / f"{sanitized_title} by {sanitized_author} - Chunk_{chunk.chunk_number:06d}.txt"
                 try:
                     translated_text = p_existing.read_text(encoding="utf-8")
                     logger.info(f"Skipping translation for chunk {chunk.chunk_number}; using existing translation.")
@@ -165,7 +171,10 @@ def save_translated_book(
             # Use the max_chunk_retries loaded above
             chunk_translated = False
             last_error = None
-            output_filename_chunk = book_dir / f"{book.translated_title} by {book.translated_author} - Chunk_{chunk.chunk_number:06d}.txt"
+            # Sanitize the filename parts to avoid OS filename length errors
+            sanitized_title = common_sanitize_filename(book.translated_title, max_length=50)
+            sanitized_author = common_sanitize_filename(book.translated_author, max_length=50)
+            output_filename_chunk = book_dir / f"{sanitized_title} by {sanitized_author} - Chunk_{chunk.chunk_number:06d}.txt"
 
             for chunk_attempt in range(1, max_chunk_retries + 1):
                 try:
