@@ -327,3 +327,101 @@ def safe_write_file(
     except Exception as e:
         logger.error(f"Unexpected error writing to {file_path}: {e}")
         return False
+
+
+def check_file_exists(
+    file_path: Path | str,
+    file_type: str = "file",  # "file", "dir", "any"
+    raise_on_missing: bool = True,
+    error_message: str | None = None,
+    logger_instance: logging.Logger | None = None,
+) -> bool:
+    """
+    Check if a file or directory exists with unified error handling.
+
+    Args:
+        file_path: Path to check
+        file_type: Expected type - "file", "dir", or "any"
+        raise_on_missing: If True, raise exception; if False, return False
+        error_message: Custom error message (defaults to standard message)
+        logger_instance: Logger instance for error logging
+
+    Returns:
+        True if exists and matches type, False otherwise
+
+    Raises:
+        FileNotFoundError: If raise_on_missing=True and file doesn't exist
+        ValueError: If exists but wrong type
+    """
+    log = logger_instance or logger
+    path = Path(file_path)
+
+    # Check existence
+    if not path.exists():
+        msg = error_message or f"Path not found: {path}"
+        log.error(msg)
+
+        if raise_on_missing:
+            raise FileNotFoundError(msg)
+        return False
+
+    # Check type
+    if file_type == "file" and not path.is_file():
+        msg = f"Expected file but found directory: {path}"
+        log.error(msg)
+        if raise_on_missing:
+            raise ValueError(msg)
+        return False
+
+    if file_type == "dir" and not path.is_dir():
+        msg = f"Expected directory but found file: {path}"
+        log.error(msg)
+        if raise_on_missing:
+            raise ValueError(msg)
+        return False
+
+    # Path exists and matches expected type
+    return True
+
+
+def validate_file_size(
+    file_path: Path | str,
+    min_size: int | None = None,
+    max_size: int | None = None,
+    logger_instance: logging.Logger | None = None,
+) -> bool:
+    """
+    Validate that a file size is within acceptable bounds.
+
+    Args:
+        file_path: Path to the file to check
+        min_size: Minimum file size in bytes (None = no minimum)
+        max_size: Maximum file size in bytes (None = no maximum)
+        logger_instance: Logger instance for messages
+
+    Returns:
+        True if file size is valid, False otherwise
+
+    Raises:
+        FileNotFoundError: If file doesn't exist
+    """
+    log = logger_instance or logger
+    path = Path(file_path)
+
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {path}")
+
+    if not path.is_file():
+        raise ValueError(f"Path is not a file: {path}")
+
+    file_size = path.stat().st_size
+
+    if min_size is not None and file_size < min_size:
+        log.error(f"File too small: {path} ({file_size} bytes < {min_size} bytes)")
+        return False
+
+    if max_size is not None and file_size > max_size:
+        log.error(f"File too large: {path} ({file_size} bytes > {max_size} bytes)")
+        return False
+
+    return True

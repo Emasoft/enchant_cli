@@ -8,6 +8,8 @@ Test suite for models module.
 import pytest
 from pathlib import Path
 import sys
+import threading
+import time
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -296,14 +298,22 @@ class TestChunk:
 
     def test_chunk_create_book_not_found(self):
         """Test Chunk.create() when book doesn't exist."""
-        # This should raise KeyError from Book.get_by_id
-        with pytest.raises(KeyError, match="Book with id non-existent-book not found"):
-            Chunk.create(
-                chunk_id="orphan-chunk",
-                book_id="non-existent-book",
-                chunk_number=1,
-                original_variation_id="var",
-            )
+        # This should NOT raise an error anymore - it's handled gracefully
+        chunk = Chunk.create(
+            chunk_id="orphan-chunk",
+            book_id="non-existent-book",
+            chunk_number=1,
+            original_variation_id="var",
+        )
+
+        # Verify the chunk was created
+        assert chunk.chunk_id == "orphan-chunk"
+        assert chunk.book_id == "non-existent-book"
+        assert chunk.chunk_number == 1
+        assert chunk.original_variation_id == "var"
+
+        # Verify it's in the database
+        assert CHUNK_DB["orphan-chunk"] == chunk
 
 
 class TestVariation:
@@ -539,3 +549,149 @@ class TestIntegration:
         medium_book = Book.get_or_none(lambda b: 4000 < b.total_characters < 6000 and "Medium" in b.title)
         assert medium_book is not None
         assert medium_book.book_id == "book2"
+
+
+class TestThreadSafety:
+    """Test thread safety of database operations."""
+
+    def setup_method(self):
+        """Clear the database before each test."""
+        BOOK_DB.clear()
+        CHUNK_DB.clear()
+        VARIATION_DB.clear()
+
+    def test_concurrent_book_creation(self):
+        """Test creating books from multiple threads."""
+        errors = []
+        created_ids = []
+
+        def create_books(thread_id: int):
+            """Create books in a thread."""
+            try:
+                for i in range(10):
+                    book_id = f"book-{thread_id}-{i}"
+                    book = Book.create(book_id=book_id, title=f"Book {thread_id}-{i}", source_file=f"file{thread_id}-{i}.txt", total_characters=thread_id * 1000 + i)
+                    created_ids.append(book_id)
+                    # Small delay to increase chance of race conditions
+                    time.sleep(0.001)
+            except Exception as e:
+                errors.append(e)
+
+        # Create multiple threads
+        threads = []
+        for i in range(5):
+            thread = threading.Thread(target=create_books, args=(i,))
+            threads.append(thread)
+            thread.start()
+
+        # Wait for all threads to complete
+        for thread in threads:
+            thread.join()
+
+        # Check results
+        assert len(errors) == 0, f"Thread errors: {errors}"
+        assert len(BOOK_DB) == 50  # 5 threads * 10 books each
+
+        # Verify all books were created correctly
+        for book_id in created_ids:
+            assert book_id in BOOK_DB
+            book = BOOK_DB[book_id]
+            assert book.book_id == book_id
+
+    def test_concurrent_chunk_creation(self):
+        """Test creating chunks from multiple threads."""
+        # First create a book
+        book = Book.create(book_id="shared-book", title="Shared Book")
+
+        errors = []
+
+        def create_chunks(thread_id: int):
+            """Create chunks in a thread."""
+            try:
+                for i in range(10):
+                    chunk = Chunk.create(chunk_id=f"chunk-{thread_id}-{i}", book_id="shared-book", chunk_number=thread_id * 10 + i, original_variation_id=f"var-{thread_id}-{i}")
+                    time.sleep(0.001)
+            except Exception as e:
+                errors.append(e)
+
+        # Create multiple threads
+        threads = []
+        for i in range(5):
+            thread = threading.Thread(target=create_chunks, args=(i,))
+            threads.append(thread)
+            thread.start()
+
+        # Wait for all threads
+        for thread in threads:
+            thread.join()
+
+        # Check results
+        assert len(errors) == 0, f"Thread errors: {errors}"
+        assert len(CHUNK_DB) == 50
+        assert len(book.chunks) == 50
+
+    def test_concurrent_reads_and_writes(self):
+        """Test concurrent reads and writes to the database."""
+        # Pre-populate some books
+        for i in range(10):
+            Book.create(book_id=f"existing-{i}", source_file=f"file{i}.txt")
+
+        errors = []
+        read_results = []
+
+        def reader_thread():
+            """Thread that reads from database."""
+            try:
+                for _ in range(20):
+                    # Try various read operations
+                    book = Book.get_or_none(lambda b: b.source_file == "file5.txt")
+                    if book:
+                        read_results.append(book.book_id)
+
+                    # Also try get_by_id
+                    try:
+                        book = Book.get_by_id("existing-3")
+                        read_results.append(book.book_id)
+                    except KeyError:
+                        pass
+
+                    time.sleep(0.001)
+            except Exception as e:
+                errors.append(("reader", e))
+
+        def writer_thread(thread_id: int):
+            """Thread that writes to database."""
+            try:
+                for i in range(10):
+                    Book.create(book_id=f"new-{thread_id}-{i}", title=f"New Book {thread_id}-{i}", source_file=f"new{thread_id}-{i}.txt")
+                    time.sleep(0.002)
+            except Exception as e:
+                errors.append(("writer", e))
+
+        # Start mixed reader and writer threads
+        threads = []
+
+        # 3 reader threads
+        for _ in range(3):
+            thread = threading.Thread(target=reader_thread)
+            threads.append(thread)
+            thread.start()
+
+        # 2 writer threads
+        for i in range(2):
+            thread = threading.Thread(target=writer_thread, args=(i,))
+            threads.append(thread)
+            thread.start()
+
+        # Wait for all threads
+        for thread in threads:
+            thread.join()
+
+        # Check results
+        assert len(errors) == 0, f"Thread errors: {errors}"
+
+        # Should have original 10 + 20 new books
+        assert len(BOOK_DB) == 30
+
+        # Read results should be consistent
+        assert len(read_results) > 0

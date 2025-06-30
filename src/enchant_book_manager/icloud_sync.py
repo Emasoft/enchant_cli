@@ -202,7 +202,10 @@ class ICloudSync:
                 )
         except subprocess.CalledProcessError as e:
             self.logger.error(f"Failed to sync folder {folder_path}: {e}")
-            # Don't raise - continue anyway
+            # For recursive syncs, this is critical
+            if recursive:
+                raise ICloudSyncError(f"Failed to sync folder {folder_path}: {e}") from e
+            # For non-recursive, continue anyway
 
         if recursive and HAS_WAITING:
             # Wait for all files to be downloaded
@@ -251,6 +254,9 @@ class ICloudSync:
                     )
             except subprocess.CalledProcessError as e:
                 self.logger.error(f"Failed to sync file {file_path}: {e}")
+                # For critical operations, re-raise the error
+                if not file_path.name.startswith("."):  # Not a hidden file
+                    raise ICloudSyncError(f"Failed to download {file_path}: {e}") from e
 
             # Wait for download if waiting is available
             if HAS_WAITING:

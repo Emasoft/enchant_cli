@@ -20,8 +20,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from enchant_book_manager.translation_service import (
     ChineseAITranslator,
-    normalize_spaces,
 )
+from enchant_book_manager.common_text_utils import normalize_spaces
 from enchant_book_manager.text_validators import (
     is_latin_char,
     is_latin_charset,

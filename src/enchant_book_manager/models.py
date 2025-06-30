@@ -28,6 +28,7 @@
 from __future__ import annotations
 
 import enum
+import threading
 from typing import Any
 
 
@@ -131,7 +132,8 @@ class Book:
             source_file=kwargs.get("source_file", ""),
             total_characters=kwargs.get("total_characters", 0),
         )
-        BOOK_DB[book.book_id] = book
+        with _db_lock:
+            BOOK_DB[book.book_id] = book
         return book
 
     @classmethod
@@ -145,9 +147,10 @@ class Book:
         Returns:
             The first matching Book instance or None
         """
-        for book in BOOK_DB.values():
-            if condition(book):
-                return book
+        with _db_lock:
+            for book in BOOK_DB.values():
+                if condition(book):
+                    return book
         return None
 
     @classmethod
@@ -164,10 +167,11 @@ class Book:
         Raises:
             KeyError: If book not found
         """
-        book = BOOK_DB.get(book_id)
-        if book is None:
-            raise KeyError(f"Book with id {book_id} not found")
-        return book
+        with _db_lock:
+            book = BOOK_DB.get(book_id)
+            if book is None:
+                raise KeyError(f"Book with id {book_id} not found")
+            return book
 
 
 class Chunk:
@@ -198,14 +202,12 @@ class Chunk:
             The created chunk instance
         """
         chunk = cls(chunk_id, book_id, chunk_number, original_variation_id)
-        CHUNK_DB[chunk_id] = chunk
-        # Also add the chunk to the corresponding Book's chunks list
-        try:
-            book = Book.get_by_id(book_id)
-            book.chunks.append(chunk)
-        except KeyError:
-            # Book might not exist yet in some edge cases
-            pass
+        with _db_lock:
+            CHUNK_DB[chunk_id] = chunk
+            # Also add the chunk to the corresponding Book's chunks list
+            book = BOOK_DB.get(book_id)
+            if book is not None:
+                book.chunks.append(chunk)
         return chunk
 
 
@@ -254,19 +256,26 @@ class Variation:
             category=kwargs.get("category", ""),
             text_content=kwargs.get("text_content", ""),
         )
-        VARIATION_DB[variation.variation_id] = variation
+        with _db_lock:
+            VARIATION_DB[variation.variation_id] = variation
         return variation
 
 
-# In-memory "database" dictionaries
+# In-memory "database" dictionaries with thread safety
 BOOK_DB: dict[str, Book] = {}
 CHUNK_DB: dict[str, Chunk] = {}
 VARIATION_DB: dict[str, Variation] = {}
+
+# Thread lock for database operations
+_db_lock = threading.RLock()  # Reentrant lock to allow nested calls
 
 
 def manual_commit() -> None:
     """
     Simulate a database commit (no-op for in-memory storage).
+
+    This function exists for API compatibility but does nothing
+    since changes are immediately reflected in memory.
     """
-    # Simulate a database commit. In this simple implementation, changes are already in memory.
+    # No-op: changes are already in memory
     pass
