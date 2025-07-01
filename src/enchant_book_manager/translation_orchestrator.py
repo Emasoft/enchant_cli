@@ -176,7 +176,6 @@ def _translate_chunk(
             return translated_result
 
         except Exception as e:
-            last_error = e
             logger.error(f"ERROR: Translation failed for chunk {chunk_number:06d} on attempt {attempt}/{max_retries}: {str(e)}")
 
             if attempt < max_retries:
@@ -318,6 +317,9 @@ def save_translated_book(
         variation = VARIATION_DB.get(chunk.original_variation_id)
         if not variation:
             continue
+
+        # Type annotation for translated_text to handle both str and Optional[str]
+        translated_text: Optional[str]
 
         # Check if chunk already exists (resume mode)
         if resume and chunk.chunk_number in existing_chunk_nums:

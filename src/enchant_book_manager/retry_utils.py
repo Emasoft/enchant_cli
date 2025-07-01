@@ -15,7 +15,7 @@ This module provides convenient preset retry decorators for common
 operations like network requests, file I/O, and database operations.
 """
 
-from typing import Callable, TypeVar, Any
+from typing import Callable, TypeVar
 import requests
 from .common_utils import retry_with_backoff
 from .common_constants import (
@@ -201,6 +201,16 @@ def api_retry(
 
 
 # Convenience aliases for common use cases
-critical_network_retry = lambda: network_retry(exit_on_failure=True)
-critical_file_retry = lambda: file_io_retry(exit_on_failure=True)
-quick_retry = lambda: retry_with_backoff(max_attempts=3, max_wait=5.0)
+def critical_network_retry() -> Callable[[Callable[..., T]], Callable[..., T]]:
+    """Create a network retry decorator that exits on failure."""
+    return network_retry(exit_on_failure=True)
+
+
+def critical_file_retry() -> Callable[[Callable[..., T]], Callable[..., T]]:
+    """Create a file I/O retry decorator that exits on failure."""
+    return file_io_retry(exit_on_failure=True)
+
+
+def quick_retry() -> Callable[[Callable[..., T]], Callable[..., T]]:
+    """Create a quick retry decorator with reduced attempts and wait time."""
+    return retry_with_backoff(max_attempts=3, max_wait=5.0)

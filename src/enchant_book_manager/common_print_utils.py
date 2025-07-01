@@ -30,7 +30,7 @@ try:
     rich_available = True
 except ImportError:
     # Use standard print if rich isn't available
-    print = builtins.print  # type: ignore[assignment]
+    print = builtins.print
     rich_available = False
 
 
