@@ -22,7 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - if the user asks you to implement a feature or to make a change, always check the source code to ensure that the feature was not already implemented before or it is implemented in another form. Never start a task without checking if that task was already implemented or done somewhere in the codebase.
 - if you must write a function, always check if there are already similar functions that can be extended or parametrized to do what new function need to do. Avoid writing duplicated or similar code by reusing the same flexible helper functions where is possible.
 - keep the source files as small as possible. If you need to create new functions or classes, prefer creating them in new modules in new files and import them instead of putting them in the same source file that will use them. Small reusable modules are always preferable to big functions and spaghetti code.
-- Always check for leaks of secrets in the git repo with `gitleaks git --verbose` and `gitleaks dir --verbose`.
+- Always check for leaks of secrets in the git repo with `gitleaks-safe detect --source . --verbose` instead of using gitleaks directly. Install gitleaks-safe globally with `uv tool install gitleaks-safe` and then run `install-safe-git-hooks --pre-push` in each project to install memory-safe git hooks.
 - commit should be atomic, specific, and focus on WHAT changed in subject line with WHY explained in body when needed.
 - use semantic commit messages following the format in the Git Commit Message Format memory
 - Write only shippable, production ready code. If you wouldn’t ship it, don’t write it.
@@ -342,6 +342,98 @@ This command upgrades pre-commit and all of its dependencies, in its managed env
 For more information, read the uv tool upgrade documentation: `https://docs.astral.sh/uv/concepts/tools/`
 
 
+## gitleaks-safe: Memory-Safe Secret Detection
+
+Use `gitleaks-safe` instead of `gitleaks` directly to prevent memory exhaustion issues when running concurrent scans.
+
+### Installation
+
+Install gitleaks-safe globally as a uv tool (one time):
+
+```bash
+# Install from PyPI
+uv tool install gitleaks-safe
+
+# Or install from the independent repository
+uv tool install --from /Users/emanuelesabetta/Code/gitleaks-safe
+```
+
+### Usage in Projects
+
+1. **Install git hooks** in each project:
+```bash
+# Install pre-push hook (recommended)
+install-safe-git-hooks --pre-push
+
+# Or install pre-commit hook
+install-safe-git-hooks --pre-commit
+
+# Install both hooks
+install-safe-git-hooks --both
+
+# Non-interactive mode (auto-install gitleaks if missing)
+install-safe-git-hooks --pre-push --non-interactive
+```
+
+2. **Manual scans** with gitleaks-safe:
+```bash
+# Scan entire repository
+gitleaks-safe detect --source . --verbose
+
+# Scan staged changes only
+gitleaks-safe protect --staged
+
+# Use custom config file
+gitleaks-safe detect --config .gitleaks.toml --source .
+
+# Increase timeout for large repositories
+GITLEAKS_TIMEOUT=600 gitleaks-safe detect --source .
+```
+
+3. **Clean up processes** if needed:
+```bash
+# Smart cleanup (preserves safe instances)
+cleanup-gitleaks
+
+# Force cleanup all processes
+cleanup-gitleaks --all
+
+# Skip confirmation
+cleanup-gitleaks --force
+```
+
+### Features
+
+- **Multi-Instance Support**: Run gitleaks safely in multiple projects simultaneously
+- **Smart Process Management**: Only kills unsafe gitleaks processes, preserves managed ones
+- **Docker Container Support**: Detects and manages gitleaks processes in containers
+- **Cross-Platform**: Works on macOS, Linux, Windows, and Docker
+- **Automatic Installation**: Can install gitleaks automatically if not found
+
+### Configuration
+
+Environment variables to customize behavior:
+
+```bash
+# Timeout for scans (default: 120 seconds)
+export GITLEAKS_TIMEOUT=300
+
+# Enable verbose output
+export GITLEAKS_VERBOSE=true
+
+# Number of retry attempts (default: 1)
+export GITLEAKS_RETRIES=3
+```
+
+### Why Use gitleaks-safe?
+
+Running multiple gitleaks processes concurrently can cause memory exhaustion and system crashes. gitleaks-safe prevents this by:
+- Using process markers to identify safe instances
+- Implementing timeouts and proper cleanup
+- Killing only unsafe processes before starting new scans
+- Supporting multiple concurrent projects without interference
+
+
 
 ### Module Splitting and Refactoring Best Practices
 
@@ -510,8 +602,15 @@ uv run yamllint
 uv run actionlint
 
 # Gitleaks and secrets preservation
-gitleaks git --verbose
-gitleaks dir --verbose
+# Install gitleaks-safe globally (one time):
+uv tool install gitleaks-safe
+
+# In each project, install memory-safe git hooks:
+install-safe-git-hooks --pre-push
+
+# Run manual scans with gitleaks-safe:
+gitleaks-safe detect --source . --verbose
+gitleaks-safe protect --staged --verbose
 
 
 ### Building and Packaging
@@ -1603,7 +1702,8 @@ A comprehensive Chinese novel translation and EPUB generation system with three 
 ### Dependencies
 - Core tools: pytest, pytest-cov, pytest-mock, mypy, ruff, flake8, pre-commit, yamllint, actionlint, prefect, shellcheck, gh
 - Package management: UV (modern Python package manager)
-- Version management: bump-my-version, gitpython, gitleaks
+- Version management: bump-my-version, gitpython
+- Security: gitleaks-safe (memory-safe wrapper for gitleaks)
 - UI/CLI: click, rich
 - Frontend/Nodejs: pnpm, eslint
 - AI/ML libraries: openai, litellm, google-generativeai (for certain features)
