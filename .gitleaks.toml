@@ -13,7 +13,6 @@ paths = [
     '''\.git/''',
     '''\.venv/''',
     '''node_modules/''',
-    '''test_secret\.py''',  # Temporarily allow our test file
 ]
 
 # Additional custom rules can be added here if needed
