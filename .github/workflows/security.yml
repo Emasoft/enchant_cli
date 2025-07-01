@@ -51,6 +51,29 @@ jobs:
       with:
         config: auto
 
+    - name: Install Trufflehog
+      run: |
+        cd /tmp
+        wget https://github.com/trufflesecurity/trufflehog/releases/download/v3.88.0/trufflehog_3.88.0_linux_amd64.tar.gz
+        tar -xzf trufflehog_3.88.0_linux_amd64.tar.gz
+        sudo mv trufflehog /usr/local/bin/
+        cd -
+
+    - name: Run Trufflehog scan
+      run: |
+        trufflehog filesystem . \
+          --only-verified \
+          --no-update \
+          --exclude-paths=.trufflehog-excludes.txt \
+          --json > trufflehog-report.json || true
+
+        # Check if any secrets were found
+        if [ -s trufflehog-report.json ] && grep -q '"SourceMetadata"' trufflehog-report.json; then
+          echo "::error::Trufflehog found potential secrets!"
+          jq '.' < trufflehog-report.json
+          exit 1
+        fi
+
     - name: Check for hardcoded secrets
       run: |
         # Check for common patterns
@@ -65,3 +88,4 @@ jobs:
         path: |-
           bandit-report.json
           safety-report.json
+          trufflehog-report.json

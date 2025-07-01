@@ -1,0 +1,40 @@
+# Trufflehog configuration for EnChANT Book Manager
+
+# Exclude paths from scanning
+exclude_paths:
+- .git/
+- .venv/
+- __pycache__/
+- node_modules/
+- .pytest_cache/
+- .ruff_cache/
+- .mypy_cache/
+- dist/
+- build/
+- "*.egg-info/"
+- htmlcov/
+- .coverage
+- .tox/
+- docs/_build/
+
+# Custom regex patterns to exclude (allowlist)
+# These patterns will be ignored during scanning
+custom_regex_exclude:
+- pattern: '713559\+Emasoft@users\.noreply\.github\.com'
+  name: GitHub noreply email
+- pattern: 'Emasoft'
+  name: Git author name
+- pattern: 'GIT_AUTHOR.*=.*Emasoft'
+  name: Git author environment variable
+- pattern: 'GIT_COMMITTER.*=.*Emasoft'
+  name: Git committer environment variable
+
+# Detectors to include
+detectors:
+- name: all
+
+# Only report verified results to reduce false positives
+only_verified: true
+
+# Fail on finding secrets (exit code 183)
+fail: true

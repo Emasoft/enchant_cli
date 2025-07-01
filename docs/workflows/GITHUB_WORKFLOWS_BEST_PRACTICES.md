@@ -40,12 +40,12 @@ All successful Python workflows use UV for dependency management:
 Always install external tools in /tmp to avoid overwriting project files:
 
 ```yaml
-- name: Install gitleaks
+- name: Install trufflehog
   run: |
     cd /tmp
-    wget https://github.com/gitleaks/gitleaks/releases/download/v8.21.2/gitleaks_8.21.2_linux_x64.tar.gz
-    tar -xzf gitleaks_8.21.2_linux_x64.tar.gz
-    sudo mv gitleaks /usr/local/bin/
+    wget https://github.com/trufflesecurity/trufflehog/releases/download/v3.88.0/trufflehog_3.88.0_linux_amd64.tar.gz
+    tar -xzf trufflehog_3.88.0_linux_amd64.tar.gz
+    sudo mv trufflehog /usr/local/bin/
     cd -
 ```
 
@@ -101,7 +101,7 @@ Always include security checks:
 
 ```yaml
 # Secret scanning
-gitleaks detect --source . --verbose
+trufflehog filesystem . --only-verified
 
 # Dependency scanning
 uv run pip-audit
@@ -278,7 +278,7 @@ on:
 Use verbose flags for debugging:
 
 ```bash
-gitleaks detect --verbose
+trufflehog filesystem . --only-verified
 pytest -xvs
 ```
 

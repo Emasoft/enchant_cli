@@ -62,7 +62,7 @@ Before committing, the following checks will run automatically:
 - Python linting (ruff)
 - Type checking (mypy)
 - Dependency checking (deptry)
-- Security scanning (pip-audit, gitleaks)
+- Security scanning (pip-audit, trufflehog)
 
 ## Pull Request Process
 

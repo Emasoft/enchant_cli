@@ -148,7 +148,6 @@ jobs:
     - name: Run security checks
       run: |
         uv run pip-audit --desc || true
-        gitleaks detect --verbose || true
 
   summary:
     needs: [sync, lint, format, test, security]
