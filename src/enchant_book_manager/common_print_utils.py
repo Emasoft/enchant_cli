@@ -21,16 +21,19 @@ Common print utilities for console output with rich formatting support.
 
 import builtins
 import re
-from typing import Any
+from typing import Any, Optional, Callable
 
 # Try to import rich for enhanced printing
-try:
-    from rich import print as rich_print
+rich_print: Optional[Callable[..., None]] = None
+rich_available = False
 
+try:
+    from rich import print as _rich_print
+
+    rich_print = _rich_print
     rich_available = True
 except ImportError:
-    rich_print = None
-    rich_available = False
+    pass
 
 
 def safe_print(*args: Any, **kwargs: Any) -> None:

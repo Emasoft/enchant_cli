@@ -511,22 +511,19 @@ uv run shellcheck --severity=error --extended-analysis=true  # Shellcheck (alway
 uv run yamllint
 uv run actionlint
 
-# Secret detection - see the dedicated gitleaks-safe section
-
 
 ### gitleaks-safe: Memory-Safe Secret Detection
-
-Use `gitleaks-safe` instead of `gitleaks` directly to prevent memory exhaustion issues when running concurrent scans.
+- **CRITICAL**: Do not install or use `gitleaks` directly! Use `gitleaks-safe` instead of `gitleaks` directly to prevent memory exhaustion issues when running concurrent scans.
 
 #### Installation
 
 Install gitleaks-safe globally as a uv tool (one time):
 
 ```bash
-# Install from PyPI
-uv tool install gitleaks-safe
+# Install gitleaks-safe from PyPI (not available yet!)
+uv tool install gitleaks-safe # not available yet!
 
-# Or install from the independent repository
+# Or install gitleaks-safe from the independent local repository
 uv tool install --from /Users/emanuelesabetta/Code/gitleaks-safe
 ```
 
@@ -596,14 +593,6 @@ export GITLEAKS_VERBOSE=true
 # Number of retry attempts (default: 1)
 export GITLEAKS_RETRIES=3
 ```
-
-#### Why Use gitleaks-safe?
-
-Running multiple gitleaks processes concurrently can cause memory exhaustion and system crashes. gitleaks-safe prevents this by:
-- Using process markers to identify safe instances
-- Implementing timeouts and proper cleanup
-- Killing only unsafe processes before starting new scans
-- Supporting multiple concurrent projects without interference
 
 
 ### Building and Packaging
