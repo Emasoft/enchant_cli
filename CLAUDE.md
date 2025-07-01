@@ -512,56 +512,99 @@ uv run yamllint
 uv run actionlint
 
 
-### Trufflehog: Secret Detection
+### Trufflehog v3: Secret Detection
 
-Trufflehog is used for detecting secrets and preventing them from being committed to the repository.
+**IMPORTANT**: This project uses Trufflehog v3 for detecting secrets and preventing them from being committed to the repository. Always ensure you're using v3, not v2.
 
 #### Installation
 
 On macOS:
 ```bash
 brew install trufflehog
+# Verify version 3.x
+trufflehog --version
 ```
 
 On Linux:
 ```bash
-# Download the latest release
+# Download specific v3 release (recommended)
+cd /tmp
+wget https://github.com/trufflesecurity/trufflehog/releases/download/v3.88.0/trufflehog_3.88.0_linux_amd64.tar.gz
+tar -xzf trufflehog_3.88.0_linux_amd64.tar.gz
+sudo mv trufflehog /usr/local/bin/
+cd -
+
+# Or use install script for latest version
 curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh
 ```
 
 #### Configuration
 
-The project uses Trufflehog in two ways:
+The project uses Trufflehog v3 in three ways:
 
 1. **Pre-push Git Hook**: Automatically scans for secrets before pushing to remote
    - Located at `.git/hooks/pre-push`
    - Uses `.trufflehog-excludes.txt` for patterns to ignore
+   - Exit code 183 indicates secrets found
 
 2. **Pre-commit Hook**: Runs as part of the pre-commit framework
    - Configured in `.pre-commit-config.yaml`
    - Runs on every commit
+   - Uses `--only-verified` flag to reduce false positives
+
+3. **GitHub Actions**: Integrated in security workflow
+   - Downloads Trufflehog v3.88.0 specifically
+   - Generates JSON report for artifact storage
+   - Fails the workflow if verified secrets are found
 
 #### Exclude Patterns
 
 The `.trufflehog-excludes.txt` file contains regex patterns to exclude from scanning:
-- Git author information (Emasoft, 713559+Emasoft@users.noreply.github.com)
-- Common test patterns (localhost, example.com)
-- Build and cache directories
+- Git author information: `.*Emasoft.*`, `.*713559\+Emasoft@users\.noreply\.github\.com.*`
+- Git environment variables: `.*GIT_AUTHOR.*Emasoft.*`, `.*GIT_COMMITTER.*Emasoft.*`
+- Common test patterns: `.*localhost.*`, `.*example\.com.*`
+- Build and cache directories: `.*/\.venv/.*`, `.*/__pycache__/.*`, `.*/node_modules/.*`
 
 #### Manual Scanning
 
-To manually scan the repository:
+To manually scan the repository with Trufflehog v3:
 ```bash
-# Scan with only verified results
+# Scan with only verified results (recommended)
 trufflehog filesystem . --only-verified --exclude-paths=.trufflehog-excludes.txt
 
-# Scan everything (including unverified)
+# Scan everything including unverified results
 trufflehog filesystem . --exclude-paths=.trufflehog-excludes.txt
+
+# Scan with JSON output for parsing
+trufflehog filesystem . --only-verified --json --exclude-paths=.trufflehog-excludes.txt
+
+# Scan specific directory
+trufflehog filesystem ./src --only-verified --exclude-paths=.trufflehog-excludes.txt
+
+# Scan git history (not just current state)
+trufflehog git file://. --only-verified --exclude-paths=.trufflehog-excludes.txt
 ```
+
+#### Trufflehog v3 Exit Codes
+
+- **0**: No secrets found
+- **183**: Secrets found (when using `--fail` flag)
+- **Other**: Error occurred during scanning
+
+#### Troubleshooting
+
+1. **Binary file errors**: Ignore errors like "brotli: PADDING" - these are normal for binary files
+2. **Performance**: Use `--only-verified` to speed up scans and reduce false positives
+3. **Memory usage**: Trufflehog v3 is more memory-efficient than v2
+4. **Updates**: Use `--no-update` flag in CI/CD to prevent auto-updates
 
 #### GitHub Actions Integration
 
-Trufflehog is integrated into the CI/CD pipeline through the security workflow.
+Trufflehog v3 is integrated into the CI/CD pipeline through the security workflow:
+- Installs Trufflehog v3.88.0 in `/tmp` to avoid file conflicts
+- Runs with `--only-verified` flag
+- Outputs results to `trufflehog-report.json`
+- Fails the workflow if secrets are detected
 
 
 
