@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gitleaks-safe"
+version = "2.0.0"
+description = "Memory-safe git hooks for gitleaks with multi-instance support"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Emasoft", email = "713559+Emasoft@users.noreply.github.com"},
+]
+keywords = ["gitleaks", "git", "hooks", "security", "memory-safe"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Version Control :: Git",
+    "Topic :: Security",
+]
+
+dependencies = [
+    "click>=8.0.0",
+    "rich>=13.0.0",
+    "psutil>=5.9.0",
+]
+
+[project.scripts]
+gitleaks-safe = "gitleaks_safe.cli:main"
+install-safe-git-hooks = "gitleaks_safe.installer:main"
+cleanup-gitleaks = "gitleaks_safe.cleanup:main"
+
+[project.urls]
+Homepage = "https://github.com/Emasoft/gitleaks-safe"
+Documentation = "https://github.com/Emasoft/gitleaks-safe#readme"
+Repository = "https://github.com/Emasoft/gitleaks-safe"
+Issues = "https://github.com/Emasoft/gitleaks-safe/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gitleaks_safe"]
