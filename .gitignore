@@ -139,3 +139,4 @@ old_backup/
 *.conf.yml
 renamenovels.conf.yml
 translations_chronology.yml
+memory-safe-git-hooks.tar.gz
