@@ -1,0 +1,35 @@
+title = "gitleaks config for enchant_cli"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlisted files"
+paths = [
+    '''.*\.lock$''',
+    '''.*\.log$''',
+    '''.*\.pyc$''',
+    '''.*__pycache__.*''',
+    '''.*\.git/.*''',
+    '''.*\.venv/.*''',
+    '''.*node_modules/.*''',
+]
+
+[[rules]]
+description = "OpenAI API Key"
+regex = '''(?i)(sk-[a-zA-Z0-9]{48})'''
+tags = ["key", "OpenAI"]
+
+[[rules]]
+description = "Generic API Key"
+regex = '''(?i)(api[_\-\s]*key[_\-\s]*[=:]\s*['"][0-9a-zA-Z]{32,}['"])'''
+tags = ["key", "API", "generic"]
+
+[[rules]]
+description = "Generic Secret"
+regex = '''(?i)(secret[_\-\s]*[=:]\s*['"][0-9a-zA-Z]{16,}['"])'''
+tags = ["key", "secret"]
+
+# Allow certain test patterns
+[[rules.allowlist]]
+regex = '''test_secret|dummy_key|fake_api'''
