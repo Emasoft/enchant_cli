@@ -594,6 +594,13 @@ export GITLEAKS_VERBOSE=true
 export GITLEAKS_RETRIES=3
 ```
 
+#### .gitleaks.toml configuration
+- **CRITICAL**: create/edit `.gitleaks.toml` to allows only:
+  - Git author: `Emasoft`
+  - Git email: `713559+Emasoft@users.noreply.github.com`
+  - All other secrets are blocked
+
+
 
 ### Building and Packaging
 

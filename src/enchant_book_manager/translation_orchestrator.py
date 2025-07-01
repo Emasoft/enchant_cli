@@ -35,7 +35,7 @@ from .models import Book, VARIATION_DB
 from .cost_logger import save_translation_cost_log
 
 # Default values for chunk retry configuration
-DEFAULT_MAX_CHUNK_RETRIES = 3
+DEFAULT_MAX_CHUNK_RETRIES = 10
 MAX_RETRY_WAIT_SECONDS = 60
 
 
@@ -64,6 +64,7 @@ def format_chunk_error_message(
 ==========================================
 CRITICAL ERROR: Translation Failed
 ==========================================
+Failed to translate chunk {chunk_number:06d}
 chunk {chunk_number:06d} could not be translated after {max_retries} attempts.
 
 Book: {book_title} by {book_author}
@@ -365,6 +366,8 @@ def save_translated_book(
             logger.error(error_message)
             print(error_message)
             sys.exit(1)
+            # Return early to prevent further execution when sys.exit is mocked in tests
+            return
 
         # Save chunk to file
         _save_chunk_file(

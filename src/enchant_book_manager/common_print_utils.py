@@ -35,6 +35,9 @@ try:
 except ImportError:
     pass
 
+# Export 'print' for backward compatibility with tests
+print = rich_print if rich_available else builtins.print
+
 
 def safe_print(*args: Any, **kwargs: Any) -> None:
     """Print with rich if available, else strip markup tags.

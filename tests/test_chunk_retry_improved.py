@@ -196,7 +196,7 @@ class TestChunkRetryMechanismImproved(BaseChunkRetryTest):
             assert self.mock_translator.translate.call_count == 3
 
             # Check error message was logged using format_chunk_error_message
-            error_logs = [call for call in self.mock_logger.error.call_args_list if "FATAL ERROR" in str(call)]
+            error_logs = [call for call in self.mock_logger.error.call_args_list if "CRITICAL ERROR" in str(call)]
             assert len(error_logs) == 1
 
             # Check sleep was called correctly

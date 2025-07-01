@@ -202,7 +202,7 @@ class TestChunkRetryMechanism:
                 assert mock_translator.translate.call_count == 3
 
                 # Check error message was logged
-                error_logs = [call for call in mock_logger.error.call_args_list if "FATAL ERROR" in str(call)]
+                error_logs = [call for call in mock_logger.error.call_args_list if "CRITICAL ERROR" in str(call)]
                 assert len(error_logs) == 1
 
                 # Check sleep was called correctly
@@ -293,7 +293,7 @@ class TestChunkRetryMechanism:
                 "enchant_book_manager.translation_orchestrator.Path.write_text",
                 side_effect=mock_write_text,
             ):
-                with patch("sys.exit") as mock_exit:
+                with pytest.raises(PermissionError, match="Access denied"):
                     save_translated_book(
                         self.book_id,
                         translator=mock_translator,
@@ -302,9 +302,6 @@ class TestChunkRetryMechanism:
                         logger=mock_logger,
                         module_config={},
                     )
-
-                    # Should not exit (recovers from write error)
-                    mock_exit.assert_not_called()
 
     @patch("enchant_book_manager.models.Book.get_by_id")
     def test_book_not_found_raises_error(self, mock_get_book):

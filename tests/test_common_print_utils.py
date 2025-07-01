@@ -19,7 +19,7 @@ class TestSafePrint:
     """Test the safe_print function."""
 
     @patch("enchant_book_manager.common_print_utils.rich_available", True)
-    @patch("enchant_book_manager.common_print_utils.print")
+    @patch("enchant_book_manager.common_print_utils.rich_print")
     def test_with_rich_available(self, mock_rich_print):
         """Test safe_print when rich is available."""
         from enchant_book_manager.common_print_utils import safe_print
@@ -130,7 +130,7 @@ class TestSafePrint:
         mock_print.assert_called_once_with(" Hello [/bold")  # Only complete tags stripped
 
     @patch("enchant_book_manager.common_print_utils.rich_available", True)
-    @patch("enchant_book_manager.common_print_utils.print")
+    @patch("enchant_book_manager.common_print_utils.rich_print")
     def test_with_rich_no_args(self, mock_rich_print):
         """Test safe_print with no arguments."""
         from enchant_book_manager.common_print_utils import safe_print

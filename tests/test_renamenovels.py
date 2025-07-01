@@ -29,7 +29,7 @@ class TestLoadConfig:
 
     @patch("os.path.exists")
     @patch("builtins.open", new_callable=mock_open)
-    @patch("enchant_book_manager.renamenovels.yaml.dump")
+    @patch("enchant_book_manager.renamenovels.yaml.safe_dump")
     def test_load_config_creates_default(self, mock_yaml_dump, mock_file, mock_exists):
         """Test creating default config when file doesn't exist."""
         # Config file doesn't exist
