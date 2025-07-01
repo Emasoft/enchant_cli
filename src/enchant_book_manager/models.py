@@ -268,14 +268,3 @@ VARIATION_DB: dict[str, Variation] = {}
 
 # Thread lock for database operations
 _db_lock = threading.RLock()  # Reentrant lock to allow nested calls
-
-
-def manual_commit() -> None:
-    """
-    Simulate a database commit (no-op for in-memory storage).
-
-    This function exists for API compatibility but does nothing
-    since changes are immediately reflected in memory.
-    """
-    # No-op: changes are already in memory
-    pass

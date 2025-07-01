@@ -98,6 +98,14 @@ DEFAULT_MAX_EMPTY_LINES = 2
 # Maximum allowed temperature value for AI models
 MAX_TEMPERATURE_VALUE = 2.0
 
+# Retry Configuration
+# ------------------
+# Default retry count for I/O operations
+DEFAULT_IO_RETRY_COUNT = 5
+
+# Default retry count for database operations
+DEFAULT_DB_RETRY_COUNT = 3
+
 # Minimum temperature value (fully deterministic)
 MIN_TEMPERATURE_VALUE = 0.0
 

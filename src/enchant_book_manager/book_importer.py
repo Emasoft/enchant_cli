@@ -30,7 +30,7 @@ import uuid
 from pathlib import Path
 from typing import Optional, Any
 
-from .models import Book, Chunk, Variation, manual_commit
+from .models import Book, Chunk, Variation
 from .file_handler import decode_input_file_content
 from .text_processor import remove_excess_empty_lines
 from .text_splitter import split_chinese_text_in_parts, DEFAULT_MAX_CHARS
@@ -164,7 +164,7 @@ def import_book_from_txt(
             logger.debug("An exception happened when creating a new variation original for a chunk:")
             logger.debug("ERROR: " + str(e))
     finally:
-        manual_commit()
+        pass  # No commit needed for in-memory storage
 
     book = Book.get_by_id(new_book_id)
 
@@ -200,6 +200,6 @@ def import_book_from_txt(
                     logger.debug(f"An exception happened when creating a new variation original for chunk n.{chunk_number}:")
                     logger.debug("ERROR: " + str(e))
         finally:
-            manual_commit()
+            pass  # No commit needed for in-memory storage
 
     return new_book_id

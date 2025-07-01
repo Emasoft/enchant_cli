@@ -95,7 +95,6 @@ class TestImportBookFromTxt:
     """Test the import_book_from_txt function."""
 
     @patch("enchant_book_manager.book_importer.uuid.uuid4")
-    @patch("enchant_book_manager.book_importer.manual_commit")
     @patch("enchant_book_manager.book_importer.Variation")
     @patch("enchant_book_manager.book_importer.Chunk")
     @patch("enchant_book_manager.book_importer.Book")
@@ -110,7 +109,6 @@ class TestImportBookFromTxt:
         mock_book,
         mock_chunk,
         mock_variation,
-        mock_commit,
         mock_uuid,
     ):
         """Test importing a new book successfully."""
@@ -181,9 +179,6 @@ class TestImportBookFromTxt:
         assert variation_calls[0][1]["language"] == "original"
         assert variation_calls[0][1]["category"] == "original"
 
-        # Verify commits were called
-        assert mock_commit.call_count >= 3  # After book + after each chunk/variation
-
     @patch("enchant_book_manager.book_importer.Book")
     def test_import_duplicate_book(self, mock_book):
         """Test importing a book that already exists."""
@@ -204,11 +199,10 @@ class TestImportBookFromTxt:
         # Should not create new book
         mock_book.create.assert_not_called()
 
-    @patch("enchant_book_manager.book_importer.manual_commit")
     @patch("enchant_book_manager.book_importer.Book")
     @patch("enchant_book_manager.book_importer.split_chinese_text_in_parts")
     @patch("enchant_book_manager.book_importer.decode_input_file_content")
-    def test_import_book_create_exception(self, mock_decode, mock_split, mock_book, mock_commit):
+    def test_import_book_create_exception(self, mock_decode, mock_split, mock_book):
         """Test handling exception during book creation."""
         # Setup mocks
         mock_decode.return_value = "Text content"
@@ -226,11 +220,7 @@ class TestImportBookFromTxt:
         logger.debug.assert_any_call("An exception happened when creating a new variation original for a chunk:")
         logger.debug.assert_any_call("ERROR: Database error")
 
-        # Verify commit was still called
-        mock_commit.assert_called()
-
     @patch("enchant_book_manager.book_importer.uuid.uuid4")
-    @patch("enchant_book_manager.book_importer.manual_commit")
     @patch("enchant_book_manager.book_importer.Variation")
     @patch("enchant_book_manager.book_importer.Chunk")
     @patch("enchant_book_manager.book_importer.Book")
@@ -243,7 +233,6 @@ class TestImportBookFromTxt:
         mock_book,
         mock_chunk,
         mock_variation,
-        mock_commit,
         mock_uuid,
     ):
         """Test handling exception during chunk creation."""
@@ -278,7 +267,6 @@ class TestImportBookFromTxt:
         assert mock_variation.create.call_count == 1  # Only second chunk gets variation
 
     @patch("enchant_book_manager.book_importer.uuid.uuid4")
-    @patch("enchant_book_manager.book_importer.manual_commit")
     @patch("enchant_book_manager.book_importer.Variation")
     @patch("enchant_book_manager.book_importer.Chunk")
     @patch("enchant_book_manager.book_importer.Book")
@@ -291,7 +279,6 @@ class TestImportBookFromTxt:
         mock_book,
         mock_chunk,
         mock_variation,
-        mock_commit,
         mock_uuid,
     ):
         """Test handling exception during variation creation."""
@@ -312,9 +299,6 @@ class TestImportBookFromTxt:
         # Verify exception was logged
         logger.debug.assert_any_call("An exception happened when creating a new variation original for chunk n.1:")
         logger.debug.assert_any_call("ERROR: Variation error")
-
-        # Verify commit was still called
-        assert mock_commit.call_count >= 2
 
     def test_import_with_path_object(self):
         """Test importing with Path object instead of string."""

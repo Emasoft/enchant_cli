@@ -22,7 +22,6 @@ from enchant_book_manager.models import (
     BOOK_DB,
     CHUNK_DB,
     VARIATION_DB,
-    manual_commit,
 )
 
 
@@ -426,19 +425,6 @@ class TestDatabases:
         var2 = Variation.create(variation_id="var2", chunk_id="chunk2")
 
         assert len(VARIATION_DB) == 2
-
-
-class TestManualCommit:
-    """Test the manual_commit function."""
-
-    def test_manual_commit_runs(self):
-        """Test that manual_commit can be called without error."""
-        # Should not raise any exception
-        manual_commit()
-
-        # Call it multiple times
-        for _ in range(10):
-            manual_commit()
 
 
 class TestIntegration:

@@ -5,6 +5,10 @@
 # - Initial creation from enchant_cli.py refactoring
 # - Extracted command-line parsing logic
 # - Contains argument parser setup and validation
+# - Refactored create_parser into smaller functions
+# - Added _add_basic_args, _add_phase_args, _add_api_args, _add_rename_args, _add_epub_args
+# - Reduced create_parser from 359 lines to ~40 lines
+# - Moved help text to cli_help_text.py to reduce file size
 #
 
 """
@@ -21,153 +25,16 @@ import argparse
 from pathlib import Path
 from typing import Any
 
+from .cli_help_text import get_epilog_text
 
-def create_parser(config: dict[str, Any]) -> argparse.ArgumentParser:
-    """Create the argument parser with all command-line options.
+
+def _add_basic_args(parser: argparse.ArgumentParser, config: dict[str, Any]) -> None:
+    """Add basic arguments to the parser.
 
     Args:
+        parser: ArgumentParser instance to add arguments to
         config: Configuration dictionary for default values
-
-    Returns:
-        Configured ArgumentParser instance
     """
-    parser = argparse.ArgumentParser(
-        description="EnChANT - English-Chinese Automatic Novel Translator",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-====================================================================================
-USAGE EXAMPLES:
-====================================================================================
-
-SINGLE FILE PROCESSING:
-
-  Full processing (rename + translate + EPUB):
-    $ enchant-cli "我的小说.txt" --openai-api-key YOUR_KEY
-
-  Translation only (skip renaming, generate EPUB):
-    $ enchant-cli "My Novel.txt" --skip-renaming
-
-  EPUB from any translated text file:
-    $ enchant-cli --translated "path/to/translated.txt"
-
-  Process renamed file (skip renaming phase):
-    $ enchant-cli "Novel Title by Author Name.txt" --skip-renaming
-
-  Just rename files (no translation or EPUB):
-    $ enchant-cli "小说.txt" --skip-translating --skip-epub --openai-api-key YOUR_KEY
-
-BATCH PROCESSING:
-
-  Process entire directory:
-    $ enchant-cli novels/ --batch --openai-api-key YOUR_KEY
-
-  Resume interrupted batch:
-    $ enchant-cli novels/ --batch --resume
-
-  Batch with custom encoding:
-    $ enchant-cli novels/ --batch --encoding gb18030
-
-ADVANCED OPTIONS:
-
-  Use remote API (OpenRouter) instead of local:
-    $ enchant-cli novel.txt --remote
-    $ export OPENROUTER_API_KEY=your_key_here
-
-  Custom configuration file:
-    $ enchant-cli novel.txt --config my_config.yml
-
-  Use configuration preset:
-    $ enchant-cli novel.txt --preset REMOTE
-
-  Override model settings:
-    $ enchant-cli novel.txt --model "gpt-4" --temperature 0.3
-
-  Handle Big5 encoded files:
-    $ enchant-cli "traditional_novel.txt" --encoding big5
-
-  Custom chunk size for large files:
-    $ enchant-cli huge_novel.txt --max-chars 5000
-
-RENAMING OPTIONS:
-
-  Custom model for renaming:
-    $ enchant-cli novel.txt --rename-model "gpt-4" --openai-api-key YOUR_KEY
-
-  Preview renaming without changes:
-    $ enchant-cli novel.txt --rename-dry-run --openai-api-key YOUR_KEY
-
-  Adjust metadata extraction:
-    $ enchant-cli novel.txt --kb-to-read 50 --rename-temperature 0.5
-
-EPUB OPTIONS:
-
-  Custom title and author:
-    $ enchant-cli --translated novel.txt --epub-title "My Title" --epub-author "My Author"
-
-  Add cover image:
-    $ enchant-cli --translated novel.txt --cover "cover.jpg"
-
-  Custom CSS styling:
-    $ enchant-cli --translated novel.txt --custom-css "style.css"
-
-  Add metadata:
-    $ enchant-cli --translated novel.txt --epub-metadata '{"publisher": "My Pub", "series": "My Series"}'
-
-  Validate chapters only:
-    $ enchant-cli --translated novel.txt --validate-only
-
-  Disable TOC generation:
-    $ enchant-cli --translated novel.txt --no-toc
-
-  Strict validation mode:
-    $ enchant-cli --translated novel.txt --epub-strict
-
-PHASE COMBINATIONS:
-
-  Rename only:
-    $ enchant-cli "中文小说.txt" --skip-translating --skip-epub --openai-api-key YOUR_KEY
-
-  Translate only (no rename, no EPUB):
-    $ enchant-cli "Already Named Novel.txt" --skip-renaming --skip-epub
-
-  EPUB only from translation directory:
-    $ enchant-cli "Novel by Author.txt" --skip-renaming --skip-translating
-
-  EPUB from external translated file:
-    $ enchant-cli --translated "/path/to/translation.txt"
-
-====================================================================================
-PROCESSING PHASES:
-====================================================================================
-  1. RENAMING: Extract metadata and rename files (requires OpenRouter API key)
-     Options: --rename-model, --rename-temperature, --kb-to-read, --rename-dry-run
-
-  2. TRANSLATION: Translate Chinese text to English
-     Options: --remote, --max-chars, --resume, --model, --temperature
-
-  3. EPUB: Generate EPUB from translated novel
-     Options: --epub-title, --epub-author, --cover, --epub-language, --custom-css,
-              --epub-metadata, --no-toc, --no-validate, --epub-strict, --validate-only
-
-SKIP FLAGS:
-  --skip-renaming     Skip phase 1 (file renaming)
-  --skip-translating  Skip phase 2 (translation)
-  --skip-epub        Skip phase 3 (EPUB generation)
-
-BEHAVIOR:
-  • Each phase can be independently skipped
-  • Skipped phases preserve existing data
-  • --resume works with all phase combinations
-  • Progress saved for batch operations
-  • --translated allows EPUB from any text file
-
-API KEYS:
-  • Renaming requires OpenRouter API key (--openai-api-key or OPENROUTER_API_KEY env)
-  • Translation uses local LM Studio by default (--remote for OpenRouter)
-  • Remote translation requires OPENROUTER_API_KEY environment variable
-""",
-    )
-
     parser.add_argument(
         "filepath",
         type=str,
@@ -226,6 +93,13 @@ API KEYS:
         help="Use remote OpenRouter API instead of local LM Studio. Requires OPENROUTER_API_KEY environment variable",
     )
 
+
+def _add_phase_args(parser: argparse.ArgumentParser) -> None:
+    """Add phase control arguments to the parser.
+
+    Args:
+        parser: ArgumentParser instance to add arguments to
+    """
     # Skip flags for different phases
     parser.add_argument("--skip-renaming", action="store_true", help="Skip the file renaming phase")
     parser.add_argument("--skip-translating", action="store_true", help="Skip the translation phase")
@@ -238,6 +112,13 @@ API KEYS:
         help="Path to already translated text file for direct EPUB generation. Automatically implies --skip-renaming and --skip-translating. Makes filepath argument optional",
     )
 
+
+def _add_api_args(parser: argparse.ArgumentParser) -> None:
+    """Add API-related arguments to the parser.
+
+    Args:
+        parser: ArgumentParser instance to add arguments to
+    """
     # API key for renaming (if not skipped)
     parser.add_argument(
         "--openai-api-key",
@@ -245,7 +126,7 @@ API KEYS:
         help="OpenRouter API key for novel renaming (can also use OPENROUTER_API_KEY env var)",
     )
 
-    # Add configuration override arguments
+    # Configuration override arguments
     parser.add_argument(
         "--timeout",
         type=int,
@@ -280,7 +161,13 @@ API KEYS:
         help="Enable double-pass translation (overrides config/preset)",
     )
 
-    # Renaming phase options
+
+def _add_rename_args(parser: argparse.ArgumentParser) -> None:
+    """Add renaming phase arguments to the parser.
+
+    Args:
+        parser: ArgumentParser instance to add arguments to
+    """
     parser.add_argument(
         "--rename-model",
         type=str,
@@ -312,7 +199,13 @@ API KEYS:
         help="Preview what files would be renamed without actually renaming them",
     )
 
-    # EPUB generation options
+
+def _add_epub_args(parser: argparse.ArgumentParser) -> None:
+    """Add EPUB generation arguments to the parser.
+
+    Args:
+        parser: ArgumentParser instance to add arguments to
+    """
     parser.add_argument(
         "--epub-title",
         type=str,
@@ -379,6 +272,29 @@ API KEYS:
         action="store_true",
         help="Just scan and validate chapters without creating EPUB",
     )
+
+
+def create_parser(config: dict[str, Any]) -> argparse.ArgumentParser:
+    """Create the argument parser with all command-line options.
+
+    Args:
+        config: Configuration dictionary for default values
+
+    Returns:
+        Configured ArgumentParser instance
+    """
+    parser = argparse.ArgumentParser(
+        description="EnChANT - English-Chinese Automatic Novel Translator",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=get_epilog_text(),
+    )
+
+    # Add arguments in logical groups
+    _add_basic_args(parser, config)
+    _add_phase_args(parser)
+    _add_api_args(parser)
+    _add_rename_args(parser)
+    _add_epub_args(parser)
 
     return parser
 
