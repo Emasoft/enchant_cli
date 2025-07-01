@@ -25,12 +25,11 @@ from typing import Any
 
 # Try to import rich for enhanced printing
 try:
-    from rich import print
+    from rich import print as rich_print
 
     rich_available = True
 except ImportError:
-    # Use standard print if rich isn't available
-    print = builtins.print
+    rich_print = None
     rich_available = False
 
 
@@ -46,8 +45,8 @@ def safe_print(*args: Any, **kwargs: Any) -> None:
         *args: Arguments to print
         **kwargs: Keyword arguments for print function
     """
-    if rich_available:
-        print(*args, **kwargs)
+    if rich_available and rich_print is not None:
+        rich_print(*args, **kwargs)
     else:
         # Strip rich markup tags for plain text output
         text = " ".join(str(arg) for arg in args)
