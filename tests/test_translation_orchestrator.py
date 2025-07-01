@@ -237,12 +237,13 @@ class TestSaveTranslatedBook:
                 module_config=module_config,
             )
 
-        # Verify retries happened (2 chunks * 3 attempts each = 6)
-        assert self.mock_translator.translate.call_count == 6
-        assert mock_sleep.call_count == 4  # 2 sleeps per chunk * 2 chunks
+        # Verify retries happened (1 chunk * 3 attempts = 3)
+        # Note: After the first chunk fails, we exit and don't process the second chunk
+        assert self.mock_translator.translate.call_count == 3
+        assert mock_sleep.call_count == 2  # 2 sleeps for the first chunk's retries
 
-        # Verify system exit was called twice (once per chunk failure)
-        assert mock_exit.call_count == 2
+        # Verify system exit was called once (after first chunk failure)
+        assert mock_exit.call_count == 1
 
     @patch("enchant_book_manager.translation_orchestrator.Book")
     @patch("enchant_book_manager.translation_orchestrator.VARIATION_DB")
