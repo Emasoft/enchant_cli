@@ -1,5 +1,0 @@
-This is a test file to verify Trufflehog v3 is working.
-Author: Emasoft
-Email: 713559+Emasoft@users.noreply.github.com
-
-This should not trigger any alerts as these are in our exclude list.
