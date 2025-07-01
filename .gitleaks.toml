@@ -30,6 +30,11 @@ description = "Generic Secret"
 regex = '''(?i)(secret[_\-\s]*[=:]\s*['"][0-9a-zA-Z]{16,}['"])'''
 tags = ["key", "secret"]
 
-# Allow certain test patterns
+# Allow certain test patterns in the last rule
 [[rules.allowlist]]
-regex = '''test_secret|dummy_key|fake_api'''
+regexTarget = "match"
+regexes = [
+    '''test_secret''',
+    '''dummy_key''',
+    '''fake_api'''
+]
