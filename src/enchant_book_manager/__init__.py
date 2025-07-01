@@ -21,7 +21,7 @@ EnChANT - English-Chinese Automatic Novel Translator
 A comprehensive Chinese novel translation and EPUB generation system.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __author__ = "Emasoft"
 __email__ = "713559+Emasoft@users.noreply.github.com"
 __license__ = "Apache-2.0"
