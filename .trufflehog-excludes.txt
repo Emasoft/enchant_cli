@@ -1,0 +1,25 @@
+# Regex patterns to exclude from Trufflehog scanning
+# One pattern per line
+
+# Git author information
+.*Emasoft.*
+.*713559\+Emasoft@users\.noreply\.github\.com.*
+.*GIT_AUTHOR.*Emasoft.*
+.*GIT_COMMITTER.*Emasoft.*
+.*git config user\.name.*Emasoft.*
+.*git config user\.email.*713559.*
+
+# Common non-secret patterns
+.*example\.com.*
+.*test@example\.com.*
+.*localhost.*
+.*127\.0\.0\.1.*
+
+# File paths to exclude
+.*/\.git/.*
+.*/\.venv/.*
+.*/__pycache__/.*
+.*/node_modules/.*
+.*/\.pytest_cache/.*
+.*/dist/.*
+.*/build/.*
